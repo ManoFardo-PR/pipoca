@@ -25,7 +25,7 @@ const server = http.createServer((req, res) => {
   let urlPath = req.url.split("?")[0];
 
   if (urlPath === "/" || urlPath === "") {
-    urlPath = "/Pipoca.dc.html";
+    urlPath = "/index.html";
   }
 
   const filePath = path.join(__dirname, urlPath);

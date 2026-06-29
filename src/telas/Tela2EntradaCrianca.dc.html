@@ -1,0 +1,172 @@
+<!-- Tela2EntradaCrianca.dc.html — Login visual da criança ("Quem vai ler hoje?")
+     ─────────────────────────────────────────────────────────────────────────────
+     Sem senha/PIN para a criança. Tocar avatar define o Perfil ativo e vai para T3.
+     "Sou o cuidador" chama abrirPortaoParental() (stub → PINGATE fase02).
+     Alvos de toque ≥ 140×140 px. reduceMotion: sem animação de entrada.
+-->
+<x-dc>
+<helmet>
+  <style>
+    @keyframes avBloom{0%{transform:scale(.5);opacity:0}55%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:1}}
+    .av-enter { animation: avBloom .42s ease forwards; }
+  </style>
+</helmet>
+
+<div style="position:absolute;inset:0;overflow:hidden;background:linear-gradient(180deg,#fbe8c8 0%,#f7dca6 42%,#f3c98a 100%);">
+  <div style="position:absolute;left:0;right:0;bottom:0;height:300px;background:linear-gradient(180deg,#bcd99a,#9cc47e);border-radius:50% 50% 0 0 / 80px 80px 0 0;"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;height:190px;background:linear-gradient(180deg,#a7cd84,#86b46a);border-radius:50% 50% 0 0 / 60px 60px 0 0;"></div>
+  <div style="position:absolute;top:84px;left:50%;transform:translateX(-50%);width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 50% 45%,#fff6da,#fcd784 55%,rgba(252,215,132,0) 72%);"></div>
+
+  <div style="position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;">
+
+    <sc-if value="{{ carregando }}" hint-placeholder-val="{{ false }}">
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:26px;color:#3a4f63;opacity:.6;">Carregando…</div>
+    </sc-if>
+
+    <sc-if value="{{ semPerfis }}" hint-placeholder-val="{{ false }}">
+      <div style="text-align:center;">
+        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:36px;color:#3a4f63;">Oi! 👋</div>
+        <p style="font-size:17px;color:#6a7a55;margin-top:12px;max-width:380px;line-height:1.5;">Peça pra um cuidador criar o seu perfil — é bem rapidinho!</p>
+        <button onClick="{{ abrirPortaoParental }}" style="margin-top:28px;background:linear-gradient(150deg,#e8965a,#d5713f);border:none;border-radius:999px;padding:14px 30px;font-family:'Baloo 2';font-weight:700;font-size:16px;color:#fff;cursor:pointer;box-shadow:0 8px 20px -6px rgba(181,86,40,.5);">⚙ Configurar com o cuidador</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ mostrarAvatares }}" hint-placeholder-val="{{ true }}">
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:40px;color:#3a4f63;text-shadow:0 1px 0 rgba(255,255,255,.4);">Quem vai ler hoje?</div>
+      <p style="font-size:17px;color:#6a6a55;margin-top:8px;">Toque no seu rostinho para começar.</p>
+
+      <div style="display:flex;gap:34px;margin-top:48px;flex-wrap:wrap;justify-content:center;max-width:840px;">
+        <sc-for list="{{ avatars }}" as="av" hint-placeholder-count="5">
+          <button onClick="{{ av.pick }}" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:12px;padding:0;">
+            <div style="{{ av.ring }}">
+              <div ref="{{ av.svgRef }}" style="width:140px;height:140px;display:flex;align-items:center;justify-content:center;" class="{{ animClass }}"></div>
+            </div>
+            <div style="font-family:'Baloo 2';font-weight:600;font-size:18px;color:#46505a;">{{ av.name }}</div>
+          </button>
+        </sc-for>
+      </div>
+
+      <button onClick="{{ abrirPortaoParental }}" style="margin-top:46px;background:rgba(255,255,255,.6);border:none;border-radius:999px;padding:11px 22px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;backdrop-filter:blur(4px);">⚙ Sou o cuidador</button>
+    </sc-if>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    perfis: [],
+    carregando: true,
+  };
+
+  _inject(el, html) { if (el && el._k !== html) { el.innerHTML = html; el._k = html; } }
+
+  _avatarDefs() {
+    return [
+      { id:'pingo', name:'Pingo', bg:'#3f6f9e', ear:'pup',  fur:'#5b86ad' },
+      { id:'fubá',  name:'Fubá',  bg:'#d98a4e', ear:'fox',  fur:'#e6a063' },
+      { id:'cacau', name:'Cacau', bg:'#7a9a5b', ear:'bear', fur:'#93b074' },
+      { id:'lua',   name:'Lua',   bg:'#9c7cb0', ear:'cat',  fur:'#b196c2' },
+      { id:'tuca',  name:'Tuca',  bg:'#5fa9b8', ear:'bird', fur:'#7cc0cd' },
+    ];
+  }
+
+  _avatarSVG(d) {
+    const ear = {
+      pup:  "<path d='M22 30 Q14 8 34 26 Z' fill='"+d.fur+"'/><path d='M86 30 Q94 8 74 26 Z' fill='"+d.fur+"'/>",
+      fox:  "<path d='M24 26 L20 4 L42 20 Z' fill='"+d.fur+"'/><path d='M84 26 L88 4 L66 20 Z' fill='"+d.fur+"'/>",
+      bear: "<circle cx='28' cy='22' r='13' fill='"+d.fur+"'/><circle cx='80' cy='22' r='13' fill='"+d.fur+"'/>",
+      cat:  "<path d='M26 28 L20 6 L40 22 Z' fill='"+d.fur+"'/><path d='M82 28 L88 6 L68 22 Z' fill='"+d.fur+"'/>",
+      bird: "<path d='M54 6 q8 -4 6 8' stroke='"+d.fur+"' stroke-width='5' fill='none' stroke-linecap='round'/>",
+    }[d.ear] || '';
+    return "<svg viewBox='0 0 108 108' width='108' height='108' xmlns='http://www.w3.org/2000/svg'>"
+      + ear
+      + "<circle cx='54' cy='60' r='42' fill='"+d.bg+"'/>"
+      + "<circle cx='54' cy='66' r='30' fill='rgba(255,255,255,.16)'/>"
+      + "<circle cx='42' cy='56' r='5.5' fill='#2b2118'/><circle cx='66' cy='56' r='5.5' fill='#2b2118'/>"
+      + "<circle cx='44' cy='54' r='1.8' fill='#fff'/><circle cx='68' cy='54' r='1.8' fill='#fff'/>"
+      + "<path d='M46 72 Q54 80 62 72' stroke='#2b2118' stroke-width='4' fill='none' stroke-linecap='round'/>"
+      + "<circle cx='36' cy='66' r='5' fill='rgba(255,140,90,.35)'/><circle cx='72' cy='66' r='5' fill='rgba(255,140,90,.35)'/>"
+      + "</svg>";
+  }
+
+  async componentDidMount() {
+    this.setState({ carregando: true });
+    try {
+      const App = window.PipocaApp;
+      if (App && App.repo) {
+        const perfis = await App.repo.carregarPerfis();
+        this.setState({ perfis, carregando: false });
+      } else {
+        const savedRaw = localStorage.getItem('pipoca.perfis.v1');
+        const perfis = savedRaw ? JSON.parse(savedRaw) : [];
+        this.setState({ perfis, carregando: false });
+      }
+    } catch(e) {
+      this.setState({ perfis: [], carregando: false });
+    }
+  }
+
+  selecionarAvatar(avatarId) {
+    const { perfis } = this.state;
+    const perfil = perfis.find(p => p.avatarId === avatarId);
+    if (!perfil) {
+      return;
+    }
+    const App = window.PipocaApp;
+    if (App) {
+      App.setState({ perfil, tela: 3 });
+    }
+    const R = window.PipocaRoteador;
+    if (R) R.irParaTela(3);
+  }
+
+  irParaTela(n) {
+    const R = window.PipocaRoteador;
+    if (R) R.irParaTela(n);
+    const App = window.PipocaApp;
+    if (App) App.setState({ tela: n });
+  }
+
+  abrirPortaoParental() {
+    this.irParaTela(1);
+  }
+
+  renderVals() {
+    const { perfis, carregando } = this.state;
+    const App = window.PipocaApp;
+    const a11y = App ? App.estado.a11y : { reduceMotion: false };
+    const animClass = a11y.reduceMotion ? '' : 'av-enter';
+    const carregandoState = carregando;
+    const semPerfis = !carregando && perfis.length === 0;
+    const mostrarAvatares = !carregando && perfis.length > 0;
+
+    const avatarMap = new Map(perfis.map(p => [p.avatarId, p]));
+    const avatars = this._avatarDefs().map(d => {
+      const temPerfil = avatarMap.has(d.id);
+      return {
+        name: d.name,
+        svgRef: (el) => this._inject(el, this._avatarSVG(d)),
+        pick: () => temPerfil ? this.selecionarAvatar(d.id) : undefined,
+        ring: 'width:140px;height:140px;border-radius:50%;display:flex;align-items:center;justify-content:center;'
+          + (temPerfil
+            ? 'box-shadow:0 8px 28px rgba(63,111,158,.32);background:rgba(255,255,255,.7);'
+            : 'opacity:.35;background:rgba(200,190,175,.3);'),
+      };
+    }).filter((_, i) => {
+      const d = this._avatarDefs()[i];
+      return avatarMap.has(d.id);
+    });
+
+    return {
+      carregando: carregandoState,
+      semPerfis,
+      mostrarAvatares,
+      avatars,
+      animClass,
+      abrirPortaoParental: () => this.abrirPortaoParental(),
+    };
+  }
+}
+</script>

@@ -1,0 +1,141 @@
+<!-- Tela6Recompensa.dc.html — Recompensa (T6)
+     ──────────────────────────────────────────
+     Micro-celebração calorosa após leitura confirmada.
+     Mostra o novo objeto desbloqueado + "+N vaga-lumes".
+     Idempotente: crédito já feito em T5.
+     "Continuar" → destravar próximo → T4.
+     "Ver meu pote" → T7.
+     reduceMotion → celebração estática.
+-->
+<x-dc>
+<helmet>
+  <style>
+    @keyframes pipBloom{0%{transform:scale(.5);opacity:0}55%{transform:scale(1.14);opacity:1}100%{transform:scale(1);opacity:1}}
+    @keyframes pipRing{0%{transform:scale(.6);opacity:.55}100%{transform:scale(1.9);opacity:0}}
+    @keyframes pipPop{0%{transform:scale(.2);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}
+    .earn-bloom { animation: pipBloom .55s cubic-bezier(.22,1,.36,1) forwards; }
+    .earn-pop { animation: pipPop .4s ease forwards; }
+    .earn-ring { animation: pipRing 1s ease-out forwards; }
+  </style>
+</helmet>
+
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#fef4e0,#fbe9c4);">
+
+  <!-- Background glow rings -->
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;">
+    <div style="width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(247,191,96,.18),transparent 70%);"></div>
+  </div>
+
+  <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:28px;max-width:560px;width:100%;padding:40px;">
+
+    <!-- Earned fireflies -->
+    <div style="display:flex;align-items:center;gap:16px;" class="{{ bloomClass }}">
+      <div style="width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 28px 8px rgba(247,191,96,.6);display:flex;align-items:center;justify-content:center;font-size:28px;"></div>
+      <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:52px;color:#b8693c;text-shadow:0 2px 12px rgba(181,86,40,.35);">+{{ earned }}</div>
+    </div>
+
+    <div style="text-align:center;">
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:36px;color:#3a4f63;">Você leu! 🎉</div>
+      <p style="font-size:17px;color:#6a6a55;margin-top:8px;line-height:1.5;">{{ earned }} vaga-lumes novos no seu pote. Cada leitura faz o quintal crescer.</p>
+    </div>
+
+    <!-- Novo objeto -->
+    <div style="background:rgba(255,255,255,.85);border-radius:26px;padding:22px 32px;box-shadow:0 16px 40px -16px rgba(74,59,44,.35);text-align:center;min-width:240px;" class="{{ popClass }}">
+      <div style="font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#9a8a72;margin-bottom:12px;">Novo amigo desbloqueado</div>
+      <div style="font-size:52px;margin-bottom:8px;">{{ objetoEmoji }}</div>
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:20px;color:#3a2c20;">{{ objetoNome }}</div>
+    </div>
+
+    <!-- Total de vaga-lumes -->
+    <div style="display:flex;align-items:center;gap:10px;background:#fff3da;border:1.5px solid #f0d9a8;border-radius:999px;padding:10px 22px 10px 14px;">
+      <div style="width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 10px 2px rgba(247,191,96,.7);"></div>
+      <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;color:#b8693c;">{{ vagalumes }} vaga-lumes no pote</span>
+    </div>
+
+    <!-- Ações -->
+    <div style="display:flex;gap:14px;width:100%;">
+      <button onClick="{{ verPote }}" style="flex:1;padding:16px;border:1.5px solid rgba(160,140,110,.3);border-radius:16px;background:rgba(255,255,255,.7);cursor:pointer;font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:#7a6a54;">🫙 Ver meu pote</button>
+      <button onClick="{{ continuar }}" style="flex:2;padding:16px;border:none;border-radius:16px;background:linear-gradient(150deg,#e8965a,#d5713f);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(181,86,40,.5);">{{ continuarLabel }} →</button>
+    </div>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {};
+
+  _getApp() { return window.PipocaApp; }
+
+  continuar() {
+    const App = this._getApp();
+    if (!App) return;
+    const estado = App.estado;
+    const cenario = App.cenario;
+    const historia = estado.historia;
+
+    if (cenario && historia) {
+      const todos = cenario.objetos.map(o => o.id);
+      const commitados = new Set(historia.objetos);
+      const restantes = todos.filter(id => !commitados.has(id));
+
+      if (restantes.length === 0) {
+        App.setState({ tela: 7 });
+        const R = window.PipocaRoteador;
+        if (R) R.irParaTela(7);
+        return;
+      }
+    }
+
+    App.setState({ storyMsg: null, tela: 4 });
+    const R = window.PipocaRoteador;
+    if (R) R.irParaTela(4);
+  }
+
+  verPote() {
+    const App = this._getApp();
+    if (App) App.setState({ tela: 7 });
+    const R = window.PipocaRoteador;
+    if (R) R.irParaTela(7);
+  }
+
+  renderVals() {
+    const App = this._getApp();
+    const estado = App ? App.estado : {};
+    const a11y = estado.a11y || {};
+    const economia = estado.economia || { vagalumes: 0 };
+    const earned = estado.gateEarned || 3;
+    const cenario = App ? App.cenario : null;
+    const historia = estado.historia || { objetos: [] };
+
+    const gateObjId = estado.gateObjId;
+    let objetoEmoji = '🌟';
+    let objetoNome = 'Novo objeto';
+    if (cenario && gateObjId) {
+      const obj = cenario.objetos.find(o => o.id === gateObjId);
+      if (obj) { objetoEmoji = obj.emoji; objetoNome = obj.nome; }
+    }
+
+    const todos = cenario ? cenario.objetos.map(o => o.id) : [];
+    const commitados = new Set(historia.objetos);
+    const restantes = todos.filter(id => !commitados.has(id));
+    const continuarLabel = restantes.length === 0 ? 'Ver o final' : 'Continuar lendo';
+
+    const bloomClass = a11y.reduceMotion ? '' : 'earn-bloom';
+    const popClass = a11y.reduceMotion ? '' : 'earn-pop';
+
+    return {
+      earned,
+      objetoEmoji,
+      objetoNome,
+      vagalumes: economia.vagalumes,
+      continuarLabel,
+      bloomClass,
+      popClass,
+      continuar: () => this.continuar(),
+      verPote: () => this.verPote(),
+    };
+  }
+}
+</script>

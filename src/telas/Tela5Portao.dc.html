@@ -1,0 +1,313 @@
+<!-- Tela5Portao.dc.html — O portão de leitura (T5)
+     ────────────────────────────────────────────────
+     Leitura palavra por palavra do Trecho atual.
+     Tocar palavra → TTS + destaque.
+     isStuck → re-tentativa acolhedora (destaque dourado, "Ouvir de novo").
+     Fim do trecho → verificação (cuidador ou auto) → commit + T6.
+     Seam: texto vem de window.PipocaApp.gateTrecho (motor já chamado em T4).
+-->
+<x-dc>
+<helmet>
+  <style>
+    @keyframes pipGlow{0%,100%{opacity:.5}50%{opacity:1}}
+    .word-stuck { animation: pipGlow 1.8s ease-in-out infinite; }
+  </style>
+</helmet>
+
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;background:linear-gradient(180deg,#f6ead2,#f0e2c4);">
+
+  <!-- App bar -->
+  <div style="height:58px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(255,255,255,.55);backdrop-filter:blur(8px);border-bottom:1px solid rgba(160,140,110,.18);">
+    <button onClick="{{ voltarCena }}" style="width:40px;height:40px;border-radius:12px;border:1.5px solid rgba(160,140,110,.25);background:rgba(255,255,255,.7);cursor:pointer;font-size:17px;color:#7a6a54;">←</button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:17px;height:17px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 8px 1px rgba(247,191,96,.7);"></div>
+      <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#b8693c;">{{ vagalumes }}</span>
+    </div>
+    <button onClick="{{ abrirAjustesA11y }}" style="width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(160,140,110,.25);background:rgba(255,255,255,.6);cursor:pointer;font-size:17px;color:#7a6a54;">⚙</button>
+  </div>
+
+  <!-- Reading state -->
+  <sc-if value="{{ modoLendo }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 60px;">
+
+    <!-- Barra de progresso -->
+    <div style="width:100%;max-width:700px;margin-bottom:24px;background:rgba(255,255,255,.6);border-radius:16px;padding:12px 18px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:13px;color:#7a6a54;">📖 Palavra {{ palavraAtualNum }} de {{ totalPalavras }}</span>
+        <span style="font-size:12px;color:#9a8a72;font-weight:600;">{{ pctLabel }}</span>
+      </div>
+      <div style="height:8px;border-radius:8px;background:rgba(160,140,110,.2);margin-top:8px;overflow:hidden;">
+        <div style="height:100%;border-radius:8px;width:{{ progressoPct }};background:linear-gradient(90deg,#f4b65a,#e8965a);transition:width .25s ease;"></div>
+      </div>
+    </div>
+
+    <!-- Frase com palavras tocáveis -->
+    <div style="width:100%;max-width:720px;background:rgba(255,255,255,.8);border-radius:26px;padding:36px 42px;box-shadow:0 20px 50px -20px rgba(74,59,44,.35);text-align:center;">
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px 2px;align-items:baseline;">
+        <sc-for list="{{ gateWords }}" as="gwd" hint-placeholder-count="6">
+          <span onClick="{{ gwd.onTap }}" style="{{ gwd.style }}" class="{{ gwd.animClass }}">{{ gwd.text }}</span>
+        </sc-for>
+      </div>
+
+      <!-- Re-tentativa acolhedora -->
+      <sc-if value="{{ isStuck }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:24px;background:#fffbf0;border:2px solid #f0d9a8;border-radius:18px;padding:18px 22px;text-align:left;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 12px 3px rgba(247,191,96,.6);flex-shrink:0;"></div>
+          <div>
+            <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:#8a6a1e;">Essa palavra é trupé, né? Sem pressa.</div>
+            <div style="font-size:13px;color:#a0863e;margin-top:3px;line-height:1.4;">Ouça de novo, sussurre junto, e tente quando quiser. Aqui ninguém erra.</div>
+          </div>
+        </div>
+        <button onClick="{{ ouvirDeNovo }}" style="margin-top:14px;display:flex;align-items:center;gap:8px;background:#fff3da;border:1.5px solid #f0d9a8;border-radius:14px;padding:11px 20px;font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#8a6a1e;cursor:pointer;">🔊 Ouvir de novo</button>
+      </div>
+      </sc-if>
+    </div>
+
+    <!-- Controles -->
+    <div style="display:flex;gap:14px;margin-top:24px;width:100%;max-width:700px;justify-content:center;">
+      <button onClick="{{ ouvirAtual }}" style="padding:13px 24px;border:1.5px solid rgba(160,140,110,.3);border-radius:14px;background:rgba(255,255,255,.7);cursor:pointer;font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#7a6a54;">🔊 Ouvir</button>
+      <button onClick="{{ proximaPalavra }}" style="flex:1;padding:15px 24px;border:none;border-radius:16px;background:linear-gradient(150deg,#e8965a,#d5713f);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:17px;cursor:pointer;box-shadow:0 8px 20px -6px rgba(181,86,40,.5);">{{ nextLabel }}</button>
+    </div>
+
+  </div>
+  </sc-if>
+
+  <!-- Verificação -->
+  <sc-if value="{{ modoVerificacao }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 60px;gap:24px;">
+    <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:34px;color:#3a4f63;text-align:center;">Você leu! 🌟</div>
+    <p style="font-size:17px;color:#6a6a55;text-align:center;max-width:500px;line-height:1.5;">Quem vai confirmar essa leitura?</p>
+
+    <!-- Modo cuidador -->
+    <sc-if value="{{ verifyIsCuidador }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;gap:16px;">
+      <button onClick="{{ confirmSozinho }}" style="padding:20px 32px;border:none;border-radius:20px;background:linear-gradient(150deg,#7da94f,#5d8a3a);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(77,122,57,.5);">🌱 Leu sozinho</button>
+      <button onClick="{{ confirmJuntos }}" style="padding:20px 32px;border:none;border-radius:20px;background:linear-gradient(150deg,#5a86b0,#3f6f9e);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(45,86,129,.4);">🤝 Tentamos juntos</button>
+    </div>
+    <p style="font-size:13px;color:#9a8a72;text-align:center;max-width:420px;line-height:1.4;">Os dois contam — tentar já é leitura. 💚</p>
+    </sc-if>
+
+    <!-- Modo auto -->
+    <sc-if value="{{ verifyIsAuto }}" hint-placeholder-val="{{ false }}">
+    <button onClick="{{ confirmSozinho }}" style="padding:22px 44px;border:none;border-radius:20px;background:linear-gradient(150deg,#7da94f,#5d8a3a);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(77,122,57,.5);">✓ Eu li!</button>
+    </sc-if>
+
+  </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    palavraIdx: 0,
+    stage: 'reading',
+  };
+
+  _speak(texto) {
+    try {
+      const synth = window.speechSynthesis;
+      if (!synth) return;
+      synth.cancel();
+      const u = new SpeechSynthesisUtterance(texto);
+      u.lang = 'pt-BR'; u.rate = 0.82; u.pitch = 1.05;
+      const vozes = synth.getVoices();
+      const voz = vozes.find(v => /pt[-_]?BR/i.test(v.lang)) || vozes.find(v => /pt/i.test(v.lang));
+      if (voz) u.voice = voz;
+      synth.speak(u);
+    } catch(_) {}
+  }
+
+  _tokenizar(texto) {
+    if (!texto) return [];
+    return texto.trim().split(/\s+/).filter(w => w.length > 0);
+  }
+
+  _ehDificil(palavra) {
+    const limpa = palavra.replace(/[.,!?;:"""''()\-]/g,'').toLowerCase();
+    if (!limpa) return false;
+    if (limpa.length > 7) return true;
+    if (palavra.includes('-')) return true;
+    const d = ['lh','nh','rr','ss','ão','ãe','ões'];
+    for (const x of d) { if (limpa.includes(x)) return true; }
+    if (/[âêôáéíóúãõ]/.test(limpa) && limpa.length > 5) return true;
+    return false;
+  }
+
+  _silabar(palavra) {
+    const limpa = palavra.replace(/[.,!?;:"""''()]/g,'');
+    const pontuacao = palavra.slice(limpa.length);
+    if (limpa.length <= 2) return palavra;
+    const vogais = /[aeiouáéíóúâêôãõàü]/i;
+    const parts = [];
+    let sil = '', cv = 0;
+    for (let i = 0; i < limpa.length; i++) {
+      const c = limpa[i];
+      sil += c;
+      if (vogais.test(c)) {
+        cv++;
+        if (cv >= 1 && i < limpa.length - 1 && !vogais.test(limpa[i+1]||'')) {
+          parts.push(sil); sil = ''; cv = 0;
+        }
+      }
+    }
+    if (sil) parts.push(sil);
+    return (parts.length > 1 ? parts.join('\u00b7') : limpa) + pontuacao;
+  }
+
+  componentDidMount() {
+    const App = window.PipocaApp;
+    if (App) {
+      const idx = App.estado.gatePalavraIdx || 0;
+      const stage = App.estado.gateStage || 'reading';
+      this.setState({ palavraIdx: idx, stage });
+    }
+  }
+
+  _getApp() { return window.PipocaApp; }
+
+  _commit() {
+    const App = this._getApp();
+    if (!App) return;
+    const estado = App.estado;
+    const objetoId = estado.gateObjId;
+    const motor = App.motor;
+    const nivel = estado.perfil ? estado.perfil.nivel : 'n1';
+    const historia = estado.historia;
+
+    if (!objetoId || !motor || !historia) return;
+    if (historia.objetosCreditados && historia.objetosCreditados.includes(objetoId)) {
+      App.setState({ tela: 6 });
+      const R = window.PipocaRoteador;
+      if (R) R.irParaTela(6);
+      return;
+    }
+
+    const novaHistoria = {
+      ...historia,
+      objetos: [...(historia.objetos || []), objetoId],
+    };
+    const economia = estado.economia || { vagalumes: 0, poupado: 0, objetosCreditados: [] };
+    const jaCredita = (economia.objetosCreditados || []).includes(objetoId);
+    const novaEconomia = jaCredita ? economia : {
+      ...economia,
+      vagalumes: (economia.vagalumes || 0) + 3,
+      objetosCreditados: [...(economia.objetosCreditados || []), objetoId],
+    };
+
+    App.setState({
+      historia: novaHistoria,
+      economia: novaEconomia,
+      gateStage: 'success',
+      gateEarned: 3,
+      tela: 6,
+    });
+    const R = window.PipocaRoteador;
+    if (R) R.irParaTela(6);
+  }
+
+  ouvirPalavra(i) {
+    const App = this._getApp();
+    const trecho = App ? App.estado.gateTrecho : '';
+    const palavras = this._tokenizar(trecho);
+    const w = palavras[i];
+    if (w) this._speak(w);
+    this.setState({ palavraIdx: i });
+  }
+
+  proximaPalavra() {
+    const App = this._getApp();
+    const trecho = App ? App.estado.gateTrecho : '';
+    const palavras = this._tokenizar(trecho);
+    const next = this.state.palavraIdx + 1;
+    if (next >= palavras.length) {
+      this.setState({ stage: 'verifying' });
+    } else {
+      const w = palavras[next];
+      this.setState({ palavraIdx: next });
+      if (w) this._speak(w);
+    }
+  }
+
+  voltarCena() {
+    const App = this._getApp();
+    if (App) App.setState({ tela: 4 });
+    const R = window.PipocaRoteador;
+    if (R) R.irParaTela(4);
+  }
+
+  abrirAjustesA11y() {
+    const App = this._getApp();
+    if (App) App.setState({ showA11y: true });
+  }
+
+  renderVals() {
+    const App = this._getApp();
+    const estado = App ? App.estado : {};
+    const a11y = estado.a11y || {};
+    const trecho = estado.gateTrecho || '';
+    const palavras = this._tokenizar(trecho);
+    const curIdx = this.state.palavraIdx;
+    const stage = this.state.stage;
+    const modoLendo = stage === 'reading';
+    const modoVerificacao = stage === 'verifying';
+
+    const readFont = a11y.dyslexia ? "'Atkinson Hyperlegible', sans-serif" : "'Nunito', sans-serif";
+    const readScale = a11y.textScale || 1;
+    const wordPx = Math.round(46 * readScale);
+    const letterSp = a11y.dyslexia ? '0.06em' : '0.01em';
+    const ink = a11y.contrast ? '#1a1008' : '#3a2c20';
+    const hi = a11y.contrast ? '#fbd98f' : '#fce6bf';
+
+    const curWord = palavras[curIdx] || '';
+    const isStuck = this._ehDificil(curWord);
+
+    const gateWords = palavras.map((w, i) => {
+      const isCur = (i === curIdx) && modoLendo;
+      const txt = a11y.syllable ? this._silabar(w) : w;
+      return {
+        text: txt,
+        idx: i,
+        onTap: () => this.ouvirPalavra(i),
+        animClass: isCur && isStuck ? 'word-stuck' : '',
+        style: 'font-family:'+readFont+';font-weight:800;font-size:'+wordPx+'px;line-height:1.55;letter-spacing:'+letterSp+';cursor:pointer;padding:3px 12px;border-radius:16px;display:inline-block;'
+          + (isCur
+            ? (isStuck ? 'background:#fbe6b8;color:#9a6a1e;box-shadow:0 0 0 3px rgba(243,183,90,.55);' : 'background:'+hi+';color:'+ink+';')
+            : 'background:transparent;color:'+ink+';'),
+      };
+    });
+
+    const total = palavras.length;
+    const pct = total > 0 ? Math.min(100, Math.round(((curIdx + 1) / total) * 100)) : 0;
+    const verificacao = estado.modos ? estado.modos.verificacao : 'cuidador';
+    const vagalumes = estado.economia ? estado.economia.vagalumes : 0;
+
+    const nextLabel = curIdx >= palavras.length - 1 ? 'Terminei a frase ✓' : 'Próxima palavra ›';
+
+    return {
+      modoLendo,
+      modoVerificacao,
+      vagalumes,
+      gateWords,
+      isStuck,
+      curWord,
+      palavraAtualNum: curIdx + 1,
+      totalPalavras: total,
+      pctLabel: total > 0 ? pct + '%' : '',
+      progressoPct: pct + '%',
+      nextLabel,
+      verifyIsCuidador: verificacao === 'cuidador',
+      verifyIsAuto: verificacao === 'auto',
+      ouvirAtual: () => this.ouvirPalavra(curIdx),
+      ouvirDeNovo: () => this.ouvirPalavra(curIdx),
+      proximaPalavra: () => this.proximaPalavra(),
+      voltarCena: () => this.voltarCena(),
+      abrirAjustesA11y: () => this.abrirAjustesA11y(),
+      confirmSozinho: () => this._commit(),
+      confirmJuntos: () => this._commit(),
+    };
+  }
+}
+</script>

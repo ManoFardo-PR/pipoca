@@ -1,6 +1,6 @@
 # fase02 · 02-08 · IA ligada/desligada para a criança (PC_AI)
 
-> 🟡 **STATUS · 2026-06-29 · PARCIAL** — Flag `modos.iaLigada` (default `false`) em `src/core/modos.ts:35` / `src/core/estado.ts:69`; respeitada pela fábrica. Falta a tela de toggle do cuidador. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `autorizarIA` em `src/core/modos.ts` (flip de `iaLigada`, testado) + tela `src/telas/IaToggle.dc.html`; a fábrica respeita a flag (teste em `parciais.test.ts`). Acoplamento ao hub PC_HOME na convergência. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase02-02-08`

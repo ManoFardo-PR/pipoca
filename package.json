@@ -6,7 +6,7 @@
     "build": "cd dc-runtime && bun run build",
     "serve": "node server.js",
     "typecheck": "bun x tsc --noEmit",
-    "test": "bun run src/motores/motor.test.ts"
+    "test": "bun run src/motores/motor.test.ts && bun run src/core/persistencia/persistencia.test.ts && bun run src/core/parciais.test.ts"
   },
   "engines": {
     "node": ">=18"

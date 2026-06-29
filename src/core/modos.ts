@@ -64,6 +64,15 @@ export function alternarPalco(modos: Modos): Modos {
   };
 }
 
+/**
+ * Autoriza (ou não) a geração por IA (Motor B) para a criança — ação `autorizarIA` (PC_AI).
+ * Default seguro = desligado; a fábrica ([[fase00-00-19]]) lê esta flag. Sem provedor
+ * configurado ([[fase04-04-05]]), a fábrica permanece em Motor A na prática.
+ */
+export function autorizarIA(modos: Modos, on: boolean): Modos {
+  return { ...modos, iaLigada: !!on };
+}
+
 /** Valida um objeto Modos candidato. Retorna lista de erros. */
 export function validarModos(m: unknown): string[] {
   const erros: string[] = [];

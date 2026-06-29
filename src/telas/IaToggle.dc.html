@@ -1,0 +1,84 @@
+<!-- IaToggle.dc.html — IA ligada/desligada para a criança (PC_AI) · doc fase02-02-08
+     ─────────────────────────────────────────────────────────────
+     Toggle por perfil que escreve Modos.iaLigada. Default seguro = desligado.
+
+     Seam (lei do contrato): a tela chama a ação `autorizarIA(perfilId, on)` injetada
+     pelo app (que usa src/core/modos.ts:autorizarIA). A fábrica ([[fase00-00-19]]) lê a flag.
+
+     Props:
+       perfilId       string  — perfil-alvo
+       ligada         boolean — estado atual de Modos.iaLigada
+       provedorPronto boolean — há provedor de IA configurado? (fase04-04-05)
+       autorizarIA    fn(perfilId, on) — escreve a flag
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-switch {
+      transition: background calc(var(--pip-dur-curto)*var(--pip-mov)) ease;
+    }
+    .pip-switch-bolinha {
+      transition: transform calc(var(--pip-dur-curto)*var(--pip-mov)) ease;
+    }
+  </style>
+</helmet>
+
+<div style="background:var(--pip-creme);border-radius:var(--pip-raio-2);padding:var(--pip-esp-5);max-width:520px;">
+  <div style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:18px;color:var(--pip-tinta);">Histórias com IA</div>
+  <div style="font-family:var(--pip-fonte-texto);font-size:14px;color:var(--pip-tinta);opacity:.8;margin-top:6px;">
+    Quando ligado, a criança pode receber histórias geradas por IA (Motor B). Padrão: desligado.
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--pip-esp-4);margin-top:var(--pip-esp-4);">
+    <div style="font-family:var(--pip-fonte-texto);font-weight:600;font-size:15px;color:var(--pip-tinta);">{{ rotuloEstado }}</div>
+    <button onClick="{{ aoAlternar }}" role="switch" aria-checked="{{ ligada }}" aria-label="Autorizar IA para a criança"
+            class="pip-switch" style="{{ trilhoStyle }}">
+      <div class="pip-switch-bolinha" style="{{ bolinhaStyle }}"></div>
+    </button>
+  </div>
+
+  <sc-if value="{{ avisoSemProvedor }}" hint-placeholder-val="{{ true }}">
+    <div role="status" style="margin-top:var(--pip-esp-3);font-family:var(--pip-fonte-texto);font-size:13px;color:var(--pip-tinta);opacity:.75;">
+      Sem provedor de IA configurado — na prática a criança continua no Motor A.
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script
+  data-props="{
+    &quot;perfilId&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;IaToggle&quot;, &quot;label&quot;: &quot;Perfil&quot; },
+    &quot;ligada&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;IaToggle&quot;, &quot;label&quot;: &quot;Ligada&quot; },
+    &quot;provedorPronto&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;IaToggle&quot;, &quot;label&quot;: &quot;Provedor pronto&quot; },
+    &quot;autorizarIA&quot;: { &quot;editor&quot;: &quot;fn&quot;, &quot;default&quot;: null, &quot;tsType&quot;: &quot;((perfilId: string, on: boolean) => void) | null&quot;, &quot;section&quot;: &quot;IaToggle&quot;, &quot;label&quot;: &quot;Autorizar IA&quot; }
+  }">
+
+class Component extends DCLogic {
+
+  state = {};
+
+  _alternar() {
+    const fn = this.props && this.props.autorizarIA;
+    const perfilId = (this.props && this.props.perfilId) || '';
+    const ligada = !!(this.props && this.props.ligada);
+    if (fn) fn(perfilId, !ligada);
+  }
+
+  renderVals() {
+    const ligada = !!(this.props && this.props.ligada);
+    const provedorPronto = !!(this.props && this.props.provedorPronto);
+
+    const trilhoStyle = 'width:54px;height:30px;border-radius:999px;border:none;cursor:pointer;padding:3px;display:flex;align-items:center;'
+      + (ligada ? 'background:var(--pip-folha);justify-content:flex-end;' : 'background:var(--pip-heeler-borda);justify-content:flex-start;');
+    const bolinhaStyle = 'width:24px;height:24px;border-radius:50%;background:var(--pip-branco);box-shadow:var(--pip-sombra-botao);';
+
+    return {
+      ligada,
+      rotuloEstado: ligada ? 'Ligado' : 'Desligado',
+      trilhoStyle,
+      bolinhaStyle,
+      avisoSemProvedor: ligada && !provedorPronto,
+      aoAlternar: () => this._alternar(),
+    };
+  }
+}
+</script>

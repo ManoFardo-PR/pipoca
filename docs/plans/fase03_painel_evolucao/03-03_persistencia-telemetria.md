@@ -1,6 +1,6 @@
 # fase03 · 03-03 · Persistência da telemetria
 
-> 🟡 **STATUS · 2026-06-29 · PARCIAL** — `RepositorioLocalStorage.registrarTelemetria` (`:85-101`) grava `pipoca.telemetria.v1` no localStorage. Faltam retenção e backend. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — Retenção em `src/servicos/telemetria_repo.ts` (`podarPorRetencao`) + `RepositorioLocalStorage.carregarTelemetria`/`podarTelemetria`; grava `pipoca.telemetria.v1` (testado). Aterrissagem em backend remoto fica para fase06. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase03-03-03`

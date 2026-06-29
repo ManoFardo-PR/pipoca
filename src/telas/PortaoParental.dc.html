@@ -1,0 +1,123 @@
+<!-- PortaoParental.dc.html — Portão parental (PINGATE) · doc fase02-02-03
+     ─────────────────────────────────────────────────────────────
+     Entrada de PIN com teclado grande. Protege os ajustes adultos sem culpar a criança.
+
+     Seam (lei do contrato): a tela NÃO valida o PIN; ela chama a ação `verificarPin(pin)`
+     injetada pelo app (que usa src/core/acesso.ts). Em sucesso o app navega para PC_HOME.
+
+     Props:
+       verificarPin  fn(pin) -> { ok, bloqueado, dica? }  — verificação (núcleo acesso.ts)
+       aoCancelar    fn()    — volta ao modo criança (KIDMODE)
+
+     Estados (brief): vazio · digitando · erro acolhedor (sem X vermelho) · bloqueado.
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-pin-tecla {
+      transition: transform calc(var(--pip-dur-curto)*var(--pip-mov)) ease;
+    }
+    .pip-pin-tecla:active { transform: scale(.94); }
+  </style>
+</helmet>
+
+<div style="position:fixed;inset:0;z-index:200;background:var(--pip-overlay-escuro);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:var(--pip-esp-5);"
+     role="dialog" aria-modal="true" aria-label="Portão do cuidador">
+  <div style="width:100%;max-width:380px;background:var(--pip-creme);border-radius:var(--pip-raio-2);box-shadow:var(--pip-sombra-modal);overflow:hidden;">
+
+    <div style="background:var(--pip-heeler);padding:var(--pip-esp-4) var(--pip-esp-5);">
+      <div style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:var(--pip-branco);opacity:.65;">Para o cuidador</div>
+      <div style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:20px;color:var(--pip-branco);line-height:1.1;margin-top:4px;">Digite o PIN</div>
+    </div>
+
+    <div style="padding:var(--pip-esp-5);">
+      <!-- pontinhos do PIN -->
+      <div style="display:flex;gap:var(--pip-esp-3);justify-content:center;margin-bottom:var(--pip-esp-4);" aria-hidden="true">
+        <sc-for list="{{ pontos }}" as="pt" hint-placeholder-count="4">
+          <div style="width:16px;height:16px;border-radius:50%;{{ pt.style }}"></div>
+        </sc-for>
+      </div>
+
+      <!-- mensagem acolhedora -->
+      <sc-if value="{{ temDica }}" hint-placeholder-val="{{ true }}">
+        <div role="status" aria-live="polite" style="text-align:center;color:var(--pip-tinta);font-family:var(--pip-fonte-texto);font-size:14px;min-height:20px;margin-bottom:var(--pip-esp-3);">{{ dica }}</div>
+      </sc-if>
+
+      <!-- teclado -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--pip-esp-3);">
+        <sc-for list="{{ teclas }}" as="t" hint-placeholder-count="12">
+          <button class="pip-pin-tecla" onClick="{{ t.onTap }}"
+                  style="{{ t.style }}" aria-label="{{ t.aria }}">{{ t.rotulo }}</button>
+        </sc-for>
+      </div>
+
+      <button onClick="{{ aoCancelar }}"
+              style="margin-top:var(--pip-esp-4);width:100%;min-height:44px;border:none;border-radius:var(--pip-raio-1);background:transparent;color:var(--pip-tinta);opacity:.7;font-family:var(--pip-fonte-texto);font-size:14px;cursor:pointer;">
+        Voltar para a criança
+      </button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script
+  data-props="{
+    &quot;verificarPin&quot;: { &quot;editor&quot;: &quot;fn&quot;, &quot;default&quot;: null, &quot;tsType&quot;: &quot;((pin: string) => { ok: boolean; bloqueado: boolean; dica?: string }) | null&quot;, &quot;section&quot;: &quot;PortaoParental&quot;, &quot;label&quot;: &quot;Verificar PIN&quot; },
+    &quot;aoCancelar&quot;: { &quot;editor&quot;: &quot;fn&quot;, &quot;default&quot;: null, &quot;tsType&quot;: &quot;(() => void) | null&quot;, &quot;section&quot;: &quot;PortaoParental&quot;, &quot;label&quot;: &quot;Cancelar&quot; }
+  }">
+
+class Component extends DCLogic {
+
+  state = { pin: '', dica: '' };
+
+  _digito(d) {
+    if (this.state.pin.length >= 4) return;
+    const pin = this.state.pin + d;
+    if (pin.length === 4) {
+      this.setState({ pin });
+      this._submeter(pin);
+    } else {
+      this.setState({ pin });
+    }
+  }
+
+  _apagar() {
+    this.setState({ pin: this.state.pin.slice(0, -1), dica: '' });
+  }
+
+  _submeter(pin) {
+    const fn = this.props && this.props.verificarPin;
+    if (!fn) { this.setState({ pin: '', dica: '' }); return; }
+    const r = fn(pin) || { ok: false };
+    if (r.ok) {
+      this.setState({ pin: '', dica: '' }); // app navega para PC_HOME
+    } else {
+      this.setState({ pin: '', dica: r.dica || 'PIN não confere. Tente de novo com calma.' });
+    }
+  }
+
+  renderVals() {
+    const pin = this.state.pin || '';
+    const pontos = [0, 1, 2, 3].map((i) => ({
+      style: i < pin.length
+        ? 'background:var(--pip-heeler);'
+        : 'background:transparent;border:2px solid var(--pip-heeler-borda);'
+    }));
+
+    const baseTecla = 'min-height:56px;border:none;border-radius:var(--pip-raio-1);background:var(--pip-branco);box-shadow:var(--pip-sombra-botao);font-family:var(--pip-fonte-titulo);font-weight:700;font-size:22px;color:var(--pip-tinta);cursor:pointer;';
+    const teclas = ['1','2','3','4','5','6','7','8','9'].map((n) => ({
+      rotulo: n, aria: n, style: baseTecla, onTap: () => this._digito(n),
+    }));
+    teclas.push({ rotulo: '', aria: 'vazio', style: 'visibility:hidden;', onTap: () => {} });
+    teclas.push({ rotulo: '0', aria: '0', style: baseTecla, onTap: () => this._digito('0') });
+    teclas.push({ rotulo: '⌫', aria: 'Apagar', style: baseTecla + 'font-size:18px;', onTap: () => this._apagar() });
+
+    return {
+      pontos,
+      teclas,
+      dica: this.state.dica || '',
+      temDica: !!this.state.dica,
+      aoCancelar: () => { const fn = this.props && this.props.aoCancelar; if (fn) fn(); },
+    };
+  }
+}
+</script>

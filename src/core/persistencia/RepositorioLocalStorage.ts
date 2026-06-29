@@ -14,6 +14,8 @@ import type { Perfil } from "../perfil.js";
 import type { EstadoApp, EventoTelemetria } from "../estado.js";
 import type { RepositorioPersistencia } from "./index.js";
 import { validarEnvelopePerfil, validarEnvelopeSave } from "../../dados/schemas.js";
+import { validarEvento } from "../telemetria.js";
+import { podarPorRetencao, RETENCAO_DIAS_PADRAO } from "../../servicos/telemetria_repo.js";
 import {
   CHAVE_PERFIS,
   chaveSave,
@@ -98,6 +100,37 @@ export class RepositorioLocalStorage implements RepositorioPersistencia {
       evento,
     };
     gravarItem(chave, [...lista, envelope]);
+  }
+
+  /** Lê os eventos de telemetria válidos de um perfil (descarta corrompidos). */
+  carregarTelemetria(perfilId: string): EventoTelemetria[] {
+    const envelopes = lerArrayEnvelopes<EnvelopeTelemetria>(
+      chaveTelemetria(perfilId),
+      "pipoca.telemetria.v1"
+    );
+    return envelopes.map((e) => e.evento).filter((ev): ev is EventoTelemetria => validarEvento(ev));
+  }
+
+  /**
+   * Poda eventos mais velhos que `retencaoDias` (política de retenção — fase03-03-03).
+   * `agora` é injetado pela borda. Retorna quantos eventos foram removidos.
+   */
+  podarTelemetria(
+    perfilId: string,
+    agora: number,
+    retencaoDias: number = RETENCAO_DIAS_PADRAO
+  ): number {
+    const eventos = this.carregarTelemetria(perfilId);
+    const mantidos = podarPorRetencao(eventos, agora, retencaoDias);
+    const removidos = eventos.length - mantidos.length;
+    if (removidos > 0) {
+      const envelopes: EnvelopeTelemetria[] = mantidos.map((evento) => ({
+        esquema: "pipoca.telemetria.v1",
+        evento,
+      }));
+      gravarItem(chaveTelemetria(perfilId), envelopes);
+    }
+    return removidos;
   }
 
   /**

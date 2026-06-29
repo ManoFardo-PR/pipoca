@@ -1,6 +1,6 @@
 # fase02 · 02-03 · Portão parental (PIN)
 
-> 🟡 **STATUS · 2026-06-29 · PARCIAL** — Seam presente: botão `abrirPortaoParental()` em `src/telas/Tela2EntradaCrianca.dc.html:49` + `src/componentes/ModalCuidador.dc.html`. Falta verificação de PIN e a tela do portão. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟡 **STATUS · 2026-06-29 · PARCIAL** — Núcleo `src/core/acesso.ts` (`verificarPin` + lockout suave, puro/testado em `parciais.test.ts`) + tela `src/telas/PortaoParental.dc.html` (teclado de PIN). Falta a navegação para PC_HOME (depende de 02-04 + convergência). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase02-02-03`

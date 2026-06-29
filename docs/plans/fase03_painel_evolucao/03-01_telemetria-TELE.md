@@ -1,6 +1,6 @@
 # fase03 · 03-01 · Telemetria de progresso
 
-> 🟡 **STATUS · 2026-06-29 · PARCIAL** — Tipo `EventoTelemetria` em `src/core/estado.ts:84` + `registrarTelemetria` no seam. Faltam pontos de captura e payloads discriminados. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/telemetria.ts` (tipo canônico com `esquema` + `criarEvento`/`validarEvento`, `ts` injetado) + `src/core/captura.ts` (5 pontos, fire-and-forget, idempotente por objeto); testes em `src/core/parciais.test.ts`. Ligação aos fluxos reais (portão/recompensa/sessão) na convergência. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase03-03-01`

@@ -80,13 +80,12 @@ export interface EstadoApp {
   a11y: A11yPrefs;
 }
 
-// --- Evento de telemetria (stub mínimo — detalhe em fase03) ---
-export interface EventoTelemetria {
-  tipo: "leitura_confirmada" | "sessao_iniciada" | "sessao_encerrada" | "historia_concluida" | "objeto_destravado";
-  perfilId: string;
-  ts: number;
-  dados: Record<string, unknown>;
-}
+// --- Evento de telemetria (tipo canônico em src/core/telemetria.ts — doc fase03-03-01) ---
+export type {
+  EventoTelemetria,
+  TipoEventoTelemetria,
+  DadosTelemetria,
+} from "./telemetria.js";
 
 // --- Estado inicial canônico ---
 export const estadoInicial: EstadoApp = {

@@ -22,20 +22,28 @@ pré-requisito** de tudo que vem depois.
 |------|--------|------|
 | 00 Fundação | 🟢 módulos prontos (com 2 desvios) | `src/core/*`, `src/motores/*`, `src/dados/*`, `src/componentes/*` |
 | 01 MVP linha verde | 🟢 funcional em 2 tracks | `src/telas/*.dc.html` **e** `index.html` |
-| 02 Controle parental | 🔴 / 🟡 stubs | `modos.iaLigada`, botão `abrirPortaoParental`, `ModalCuidador` |
-| 03 Telemetria/painel | 🟡 parcial | `EventoTelemetria` + `registrarTelemetria`; sem captura/PC_DASH |
+| 02 Controle parental | 🟡 núcleo PC_AI/PINGATE | `acesso.ts` (PIN+lockout), `modos.autorizarIA`, telas `PortaoParental`/`IaToggle`; falta hub PC_HOME + nav |
+| 03 Telemetria/painel | 🟢 TELE/03-03 · 🔴 PC_DASH | `telemetria.ts`+`captura.ts`+`telemetria_repo.ts` (testados); falta painel PC_DASH e captura ligada ao fluxo |
 | 04 Super admin | 🔴 não iniciado | — |
 | 05 IA e fala | 🔴 / 🟡 stub | fallback Motor B na fábrica; tipos `ProvedorIA`/`ServicoASR` |
-| 06 Backend | 🟡 parcial | `RepositorioSupabase` stub; `RepositorioLocalStorage` funcional |
+| 06 Backend | 🟡 migração pronta | `migrar(de,para)` em `src/backend/migracao.ts` (testado); adaptadores BaaS aguardam 06-01 |
 | 07 QA/A11y/CI | 🔴 não iniciado | `motor.test`/`persistencia.test`; `check_plans.mjs` sem CI |
 | 08 Conteúdo | 🔴 não iniciado | só `quintal_grafo.json`; SVGs dos 4 cenários sem grafo |
 
 Dívidas de contrato da fase00 (corrigidas no Marco 1): `Economia.objetosCreditados` (fora de `tipos-core`
 `{vagalumes,poupado}`); `spendPct` devolve fração **poupada**, não gasta (`src/core/economia.ts:85`).
 
-Pendência do checker (pré-existente, alvo do Marco 1): checagem #5 "Resolução de nomes" aponta
-`MotorNarrativa`/`Trecho`/`GrafoAutoral` ausentes em `motor_a.ts` na raiz — o código moveu para
-`src/motores/motor_a.ts` + `src/core/grafo/tipos.ts`. Atualizar o caminho esperado no `check_plans.mjs`.
+Checker: **10/10 PASS** (resolvido em 2026-06-29 — a checagem #5 lia `motor_a.ts` na raiz; agora lê os tipos
+canônicos em `src/core/grafo/tipos.ts` + `src/motores/`, com fallback ao layout antigo).
+
+### Progresso 2026-06-29 (pré-convergência, na track canônica)
+Concluído o núcleo testável de 5 parciais (99 asserts no total; `tsc` limpo; checker 10/10):
+- **03-01 TELE** 🟢 — `src/core/telemetria.ts` + `src/core/captura.ts` (5 pontos, `ts` injetado, fire-and-forget, idempotente).
+- **03-03** 🟢 — `src/servicos/telemetria_repo.ts` (retenção) + `RepositorioLocalStorage.carregarTelemetria`/`podarTelemetria`.
+- **02-08 PC_AI** 🟢 — `modos.autorizarIA` + tela `IaToggle.dc.html`; fábrica respeita a flag.
+- **02-03 PINGATE** 🟡 — `src/core/acesso.ts` (PIN+lockout) + tela `PortaoParental.dc.html`; nav p/ PC_HOME na convergência.
+- **06-03** 🟡 — `migrar(de,para)` em `src/backend/migracao.ts`; adaptadores BaaS reais aguardam 06-01 + backend.
+Testes em `src/core/parciais.test.ts` (rodam com `npm test`). Falta apenas a **ligação ao fluxo vivo**, que acontece no Marco 1.
 
 ---
 

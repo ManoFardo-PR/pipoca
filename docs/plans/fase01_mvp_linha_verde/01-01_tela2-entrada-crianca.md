@@ -1,5 +1,7 @@
 # fase01 · 01-01 · Tela 2 · Entrada da criança
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/telas/Tela2EntradaCrianca.dc.html` + `index.html` (T2 inline): seleção por avatar; sem motor. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase01-01-01`
 - nó(s) da arquitetura: T2

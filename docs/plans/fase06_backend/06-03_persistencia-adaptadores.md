@@ -1,5 +1,7 @@
 # fase06 · 06-03 · Persistência: adaptadores e migração
 
+> 🟡 **STATUS · 2026-06-29 · PARCIAL** — `RepositorioLocalStorage` funcional (MVP); `src/core/persistencia/RepositorioSupabase.ts` é stub que lança erro. Faltam adaptadores reais (Supabase/Firebase). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase06-06-03`
 - nó(s) da arquitetura: —

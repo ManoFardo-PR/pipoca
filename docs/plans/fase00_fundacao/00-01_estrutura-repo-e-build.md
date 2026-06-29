@@ -1,5 +1,7 @@
 # fase00 · 00-01 · Estrutura do repositório e build
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — Pastas `src/{telas,componentes,core,motores,servicos,dados}/` criadas; `tsconfig.json` (resolveJsonModule+esModuleInterop), `index.html`, `server.js`, scripts `build`/`serve`/`test`. `tsc --noEmit` limpo. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 > Doc de planejamento. Segue o gabarito de [[_TEMPLATE]]. Idioma: PT-BR. Não muda comportamento — só
 > organiza pastas, build e convenções de arquivo para todas as fases seguintes.
 

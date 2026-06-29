@@ -1,5 +1,7 @@
 # fase00 · 00-17 · Motor A · Grafo Autoral (MA)
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/motores/motor_a.ts` (`MotorGrafoAutoral`: `abertura`/`aoAdicionarObjeto`/`desfecho`/`avaliaCondicao` tem:/nao_tem:); coberto por `motor.test.ts`. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-17`
 - nó(s) da arquitetura: MA

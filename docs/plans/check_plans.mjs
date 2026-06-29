@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // check_plans.mjs — diagnóstico de integridade dos planos faseados do Pipoca.
 // Uso: node docs/plans/check_plans.mjs
-// Lê: o mermaid v2.0, todos os faseXX/*.md, _contratos/glossario.md, motor_a.ts, quintal_grafo.json.
+// Lê: o mermaid v2.0, todos os faseXX/*.md, _contratos/glossario.md, os tipos canônicos em src/ e quintal_grafo.json.
 // Escreve: docs/plans/_diagnostico.md. Sai com código 0 se todas as checagens passam.
 import fs from 'node:fs'
 import path from 'node:path'
@@ -16,8 +16,15 @@ const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().rep
 
 // ---------- coletas de entrada ----------
 const mermaid = read(p(ROOT, 'docs', 'arquitetura_pipoca_versao_2_0.mermaid')) || ''
-const motorTs = read(p(ROOT, 'motor_a.ts')) || ''
-const grafoJson = read(p(ROOT, 'docs', 'quintal_grafo.json')) || ''
+// Tipos canônicos: a fase00-00-01 moveu motor_a.ts da raiz para src/motores/ e dividiu os tipos
+// em src/core/grafo/tipos.ts + src/motores/contrato.ts. Lê os três (com fallback ao layout antigo).
+const motorTs = [
+  read(p(ROOT, 'src', 'core', 'grafo', 'tipos.ts')),
+  read(p(ROOT, 'src', 'motores', 'motor_a.ts')),
+  read(p(ROOT, 'src', 'motores', 'contrato.ts')),
+  read(p(ROOT, 'motor_a.ts')),
+].filter(Boolean).join('\n')
+const grafoJson = read(p(ROOT, 'src', 'dados', 'quintal_grafo.json')) || read(p(ROOT, 'docs', 'quintal_grafo.json')) || ''
 const gloss = read(p(PLANS, '_contratos', 'glossario.md')) || ''
 
 // nós + classes do mermaid
@@ -154,9 +161,9 @@ const add = (nome, falhas, detalhe = '') => checks.push({ nome, ok: falhas.lengt
     for (const sm of d.raw.match(/pipoca\.[a-z-]+\.v\d/g) || []) if (!SCHEMAS.has(sm)) f.push(`SCHEMA DESCONHECIDO: ${d.id} → ${sm}`)
     for (const tk of d.raw.match(/\bMotor[A-Z][A-Za-z]*/g) || []) if (!MOTORS.has(tk)) f.push(`NOME DE MOTOR INVÁLIDO: ${d.id} → ${tk}`)
   }
-  if (!/MotorNarrativa/.test(motorTs)) f.push('CÓDIGO: MotorNarrativa ausente em motor_a.ts')
-  if (!/interface Trecho/.test(motorTs)) f.push('CÓDIGO: Trecho ausente em motor_a.ts')
-  if (!/GrafoAutoral/.test(motorTs)) f.push('CÓDIGO: GrafoAutoral ausente em motor_a.ts')
+  if (!/MotorNarrativa/.test(motorTs)) f.push('CÓDIGO: MotorNarrativa ausente em src/ (tipos/motor)')
+  if (!/interface Trecho/.test(motorTs)) f.push('CÓDIGO: Trecho ausente em src/ (tipos/motor)')
+  if (!/GrafoAutoral/.test(motorTs)) f.push('CÓDIGO: GrafoAutoral ausente em src/ (tipos/motor)')
   if (!/pipoca\.grafo-autoral\.v1/.test(grafoJson)) f.push('CÓDIGO: pipoca.grafo-autoral.v1 ausente em quintal_grafo.json')
   add('5. Resolução de nomes', f)
 }

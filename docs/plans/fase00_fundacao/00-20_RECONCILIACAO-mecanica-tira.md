@@ -1,5 +1,7 @@
 # fase00 · 00-20 · RECONCILIAÇÃO da mecânica da tira
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — Ops da tira em `src/core/historia.ts`; texto graph-driven via motor. Nota: no `index.html` a tira usa stub inline, não o seam canônico (Marco 1). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-20`
 - nó(s) da arquitetura: —

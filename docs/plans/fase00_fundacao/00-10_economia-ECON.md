@@ -1,5 +1,7 @@
 # fase00 · 00-10 · Economia de vaga-lumes (ECON)
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/economia.ts` (`creditarVagalumes` idempotente, `gastarVagalumes`, `spendSuggest`/`saveSuggest`). Notas: campo `objetosCreditados` fora de tipos-core e `spendPct` devolve fração poupada — corrigir no Marco 1. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-10`
 - nó(s) da arquitetura: ECON

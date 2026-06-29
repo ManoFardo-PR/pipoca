@@ -1,5 +1,7 @@
 # fase03 · 03-01 · Telemetria de progresso
 
+> 🟡 **STATUS · 2026-06-29 · PARCIAL** — Tipo `EventoTelemetria` em `src/core/estado.ts:84` + `registrarTelemetria` no seam. Faltam pontos de captura e payloads discriminados. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase03-03-01`
 - nó(s) da arquitetura: TELE

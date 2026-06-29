@@ -1,5 +1,7 @@
 # fase00 · 00-16 · Contrato de Narrativa (CN)
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/motores/contrato.ts` re-exporta `MotorNarrativa`/`Trecho`/`Nivel`/`ModoDesfecho`; lei do seam no cabeçalho. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-16`
 - nó(s) da arquitetura: CN

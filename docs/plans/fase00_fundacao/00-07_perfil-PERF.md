@@ -1,5 +1,7 @@
 # fase00 · 00-07 · Perfil ativo (PERF)
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/perfil.ts` (clamp idade 3..12, `AVATARES`, `normalizarNome`, `RepositorioPerfil` em memória). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-07`
 - nó(s) da arquitetura: PERF

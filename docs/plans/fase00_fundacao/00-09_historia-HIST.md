@@ -1,5 +1,7 @@
 # fase00 · 00-09 · Estado da história (HIST)
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/historia.ts` (`EstadoTira`, `_placeInSlot`/`_returnToTray`, `commitarObjeto` com regra de ouro, `derivarBandeja`). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-09`
 - nó(s) da arquitetura: HIST

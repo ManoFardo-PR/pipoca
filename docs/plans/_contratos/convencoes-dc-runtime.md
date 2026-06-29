@@ -1,5 +1,7 @@
 # Contrato · Convenções do dc-runtime (.dc.html)
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/componentes/EsqueletoRef.dc.html` + todos os `.dc.html` seguem template `<x-dc>`+`renderVals()`; nomes canônicos da folha presentes. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 > Como todo componente de tela/UI é escrito, para que o [support.js](../../../support.js) (o dc-runtime
 > gerado) renderize. Estas regras vêm do funcionamento real do runtime e do protótipo
 > [Pipoca.dc.html](../../../Pipoca.dc.html).

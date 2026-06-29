@@ -1,5 +1,7 @@
 # fase01 · 01-07 · Tela 5 · Re-tentativa acolhedora
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/telas/Tela5Portao.dc.html` (estado `isStuck`, realce dourado) + `index.html`: 'Ouvir de novo'; nunca X vermelho. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase01-01-07`
 - nó(s) da arquitetura: —

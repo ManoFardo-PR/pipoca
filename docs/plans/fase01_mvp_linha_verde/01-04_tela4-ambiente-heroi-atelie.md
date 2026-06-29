@@ -1,5 +1,7 @@
 # fase01 · 01-04 · Tela 4 · Ambiente herói (Ateliê)
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/telas/Tela4Heroi.dc.html` (Ateliê) + `index.html`: troca de aba Palco/Ateliê. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase01-01-04`
 - nó(s) da arquitetura: —

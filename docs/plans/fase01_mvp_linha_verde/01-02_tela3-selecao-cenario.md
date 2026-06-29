@@ -1,5 +1,7 @@
 # fase01 · 01-02 · Tela 3 · Seleção de cenário
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/telas/Tela3SelecaoCenario.dc.html` + `index.html`: grade de cenários (cenas SVG de `src/telas/cenas.ts`). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase01-01-02`
 - nó(s) da arquitetura: T3

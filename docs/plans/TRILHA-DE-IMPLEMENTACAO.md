@@ -1,0 +1,108 @@
+# Pipoca · Trilha de implementação (roteiro mestre)
+
+> Roteiro **vivo** da sequência a partir do estado atual. Cada doc de sub-passo já implementado/parcial
+> carrega um selo `STATUS` que aponta para cá. Atualizado: **2026-06-29**.
+> Visão por fase: [README.md](README.md) · vocabulário: [`_contratos/`](_contratos/) · checker: `node docs/plans/check_plans.mjs`.
+
+## O fato dominante do estado atual
+Existem **duas implementações paralelas do caminho verde que não se encontram**:
+
+- **Track canônica (`src/`)** — CORE, Motor A, `ValidadorOrdem`, fábrica, persistência, telas `.dc.html`.
+  Construída e testada: `tsc --noEmit` limpo, `motor.test.ts` **36/36**.
+- **Track runtime (`index.html`)** — o monólito portado do protótipo que **efetivamente roda**. Ele
+  **reimplementa** motor/validador/CORE inline (`_motorAbertura`/`_motorAoAdicionar`/`_validarOrdem`/
+  `_ordemCanonica`, index.html:567-610) e **nunca instancia** `criarMotor`/`validarGrafo`/`ValidadorOrdem`.
+
+Consequência: a **lei do contrato** (telas falam só com `MotorNarrativa`/`ValidadorOrdem`) vale nos módulos,
+mas **não no app que roda**. Toda fase futura assume o CORE/seam canônico como base — por isso o **Marco 1 é
+pré-requisito** de tudo que vem depois.
+
+## Mapa de status (resumo)
+| Fase | Status | Onde |
+|------|--------|------|
+| 00 Fundação | 🟢 módulos prontos (com 2 desvios) | `src/core/*`, `src/motores/*`, `src/dados/*`, `src/componentes/*` |
+| 01 MVP linha verde | 🟢 funcional em 2 tracks | `src/telas/*.dc.html` **e** `index.html` |
+| 02 Controle parental | 🔴 / 🟡 stubs | `modos.iaLigada`, botão `abrirPortaoParental`, `ModalCuidador` |
+| 03 Telemetria/painel | 🟡 parcial | `EventoTelemetria` + `registrarTelemetria`; sem captura/PC_DASH |
+| 04 Super admin | 🔴 não iniciado | — |
+| 05 IA e fala | 🔴 / 🟡 stub | fallback Motor B na fábrica; tipos `ProvedorIA`/`ServicoASR` |
+| 06 Backend | 🟡 parcial | `RepositorioSupabase` stub; `RepositorioLocalStorage` funcional |
+| 07 QA/A11y/CI | 🔴 não iniciado | `motor.test`/`persistencia.test`; `check_plans.mjs` sem CI |
+| 08 Conteúdo | 🔴 não iniciado | só `quintal_grafo.json`; SVGs dos 4 cenários sem grafo |
+
+Dívidas de contrato da fase00 (corrigidas no Marco 1): `Economia.objetosCreditados` (fora de `tipos-core`
+`{vagalumes,poupado}`); `spendPct` devolve fração **poupada**, não gasta (`src/core/economia.ts:85`).
+
+Pendência do checker (pré-existente, alvo do Marco 1): checagem #5 "Resolução de nomes" aponta
+`MotorNarrativa`/`Trecho`/`GrafoAutoral` ausentes em `motor_a.ts` na raiz — o código moveu para
+`src/motores/motor_a.ts` + `src/core/grafo/tipos.ts`. Atualizar o caminho esperado no `check_plans.mjs`.
+
+---
+
+## Marco 1 — Convergência runtime → `src/` · **PRÉ-REQUISITO**
+Objetivo: o app que roda passa a consumir os módulos canônicos; o caminho verde fica "implementado de verdade".
+
+1. **Build TS→browser.** Criar entry `src/app/bridge.ts` expondo em `window.PipocaCanonico`: `criarMotor`
+   (`src/motores/fabrica.ts`), `validarGrafo` (`src/core/grafo/validarGrafo.ts`), CORE
+   (`estado`/`historia`/`economia`/`perfil`/`sessao`/`modos`/`a11y`), `criarRepositorio`
+   (`src/core/persistencia/index.ts`), `tts` (`src/servicos/tts.ts`), helpers de `leitura.ts`. Bundle:
+   `bun build src/app/bridge.ts --target=browser --outfile=pipoca.bundle.js`; script npm `build:app`;
+   `index.html` carrega o bundle antes do script da app.
+2. **Religar `index.html`.** No `componentDidMount`: `const grafo = PipocaCanonico.validarGrafo(raw);
+   const { motor, ordem } = PipocaCanonico.criarMotor(grafo.cenario, modos);`. Os métodos inline
+   (index.html:567-610) viram **delegadores finos** para `this._motor`/`this._ordem`; usar `motor.desfecho()`
+   no desfecho. Remover a lógica duplicada. `window.PipocaApp.motor/ordem` apontam para as instâncias canônicas.
+3. **Reconciliar `ValidadorOrdem`** (docs `00-18`/`00-20`): a mecânica é **incremental** (coloca 1 objeto, lê,
+   destrava o próximo). Ajustar `validar()` para (a) aceitar ordens **parciais** consistentes com dependências
+   — critério 00-18: `validar(["vagalume","frasco"]) → ok:true` — e (b) validar `strip ∪ committed`, sem
+   regredir a leitura do 2º objeto. Adicionar o caso parcial a `motor.test.ts`.
+4. **Corrigir desvios de contrato fase00.** Conformar `Economia` a `{vagalumes,poupado}` (realocar o ledger de
+   idempotência: derivar de `HistoriaState.objetos`, não num campo extra); corrigir `spendPct` (fração gasta);
+   alinhar `index.html`/`Tela7PoteCardapio`.
+5. **Travar com e2e (`07-01`).** `tests/e2e/linha-verde.spec.ts` (Playwright — cache `ms-playwright` presente)
+   percorrendo T2→T7 pelo seam canônico, fixtures convergente + aberto.
+6. **Atualizar `check_plans.mjs`** para os novos caminhos dos tipos (resolve a checagem #5).
+7. **Portões verdes:** `tsc --noEmit`, `bun run src/motores/motor.test.ts`, `node docs/plans/check_plans.mjs`
+   (alvo 10/10), smoke manual (`npm run serve` → T2→T7).
+
+**Pronto quando:** o app roda sem motor/validador inline; e2e verde; checker 10/10; nenhum desvio de contrato.
+
+---
+
+## Marco 2 — Fase 02 · Acesso e controle parental
+Ordem por dependência: **HH_LOGIN → KIDMODE → PINGATE** (completar o stub `abrirPortaoParental`) **→ PC_HOME →
+PC_PROF → PC_LIM → PC_RULES → PC_AI** (completar o toggle de `iaLigada`) **→ PC_PRIV**.
+Reusa `Perfil`/`Modos`/`Sessao` e `RepositorioPersistencia` já prontos; introduz a Tela 1 (onboarding) e o
+modo criança/cuidador no roteador.
+
+## Marco 3 — Fase 03 · Telemetria + Painel do cuidador (Tela 8)
+Pontos de captura em sessão/leitura/recompensa emitindo `EventoTelemetria` (`ts` injetado fora do motor);
+payloads `pipoca.telemetria.v1`; agregados; tela `PC_DASH`. Aproveita `registrarTelemetria` já no seam.
+
+## Marco 4 — Fase 04 · Super admin / multi-tenant
+`src/admin/*` (login SA, home, tenants, conteúdo, IA, segurança); schema `pipoca.tenant.v1`. Mantém o seam:
+`EstadoApp` não ganha campos admin.
+
+## Marco 5 — Fase 05 · IA e fala (eixo `AIPROV`)
+Motor B (`MotorIA` implements `MotorNarrativa`), `ProvedorIA` + adaptadores Claude/Gemini/OpenAI, guardrails,
+ASR. Troca A↔B **só na fábrica**; `iaLigada` (já existe) autoriza. Telas não mudam.
+
+## Marco 6 — Fase 06 · Backend trocável (Supabase | Firebase)
+`ServicoAuth`, adaptadores de `RepositorioPersistencia` (completar `RepositorioSupabase`), RLS/Security Rules,
+`ProxyIA` server-side (chaves nunca no cliente). Login agnóstico via seam.
+
+## Marco 7 — Fase 07 · QA / A11y / CI
+Auditoria de acessibilidade automatizada; `.github/workflows/ci.yml` com `check_plans.mjs` como gate +
+motor/e2e/a11y. (O e2e da linha verde já entrou no Marco 1.)
+
+## Marco 8 — Fase 08 · Conteúdo
+Guia de autoria + grafos `pipoca.grafo-autoral.v1` dos 4 cenários (`quarto`/`floresta`/`espaço`/`fundomar`) —
+arte SVG já existe em `src/telas/cenas.ts`; falta o grafo. Cada cenário valida contra schema + Motor A +
+`ValidadorOrdem`.
+
+---
+
+## Alternativa registrada
+Se a prioridade virar "features primeiro", o Marco 1 pode ser adiado e a Fase 02 sobe — ao custo de manter a
+duplicação `index.html`↔`src/` e as divergências do runtime (ex.: `_avaliarCondicao` ignora `nao_tem:`,
+validador simplificado, desfecho não roteado pelo seam). A escolha atual é **convergir primeiro**.

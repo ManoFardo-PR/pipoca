@@ -1,5 +1,7 @@
 # fase01 · 01-08 · Tela 5 · Verificação
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/telas/Tela5Portao.dc.html` (modo cuidador/auto) + `index.html`: confirma leitura; crédito idempotente por objeto. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase01-01-08`
 - nó(s) da arquitetura: —

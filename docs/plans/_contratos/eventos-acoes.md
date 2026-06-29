@@ -1,5 +1,7 @@
 # Contrato · Eventos e ações canônicos das telas
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — Handlers nas telas (`escolherObjeto`/`colocarNaTira`/`devolverParaBandeja`/`validarTira`/`ouvirPalavra`/`proximaPalavra`/`confirmarLeitura`/`creditarVagalumes`/`irParaTela`/`abrirAjustesA11y`); `autorizarIA`/`abrirPortaoParental` ficam p/ fase02. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 > Nomes de handlers/ações que as telas expõem (via `renderVals()` do dc-runtime). Substituem os handlers
 > ad-hoc do protótipo. Todo doc de tela deve mapear seus botões/gestos para **estes** nomes e indicar, na
 > coluna "do protótipo", de onde veio.

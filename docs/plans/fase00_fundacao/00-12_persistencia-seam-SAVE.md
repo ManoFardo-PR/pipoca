@@ -1,5 +1,7 @@
 # fase00 · 00-12 · Persistência (SAVE) e seam LGPD
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/persistencia/{index,RepositorioLocalStorage,chaves}.ts` + `persistencia.test.ts`; seam `RepositorioPersistencia` completo; Supabase é stub (fase06). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-12`
 - nó(s) da arquitetura: SAVE

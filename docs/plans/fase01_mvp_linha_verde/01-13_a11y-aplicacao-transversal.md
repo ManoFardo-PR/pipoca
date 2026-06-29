@@ -1,5 +1,7 @@
 # fase01 · 01-13 · Aplicação transversal da acessibilidade
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/a11y.ts` (`estiloLeitura`/`paletaContraste`/`transicao`/`animacaoCena`/`silabar`) + classes `pip-dyslexia`/`pip-contrast`/`pip-reduce-motion` em `index.html:29-37`. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase01-01-13`
 - nó(s) da arquitetura: —

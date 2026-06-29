@@ -1,5 +1,7 @@
 # fase01 · 01-11 · Tela 7 · Pote e cardápio
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/telas/Tela7PoteCardapio.dc.html` + `index.html`: pote + menu de recompensas + sugestão 2/3·1/3. Notas: `spendPct` invertido (Marco 1); cardápio configurável depende de PC_RULES (fase02). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase01-01-11`
 - nó(s) da arquitetura: T7

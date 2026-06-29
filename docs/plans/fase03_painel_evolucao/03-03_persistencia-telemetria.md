@@ -1,5 +1,7 @@
 # fase03 · 03-03 · Persistência da telemetria
 
+> 🟡 **STATUS · 2026-06-29 · PARCIAL** — `RepositorioLocalStorage.registrarTelemetria` (`:85-101`) grava `pipoca.telemetria.v1` no localStorage. Faltam retenção e backend. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase03-03-03`
 - nó(s) da arquitetura: —

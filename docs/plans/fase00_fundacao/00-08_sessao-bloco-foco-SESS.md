@@ -1,5 +1,7 @@
 # fase00 · 00-08 · Sessão e bloco de foco (SESS)
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/sessao.ts` (`iniciarSessao`/`tick`/`encerrarSessao`/`formatarRestante`). Nota: emissão de telemetria fica p/ fase03. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-08`
 - nó(s) da arquitetura: SESS

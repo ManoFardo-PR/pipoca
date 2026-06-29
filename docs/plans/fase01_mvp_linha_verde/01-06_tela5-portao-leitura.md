@@ -1,5 +1,7 @@
 # fase01 · 01-06 · Tela 5 · O portão (leitura)
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/telas/Tela5Portao.dc.html` + `src/core/leitura.ts` (`tokenizarTrecho`) + `index.html`: leitura palavra a palavra, TTS, barra de progresso. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase01-01-06`
 - nó(s) da arquitetura: T5

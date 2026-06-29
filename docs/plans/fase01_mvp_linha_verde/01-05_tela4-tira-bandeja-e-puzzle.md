@@ -1,5 +1,7 @@
 # fase01 · 01-05 · Tela 4 · Tira, bandeja e o quebra-cabeça
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — tira/bandeja em `index.html:1000-1040` + `src/core/historia.ts`. Nota: validação incremental no runtime via stub `_validarOrdem` — alinhar ao `ValidadorOrdem` canônico (Marco 1). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase01-01-05`
 - nó(s) da arquitetura: —

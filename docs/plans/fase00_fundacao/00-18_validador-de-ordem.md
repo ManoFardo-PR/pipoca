@@ -1,5 +1,7 @@
 # fase00 · 00-18 · Validador de ordem (suporte ao quebra-cabeça)
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/motores/validador_ordem.ts` (topo-sort, `ordemCanonica`, `validar` com dicas acolhedoras). Nota: hoje exige ordem completa — reconciliar p/ parcial (critério 00-18; Marco 1.3). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-18`
 - nó(s) da arquitetura: —

@@ -1,5 +1,7 @@
 # fase01 · 01-09 · Serviço de TTS
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/servicos/tts.ts` (`ServicoTTS` + Web Speech, voz pt-BR, rate 0.82/pitch 1.05, fallback silencioso). Track: src (runtime usa `_speak` inline). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase01-01-09`
 - nó(s) da arquitetura: TTS

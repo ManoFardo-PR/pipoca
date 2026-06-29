@@ -1,5 +1,7 @@
 # fase00 · 00-14 · Schemas de perfil e save
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/dados/schemas.ts` (`ESQUEMA_PERFIL`/`ESQUEMA_SAVE`, `validarEnvelope*`, `carregarSaveComFallback`, criadores de envelope). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-14`
 - nó(s) da arquitetura: —

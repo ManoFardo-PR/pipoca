@@ -1,5 +1,7 @@
 # fase01 · 01-12 · Painel "Do meu jeito" (A11Y)
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/telas/PainelA11y.dc.html` (toggles dyslexia/syllable/contrast/reduceMotion + `textScale`); persistido no estado. Track: src (runtime tem painel inline). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase01-01-12`
 - nó(s) da arquitetura: A11Y

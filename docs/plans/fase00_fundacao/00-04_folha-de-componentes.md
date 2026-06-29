@@ -1,5 +1,7 @@
 # fase00 · 00-04 · Folha de componentes
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/componentes/{Botao,CartaoHistoria,Vagalume,ChipObjeto,BarraLeitura,ModalCuidador}.dc.html` + `EsqueletoRef`; alvos ≥44px; sem X vermelho. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-04`
 - nó(s) da arquitetura: —

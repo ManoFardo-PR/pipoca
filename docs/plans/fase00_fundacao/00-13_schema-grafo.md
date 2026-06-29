@@ -1,5 +1,7 @@
 # fase00 · 00-13 · Schema do grafo autoral (GRAPH)
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/grafo/{tipos,validarGrafo}.ts` + `src/dados/quintal_grafo.json` (com `ordem_canonica`); validação rejeita esquema/id-dup/papel/regra/ordem inválidos. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-13`
 - nó(s) da arquitetura: GRAPH

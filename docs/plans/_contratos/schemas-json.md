@@ -1,5 +1,7 @@
 # Contrato · Schemas JSON canônicos
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `pipoca.perfil.v1`/`pipoca.save.v1` em `src/dados/schemas.ts`; `pipoca.grafo-autoral.v1` em `src/dados/quintal_grafo.json`. `telemetria.v1` parcial (fase03); `tenant.v1` não (fase06). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 > Strings `esquema`/`schema` versionadas. Todo doc que persiste ou lê dados deve citar o schema pelo
 > nome exato. Versão nova = sufixo `.vN` novo (nunca mutar um `.vN` já publicado).
 

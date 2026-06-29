@@ -1,5 +1,7 @@
 # fase00 · 00-15 · Modelo de níveis de leitura (LEVELS)
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/dados/niveis.ts` (`ROTULOS_NIVEL`, `fragmentoDoNivel`); tipo `Nivel` canônico compartilhado. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-15`
 - nó(s) da arquitetura: LEVELS

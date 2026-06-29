@@ -1,5 +1,7 @@
 # fase00 · 00-02 · Convenções do dc-runtime
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/componentes/EsqueletoRef.dc.html` documenta as 9 regras; todos os `.dc.html` usam `class Component extends DCLogic` + `renderVals()`; SVG via `ref`+`_inject`. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 > Doc de planejamento. Segue o gabarito de [[_TEMPLATE]]. Idioma: PT-BR. Codifica como todo `.dc.html` é
 > escrito para que o `support.js` gerado renderize. Fonte: o runtime real e o protótipo `Pipoca.dc.html`.
 

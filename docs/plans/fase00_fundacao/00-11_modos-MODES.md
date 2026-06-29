@@ -1,5 +1,7 @@
 # fase00 · 00-11 · Modos (MODES)
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/modos.ts` (`modosPadrao`, `alternarPalco`, `normalizarModos`/`validarModos`). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-11`
 - nó(s) da arquitetura: MODES

@@ -1,5 +1,7 @@
 # fase01 · 01-03 · Tela 4 · Ambiente herói (Palco)
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/telas/Tela4Heroi.dc.html` (Palco) + `index.html`: `storyLines` graph-driven; sem motor concreto. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase01-01-03`
 - nó(s) da arquitetura: T4

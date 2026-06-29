@@ -1,5 +1,7 @@
 # fase01 · 01-10 · Tela 6 · Recompensa
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/telas/Tela6Recompensa.dc.html` + `index.html`: '+N vaga-lumes', destrava próximo objeto, idempotência. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase01-01-10`
 - nó(s) da arquitetura: T6

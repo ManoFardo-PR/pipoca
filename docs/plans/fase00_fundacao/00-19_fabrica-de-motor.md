@@ -1,5 +1,7 @@
 # fase00 · 00-19 · Fábrica de motor
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/motores/fabrica.ts` (`criarMotor`→`{motor,ordem}`, fallback Motor B). Nota: **não instanciada no runtime** — `index.html` usa motor inline (Marco 1). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-19`
 - nó(s) da arquitetura: —

@@ -1,5 +1,7 @@
 # fase00 · 00-05 · App shell e escalonador
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/telas/Shell.dc.html` (`refScaler`/`_fit`, jumper atrás de `devMode`) + `src/core/roteador.ts`/`.js` (`irParaTela`/`onTelaChange`). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-05`
 - nó(s) da arquitetura: —

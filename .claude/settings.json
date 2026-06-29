@@ -3,7 +3,16 @@
     "allow": [
       "Bash(sed -i 's/pipoca\\\\.perfis\\\\.v1/pipoca.perfil.v1/g' docs/plans/fase00_fundacao/00-12_persistencia-seam-SAVE.md)",
       "Bash(sed -i 's/pipoca\\\\.trecho-ia\\\\.v1/Trecho/g' docs/plans/fase05_ia_e_fala/05-01_motor-B-contrato.md docs/plans/fase05_ia_e_fala/05-02_prompt-base-AIMODEL.md)",
-      "Bash(sed -i 's/MotorGrafoAutoral/MA/g; s/MotorIA/MB/g' docs/plans/fase01_mvp_linha_verde/*.md)"
+      "Bash(sed -i 's/MotorGrafoAutoral/MA/g; s/MotorIA/MB/g' docs/plans/fase01_mvp_linha_verde/*.md)",
+      "PowerShell(cd \"c:\\\\Users\\\\mfard\\\\OneDrive\\\\AmbVir\\\\VS Code\\\\Trabalhos\\\\pipoca\\\\pipoca\"; \\(Get-Command bun -ErrorAction SilentlyContinue\\); \\(Get-Command node -ErrorAction SilentlyContinue\\) | Select-Object Source; \\(Get-Command npx -ErrorAction SilentlyContinue\\) | Select-Object Source)",
+      "PowerShell(cd \"c:\\\\Users\\\\mfard\\\\OneDrive\\\\AmbVir\\\\VS Code\\\\Trabalhos\\\\pipoca\\\\pipoca\"; npx --yes tsc --noEmit; Write-Output \"EXIT=$LASTEXITCODE\")",
+      "PowerShell(node --version)",
+      "Bash(grep -E \"\\\\.ts$\")",
+      "PowerShell(cd \"c:\\\\Users\\\\mfard\\\\OneDrive\\\\AmbVir\\\\VS Code\\\\Trabalhos\\\\pipoca\\\\pipoca\"; node src/motores/motor.test.ts 2>&1 | Select-Object -First 40; Write-Output \"EXIT=$LASTEXITCODE\")",
+      "PowerShell(cd \"c:\\\\Users\\\\mfard\\\\OneDrive\\\\AmbVir\\\\VS Code\\\\Trabalhos\\\\pipoca\\\\pipoca\"; npm install -g bun 2>&1 | Select-Object -Last 5; Write-Output \"EXIT=$LASTEXITCODE\"; \\(Get-Command bun -ErrorAction SilentlyContinue\\) | Select-Object Source)",
+      "PowerShell(cd \"c:\\\\Users\\\\mfard\\\\OneDrive\\\\AmbVir\\\\VS Code\\\\Trabalhos\\\\pipoca\\\\pipoca\"; bun run src/motores/motor.test.ts 2>&1 | Select-Object -Last 20; Write-Output \"EXIT=$LASTEXITCODE\")",
+      "PowerShell(cd \"c:\\\\Users\\\\mfard\\\\OneDrive\\\\AmbVir\\\\VS Code\\\\Trabalhos\\\\pipoca\\\\pipoca\"; npm ls playwright puppeteer 2>$null; Write-Output \"--- global ---\"; npm ls -g playwright puppeteer @playwright/test 2>$null; Write-Output \"--- npx playwright check ---\"; \\(Test-Path \"$env:USERPROFILE\\\\AppData\\\\Local\\\\ms-playwright\"\\))",
+      "Bash(node \"C:/Users/mfard/AppData/Local/Temp/claude/c--Users-mfard-OneDrive-AmbVir-VS-Code-Trabalhos-pipoca-pipoca/7d62e8e0-f1f2-4119-8e82-9a707091aa68/scratchpad/anota.mjs\")"
     ]
   }
 }

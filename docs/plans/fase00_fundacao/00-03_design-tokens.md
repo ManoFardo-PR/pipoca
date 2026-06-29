@@ -1,5 +1,7 @@
 # fase00 · 00-03 · Design tokens (mundo Bluey)
 
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/tokens.css` (cores, espaçamento, raios, sombras, movimento); 4 fontes via Google Fonts em `index.html:10`; `[data-reduce-motion]`/`[data-contrast]`. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 > Doc de planejamento. Segue o gabarito de [[_TEMPLATE]]. Idioma: PT-BR. Extrai os tokens visuais (cor,
 > tipografia, espaço, raio, sombra, movimento) da paleta quente do brief e dos hex reais do protótipo.
 

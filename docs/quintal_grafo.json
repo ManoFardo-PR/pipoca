@@ -1,0 +1,207 @@
+{
+  "esquema": "pipoca.grafo-autoral.v1",
+  "niveis": {
+    "n1": "Primeiras palavras — sílabas e palavras soltas",
+    "n2": "Frases curtas — uma linha",
+    "n3": "Pequenos textos — frases ligadas",
+    "n4": "Parágrafos — histórias mais longas"
+  },
+  "regra_de_ouro": "Todo fragmento novo precisa ser lido no portão antes de soltar o próximo objeto.",
+  "cenario": {
+    "id": "quintal_anoitecer",
+    "nome": "O Quintal ao Anoitecer",
+    "personagem": "a Joana",
+    "paleta": "entardecer quente virando azul-noite",
+    "abertura": {
+      "n1": "É noite. A Joana vai ao quintal.",
+      "n2": "A noite chegou no quintal, e a Joana foi ver.",
+      "n3": "Quando a noite chegou no quintal, a Joana foi ver o que tinha lá fora.",
+      "n4": "A noite chegou devagarinho no quintal. A Joana calçou o chinelo e foi lá fora, curiosa pra ver o que a escuridão tinha escondido."
+    },
+    "objetos": [
+      {
+        "id": "vagalume",
+        "emoji": "🪲",
+        "nome": "vaga-lume",
+        "papel_no_fim": "nucleo",
+        "gatilho": {
+          "n1": "Uma luz. No mato. Pisca, pisca.",
+          "n2": "A Joana viu uma luz no mato.",
+          "n3": "A Joana viu uma luzinha piscando no mato escuro.",
+          "n4": "No cantinho mais escuro do mato, uma luzinha dourada piscava sozinha. A Joana chegou bem devagar, sem fazer barulho, pra não assustar."
+        },
+        "regras": []
+      },
+      {
+        "id": "frasco",
+        "emoji": "🫙",
+        "nome": "frasco",
+        "papel_no_fim": "chave",
+        "gatilho": {
+          "n1": "Um frasco. Vazio. O que cabe aqui?",
+          "n2": "A Joana achou um frasco vazio.",
+          "n3": "A Joana achou um frasco de vidro, ainda vazio, e ficou pensando.",
+          "n4": "Largado perto da porta, estava um frasco de vidro vazio. A Joana segurou ele contra a lua e pensou: o que será que cabe aqui dentro?"
+        },
+        "regras": [
+          {
+            "se": "tem:vagalume",
+            "entao": {
+              "n1": "Uma casa. De vidro. Pro vaga-lume.",
+              "n2": "A Joana fez uma casa de vidro pro vaga-lume.",
+              "n3": "A Joana fez uma casinha de vidro pro vaga-lume morar.",
+              "n4": "Com muito cuidado, a Joana colocou o vaga-lume dentro do frasco e fez dele uma casinha de vidro. A luz ficou brilhando lá dentro, quentinha e segura."
+            }
+          }
+        ]
+      },
+      {
+        "id": "coruja",
+        "emoji": "🦉",
+        "nome": "coruja",
+        "papel_no_fim": "chave",
+        "gatilho": {
+          "n1": "Uma coruja. Olha. Quem vem aí?",
+          "n2": "Uma coruja pousou no galho e olhou.",
+          "n3": "Uma coruja pousou no galho alto e ficou olhando a Joana.",
+          "n4": "No alto do pé de manga, uma coruja abriu os olhos grandes e redondos. Ela girou a cabeça e ficou observando a Joana, curiosa com a visita da noite."
+        },
+        "regras": [
+          {
+            "se": "tem:vagalume",
+            "entao": {
+              "n1": "A coruja vê a luz. Que bonito!",
+              "n2": "A coruja veio espiar a luz.",
+              "n3": "A coruja desceu mais perto pra espiar a luzinha.",
+              "n4": "Atraída pelo brilho, a coruja desceu de galho em galho pra espiar a luzinha de perto. Ela piscou, encantada, como quem nunca tinha visto a noite acender."
+            }
+          }
+        ]
+      },
+      {
+        "id": "vento",
+        "emoji": "🌬️",
+        "nome": "vento",
+        "papel_no_fim": "chave",
+        "gatilho": {
+          "n1": "O vento sopra. Fffff. As luzes somem.",
+          "n2": "O vento soprou e as luzes se esconderam.",
+          "n3": "Um vento frio soprou, e as luzinhas se esconderam no mato.",
+          "n4": "De repente, um vento frio soprou pelo quintal. As folhas balançaram, e as luzinhas se esconderam no mato, com medo. A Joana segurou a respiração."
+        },
+        "regras": [
+          {
+            "se": "tem:frasco",
+            "entao": {
+              "n1": "O vento sopra. Mas a luz está segura.",
+              "n2": "O vento soprou, mas o vaga-lume estava seguro no frasco.",
+              "n3": "O vento soprou forte, mas o vaga-lume estava seguro na casinha de vidro.",
+              "n4": "O vento soprou forte e quis apagar tudo. Mas o vaga-lume estava seguro dentro da casinha de vidro, e a luz dele nem tremeu. A Joana sorriu, aliviada."
+            }
+          }
+        ]
+      },
+      {
+        "id": "lua",
+        "emoji": "🌙",
+        "nome": "lua",
+        "papel_no_fim": "chave",
+        "gatilho": {
+          "n1": "A lua sobe. Grande. Branca.",
+          "n2": "A lua apareceu, grande e branca.",
+          "n3": "A lua subiu no céu, grande e branca, iluminando o quintal.",
+          "n4": "Lá no alto, a lua subiu redonda, grande e branca, e espalhou uma luz prateada por todo o quintal. Agora a Joana enxergava cada cantinho."
+        },
+        "regras": [
+          {
+            "se": "tem:vagalume",
+            "entao": {
+              "n1": "A lua em cima. A luz embaixo.",
+              "n2": "A lua brilhava em cima, e o vaga-lume embaixo.",
+              "n3": "A lua brilhava lá em cima e o vaga-lume aqui embaixo, fazendo dupla.",
+              "n4": "A lua brilhava lá no alto e o vaga-lume aqui pertinho — uma luz grande e uma luz pequena, fazendo companhia uma pra outra no quintal escuro."
+            }
+          }
+        ]
+      },
+      {
+        "id": "gato",
+        "emoji": "🐈",
+        "nome": "gato",
+        "papel_no_fim": "chave",
+        "gatilho": {
+          "n1": "Um gato. Mia. Quer brincar.",
+          "n2": "Um gato apareceu e quis brincar.",
+          "n3": "Um gato preto apareceu, miando, querendo brincar.",
+          "n4": "Pisando macio, um gato preto apareceu entre as plantas. Ele miou baixinho, esfregou no pé da Joana e ficou de olho na luzinha, querendo brincar."
+        },
+        "regras": [
+          {
+            "se": "tem:vagalume",
+            "entao": {
+              "n1": "O gato pula na luz. Pula, pula!",
+              "n2": "O gato pulou atrás da luzinha.",
+              "n3": "O gato pulou atrás da luzinha, brincalhão, e a Joana riu.",
+              "n4": "O gato não resistiu: pulou atrás da luzinha de um lado pro outro, dando piruetas no escuro. A Joana riu alto — o vaga-lume tinha virado a melhor brincadeira da noite."
+            }
+          }
+        ]
+      }
+    ],
+    "desfechos": {
+      "convergente": {
+        "n1": "A luz acende a noite. A Joana sorri.",
+        "n2": "O vaga-lume acendeu a noite, e a Joana sorriu.",
+        "n3": "O vaga-lume acendeu a noite toda, e a Joana foi dormir sorrindo.",
+        "n4": "No fim, o vaga-lume acendeu a noite inteira do quintal, como uma estrelinha que desceu pra perto. A Joana foi dormir com um sorriso, feliz por ter feito um amiguinho de luz."
+      },
+      "aberto": [
+        {
+          "se_terminou_com": "frasco",
+          "fragmento": {
+            "n1": "A Joana guarda a luz. Num pote de estrelas.",
+            "n2": "A Joana guardou a luz num potinho de estrelas.",
+            "n3": "A Joana guardou a luz num potinho, como quem guarda uma estrela.",
+            "n4": "A Joana levou a casinha de vidro pro quarto e deixou na janela. Antes de dormir, ficou olhando o vaga-lume brilhar — agora ela tinha uma estrelinha só dela, guardada num pote."
+          }
+        },
+        {
+          "se_terminou_com": "coruja",
+          "fragmento": {
+            "n1": "A coruja e a luz. Amigos da noite.",
+            "n2": "A coruja e o vaga-lume viraram amigos da noite.",
+            "n3": "A coruja e o vaga-lume viraram amigos e cuidaram da noite juntos.",
+            "n4": "A coruja abriu as asas e o vaga-lume subiu junto. Os dois ficaram tomando conta do quintal escuro — a luz pequenina e a guardiã de olhos grandes, amigos da noite pra sempre."
+          }
+        },
+        {
+          "se_terminou_com": "vento",
+          "fragmento": {
+            "n1": "O vento passa. A luz volta. Mais forte.",
+            "n2": "O vento passou, e a luz voltou mais forte.",
+            "n3": "Quando o vento passou, a luzinha voltou a brilhar, mais forte que antes.",
+            "n4": "O vento foi embora tão de repente quanto chegou. E aí, do escuro, a luzinha voltou — mais forte, mais teimosa, brilhando como quem aprendeu que sabe se cuidar. A Joana bateu palmas baixinho."
+          }
+        },
+        {
+          "se_terminou_com": "gato",
+          "fragmento": {
+            "n1": "O gato dorme. A luz vela o sono.",
+            "n2": "O gato dormiu, e o vaga-lume velou o sono dele.",
+            "n3": "Cansado de brincar, o gato dormiu, e o vaga-lume ficou velando o soninho dele.",
+            "n4": "Cansado de tanto pular, o gato se enroscou no colo da Joana e dormiu. O vaga-lume pousou pertinho e ficou de luz acesa, velando o sono dos dois até a manhã chegar."
+          }
+        },
+        {
+          "se_terminou_com": "lua",
+          "fragmento": {
+            "n1": "A lua leva a luz pra casa.",
+            "n2": "A lua acompanhou o vaga-lume até em casa.",
+            "n3": "A lua e o vaga-lume foram, juntos, iluminar o caminho de casa.",
+            "n4": "A lua lá de cima e o vaga-lume aqui de baixo iluminaram juntos o caminhinho até a porta. A Joana entrou em casa cercada de luz, a grande e a pequena, e dormiu sem medo nenhum do escuro."
+          }
+        }
+      ]
+    }
+  }
+}

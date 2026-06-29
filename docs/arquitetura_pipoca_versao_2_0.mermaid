@@ -1,0 +1,147 @@
+flowchart TD
+
+  subgraph ACCESS["🔑 Acesso"]
+    SA_LOGIN["Login do Super Admin (plataforma)"]
+    HH_LOGIN["Login da família — uma conta"]
+    KIDMODE["Modo criança (padrão ao abrir)"]
+    PINGATE["Portão parental (senha / PIN)"]
+  end
+
+  subgraph ADMIN["🛡️ Super Admin — plataforma (multi-tenant)"]
+    SA_HOME["Painel do Super Admin"]
+    SA_TENANT["Contas / tenants / planos"]
+    SA_CONTENT["Biblioteca de conteúdo<br/>(grafos autorais)"]
+    SA_AI["Configuração de IA<br/>provedor, chaves, cotas, custo, fallback"]
+    SA_SAFE["Segurança global + feature flags"]
+  end
+
+  subgraph PARENTAL["👪 Controle Parental (atrás do PIN)"]
+    PC_HOME["Painel do cuidador / onboarding"]
+    PC_PROF["Perfis das crianças (idade, nível)"]
+    PC_LIM["Limites: tempo de tela, bloco de foco"]
+    PC_RULES["Cenários liberados · verificação · recompensas"]
+    PC_AI["IA ligada/desligada para a criança"]
+    PC_PRIV["Privacidade e dados (LGPD)"]
+    PC_DASH["Evolução da leitura"]
+  end
+
+  subgraph UI["🖥️ Telas da Criança — idêntica nos dois motores"]
+    T2["Entrada da criança (quem vai ler)"]
+    T3["Seleção de cenário"]
+    T4["Ambiente herói: bandeja de objetos + autoria<br/>Palco / Ateliê"]
+    T5["Portão de leitura (perdoador)"]
+    T6["Recompensa: vaga-lume acende"]
+    T7["Pote + cardápio (2/3 · 1/3)"]
+    A11Y["Painel Do meu jeito (acessibilidade)"]
+  end
+
+  subgraph CORE["🧠 Estado e Sessão"]
+    PERF["Perfil ativo da criança"]
+    SESS["Sessão + bloco de foco (Pomodoro)"]
+    HIST["Estado da história (objetos em ordem)"]
+    ECON["Economia de vaga-lumes"]
+    MODES["Modos: Palco/Ateliê · Convergente/Aberto · Verificação"]
+  end
+
+  subgraph CONTRACT["🔌 Contrato de Narrativa — eixo 1"]
+    CN["proximoTrecho( história, objeto, nível, modoDesfecho )<br/>devolve: texto, arte, éFinal"]
+  end
+
+  subgraph ENGINES["⚙️ Motores intercambiáveis"]
+    MA["Motor A · Grafo Autoral<br/>MVP: sem IA, sem ASR"]
+    MB["Motor B · Geração IA ao vivo<br/>Fase 2"]
+  end
+
+  subgraph AISTACK["🤖 Provedor de IA — eixo 2 (Fase 2)"]
+    AIPROV["Provedor de IA (abstração)<br/>interface única, multi-provedor"]
+    GUARD["Guardrails de conteúdo infantil<br/>(independente de provedor)"]
+    GEMINI["Google Gemini"]
+    OPENAI["OpenAI ChatGPT"]
+    CLAUDE["Anthropic Claude"]
+  end
+
+  subgraph CONTENT["📚 Conteúdo e Dados"]
+    GRAPH["Grafo autoral (Motor A)<br/>objeto → fragmento (4 níveis)<br/>+ regras de combinação + âncoras de desfecho"]
+    LEVELS["Modelo de níveis de leitura"]
+    AIMODEL["Prompt base (Motor B)"]
+    SAVE["Persistência · LGPD"]
+  end
+
+  subgraph SERVICES["🛠️ Serviços"]
+    TTS["TTS — ouvir a palavra (MVP)"]
+    ASR["ASR — modo Fala (Fase 2)"]
+    TELE["Telemetria de progresso (privada)"]
+  end
+
+  %% acesso: login único da família, PIN só p/ ajustes; super admin à parte
+  SA_LOGIN --> SA_HOME
+  HH_LOGIN --> KIDMODE --> T2
+  KIDMODE -.->|abrir ajustes| PINGATE
+  PINGATE -->|senha ok| PC_HOME
+
+  %% super admin governa a plataforma
+  SA_HOME --> SA_TENANT
+  SA_HOME --> SA_CONTENT
+  SA_HOME --> SA_AI
+  SA_HOME --> SA_SAFE
+  SA_CONTENT --> GRAPH
+  SA_AI --> AIPROV
+  SA_AI --> GUARD
+  SA_SAFE --> MODES
+
+  %% controle parental governa a criança
+  PC_HOME --> PC_PROF --> PERF
+  PC_HOME --> PC_LIM --> SESS
+  PC_HOME --> PC_RULES --> MODES
+  PC_HOME --> PC_PRIV --> SAVE
+  PC_HOME --> PC_DASH --> TELE
+  PC_HOME --> PC_AI
+  PC_AI -.->|autoriza IA p/ a criança| MB
+
+  %% fluxo das telas da criança (a linha verde de teste)
+  T2 --> T3 --> T4 --> T5 --> T6 --> T7
+  T4 -. abre .-> A11Y
+  T4 --> HIST
+  T5 --> ECON
+  T6 --> ECON
+
+  %% coração: a tela fala com o contrato, nunca com o motor
+  T4 -->|escolhe objeto| CN
+  T5 -->|trecho lido destrava o próximo| CN
+  HIST --> CN
+  PERF --> CN
+  MODES --> CN
+
+  %% contrato delega ao motor ativo
+  CN -->|MVP| MA
+  CN -->|Fase 2| MB
+
+  %% motor B usa o provedor de IA (multi-provedor)
+  MB --> AIPROV
+  AIPROV --> GUARD
+  GUARD --> GEMINI
+  GUARD --> OPENAI
+  GUARD --> CLAUDE
+
+  %% conteúdo
+  MA --> GRAPH
+  MA --> LEVELS
+  MB --> AIMODEL
+  MB --> LEVELS
+
+  %% serviços
+  T5 --> TTS
+  T5 -.->|modo Fala| ASR
+  PERF --> SAVE
+  ECON --> SAVE
+
+  classDef mvp fill:#e9f3e0,stroke:#6f9b4f,stroke-width:2.5px,color:#2f4d1f;
+  classDef f2 fill:#ede7f6,stroke:#7e57c2,stroke-width:2px,color:#311b5e;
+  classDef pivot fill:#fff3da,stroke:#d5913f,stroke-width:3px,color:#7a4a18;
+  classDef admin fill:#e8eef5,stroke:#3f6f9e,stroke-width:1.5px,color:#21384f;
+
+  %% linha verde = caminho mínimo de teste com o Pietro
+  class HH_LOGIN,KIDMODE,T2,T3,T4,T5,T6,T7,A11Y,PERF,SESS,HIST,ECON,MODES,MA,GRAPH,LEVELS,TTS,SAVE mvp;
+  class MB,AIMODEL,ASR,GEMINI,OPENAI,CLAUDE,GUARD f2;
+  class CN,AIPROV pivot;
+  class SA_LOGIN,SA_HOME,SA_TENANT,SA_CONTENT,SA_AI,SA_SAFE,PINGATE,PC_HOME,PC_PROF,PC_LIM,PC_RULES,PC_AI,PC_PRIV,PC_DASH,TELE admin;

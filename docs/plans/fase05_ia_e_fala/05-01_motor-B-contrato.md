@@ -39,7 +39,7 @@ Entregar a classe `MotorIA` que implementa `MotorNarrativa` com as **mesmas assi
   ```
 - `Trecho` ([[_contratos/tipos-core]]) — `{ texto: string; ehFinal: boolean; objetoId?: string }`.
 - `ProvedorIA` ([[_contratos/tipos-core]]) — `gerar(prompt, schema, opts?): Promise<Trecho>` (ver [[fase05-05-04]]).
-- Schema de saída do `Trecho`: `pipoca.trecho-ia.v1` ([[_contratos/schemas-json]] / [[fase05-05-03]]).
+- Schema de saída do `Trecho`: `Trecho` ([[_contratos/schemas-json]] / [[fase05-05-03]]).
 
 ## Regras de negócio
 1. **Mesma interface, motores intercambiáveis**: `MotorIA` expõe `abertura`/`aoAdicionarObjeto`/`desfecho` com assinaturas idênticas a `MotorGrafoAutoral`. Nenhuma tela importa `MotorIA` — só `MotorNarrativa` (ver [[_contratos/lei-do-contrato]]).

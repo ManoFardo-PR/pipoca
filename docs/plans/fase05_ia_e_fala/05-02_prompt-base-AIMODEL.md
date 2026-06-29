@@ -17,7 +17,7 @@ Definir o prompt base (system + montagem por chamada) que mapeia `(historia, obj
 ## Arquivos afetados
 - `src/motores/ia/promptBase.ts` (criar — system prompt + função `montarPrompt`)
 - `src/motores/ia/niveisPrompt.ts` (criar — descrição de cada `Nivel` espelhando o grafo)
-- `docs/plans/_contratos/schemas-json.md` (referência — `pipoca.trecho-ia.v1`)
+- `docs/plans/_contratos/schemas-json.md` (referência — `Trecho`)
 
 ## Nomes & variáveis
 - `PROMPT_BASE` — string do system prompt (instruções fixas de tom/segurança).
@@ -36,7 +36,7 @@ Definir o prompt base (system + montagem por chamada) que mapeia `(historia, obj
 - `Trecho` ([[_contratos/tipos-core]]) — o que o prompt deve produzir (`{ texto, ehFinal }`; `objetoId` é injetado pelo motor, não pela IA).
 - `GrafoAutoral`, `Cenario`, `Objeto`, `Fragmento4` ([[_contratos/tipos-core]]) — fonte do tom; schema `pipoca.grafo-autoral.v1` ([[_contratos/schemas-json]]).
 - `Nivel` ([[_contratos/tipos-core]]) — definido por [[fase00-00-15]].
-- `pipoca.trecho-ia.v1` ([[_contratos/schemas-json]]) — schema JSON que restringe a saída (ver [[fase05-05-03]]).
+- `Trecho` ([[_contratos/schemas-json]]) — schema JSON que restringe a saída (ver [[fase05-05-03]]).
 
 ## Regras de negócio
 1. **Espelhar o tom do grafo**: o prompt usa `cenario.nome`, `cenario.personagem` e `cenario.paleta` do `GrafoAutoral` para manter a voz autoral. Um objeto novo gera texto coerente com o que o grafo geraria.
@@ -45,7 +45,7 @@ Definir o prompt base (system + montagem por chamada) que mapeia `(historia, obj
 4. **`ehFinal`**: o prompt marca `ehFinal=true` somente em `tipo="desfecho"`; nos demais `ehFinal=false`.
 5. **Restrições de segurança infantil (no prompt)**: conteúdo sempre adequado a 3–12 anos; sem violência gráfica, medo extremo, temas adultos, marcas, links, dados pessoais; tom acolhedor, nunca condescendente nem clínico; nunca envergonha a criança.
 6. **Sem PII no prompt**: não inclui nome real, idade exata como identificador, nem dados do `Perfil` além do necessário ao tom (o nome da criança, se usado, é tratado como apelido).
-7. **Saída estruturada**: o prompt instrui a responder **somente** no formato `pipoca.trecho-ia.v1` (texto + ehFinal). A imposição forte (JSON schema) é do provedor ([[fase05-05-03]], [[fase05-05-04]], [[fase05-05-05]]).
+7. **Saída estruturada**: o prompt instrui a responder **somente** no formato `Trecho` (texto + ehFinal). A imposição forte (JSON schema) é do provedor ([[fase05-05-03]], [[fase05-05-04]], [[fase05-05-05]]).
 8. **Determinismo de borda**: o prompt não pede timestamps nem números aleatórios; variação fica a cargo do provedor.
 
 ## Passos de implementação
@@ -57,7 +57,7 @@ Definir o prompt base (system + montagem por chamada) que mapeia `(historia, obj
    - para `tipo="objeto"`, injetar `objetoId` e o papel/significado do objeto a partir do `grafo`;
    - para `tipo="desfecho"`, injetar `modoDesfecho` e o último objeto da `historia`;
    - injetar `nivel` + `descricaoNivel[nivel]`;
-   - instruir a responder no formato `pipoca.trecho-ia.v1`.
+   - instruir a responder no formato `Trecho`.
 4. Garantir que `montarPrompt` é **pura** (sem `Date.now()`, sem rede).
 5. Exportar `PROMPT_BASE` e `montarPrompt` para uso por [[fase05-05-03]].
 
@@ -73,7 +73,7 @@ Definir o prompt base (system + montagem por chamada) que mapeia `(historia, obj
 - [ ] O prompt pede UM nível (`Fragmento4[nivel]`), não os quatro.
 - [ ] `PROMPT_BASE` contém o bloco de segurança infantil (regra 5) e a postura "nunca envergonha".
 - [ ] Para `tipo="desfecho"`, o prompt produz `ehFinal=true`; senão `ehFinal=false`.
-- [ ] O prompt referencia o formato `pipoca.trecho-ia.v1`.
+- [ ] O prompt referencia o formato `Trecho`.
 - [ ] Comparado ao Motor A nas fixtures de [[fase00-00-21]], a saída mantém tom e nível equivalentes.
 
 ## Relações com outros docs

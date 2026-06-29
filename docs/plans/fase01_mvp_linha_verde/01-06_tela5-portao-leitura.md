@@ -44,7 +44,7 @@ Ações canônicas expostas em `renderVals()` ([[_contratos/eventos-acoes]]):
 3. **Texto por `Nivel`:** o `Trecho` já chega no nível correto (`n1..n4`) — a tela não escolhe variação; só renderiza.
 4. **Tocar palavra → TTS:** `ouvirPalavra(i)` chama `ServicoTTS.falar(palavras[i])` e marca `palavraAtual = i`.
 5. **"frase N de M":** `M` = número de fragmentos lidos/por ler na sessão de leitura corrente; `N` = posição da frase atual. Sempre visível, calmo, sem cobrança.
-6. **Sem motor concreto:** esta tela importa apenas `MotorNarrativa`/`ValidadorOrdem` — nunca `MotorGrafoAutoral` nem `MotorIA` (troca de motor só na fábrica [[fase00-00-19]]).
+6. **Sem motor concreto:** esta tela importa apenas `MotorNarrativa`/`ValidadorOrdem` — nunca `MA` nem `MB` (troca de motor só na fábrica [[fase00-00-19]]).
 7. **Um foco por tela:** o portão mostra só o trecho + controles de leitura; nada de cena rica competindo (calma sensorial do brief).
 
 ## Passos de implementação
@@ -70,7 +70,7 @@ Ações canônicas expostas em `renderVals()` ([[_contratos/eventos-acoes]]):
 - [ ] Trocar o `Nivel` muda o texto sem mudar a tela (mesmo `Trecho`, conteúdo `n1..n4`).
 - [ ] Tocar uma palavra chama `ServicoTTS.falar` com aquela palavra e a destaca.
 - [ ] `proximaPalavra()` percorre todas as palavras e, no fim, dispara a verificação.
-- [ ] Nenhum import de `MotorGrafoAutoral`/`MotorIA` nesta tela (auditoria do checker).
+- [ ] Nenhum import de `MA`/`MB` nesta tela (auditoria do checker).
 - [ ] `A11yPrefs` altera fonte/espaçamento/silábico/contraste do texto do portão.
 
 ## Relações com outros docs

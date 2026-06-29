@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -i 's/pipoca\\\\.perfis\\\\.v1/pipoca.perfil.v1/g' docs/plans/fase00_fundacao/00-12_persistencia-seam-SAVE.md)",
+      "Bash(sed -i 's/pipoca\\\\.trecho-ia\\\\.v1/Trecho/g' docs/plans/fase05_ia_e_fala/05-01_motor-B-contrato.md docs/plans/fase05_ia_e_fala/05-02_prompt-base-AIMODEL.md)",
+      "Bash(sed -i 's/MotorGrafoAutoral/MA/g; s/MotorIA/MB/g' docs/plans/fase01_mvp_linha_verde/*.md)"
+    ]
+  }
+}

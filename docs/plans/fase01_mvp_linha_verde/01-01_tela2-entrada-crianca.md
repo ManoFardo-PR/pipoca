@@ -92,7 +92,7 @@ abrirPortaoParental(): void;                 // canônica → dispara PINGATE (f
 - [ ] Avatares são alvos ≥ 140×140 px, espaçados.
 - [ ] Com `reduceMotion` ligado, nenhuma animação de entrada roda.
 - [ ] Lista vazia mostra convite + caminho para o cuidador, sem travar.
-- [ ] `grep` no arquivo: zero ocorrências de `MotorNarrativa`, `MotorGrafoAutoral`, `MotorIA`, `ValidadorOrdem` (T2 é pré-história).
+- [ ] `grep` no arquivo: zero ocorrências de `MotorNarrativa`, `MA`, `MB`, `ValidadorOrdem` (T2 é pré-história).
 - [ ] `_avatarSVG` é injetado via `ref`/`_inject`, nunca por `{{ }}` (convenção de runtime).
 
 ## Relações com outros docs

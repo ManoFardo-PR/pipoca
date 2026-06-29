@@ -27,7 +27,7 @@ Definir a interface `RepositorioPersistencia` como **único seam de dados** da a
 - Tipos consumidos: `Perfil`, `EstadoApp`, `EventoTelemetria` ([[_contratos/tipos-core]]).
 - Schemas tocados: `pipoca.perfil.v1`, `pipoca.save.v1`, `pipoca.telemetria.v1` ([[_contratos/schemas-json]]).
 - Chaves de `localStorage` (em `chaves.ts`):
-  - `CHAVE_PERFIS = "pipoca.perfis.v1"` — array de envelopes `pipoca.perfil.v1`.
+  - `CHAVE_PERFIS = "pipoca.perfil.v1"` — array de envelopes `pipoca.perfil.v1`.
   - `chaveSave(perfilId) → "pipoca.save.v1:" + perfilId` — um envelope `pipoca.save.v1` por perfil.
   - `chaveTelemetria(perfilId) → "pipoca.telemetria.v1:" + perfilId` — fila append-only local.
 - Não há identificador vindo do protótipo: o protótipo guardava tudo em `this.state` (memória), sem persistência.

@@ -98,7 +98,7 @@ irParaTela(n: number): void;                 // canônica (n = 4)
 - [ ] As 5 cenas são injetadas via `ref`/`_inject`, nunca por `{{ }}`.
 - [ ] Com `reduceMotion`, nenhuma animação/parallax roda.
 - [ ] Cenário sem grafo não é selecionável e não corrompe `HistoriaState`.
-- [ ] `grep`: zero ocorrências de `MotorNarrativa`/`MotorGrafoAutoral`/`MotorIA`/`ValidadorOrdem`.
+- [ ] `grep`: zero ocorrências de `MotorNarrativa`/`MA`/`MB`/`ValidadorOrdem`.
 
 ## Relações com outros docs
 - Depende de: `[[fase00-00-05]]`, `[[fase00-00-07]]`, `[[fase00-00-10]]`

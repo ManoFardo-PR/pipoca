@@ -1,6 +1,6 @@
 # Contrato · Tipos TypeScript canônicos
 
-> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — Congelados em `src/core/grafo/tipos.ts` e `src/motores/contrato.ts`; CORE em `src/core/estado.ts` + módulos. Nota: `Economia` ganhou campo extra `objetosCreditados` (desvio — Marco 1). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — Congelados em `src/core/grafo/tipos.ts` e `src/motores/contrato.ts`; CORE em `src/core/estado.ts` + módulos. Nota: ✅ Marco 1 — `Economia` conformada a `{vagalumes,poupado}`. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 > **Fonte da verdade dos tipos.** Todo doc de sub-passo que cita um tipo em "## Interfaces / contratos"
 > deve usar **exatamente** estes nomes. Nada de renomear, traduzir ou pluralizar. Quando um tipo novo

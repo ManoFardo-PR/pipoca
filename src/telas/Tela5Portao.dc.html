@@ -178,7 +178,8 @@ class Component extends DCLogic {
     const historia = estado.historia;
 
     if (!objetoId || !motor || !historia) return;
-    if (historia.objetosCreditados && historia.objetosCreditados.includes(objetoId)) {
+    // Idempotência via HISTORIA.objetos (fonte única de verdade — Economia não guarda ledger).
+    if ((historia.objetos || []).includes(objetoId)) {
       App.setState({ tela: 6 });
       const R = window.PipocaRoteador;
       if (R) R.irParaTela(6);
@@ -189,13 +190,11 @@ class Component extends DCLogic {
       ...historia,
       objetos: [...(historia.objetos || []), objetoId],
     };
-    const economia = estado.economia || { vagalumes: 0, poupado: 0, objetosCreditados: [] };
-    const jaCredita = (economia.objetosCreditados || []).includes(objetoId);
-    const novaEconomia = jaCredita ? economia : {
-      ...economia,
-      vagalumes: (economia.vagalumes || 0) + 3,
-      objetosCreditados: [...(economia.objetosCreditados || []), objetoId],
-    };
+    const economia = estado.economia || { vagalumes: 0, poupado: 0 };
+    const Canon = window.PipocaCanonico;
+    const novaEconomia = Canon
+      ? Canon.economia.creditarVagalumes(economia, 3)
+      : { ...economia, vagalumes: (economia.vagalumes || 0) + 3 };
 
     App.setState({
       historia: novaHistoria,

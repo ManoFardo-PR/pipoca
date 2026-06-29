@@ -54,12 +54,9 @@ export interface HistoriaState {
   aberta: boolean;
 }
 
-// --- Economia de vaga-lumes ---
-export interface Economia {
-  vagalumes: number;
-  poupado: number;
-  objetosCreditados: string[];
-}
+// --- Economia de vaga-lumes (tipo canônico em src/core/economia.ts) ---
+import type { Economia } from "./economia.js";
+export type { Economia };
 
 // --- Modos governados pelo Controle Parental ---
 export interface Modos {
@@ -100,7 +97,6 @@ export const estadoInicial: EstadoApp = {
   economia: {
     vagalumes: 0,
     poupado: 0,
-    objetosCreditados: [],
   },
   modos: {
     palco: "Palco",

@@ -1,6 +1,6 @@
 # fase00 · 00-06 · Modelo de estado CORE (EstadoApp)
 
-> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/estado.ts` (`EstadoApp`, `estadoInicial`, seletores `perfilAtivo`/`nivelAtivo`/`storyLines`). Nota: `Economia` traz campo extra `objetosCreditados` (desvio vs tipos-core — ver trilha). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/estado.ts` (`EstadoApp`, `estadoInicial`, seletores `perfilAtivo`/`nivelAtivo`/`storyLines`). Nota: ✅ Marco 1 — `Economia` conformada a `{vagalumes,poupado}`. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase00-00-06`

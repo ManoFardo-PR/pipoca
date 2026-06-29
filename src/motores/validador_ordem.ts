@@ -103,14 +103,10 @@ export function criarValidadorOrdem(cenario: Cenario): ValidadorOrdem {
         colocados.add(id);
       }
 
-      const totalEsperado = _ordemCanonica.length;
-      if (ordemJogador.length < totalEsperado) {
-        return {
-          ok: false,
-          dica: "Quase! Ainda faltam alguns quadros. Você consegue!",
-        };
-      }
-
+      // Mecânica incremental ([[fase00-00-20]]): ACEITA qualquer ordem não-vazia consistente
+      // com as dependências `tem:` — não exige a tira completa (critério [[fase00-00-18]]:
+      // validar(["vagalume","frasco"]) → ok:true). A completude (história inteira montada) é
+      // sinalizada pelo chamador, não aqui.
       return { ok: true };
     },
   };

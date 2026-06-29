@@ -10,6 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="./support.js"></script>
   <script src="./src/core/roteador.js"></script>
+  <!-- Marco 1 / convergência: módulos canônicos de src/ (motor, validador, CORE) via bundle.
+       Gerado por `npm run build:app` (bun build src/app/bridge.ts → pipoca.bundle.js). -->
+  <script src="./pipoca.bundle.js"></script>
   <style>
     @keyframes pipFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
     @keyframes pipBloom{0%{transform:scale(.5);opacity:0}55%{transform:scale(1.12);opacity:1}100%{transform:scale(1);opacity:1}}
@@ -541,7 +544,7 @@ class Component extends DCLogic {
     tela: 2,
     perfil: null,
     historia: { cenarioId: 'quintal_anoitecer', objetos: [], aberta: true },
-    economia: { vagalumes: 0, poupado: 0, objetosCreditados: [] },
+    economia: { vagalumes: 0, poupado: 0 },
     modos: { palco: 'Palco', desfecho: 'convergente', verificacao: 'cuidador', iaLigada: false },
     a11y: { textScale: 1, dyslexia: false, syllable: false, contrast: false, reduceMotion: false },
     showA11y: false,
@@ -564,49 +567,27 @@ class Component extends DCLogic {
 
   _inject(el, html) { if (el && el._k !== html) { el.innerHTML = html; el._k = html; } }
 
+  // ── Delegadores ao motor/validador CANÔNICOS (this._motor/_ordem vêm da fábrica) ──
+  // A lógica de narrativa/validação vive em src/ (lei do contrato); aqui só a ponte
+  // dos call-sites do protótipo. Nenhuma regra de grafo é reimplementada inline.
   _motorAbertura(nivel) {
-    const c = this._cenario;
-    if (!c) return { texto: '', ehFinal: false };
-    return { texto: c.abertura[nivel] || c.abertura.n1, ehFinal: false };
-  }
-
-  _avaliarCondicao(cond, temSet) {
-    if (!cond) return false;
-    const m = cond.match(/^tem:(\w+)$/);
-    return m ? temSet.has(m[1]) : false;
+    return this._motor ? this._motor.abertura(nivel) : { texto: '', ehFinal: false };
   }
 
   _motorAoAdicionar(historia, objetoId, nivel) {
-    const c = this._cenario;
-    if (!c) return { texto: '', ehFinal: false };
-    const obj = c.objetos.find(o => o.id === objetoId);
-    if (!obj) return { texto: '', ehFinal: false };
-    const tem = new Set(historia);
-    let texto = obj.gatilho[nivel] || obj.gatilho.n1;
-    for (const regra of (obj.regras || [])) {
-      if (this._avaliarCondicao(regra.se, tem)) {
-        texto = regra.entao[nivel] || regra.entao.n1;
-        break;
-      }
-    }
-    const todos = c.ordem_canonica || c.objetos.map(o => o.id);
-    const novosObjetos = [...historia, objetoId];
-    const ehFinal = todos.every(id => novosObjetos.includes(id));
-    return { texto, ehFinal };
+    return this._motor ? this._motor.aoAdicionarObjeto(historia, objetoId, nivel) : { texto: '', ehFinal: false };
   }
 
+  // Valida a história COMPLETA até aqui: objetos já commitados (HISTORIA, fonte de verdade)
+  // + a tira em montagem. O ValidadorOrdem canônico aceita ordem parcial consistente.
   _validarOrdem(strip) {
-    const c = this._cenario;
-    if (!c) return { ok: false, dica: null };
-    const canon = c.ordem_canonica || [];
-    for (let i = 0; i < strip.length; i++) {
-      if (strip[i] !== canon[i]) return { ok: false, dica: 'Quase! Tente mudar a ordem dos objetos.' };
-    }
-    return { ok: strip.length > 0, dica: null };
+    if (!this._ordem) return { ok: false };
+    const commitados = (this.state.historia && this.state.historia.objetos) || [];
+    return this._ordem.validar([...commitados, ...strip]);
   }
 
   _ordemCanonica() {
-    return this._cenario ? (this._cenario.ordem_canonica || []) : [];
+    return this._ordem ? this._ordem.ordemCanonica() : [];
   }
 
   // ─── Avatar helpers ─────────────────────────────────────────────────────────
@@ -756,24 +737,32 @@ class Component extends DCLogic {
       get cenario() { return self._cenario; },
     };
 
-    // Fake motor interface pointing to inline methods
-    this._motor = {
-      abertura: (nivel) => self._motorAbertura(nivel),
-      aoAdicionarObjeto: (hist, id, nivel) => self._motorAoAdicionar(hist, id, nivel),
-    };
-    this._ordem = {
-      validar: (strip) => self._validarOrdem(strip),
-      ordemCanonica: () => self._ordemCanonica(),
-    };
-
-    // Load quintal_grafo.json
+    // Motor/validador CANÔNICOS (src/) via bundle window.PipocaCanonico — sem stubs inline.
+    // Carrega o grafo, valida (validarGrafo) e instancia { motor, ordem } pela fábrica
+    // (criarMotor) — a troca A↔B acontece só aqui (lei do contrato).
+    const Canon = window.PipocaCanonico;
+    let grafoRaw = null;
     try {
       const resp = await fetch('./src/dados/quintal_grafo.json');
-      const grafo = await resp.json();
-      this._grafo = grafo;
-      this._cenario = grafo.cenario;
+      grafoRaw = await resp.json();
     } catch(e) {
       console.warn('[PipocaApp] Falha ao carregar quintal_grafo.json:', e);
+    }
+    try {
+      const g = (Canon && grafoRaw) ? Canon.validarGrafo(grafoRaw) : null;
+      if (g) {
+        this._grafo = g;
+        this._cenario = g.cenario;
+        const modos = (this.state && this.state.modos) || (Canon.modos && Canon.modos.modosPadrao);
+        const par = Canon.criarMotor(g.cenario, modos);
+        this._motor = par.motor;
+        this._ordem = par.ordem;
+      }
+    } catch(e) {
+      console.warn('[PipocaApp] Falha ao montar o motor canônico:', e);
+    }
+    if (!this._cenario) {
+      // fallback mínimo (offline / bundle ausente) — não há motor; o app degrada sem narrativa.
       this._cenario = { id:'quintal_anoitecer', nome:'O Quintal', personagem:'a Joana', ordem_canonica:['vagalume','frasco','vento'], abertura:{n1:'É noite. A Joana vai ao quintal.',n2:'A noite chegou no quintal, e a Joana foi ver.',n3:'Quando a noite chegou no quintal, a Joana foi ver o que tinha lá fora.',n4:'A noite chegou devagarinho no quintal. A Joana calçou o chinelo e foi lá fora.'}, objetos:[] };
     }
 
@@ -875,15 +864,18 @@ class Component extends DCLogic {
   _t5Confirmar() {
     const objetoId = this.state.gateObjId;
     if (!objetoId) { this._irPara(4); return; }
+    const Canon = window.PipocaCanonico;
     const historia = this.state.historia || { cenarioId: 'quintal_anoitecer', objetos: [], aberta: true };
-    const economia = this.state.economia || { vagalumes: 0, poupado: 0, objetosCreditados: [] };
-    const jaCredita = (economia.objetosCreditados || []).includes(objetoId);
-    const novaHistoria = { ...historia, objetos: [...(historia.objetos || []), objetoId] };
-    const novaEconomia = jaCredita ? economia : {
-      ...economia,
-      vagalumes: (economia.vagalumes || 0) + 3,
-      objetosCreditados: [...(economia.objetosCreditados || []), objetoId],
-    };
+    const economia = this.state.economia || { vagalumes: 0, poupado: 0 };
+    // Idempotência via HISTORIA.objetos (fonte única de verdade): credita só ao commitar.
+    const jaCommitado = (historia.objetos || []).includes(objetoId);
+    const todos = this._cenario ? (this._cenario.ordem_canonica || this._cenario.objetos.map(o => o.id)) : [];
+    const objetos = jaCommitado ? historia.objetos : [...(historia.objetos || []), objetoId];
+    const aberta = !todos.length || !todos.every(id => objetos.includes(id));
+    const novaHistoria = { ...historia, objetos, aberta };
+    const novaEconomia = jaCommitado
+      ? economia
+      : (Canon ? Canon.economia.creditarVagalumes(economia, 3) : { ...economia, vagalumes: (economia.vagalumes || 0) + 3 });
     this.setState({ historia: novaHistoria, economia: novaEconomia, gateEarned: 3, gateStage: 'reading', gatePalavraIdx: 0 });
     this._irPara(6);
   }
@@ -942,7 +934,7 @@ class Component extends DCLogic {
     const childName = perfil ? perfil.nome : 'criança';
     const nivel = (perfil && perfil.nivel) || 'n2';
     const historia = s.historia || { cenarioId:'', objetos:[], aberta:true };
-    const economia = s.economia || { vagalumes:0, poupado:0, objetosCreditados:[] };
+    const economia = s.economia || { vagalumes:0, poupado:0 };
     const vagalumes = economia.vagalumes || 0;
     const modos = s.modos || {};
 
@@ -990,6 +982,12 @@ class Component extends DCLogic {
         const t = this._motorAoAdicionar(hist, id, nivel);
         hist.push(id);
         if (t.texto) t4StoryLines.push({ text: t.texto });
+      }
+      // Desfecho via motor canônico quando a história fechou (todos os objetos commitados).
+      if (historia.aberta === false && this._motor && this._motor.desfecho) {
+        const modo = (this.state.modos && this.state.modos.desfecho) || 'convergente';
+        const d = this._motor.desfecho(historia.objetos || [], modo, nivel);
+        if (d && d.texto) t4StoryLines.push({ text: d.texto });
       }
     } else {
       t4StoryLines.push({ text: 'A noite chegou no quintal, e a Joana foi ver.' });

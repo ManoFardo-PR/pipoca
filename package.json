@@ -4,9 +4,11 @@
   "description": "Pipoca — app de leitura guiada para crianças",
   "scripts": {
     "build": "cd dc-runtime && bun run build",
+    "build:app": "bun build src/app/bridge.ts --target=browser --format=iife --outfile=pipoca.bundle.js",
     "serve": "node server.js",
     "typecheck": "bun x tsc --noEmit",
-    "test": "bun run src/motores/motor.test.ts && bun run src/core/persistencia/persistencia.test.ts && bun run src/core/parciais.test.ts"
+    "test": "bun run src/motores/motor.test.ts && bun run src/core/persistencia/persistencia.test.ts && bun run src/core/parciais.test.ts",
+    "test:e2e": "node tests/e2e/run-linha-verde.mjs"
   },
   "engines": {
     "node": ">=18"

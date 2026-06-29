@@ -112,6 +112,9 @@ console.log("\n=== ValidadorOrdem ===");
   const ok = validador.validar(["vagalume", "frasco", "vento"]);
   assert(ok.ok === true, "validar(['vagalume','frasco','vento']): ok=true (ordem completa, dependências satisfeitas)");
 
+  const parcial = validador.validar(["vagalume", "frasco"]);
+  assert(parcial.ok === true, "validar(['vagalume','frasco']): ok=true (ordem parcial consistente — mecânica incremental, critério 00-18)");
+
   const nok = validador.validar(["frasco", "vagalume"]);
   assert(nok.ok === false, "validar(['frasco','vagalume']): ok=false (frasco antes de vagalume)");
   assert(typeof nok.dica === "string" && nok.dica.length > 0, "dica acolhedora presente");

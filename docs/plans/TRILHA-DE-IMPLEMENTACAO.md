@@ -20,8 +20,8 @@ pré-requisito** de tudo que vem depois.
 ## Mapa de status (resumo)
 | Fase | Status | Onde |
 |------|--------|------|
-| 00 Fundação | 🟢 módulos prontos (com 2 desvios) | `src/core/*`, `src/motores/*`, `src/dados/*`, `src/componentes/*` |
-| 01 MVP linha verde | 🟢 funcional em 2 tracks | `src/telas/*.dc.html` **e** `index.html` |
+| 00 Fundação | 🟢 módulos prontos (desvios corrigidos) | `Economia` conformada, `spendPct` corrigido, `ValidadorOrdem` incremental |
+| 01 MVP linha verde | 🟢 **convergido** | `index.html` consome o seam canônico via `pipoca.bundle.js` (e2e 19/19) |
 | 02 Controle parental | 🟡 núcleo PC_AI/PINGATE | `acesso.ts` (PIN+lockout), `modos.autorizarIA`, telas `PortaoParental`/`IaToggle`; falta hub PC_HOME + nav |
 | 03 Telemetria/painel | 🟢 TELE/03-03 · 🔴 PC_DASH | `telemetria.ts`+`captura.ts`+`telemetria_repo.ts` (testados); falta painel PC_DASH e captura ligada ao fluxo |
 | 04 Super admin | 🔴 não iniciado | — |
@@ -47,8 +47,16 @@ Testes em `src/core/parciais.test.ts` (rodam com `npm test`). Falta apenas a **l
 
 ---
 
-## Marco 1 — Convergência runtime → `src/` · **PRÉ-REQUISITO**
+## Marco 1 — Convergência runtime → `src/` · ✅ **CONCLUÍDO (2026-06-29)**
 Objetivo: o app que roda passa a consumir os módulos canônicos; o caminho verde fica "implementado de verdade".
+
+**Feito:** `src/app/bridge.ts` → `pipoca.bundle.js` (`npm run build:app`), carregado pelo `index.html`, que agora
+instancia `{ motor, ordem }` pela fábrica canônica e cujos métodos inline viraram delegadores (sem lógica de grafo
+duplicada; `_avaliarCondicao` removido). `ValidadorOrdem` aceita ordem parcial consistente; `Economia` conformada a
+`{vagalumes,poupado}` (idempotência via `HISTORIA.objetos`); `spendPct` corrigido; desfecho via `motor.desfecho()`.
+Travado por e2e em chromium real (`tests/e2e/linha-verde.spec.ts` para CI + `npm run test:e2e` standalone, 19/19) e
+pelos portões `tsc` (0), unidade (100 asserts) e `check_plans` (10/10). O `index.html` segue como app; a substituição
+pela versão definitiva baseada em `src/telas/*.dc.html` (x-import) é um refino opcional posterior.
 
 1. **Build TS→browser.** Criar entry `src/app/bridge.ts` expondo em `window.PipocaCanonico`: `criarMotor`
    (`src/motores/fabrica.ts`), `validarGrafo` (`src/core/grafo/validarGrafo.ts`), CORE

@@ -1,6 +1,6 @@
 # fase00 · 00-19 · Fábrica de motor
 
-> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/motores/fabrica.ts` (`criarMotor`→`{motor,ordem}`, fallback Motor B). Nota: **não instanciada no runtime** — `index.html` usa motor inline (Marco 1). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/motores/fabrica.ts` (`criarMotor`→`{motor,ordem}`, fallback Motor B). Nota: ✅ Marco 1 — `criarMotor` instanciada no runtime (`index.html` via `pipoca.bundle.js`). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase00-00-19`

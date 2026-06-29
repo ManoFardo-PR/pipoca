@@ -14,36 +14,25 @@
 export interface Economia {
   vagalumes: number;
   poupado: number;
-  objetosCreditados: string[];
 }
 
 /** Estado inicial da economia. */
 export const economiaInicial: Economia = {
   vagalumes: 0,
   poupado: 0,
-  objetosCreditados: [],
 };
 
 /**
- * Credita n vaga-lumes por um objeto lido.
- * Idempotente: se objetoId já está em objetosCreditados, não credita de novo.
+ * Credita n vaga-lumes (transação ECON). Função pura de soma.
+ *
+ * IDEMPOTÊNCIA: o crédito acontece UMA vez por objeto commitado. A garantia mora na borda
+ * (T6/recompensa), que credita só quando o objeto entra em `HISTORIA.objetos` — a única fonte
+ * de verdade da história ([[lei-do-contrato]] #3). Por isso a Economia não guarda ledger próprio.
  * @param economia - estado atual
- * @param n - quantidade a creditar
- * @param objetoId - id do objeto que gerou a recompensa
+ * @param n - quantidade a creditar (piso 0)
  */
-export function creditarVagalumes(
-  economia: Economia,
-  n: number,
-  objetoId: string
-): Economia {
-  if (economia.objetosCreditados.includes(objetoId)) {
-    return economia;
-  }
-  return {
-    ...economia,
-    vagalumes: economia.vagalumes + Math.max(0, n),
-    objetosCreditados: [...economia.objetosCreditados, objetoId],
-  };
+export function creditarVagalumes(economia: Economia, n: number): Economia {
+  return { ...economia, vagalumes: economia.vagalumes + Math.max(0, n) };
 }
 
 /**
@@ -81,11 +70,11 @@ export function saveSuggest(economia: Economia): number {
   return total - spendSuggest(economia);
 }
 
-/** Percentual gasto em relação ao total (0–1). */
+/** Fração do total sugerida para GASTAR (0–1) — espelha spendSuggest (~2/3). */
 export function spendPct(economia: Economia): number {
   const total = economia.vagalumes + economia.poupado;
   if (total === 0) return 0;
-  return economia.poupado / total;
+  return spendSuggest(economia) / total;
 }
 
 /** Valida um objeto Economia candidato. Retorna lista de erros. */
@@ -109,8 +98,5 @@ export function normalizarEconomia(raw: unknown): Economia {
     poupado: typeof r["poupado"] === "number" && r["poupado"] >= 0
       ? r["poupado"]
       : 0,
-    objetosCreditados: Array.isArray(r["objetosCreditados"])
-      ? (r["objetosCreditados"] as unknown[]).filter((v) => typeof v === "string") as string[]
-      : [],
   };
 }

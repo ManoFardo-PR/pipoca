@@ -1,6 +1,6 @@
 # fase00 · 00-10 · Economia de vaga-lumes (ECON)
 
-> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/economia.ts` (`creditarVagalumes` idempotente, `gastarVagalumes`, `spendSuggest`/`saveSuggest`). Notas: campo `objetosCreditados` fora de tipos-core e `spendPct` devolve fração poupada — corrigir no Marco 1. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/economia.ts` (`creditarVagalumes` idempotente, `gastarVagalumes`, `spendSuggest`/`saveSuggest`). Nota: ✅ Marco 1 — `Economia` conformada a `{vagalumes,poupado}` (idempotência via `HISTORIA.objetos`) e `spendPct` = fração gasta. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase00-00-10`

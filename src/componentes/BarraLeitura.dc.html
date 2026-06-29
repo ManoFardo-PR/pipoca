@@ -1,0 +1,143 @@
+<!-- BarraLeitura.dc.html — Indicador de progresso de leitura
+     ─────────────────────────────────────────────────────────
+     Props:
+       fraseAtual   number  — frase corrente (1-based)
+       totalFrases  number  — total de frases da sessão
+
+     Estados (brief):
+       vazio     — totalFrases = 0; barra vazia, label placeholder
+       lendo     — progresso intermediário; barra âmbar avança (animada)
+       sucesso   — fraseAtual === totalFrases; barra cheia cor folha, ícone ✓
+       tentando  — progresso < 50%: mensagem encorajadora, nunca punitiva
+
+     Regras:
+       - Altura total ≥ 44 px (padding + barra + label)
+       - Tokens --pip-* para cores, raios, duração
+       - SVG ícones via ref + _inject (style fill var para tokens)
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-barra-fill {
+      transition: width calc(var(--pip-dur-medio)*var(--pip-mov)) ease;
+    }
+  </style>
+</helmet>
+
+<div
+  style="display:flex;flex-direction:column;gap:var(--pip-esp-2);min-height:44px;justify-content:center;"
+  role="status"
+  aria-label="{{ ariaLabel }}"
+>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--pip-esp-3);">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <div ref="{{ iconeRef }}" style="width:18px;height:18px;flex-shrink:0;"></div>
+      <span style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:13px;color:{{ corLabel }};letter-spacing:.3px;">{{ labelFrase }}</span>
+    </div>
+    <span style="font-family:var(--pip-fonte-texto);font-size:12px;color:var(--pip-tinta);opacity:.55;font-weight:600;">{{ pctLabel }}</span>
+  </div>
+
+  <div style="height:8px;border-radius:var(--pip-raio-pill);background:var(--pip-areia-alfa);overflow:hidden;">
+    <div
+      class="pip-barra-fill"
+      style="height:100%;border-radius:var(--pip-raio-pill);width:{{ larguraPct }};background:{{ corBarra }};"
+    ></div>
+  </div>
+
+  <sc-if value="{{ mostrarEncoraja }}" hint-placeholder-val="{{ false }}">
+    <div style="font-family:var(--pip-fonte-texto);font-size:12px;color:var(--pip-heeler);opacity:.82;">
+      Continue — você está indo bem! 🌟
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script
+  data-props="{
+    &quot;fraseAtual&quot;: {
+      &quot;editor&quot;: &quot;number&quot;,
+      &quot;default&quot;: 2,
+      &quot;tsType&quot;: &quot;number&quot;,
+      &quot;section&quot;: &quot;BarraLeitura&quot;,
+      &quot;label&quot;: &quot;Frase atual (1-based)&quot;
+    },
+    &quot;totalFrases&quot;: {
+      &quot;editor&quot;: &quot;number&quot;,
+      &quot;default&quot;: 5,
+      &quot;tsType&quot;: &quot;number&quot;,
+      &quot;section&quot;: &quot;BarraLeitura&quot;,
+      &quot;label&quot;: &quot;Total de frases&quot;
+    }
+  }">
+
+class Component extends DCLogic {
+
+  state = {};
+
+  iconeRef = (el) => { this._iconeEl = el; this._injetarIcone(); };
+
+  _inject(el, html) {
+    if (el && el._k !== html) { el.innerHTML = html; el._k = html; }
+  }
+
+  /* SVG fills usam style="fill:var(--pip-X)" para honrar tokens */
+  _svgLivro() {
+    return "<svg viewBox='0 0 18 18' width='18' height='18' xmlns='http://www.w3.org/2000/svg'>"
+      + "<rect x='2' y='3' width='14' height='12' rx='2' style='fill:var(--pip-heeler)' opacity='.2'/>"
+      + "<rect x='2' y='3' width='6.5' height='12' rx='1.5' style='fill:var(--pip-heeler)' opacity='.55'/>"
+      + "<line x1='9' y1='4' x2='9' y2='14' style='stroke:var(--pip-heeler)' stroke-width='1' opacity='.4'/>"
+      + "</svg>";
+  }
+
+  _svgCheck() {
+    return "<svg viewBox='0 0 18 18' width='18' height='18' xmlns='http://www.w3.org/2000/svg'>"
+      + "<circle cx='9' cy='9' r='8' style='fill:var(--pip-folha)' opacity='.18'/>"
+      + "<polyline points='5,9 8,12 13,6' style='stroke:var(--pip-folha)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/>"
+      + "</svg>";
+  }
+
+  _injetarIcone() {
+    const atual  = (this.props && this.props.fraseAtual)  || 1;
+    const total  = (this.props && this.props.totalFrases) || 0;
+    const concluido = total > 0 && atual >= total;
+    this._inject(this._iconeEl, concluido ? this._svgCheck() : this._svgLivro());
+  }
+
+  componentDidMount()  { this._injetarIcone(); }
+  componentDidUpdate() { this._injetarIcone(); }
+
+  renderVals() {
+    const atual = (this.props && typeof this.props.fraseAtual  === 'number') ? this.props.fraseAtual  : 1;
+    const total = (this.props && typeof this.props.totalFrases === 'number') ? this.props.totalFrases : 0;
+
+    const estaVazio   = total === 0;
+    const concluido   = !estaVazio && atual >= total;
+    const emProgresso = !estaVazio && !concluido;
+    const pct = estaVazio ? 0 : Math.min(100, Math.round((atual / total) * 100));
+
+    const mostrarEncoraja = emProgresso && pct > 0 && pct < 50;
+
+    const corBarra = concluido
+      ? 'var(--pip-folha)'
+      : 'linear-gradient(90deg,var(--pip-vagalume),var(--pip-terracota))';
+    const corLabel = concluido ? 'var(--pip-folha)' : 'var(--pip-tinta)';
+
+    return {
+      larguraPct:    estaVazio ? '0%' : `${pct}%`,
+      pctLabel:      estaVazio ? '' : `${pct}%`,
+      labelFrase:    estaVazio
+        ? 'Nenhuma frase ainda'
+        : concluido
+          ? 'Tudo lido!'
+          : `Frase ${atual} de ${total}`,
+      corBarra,
+      corLabel,
+      mostrarEncoraja,
+      ariaLabel: estaVazio
+        ? 'Progresso de leitura: sem frases'
+        : `Progresso: frase ${atual} de ${total}, ${pct}%`,
+      iconeRef: this.iconeRef,
+    };
+  }
+}
+</script>

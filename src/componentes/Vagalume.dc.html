@@ -1,0 +1,144 @@
+<!-- Vagalume.dc.html — Token / ponto de recompensa do Pipoca
+     ─────────────────────────────────────────────────────────
+     Props:
+       quantidade  number  — saldo de vaga-lumes a exibir
+       brilhando   boolean — ativa animação de glow (ex.: ao ganhar ponto)
+
+     Estados (brief):
+       vazio     — zero vagalumes; exibe "0" sem destaque; rótulo encorajador
+       lendo     — contagem intermediária, glow suave
+       sucesso   — brilhando=true: pulso âmbar intenso, animação pipBloom
+       tentando  — exibido mas sem brilho; convida continuar
+
+     Regras:
+       - Ícone (vagalume SVG) antes do número — pré-leitores
+       - Tokens --pip-vagalume*, --pip-mov para cores e animação
+       - SVG usa style="fill:var(--pip-X)" (nunca hex cru como atributo fill)
+       - Touch target: min 44×44 px
+-->
+<x-dc>
+<helmet>
+  <style>
+    @keyframes pip-vagalume-glow {
+      0%,100% { opacity:.55; transform:scale(1); }
+      50%      { opacity:1;   transform:scale(1.13); }
+    }
+    @keyframes pip-vagalume-bloom {
+      0%   { transform:scale(.5); opacity:0; }
+      55%  { transform:scale(1.18); opacity:1; }
+      100% { transform:scale(1); opacity:1; }
+    }
+    .pip-vaga-glow {
+      animation: pip-vagalume-glow calc(1.8s * var(--pip-mov)) ease-in-out infinite;
+    }
+    .pip-vaga-bloom {
+      animation: pip-vagalume-bloom calc(.55s * var(--pip-mov)) ease-out forwards;
+    }
+  </style>
+</helmet>
+
+<div
+  style="{{ estiloConteiner }}"
+  role="status"
+  aria-label="{{ ariaLabel }}"
+>
+  <div ref="{{ svgRef }}" class="{{ classeIcone }}" style="width:28px;height:28px;flex-shrink:0;display:flex;align-items:center;"></div>
+  <span style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:16px;color:{{ corNumero }};">
+    {{ quantidade }}
+  </span>
+  <sc-if value="{{ mostrarEncoraja }}" hint-placeholder-val="{{ false }}">
+    <span style="font-family:var(--pip-fonte-texto);font-size:12px;color:var(--pip-heeler);opacity:.8;margin-left:2px;">continue!</span>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script
+  data-props="{
+    &quot;quantidade&quot;: {
+      &quot;editor&quot;: &quot;number&quot;,
+      &quot;default&quot;: 3,
+      &quot;tsType&quot;: &quot;number&quot;,
+      &quot;section&quot;: &quot;Vagalume&quot;,
+      &quot;label&quot;: &quot;Quantidade de vaga-lumes&quot;
+    },
+    &quot;brilhando&quot;: {
+      &quot;editor&quot;: &quot;boolean&quot;,
+      &quot;default&quot;: false,
+      &quot;tsType&quot;: &quot;boolean&quot;,
+      &quot;section&quot;: &quot;Vagalume&quot;,
+      &quot;label&quot;: &quot;Brilhando (glow ativo)&quot;
+    }
+  }">
+
+class Component extends DCLogic {
+
+  state = {};
+
+  svgRef = (el) => { this._svgEl = el; this._injetarSVG(); };
+
+  _inject(el, html) {
+    if (el && el._k !== html) { el.innerHTML = html; el._k = html; }
+  }
+
+  /* SVG fills usam style="fill:var(--pip-X)" para honrar tokens via CSS cascade */
+  _svgVagalume() {
+    return "<svg viewBox='0 0 28 28' width='28' height='28' xmlns='http://www.w3.org/2000/svg'>"
+      + "<defs>"
+      + "  <filter id='vg-f'><feGaussianBlur stdDeviation='2.5' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter>"
+      + "  <radialGradient id='vg-g' cx='40%' cy='35%' r='60%'>"
+      + "    <stop offset='0%' style='stop-color:var(--pip-vagalume-creme)'/>"
+      + "    <stop offset='60%' style='stop-color:var(--pip-vagalume)'/>"
+      + "    <stop offset='100%' style='stop-color:var(--pip-vagalume-escuro)'/>"
+      + "  </radialGradient>"
+      + "</defs>"
+      + "<circle cx='14' cy='14' r='11' style='fill:var(--pip-vagalume-creme)' filter='url(#vg-f)' opacity='.6'/>"
+      + "<circle cx='14' cy='14' r='9' fill='url(#vg-g)'/>"
+      + "</svg>";
+  }
+
+  _injetarSVG() {
+    this._inject(this._svgEl, this._svgVagalume());
+  }
+
+  componentDidMount()  { this._injetarSVG(); }
+  componentDidUpdate() { this._injetarSVG(); }
+
+  renderVals() {
+    const quantidade = (this.props && typeof this.props.quantidade === 'number')
+      ? this.props.quantidade : 3;
+    const brilhando  = !!(this.props && this.props.brilhando);
+
+    const estaVazio       = quantidade === 0;
+    const mostrarEncoraja = estaVazio;
+
+    /* ── Classe de animação no ícone (via class, nunca concatenada em style) ── */
+    const classeIcone = brilhando ? 'pip-vaga-bloom pip-vaga-glow' : '';
+
+    const estiloConteiner = [
+      'display:inline-flex',
+      'align-items:center',
+      'gap:var(--pip-esp-2)',
+      'min-height:44px',
+      'min-width:44px',
+      'padding:6px var(--pip-esp-3)',
+      'border-radius:var(--pip-raio-pill)',
+      brilhando
+        ? 'background:var(--pip-vagalume-fundo);border:1.5px solid var(--pip-vagalume-borda);box-shadow:var(--pip-sombra-card);'
+        : 'background:var(--pip-areia);border:1.5px solid var(--pip-areia-borda);',
+    ].join(';');
+
+    const corNumero = brilhando ? 'var(--pip-terracota-escuro)' : 'var(--pip-tinta)';
+
+    return {
+      quantidade,
+      estaVazio,
+      mostrarEncoraja,
+      estiloConteiner,
+      classeIcone,
+      corNumero,
+      ariaLabel: `${quantidade} vaga-lume${quantidade !== 1 ? 's' : ''}`,
+      svgRef: this.svgRef,
+    };
+  }
+}
+</script>

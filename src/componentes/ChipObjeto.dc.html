@@ -1,0 +1,141 @@
+<!-- ChipObjeto.dc.html — Chip de objeto da bandeja (Objeto)
+     ────────────────────────────────────────────────────────
+     Props:
+       emoji      string  — emoji do objeto (ex.: "🌙")
+       nome       string  — nome do objeto (ex.: "Lua")
+       bloqueado  boolean — exibe cadeado; sem ação de arraste
+
+     Estados (brief):
+       vazio     — chip sem conteúdo (placeholder)
+       lendo     — chip disponível, hover suave; arrastável
+       sucesso   — objeto adicionado à história (feedback visual via borda folha)
+       tentando  — bloqueado=true: cadeado visível, opacidade reduzida; sem punição
+
+     Regras:
+       - Ícone (emoji) antes do nome — pré-leitores
+       - Toque ≥ 44×44 px
+       - Bloqueado: cursor default, sem drag, cadeado via ref+_inject (SVG tokens)
+       - Tokens --pip-* para todas as cores e sombras
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-chip-disponivel {
+      transition:
+        transform  calc(var(--pip-dur-rapido)*var(--pip-mov)) ease,
+        box-shadow calc(var(--pip-dur-rapido)*var(--pip-mov)) ease;
+    }
+    .pip-chip-disponivel:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--pip-sombra-card);
+    }
+  </style>
+</helmet>
+
+<div
+  class="{{ classeChip }}"
+  style="{{ estiloChip }}"
+  draggable="{{ arrastavel }}"
+  role="{{ role }}"
+  aria-label="{{ ariaLabel }}"
+  aria-disabled="{{ bloqueado }}"
+>
+  <span style="font-size:22px;line-height:1;flex-shrink:0;" aria-hidden="true">{{ emoji }}</span>
+  <span style="font-family:var(--pip-fonte-texto);font-weight:700;font-size:14px;color:{{ corNome }};">{{ nome }}</span>
+  <sc-if value="{{ bloqueado }}" hint-placeholder-val="{{ false }}">
+    <div ref="{{ cadeadoRef }}" style="width:16px;height:16px;margin-left:2px;flex-shrink:0;"></div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script
+  data-props="{
+    &quot;emoji&quot;: {
+      &quot;editor&quot;: &quot;text&quot;,
+      &quot;default&quot;: &quot;🌙&quot;,
+      &quot;tsType&quot;: &quot;string&quot;,
+      &quot;section&quot;: &quot;ChipObjeto&quot;,
+      &quot;label&quot;: &quot;Emoji do objeto&quot;
+    },
+    &quot;nome&quot;: {
+      &quot;editor&quot;: &quot;text&quot;,
+      &quot;default&quot;: &quot;Lua&quot;,
+      &quot;tsType&quot;: &quot;string&quot;,
+      &quot;section&quot;: &quot;ChipObjeto&quot;,
+      &quot;label&quot;: &quot;Nome do objeto&quot;
+    },
+    &quot;bloqueado&quot;: {
+      &quot;editor&quot;: &quot;boolean&quot;,
+      &quot;default&quot;: false,
+      &quot;tsType&quot;: &quot;boolean&quot;,
+      &quot;section&quot;: &quot;ChipObjeto&quot;,
+      &quot;label&quot;: &quot;Bloqueado (cadeado, sem ação)&quot;
+    }
+  }">
+
+class Component extends DCLogic {
+
+  state = {};
+
+  cadeadoRef = (el) => { this._cadeadoEl = el; this._injetarCadeado(); };
+
+  _inject(el, html) {
+    if (el && el._k !== html) { el.innerHTML = html; el._k = html; }
+  }
+
+  /* SVG fill/stroke usam style="..." com var() para honrar tokens */
+  _svgCadeado() {
+    return "<svg viewBox='0 0 16 16' width='16' height='16' xmlns='http://www.w3.org/2000/svg'>"
+      + "<rect x='2.5' y='7' width='11' height='8' rx='2' style='fill:var(--pip-areia-borda)' opacity='.9'/>"
+      + "<path d='M5 7V5.5a3 3 0 0 1 6 0V7' style='stroke:var(--pip-areia-borda)' stroke-width='1.8' fill='none' stroke-linecap='round' opacity='.9'/>"
+      + "<circle cx='8' cy='11' r='1.2' style='fill:var(--pip-branco)' opacity='.9'/>"
+      + "</svg>";
+  }
+
+  _injetarCadeado() {
+    const bloqueado = !!(this.props && this.props.bloqueado);
+    this._inject(this._cadeadoEl, bloqueado ? this._svgCadeado() : '');
+  }
+
+  componentDidMount()  { this._injetarCadeado(); }
+  componentDidUpdate() { this._injetarCadeado(); }
+
+  renderVals() {
+    const emoji     = (this.props && this.props.emoji)    || '🌙';
+    const nome      = (this.props && this.props.nome)     || 'Objeto';
+    const bloqueado = !!(this.props && this.props.bloqueado);
+
+    const arrastavel = !bloqueado;
+    const classeChip = bloqueado ? '' : 'pip-chip-disponivel';
+
+    const estiloChip = [
+      'display:inline-flex',
+      'align-items:center',
+      'gap:var(--pip-esp-2)',
+      'min-height:44px',
+      'padding:10px var(--pip-esp-3)',
+      'border-radius:var(--pip-raio-pill)',
+      bloqueado
+        ? 'border:2px solid var(--pip-areia-borda);background:var(--pip-areia);opacity:.55;cursor:default;'
+        : 'border:2px solid var(--pip-areia-borda);background:var(--pip-creme);box-shadow:var(--pip-sombra-card);cursor:grab;',
+      'user-select:none',
+    ].join(';');
+
+    const corNome = bloqueado ? 'var(--pip-tinta)' : 'var(--pip-tinta)';
+    const role    = bloqueado ? 'img' : 'button';
+
+    return {
+      emoji,
+      nome,
+      bloqueado,
+      arrastavel,
+      classeChip,
+      estiloChip,
+      corNome,
+      role,
+      ariaLabel:  bloqueado ? `${nome} — bloqueado` : `${nome} — arraste para a história`,
+      cadeadoRef: this.cadeadoRef,
+    };
+  }
+}
+</script>

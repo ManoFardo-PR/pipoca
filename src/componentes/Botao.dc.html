@@ -1,0 +1,150 @@
+<!-- Botao.dc.html — Botão primário / secundário do Pipoca
+     ─────────────────────────────────────────────────────
+     Props:
+       rotulo      string   — texto do rótulo (obrigatório)
+       onClick     fn       — handler de clique
+       variante    string   — "primario" | "secundario"  (default: "primario")
+       tamanho     string   — "p" | "m" | "g"            (default: "m")
+       desabilitado boolean — sem cor punitiva; apenas opacidade reduzida
+
+     Estados (brief):
+       vazio         — botão renderizado sem interação
+       lendo         — hover/foco visual (outline suave)
+       sucesso       — variante primaria ativa (terracota)
+       tentando      — desabilitado, opacidade reduzida, cursor not-allowed
+
+     Regras:
+       - Alvos de toque ≥ 44×44 px
+       - Ícone antes de rótulo (suportado via slot de emoji no rotulo)
+       - Tokens --pip-* exclusivamente para cor, raio, sombra, tipografia
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-botao {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--pip-esp-2);
+      border: none;
+      cursor: pointer;
+      font-family: var(--pip-fonte-titulo);
+      font-weight: 700;
+      line-height: 1;
+      transition:
+        opacity  calc(var(--pip-dur-rapido) * var(--pip-mov)) ease,
+        transform calc(var(--pip-dur-rapido) * var(--pip-mov)) ease,
+        box-shadow calc(var(--pip-dur-rapido) * var(--pip-mov)) ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .pip-botao:active:not(:disabled) {
+      transform: scale(.97);
+    }
+    .pip-botao:disabled {
+      cursor: not-allowed;
+      opacity: .48;
+      box-shadow: none !important;
+    }
+  </style>
+</helmet>
+
+<button
+  onClick="{{ aoClicar }}"
+  disabled="{{ desabilitado }}"
+  class="pip-botao"
+  style="{{ estiloBase }}"
+  aria-label="{{ rotulo }}"
+>{{ rotulo }}</button>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script
+  data-props="{
+    &quot;rotulo&quot;: {
+      &quot;editor&quot;: &quot;text&quot;,
+      &quot;default&quot;: &quot;Continuar&quot;,
+      &quot;tsType&quot;: &quot;string&quot;,
+      &quot;section&quot;: &quot;Botao&quot;,
+      &quot;label&quot;: &quot;Rótulo&quot;
+    },
+    &quot;variante&quot;: {
+      &quot;editor&quot;: &quot;text&quot;,
+      &quot;default&quot;: &quot;primario&quot;,
+      &quot;tsType&quot;: &quot;string&quot;,
+      &quot;section&quot;: &quot;Botao&quot;,
+      &quot;label&quot;: &quot;Variante (primario|secundario)&quot;
+    },
+    &quot;tamanho&quot;: {
+      &quot;editor&quot;: &quot;text&quot;,
+      &quot;default&quot;: &quot;m&quot;,
+      &quot;tsType&quot;: &quot;string&quot;,
+      &quot;section&quot;: &quot;Botao&quot;,
+      &quot;label&quot;: &quot;Tamanho (p|m|g)&quot;
+    },
+    &quot;desabilitado&quot;: {
+      &quot;editor&quot;: &quot;boolean&quot;,
+      &quot;default&quot;: false,
+      &quot;tsType&quot;: &quot;boolean&quot;,
+      &quot;section&quot;: &quot;Botao&quot;,
+      &quot;label&quot;: &quot;Desabilitado&quot;
+    },
+    &quot;onClick&quot;: {
+      &quot;editor&quot;: &quot;fn&quot;,
+      &quot;default&quot;: null,
+      &quot;tsType&quot;: &quot;(() => void) | null&quot;,
+      &quot;section&quot;: &quot;Botao&quot;,
+      &quot;label&quot;: &quot;Handler de clique&quot;
+    }
+  }">
+
+class Component extends DCLogic {
+
+  state = {};
+
+  _estiloBase() {
+    const variante = (this.props && this.props.variante) || 'primario';
+    const tamanho  = (this.props && this.props.tamanho)  || 'm';
+
+    /* ── Padding / font-size por tamanho (não cobertos por token de espaçamento) ── */
+    const pad = { p: '10px var(--pip-esp-4)', m: 'var(--pip-esp-3) var(--pip-esp-5)', g: '18px 36px' }[tamanho]
+      || 'var(--pip-esp-3) var(--pip-esp-5)';
+    const fs  = { p: '14px', m: '16px', g: '19px' }[tamanho] || '16px';
+
+    /* ── Cor por variante — usa tokens ── */
+    const bg = variante === 'secundario'
+      ? 'var(--pip-heeler-alfa)'
+      : 'linear-gradient(150deg,var(--pip-terracota),var(--pip-terracota-escuro))';
+    const color  = variante === 'secundario' ? 'var(--pip-heeler)' : 'var(--pip-branco)';
+    const border = variante === 'secundario' ? '2px solid var(--pip-heeler)' : '2px solid transparent';
+    const shadow = variante === 'secundario' ? 'none' : 'var(--pip-sombra-botao)';
+
+    return [
+      `padding:${pad}`,
+      `font-size:${fs}`,
+      'min-height:44px',
+      'border-radius:var(--pip-raio-3)',
+      `background:${bg}`,
+      `color:${color}`,
+      `border:${border}`,
+      `box-shadow:${shadow}`,
+    ].join(';');
+  }
+
+  aoClicar() {
+    const fn = this.props && this.props.onClick;
+    if (fn) fn();
+  }
+
+  renderVals() {
+    const desabilitado = !!(this.props && this.props.desabilitado);
+    const rotulo       = (this.props && this.props.rotulo) || 'Continuar';
+
+    return {
+      rotulo,
+      desabilitado,
+      estiloBase: this._estiloBase(),
+      aoClicar:   () => this.aoClicar(),
+    };
+  }
+}
+</script>

@@ -1,0 +1,202 @@
+<!-- ModalCuidador.dc.html — Overlay sóbrio para fluxos adultos
+     ─────────────────────────────────────────────────────────────
+     Props:
+       aberto    boolean — controla visibilidade do overlay
+       titulo    string  — título do modal
+       aoFechar  fn      — handler de fechamento (backdrop ou botão ✕)
+
+     Estados (brief):
+       vazio     — aberto=false; overlay ocultado
+       lendo     — aberto=true; foco capturado no painel (focus trap)
+       sucesso   — ação completada pelo cuidador; pode fechar
+       tentando  — validação pendente; mensagem calma, sem X vermelho
+
+     Regras:
+       - Overlay sóbrio (paleta heeler/tinta — não infantil)
+       - Focus trap ativo: Tab/Shift+Tab circulam dentro do painel
+       - Foco inicial no botão fechar ao abrir
+       - Backdrop fecha ao clicar fora do painel
+       - Toque ≥ 44 px para botão de fechar
+       - Tokens --pip-* exclusivamente; sem hex/px cru para valores cobertos
+       - SVG ícone via ref + _inject com style="fill:var(--pip-X)"
+-->
+<x-dc>
+<helmet>
+  <style>
+    @keyframes pip-modal-fade-in {
+      from { opacity:0; transform:scale(.96) translateY(10px); }
+      to   { opacity:1; transform:none; }
+    }
+    .pip-modal-painel {
+      animation: pip-modal-fade-in calc(var(--pip-dur-medio)*var(--pip-mov)) ease-out forwards;
+    }
+  </style>
+</helmet>
+
+<sc-if value="{{ aberto }}" hint-placeholder-val="{{ true }}">
+  <div
+    onClick="{{ aoFecharBackdrop }}"
+    style="position:fixed;inset:0;z-index:200;background:var(--pip-overlay-escuro);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:var(--pip-esp-5);"
+    role="dialog"
+    aria-modal="true"
+    aria-label="{{ titulo }}"
+  >
+    <div
+      ref="{{ painelRef }}"
+      onClick="{{ aoClicarPainel }}"
+      class="pip-modal-painel"
+      style="position:relative;width:100%;max-width:520px;background:var(--pip-creme);border-radius:var(--pip-raio-2);box-shadow:var(--pip-sombra-modal);overflow:hidden;"
+    >
+      <div style="background:var(--pip-heeler);padding:var(--pip-esp-4) var(--pip-esp-5);display:flex;align-items:center;justify-content:space-between;gap:var(--pip-esp-3);">
+        <div>
+          <div style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:var(--pip-branco);opacity:.65;margin-bottom:4px;">Para o cuidador</div>
+          <div style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:20px;color:var(--pip-branco);line-height:1.1;">{{ titulo }}</div>
+        </div>
+        <button
+          ref="{{ fecharRef }}"
+          onClick="{{ aoFechar }}"
+          style="width:44px;height:44px;border-radius:var(--pip-raio-1);border:1.5px solid var(--pip-heeler-borda);background:var(--pip-heeler-alfa);color:var(--pip-branco);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"
+          aria-label="Fechar modal"
+        >
+          <div ref="{{ iconeFecharRef }}" style="width:20px;height:20px;pointer-events:none;"></div>
+        </button>
+      </div>
+
+      <div style="padding:var(--pip-esp-5);">
+        <slot></slot>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script
+  data-props="{
+    &quot;aberto&quot;: {
+      &quot;editor&quot;: &quot;boolean&quot;,
+      &quot;default&quot;: true,
+      &quot;tsType&quot;: &quot;boolean&quot;,
+      &quot;section&quot;: &quot;ModalCuidador&quot;,
+      &quot;label&quot;: &quot;Aberto&quot;
+    },
+    &quot;titulo&quot;: {
+      &quot;editor&quot;: &quot;text&quot;,
+      &quot;default&quot;: &quot;Configuração&quot;,
+      &quot;tsType&quot;: &quot;string&quot;,
+      &quot;section&quot;: &quot;ModalCuidador&quot;,
+      &quot;label&quot;: &quot;Título&quot;
+    },
+    &quot;aoFechar&quot;: {
+      &quot;editor&quot;: &quot;fn&quot;,
+      &quot;default&quot;: null,
+      &quot;tsType&quot;: &quot;(() => void) | null&quot;,
+      &quot;section&quot;: &quot;ModalCuidador&quot;,
+      &quot;label&quot;: &quot;Handler de fechar&quot;
+    }
+  }">
+
+class Component extends DCLogic {
+
+  state = {};
+
+  /* ── Refs imperativos ── */
+  painelRef     = (el) => { this._painelEl     = el; };
+  fecharRef     = (el) => { this._fecharEl     = el; this._focarFechar(); };
+  iconeFecharRef = (el) => { this._iconeFecharEl = el; this._injetarIconeFechar(); };
+
+  _inject(el, html) {
+    if (el && el._k !== html) { el.innerHTML = html; el._k = html; }
+  }
+
+  /* SVG ✕ com fill via token */
+  _svgFechar() {
+    return "<svg viewBox='0 0 20 20' width='20' height='20' xmlns='http://www.w3.org/2000/svg'>"
+      + "<line x1='5' y1='5' x2='15' y2='15' style='stroke:var(--pip-branco)' stroke-width='2' stroke-linecap='round'/>"
+      + "<line x1='15' y1='5' x2='5' y2='15' style='stroke:var(--pip-branco)' stroke-width='2' stroke-linecap='round'/>"
+      + "</svg>";
+  }
+
+  _injetarIconeFechar() {
+    this._inject(this._iconeFecharEl, this._svgFechar());
+  }
+
+  _focarFechar() {
+    /* Move o foco para o botão fechar ao abrir o modal */
+    const aberto = !!(this.props && this.props.aberto);
+    if (aberto && this._fecharEl) {
+      requestAnimationFrame(() => {
+        if (this._fecharEl) this._fecharEl.focus();
+      });
+    }
+  }
+
+  /* ── Focus trap ── */
+  _getFocusable() {
+    if (!this._painelEl) return [];
+    return Array.from(this._painelEl.querySelectorAll(
+      'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
+    )).filter(el => !el.hidden && el.offsetParent !== null);
+  }
+
+  _onKeyDown(e) {
+    const aberto = !!(this.props && this.props.aberto);
+    if (!aberto) return;
+    if (e.key === 'Escape') { this._fechar(); return; }
+    if (e.key !== 'Tab') return;
+
+    const focusable = this._getFocusable();
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last  = focusable[focusable.length - 1];
+
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  }
+
+  componentDidMount() {
+    this._injetarIconeFechar();
+    this._focarFechar();
+    this._boundKeyDown = (e) => this._onKeyDown(e);
+    document.addEventListener('keydown', this._boundKeyDown);
+  }
+
+  componentDidUpdate() {
+    this._injetarIconeFechar();
+    this._focarFechar();
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this._boundKeyDown);
+  }
+
+  _fechar() {
+    const fn = this.props && this.props.aoFechar;
+    if (fn) fn();
+  }
+
+  renderVals() {
+    const aberto = !!(this.props && this.props.aberto);
+    const titulo = (this.props && this.props.titulo) || 'Configuração';
+
+    return {
+      aberto,
+      titulo,
+      aoFechar:         () => this._fechar(),
+      aoFecharBackdrop: (e) => { if (e.target === e.currentTarget) this._fechar(); },
+      aoClicarPainel:   (e) => { e.stopPropagation(); },
+      painelRef:        this.painelRef,
+      fecharRef:        this.fecharRef,
+      iconeFecharRef:   this.iconeFecharRef,
+    };
+  }
+}
+</script>

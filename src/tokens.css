@@ -24,9 +24,15 @@
   /* ── Cor — vaga-lume (glow âmbar) ───────────────────────────────── */
   --pip-vagalume:        #f4b65a;
   --pip-vagalume-escuro: #e89132;
+  --pip-vagalume-creme:  #fff3cf;  /* centro luminoso do vaga-lume */
+  --pip-vagalume-fundo:  #fff3da;  /* fundo suave âmbar (contentor de vaga-lume) */
+  --pip-vagalume-borda:  #f0d9a8;  /* borda âmbar do contentor */
 
   /* ── Cor — tinta de texto ────────────────────────────────────────── */
   --pip-tinta: #3a2c20;
+
+  /* ── Branco ──────────────────────────────────────────────────────── */
+  --pip-branco: #fff;
 
   /* ── Contraste (substituídos pelo bloco [data-contrast] abaixo) ──── */
   --pip-tinta-contraste:    #1a1008;
@@ -54,6 +60,18 @@
   /* ── Sombra ──────────────────────────────────────────────────────── */
   --pip-sombra-card:  0 8px 20px -12px rgba(74, 59, 44, .3);
   --pip-sombra-botao: 0 8px 20px -6px rgba(181, 86, 40, .55);
+  --pip-sombra-modal: 0 28px 60px -20px rgba(26, 16, 8, .55);
+
+  /* ── Overlay ─────────────────────────────────────────────────────── */
+  --pip-overlay-escuro: rgba(26, 16, 8, .52);
+
+  /* ── Variantes de cor com opacidade (para bordas e fundos alfa) ──── */
+  --pip-heeler-alfa:     rgba(63, 111, 158, .12);  /* botão secundário bg */
+  --pip-heeler-borda:    rgba(63, 111, 158, .3);   /* borda heeler suave  */
+  --pip-folha-alfa:      rgba(111, 155, 79, .08);  /* fundo sucesso suave */
+  --pip-folha-borda:     rgba(111, 155, 79, .35);  /* borda sucesso suave */
+  --pip-areia-borda:     rgba(224, 204, 168, .6);  /* borda chip padrão   */
+  --pip-areia-alfa:      rgba(160, 140, 110, .18); /* fundo barra vazia   */
 
   /* ── Movimento ───────────────────────────────────────────────────── */
   /* --pip-mov é o multiplicador global: 1 = animações normais, 0 = paradas */

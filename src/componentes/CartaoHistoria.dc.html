@@ -1,0 +1,175 @@
+<!-- CartaoHistoria.dc.html — Cartão de trecho da história (Trecho)
+     ──────────────────────────────────────────────────────────────
+     Props:
+       texto        string  — texto do Trecho a exibir
+       numeroFrase  number  — número da frase corrente (1-based)
+       estado       string  — "vazio" | "lendo" | "sucesso" | "tentando"
+
+     Estados (brief):
+       vazio     — placeholder suave; nenhuma frase ativa
+       lendo     — frase destacada com borda âmbar pulsante (classe CSS)
+       sucesso   — fundo verde-folha suave, ícone ✓ via ref+_inject
+       tentando  — borda heeler suave; convida nova tentativa; nunca X vermelho
+
+     Regras:
+       - Fonte de leitura (Lexend) para facilitar decodificação
+       - Toque ≥ 44 px de altura mínima
+       - Tokens --pip-* para todas as cores e raios
+       - Animação de borda aplicada via atributo class (nunca concatenada em style)
+-->
+<x-dc>
+<helmet>
+  <style>
+    @keyframes pip-borda-pulso {
+      0%,100% { box-shadow: 0 0 0 2px var(--pip-vagalume); }
+      50%      { box-shadow: 0 0 0 5px var(--pip-vagalume-fundo); }
+    }
+    .pip-cartao-lendo {
+      animation: pip-borda-pulso calc(1.6s * var(--pip-mov)) ease-in-out infinite;
+    }
+  </style>
+</helmet>
+
+<div
+  class="{{ classeCartao }}"
+  style="{{ estiloCartao }}"
+  aria-live="polite"
+  aria-label="{{ ariaLabel }}"
+>
+  <sc-if value="{{ mostrarNumero }}" hint-placeholder-val="{{ true }}">
+    <div style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:{{ corNumero }};margin-bottom:var(--pip-esp-2);opacity:.75;">
+      {{ labelNumero }}
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ estaVazio }}" hint-placeholder-val="{{ false }}">
+    <div style="font-family:var(--pip-fonte-leitura);font-size:16px;color:var(--pip-tinta);opacity:.35;font-style:italic;">
+      A história começa aqui…
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ temTexto }}" hint-placeholder-val="{{ true }}">
+    <div style="font-family:var(--pip-fonte-leitura);font-size:20px;line-height:1.65;color:var(--pip-tinta);letter-spacing:.2px;">
+      {{ texto }}
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ mostrarSucesso }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:var(--pip-esp-2);margin-top:var(--pip-esp-3);">
+      <div ref="{{ iconeRef }}" style="width:26px;height:26px;flex-shrink:0;"></div>
+      <span style="font-family:var(--pip-fonte-texto);font-size:14px;font-weight:700;color:var(--pip-folha);">Lido!</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ mostrarTentando }}" hint-placeholder-val="{{ false }}">
+    <div style="margin-top:var(--pip-esp-3);font-family:var(--pip-fonte-texto);font-size:13px;color:var(--pip-heeler);opacity:.85;">
+      Tente de novo — você consegue 🌟
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script
+  data-props="{
+    &quot;texto&quot;: {
+      &quot;editor&quot;: &quot;text&quot;,
+      &quot;default&quot;: &quot;A Joana viu um vaga-lume brilhar no quintal.&quot;,
+      &quot;tsType&quot;: &quot;string&quot;,
+      &quot;section&quot;: &quot;CartaoHistoria&quot;,
+      &quot;label&quot;: &quot;Texto do Trecho&quot;
+    },
+    &quot;numeroFrase&quot;: {
+      &quot;editor&quot;: &quot;number&quot;,
+      &quot;default&quot;: 1,
+      &quot;tsType&quot;: &quot;number&quot;,
+      &quot;section&quot;: &quot;CartaoHistoria&quot;,
+      &quot;label&quot;: &quot;Número da frase&quot;
+    },
+    &quot;estado&quot;: {
+      &quot;editor&quot;: &quot;text&quot;,
+      &quot;default&quot;: &quot;vazio&quot;,
+      &quot;tsType&quot;: &quot;string&quot;,
+      &quot;section&quot;: &quot;CartaoHistoria&quot;,
+      &quot;label&quot;: &quot;Estado (vazio|lendo|sucesso|tentando)&quot;
+    }
+  }">
+
+class Component extends DCLogic {
+
+  state = {};
+
+  iconeRef = (el) => { this._iconeEl = el; this._injetarIcone(); };
+
+  _inject(el, html) {
+    if (el && el._k !== html) { el.innerHTML = html; el._k = html; }
+  }
+
+  _svgCheck() {
+    return "<svg viewBox='0 0 26 26' width='26' height='26' xmlns='http://www.w3.org/2000/svg'>"
+      + "<circle cx='13' cy='13' r='12' style='fill:var(--pip-folha);opacity:.18'/>"
+      + "<polyline points='7,13 11,17 19,9' style='stroke:var(--pip-folha)' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/>"
+      + "</svg>";
+  }
+
+  _injetarIcone() {
+    const estado = (this.props && this.props.estado) || 'vazio';
+    this._inject(this._iconeEl, estado === 'sucesso' ? this._svgCheck() : '');
+  }
+
+  componentDidMount()  { this._injetarIcone(); }
+  componentDidUpdate() { this._injetarIcone(); }
+
+  renderVals() {
+    const estado      = (this.props && this.props.estado)      || 'vazio';
+    const texto       = (this.props && this.props.texto)       || '';
+    const numeroFrase = (this.props && this.props.numeroFrase) || 1;
+
+    const estaVazio      = estado === 'vazio' || !texto;
+    const temTexto       = !estaVazio;
+    const mostrarSucesso  = estado === 'sucesso';
+    const mostrarTentando = estado === 'tentando';
+    const mostrarNumero   = !estaVazio;
+
+    /* ── Classe de animação (nunca concatenada em style) ── */
+    const classeCartao = estado === 'lendo' ? 'pip-cartao-lendo' : '';
+
+    /* ── Fundo / borda por estado (via tokens) ── */
+    const fundos = {
+      vazio:    'background:var(--pip-areia);opacity:.7;border:2px dashed var(--pip-areia-borda);',
+      lendo:    'background:var(--pip-creme);border:2px solid var(--pip-vagalume);',
+      sucesso:  'background:var(--pip-folha-alfa);border:2px solid var(--pip-folha-borda);',
+      tentando: 'background:var(--pip-heeler-alfa);border:2px solid var(--pip-heeler-borda);',
+    };
+
+    const estiloCartao = [
+      'border-radius:var(--pip-raio-2)',
+      'padding:var(--pip-esp-4)',
+      'min-height:44px',
+      'box-shadow:var(--pip-sombra-card)',
+      'transition:border-color calc(var(--pip-dur-medio)*var(--pip-mov)) ease',
+      fundos[estado] || fundos.vazio,
+    ].join(';');
+
+    const corNumero = {
+      lendo:    'var(--pip-vagalume-escuro)',
+      sucesso:  'var(--pip-folha)',
+      tentando: 'var(--pip-heeler)',
+    }[estado] || 'var(--pip-tinta)';
+
+    return {
+      texto,
+      estaVazio,
+      temTexto,
+      mostrarSucesso,
+      mostrarTentando,
+      mostrarNumero,
+      classeCartao,
+      estiloCartao,
+      corNumero,
+      labelNumero: `Frase ${numeroFrase}`,
+      ariaLabel:   `Frase ${numeroFrase}: ${texto || 'aguardando'}`,
+      iconeRef:    this.iconeRef,
+    };
+  }
+}
+</script>

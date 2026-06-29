@@ -5,7 +5,8 @@
   "scripts": {
     "build": "cd dc-runtime && bun run build",
     "serve": "node server.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "bun x tsc --noEmit",
+    "test": "bun run src/motores/motor.test.ts"
   },
   "engines": {
     "node": ">=18"

@@ -18,6 +18,7 @@
       "n3": "Quando a noite chegou no quintal, a Joana foi ver o que tinha lá fora.",
       "n4": "A noite chegou devagarinho no quintal. A Joana calçou o chinelo e foi lá fora, curiosa pra ver o que a escuridão tinha escondido."
     },
+    "ordem_canonica": ["vagalume", "frasco", "vento"],
     "objetos": [
       {
         "id": "vagalume",

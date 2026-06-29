@@ -1,0 +1,149 @@
+<!-- Shell.dc.html — Pipoca app shell
+     Escalonador de moldura + roteador de telas.
+     Importar tokens.css e as fontes antes de carregar este componente.
+
+     Props:
+       dev (boolean) — exibe o screen-jumper de desenvolvimento. Nunca true em produção.
+-->
+<x-dc>
+<helmet>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+  </style>
+</helmet>
+
+<div style="position:fixed;inset:0;overflow:hidden;font-family:var(--pip-fonte-texto);color:var(--pip-tinta);background:radial-gradient(120% 120% at 50% 0%, var(--pip-areia) 0%, #ded2be 70%, #d3c5ad 100%);">
+
+  <!-- Cabeçalho de marca -->
+  <div style="position:absolute;top:18px;left:24px;display:flex;align-items:center;gap:10px;z-index:30;">
+    <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(150deg,var(--pip-terracota),var(--pip-terracota-escuro));display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(181,86,40,.35);">
+      <div style="width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,var(--pip-vagalume) 60%,var(--pip-vagalume-escuro));box-shadow:0 0 9px 2px rgba(247,191,96,.8);"></div>
+    </div>
+    <div style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:17px;color:var(--pip-tinta);letter-spacing:.2px;">Pipoca</div>
+  </div>
+
+  <!-- Moldura tablet — escalonada para caber na viewport (1234×874 base) -->
+  <div ref="{{ refScaler }}" style="position:absolute;left:50%;top:calc(50% - 28px);transform:translate(-50%,-50%);transform-origin:center center;">
+    <div style="position:relative;width:1234px;height:874px;border-radius:46px;padding:20px;background:linear-gradient(155deg,#2c2722,#1b1814);box-shadow:0 40px 90px -30px rgba(40,30,18,.6), 0 0 0 2px rgba(255,255,255,.04) inset;">
+      <!-- botões laterais decorativos -->
+      <div style="position:absolute;top:50%;left:9px;transform:translateY(-50%);width:6px;height:46px;border-radius:4px;background:#3a342c;"></div>
+      <div style="position:absolute;top:30px;left:8px;width:5px;height:60px;border-radius:4px;background:#241f1a;"></div>
+      <!-- tela interna -->
+      <div style="position:relative;width:1194px;height:834px;border-radius:30px;overflow:hidden;background:var(--pip-creme);">
+
+        <!-- câmera frontal -->
+        <div style="position:absolute;top:11px;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:50%;background:#0d0b09;z-index:40;box-shadow:0 0 0 2px rgba(0,0,0,.25);"></div>
+
+        <!-- textura de papel (overlay suave) -->
+        <div style="position:absolute;inset:0;z-index:25;pointer-events:none;opacity:.05;mix-blend-mode:multiply;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);"></div>
+
+        <!-- Slot de conteúdo: telas T1–T7 serão montadas aqui via <x-import> -->
+        <!-- Por ora mostra o placeholder de "em construção" -->
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+          <div style="text-align:center;color:#8a7a64;">
+            <div style="font-family:var(--pip-fonte-titulo);font-size:28px;font-weight:700;">Pipoca</div>
+            <div style="font-size:14px;margin-top:8px;">Tela {{ tela }} — em construção</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen-jumper de dev — NUNCA renderizar em produção (gated por prop dev) -->
+  <sc-if value="{{ devMode }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="dev-jumper" style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(38,30,22,.82);backdrop-filter:blur(8px);padding:7px 10px;border-radius:var(--pip-raio-pill);box-shadow:0 8px 24px -6px rgba(0,0,0,.4);">
+    <button onClick="{{ goT1 }}" title="T1 Onboarding"  style="{{ navS1 }}">1</button>
+    <button onClick="{{ goT2 }}" title="T2 Entrada"     style="{{ navS2 }}">2</button>
+    <button onClick="{{ goT3 }}" title="T3 Cenários"    style="{{ navS3 }}">3</button>
+    <button onClick="{{ goT4 }}" title="T4 Ambiente"    style="{{ navS4 }}">4</button>
+    <button onClick="{{ goT5 }}" title="T5 O portão"    style="{{ navS5 }}">5</button>
+    <button onClick="{{ goT6 }}" title="T6 Recompensa"  style="{{ navS6 }}">6</button>
+    <button onClick="{{ goT7 }}" title="T7 Cardápio"    style="{{ navS7 }}">7</button>
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;dev&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Shell&quot;,&quot;label&quot;:&quot;Mostrar jumper de telas (apenas dev)&quot;}}">
+class Component extends DCLogic {
+  state = { tela: 1 };
+
+  // ── Escalonador ────────────────────────────────────────────────────────────
+  // refScaler é atribuído pelo runtime quando o elemento monta.
+  // _fit calcula a escala máxima que cabe na viewport sem cortar conteúdo.
+  refScaler = (el) => { this._scaler = el; this._fit && this._fit(); };
+
+  componentDidMount() {
+    this._fit = () => {
+      const el = this._scaler; if (!el) return;
+      const sw = window.innerWidth - 48;   // margem horizontal
+      const sh = window.innerHeight - 96;  // margem vertical (considera cabeçalho)
+      const s = Math.min(sw / 1234, sh / 874, 1);
+      el.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+    };
+    this._fit();
+    window.addEventListener('resize', this._fit);
+
+    // Assina o roteador global (window.PipocaRoteador, carregado de src/core/roteador.js).
+    // Quando o CORE (Etapa 2) chamar PipocaRoteador.irParaTela(n), o Shell atualiza.
+    const R = window.PipocaRoteador;
+    if (R) {
+      this.setState({ tela: R.telaAtual() });
+      this._unsubRoteador = R.onTelaChange((n) => this.setState({ tela: n }));
+    }
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this._fit);
+    if (this._unsubRoteador) this._unsubRoteador();
+  }
+
+  // ── Roteador ───────────────────────────────────────────────────────────────
+  // irParaTela(n) é o ÚNICO ponto de navegação do Shell.
+  // Delega a window.PipocaRoteador (src/core/roteador.js), que é a seam de
+  // roteamento. Na Etapa 2, EstadoApp.tela conduzirá o roteador em vez do Shell.
+  irParaTela(n) {
+    const R = window.PipocaRoteador;
+    if (R) {
+      R.irParaTela(n);          // notifica todos os assinantes; Shell reage via onTelaChange
+    } else {
+      this.setState({ tela: n }); // fallback se roteador não carregou
+    }
+  }
+
+  // Estilo do botão do jumper: destaca a tela ativa
+  _navStyle(n) {
+    const ativo = this.state.tela === n;
+    return 'width:32px;height:32px;border-radius:8px;border:none;cursor:pointer;'
+      + 'font-family:\'Baloo 2\';font-weight:700;font-size:14px;'
+      + (ativo
+        ? 'background:#e8965a;color:#fff;'
+        : 'background:rgba(255,255,255,.12);color:rgba(255,255,255,.65);');
+  }
+
+  renderVals() {
+    const { tela } = this.state;
+    const dev = this.props && this.props.dev;
+    return {
+      tela,
+      devMode: dev,
+      goT1: () => this.irParaTela(1),
+      goT2: () => this.irParaTela(2),
+      goT3: () => this.irParaTela(3),
+      goT4: () => this.irParaTela(4),
+      goT5: () => this.irParaTela(5),
+      goT6: () => this.irParaTela(6),
+      goT7: () => this.irParaTela(7),
+      navS1: this._navStyle(1),
+      navS2: this._navStyle(2),
+      navS3: this._navStyle(3),
+      navS4: this._navStyle(4),
+      navS5: this._navStyle(5),
+      navS6: this._navStyle(6),
+      navS7: this._navStyle(7),
+    };
+  }
+}
+</script>

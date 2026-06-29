@@ -110,7 +110,7 @@ export class MotorGrafoAutoral implements MotorNarrativa {
 // Reproduz, em texto, o mesmo cenário com escolhas diferentes.
 // Requer tsconfig com "resolveJsonModule": true e "esModuleInterop": true.
 //
-//   import grafo from "./quintal_grafo.json";
+//   import grafo from "../dados/quintal_grafo.json";
 //   const motor = new MotorGrafoAutoral(grafo as GrafoAutoral);
 //   console.log(jogar(motor, ["vagalume","frasco","vento"], "convergente", "n3"));
 //   console.log(jogar(motor, ["vagalume","gato","coruja"], "aberto", "n3"));

@@ -1,0 +1,16 @@
+{
+  "name": "pipoca",
+  "version": "0.1.0",
+  "description": "Pipoca — app de leitura guiada para crianças",
+  "scripts": {
+    "build": "cd dc-runtime && bun run build",
+    "serve": "node server.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
+}

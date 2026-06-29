@@ -1,0 +1,181 @@
+<!-- EsqueletoRef.dc.html — Esqueleto de referência do dc-runtime
+     ─────────────────────────────────────────────────────────────────
+     Este arquivo NÃO é um componente real do app.
+     Ele documenta, com código executável, TODAS as convenções de autoria
+     do dc-runtime usadas no Pipoca. Cada tela e componente real segue
+     exatamente este padrão.
+
+     Regras documentadas aqui:
+       1. Um arquivo .dc.html = um <x-dc> + um <script data-dc-script>
+       2. renderVals() é a única ponte template ↔ lógica
+       3. Interpolação {{ expressao }} — caminhos, comparações, negação, literais
+       4. <sc-if value="{{ cond }}"> para condicionais
+       5. <sc-for list="{{ lista }}" as="item"> para listas
+       6. Eventos em camelCase via hole: onClick="{{ handler }}"
+       7. SVG/HTML grande via ref + _inject (nunca em {{ }})
+       8. _inject idempotente: cache por conteúdo (el._k)
+       9. componentDidMount / componentDidUpdate / componentWillUnmount
+      10. Props via data-props lidas como this.props.x
+-->
+<x-dc>
+<helmet>
+  <!-- Injeções de <head> específicas do componente (fontes extras, meta tags) -->
+  <style>
+    /* Estilos escopados ao componente podem vir aqui.
+       Preferir tokens --pip-* sempre que possível. */
+  </style>
+</helmet>
+
+<!-- ── Template ─────────────────────────────────────────────────────────── -->
+
+<!-- Regra 3: Interpolação de valor simples -->
+<div>Olá, {{ nome }}!</div>
+
+<!-- Regra 3: Interpolação de expressão (comparação) -->
+<div>Ativo: {{ ativo === true }}</div>
+
+<!-- Regra 3: Negação e literal -->
+<div>Inativo: {{ !ativo }}</div>
+
+<!-- Regra 4: Condicional — hint-placeholder-val diz o valor de placeholder no editor -->
+<sc-if value="{{ mostrarMensagem }}" hint-placeholder-val="{{ true }}">
+  <div style="color:var(--pip-heeler);">{{ mensagem }}</div>
+</sc-if>
+
+<!-- Regra 5: Lista — hint-placeholder-count indica quantos placeholders mostrar -->
+<sc-for list="{{ itens }}" as="item" hint-placeholder-count="3">
+  <!-- Importante: estilos que dependem do estado do item DEVEM ser holes escalares.
+       Nunca calcule estilo dentro do template; derive em renderVals(). -->
+  <div style="{{ item.estilo }}">
+    {{ item.rotulo }}
+  </div>
+</sc-for>
+
+<!-- Regra 6: Eventos DOM em camelCase via hole -->
+<button onClick="{{ aoClicar }}">Clique aqui</button>
+<input onInput="{{ aoDigitar }}" value="{{ valorInput }}" />
+
+<!-- Regra 7 & 8: SVG injetado via ref + _inject (nunca via {{ }}) -->
+<!-- ref recebe a função-ref que armazena o elemento DOM -->
+<div ref="{{ svgRef }}" style="width:80px;height:80px;"></div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script
+  data-props="{
+    &quot;nome&quot;: {
+      &quot;editor&quot;: &quot;text&quot;,
+      &quot;default&quot;: &quot;Pingo&quot;,
+      &quot;tsType&quot;: &quot;string&quot;,
+      &quot;section&quot;: &quot;Esqueleto&quot;,
+      &quot;label&quot;: &quot;Nome de exemplo&quot;
+    },
+    &quot;dev&quot;: {
+      &quot;editor&quot;: &quot;boolean&quot;,
+      &quot;default&quot;: false,
+      &quot;tsType&quot;: &quot;boolean&quot;,
+      &quot;section&quot;: &quot;Esqueleto&quot;,
+      &quot;label&quot;: &quot;Modo dev&quot;
+    }
+  }">
+
+class Component extends DCLogic {
+
+  // ── Estado local ───────────────────────────────────────────────────────────
+  // Regra: o estado vive aqui, nunca espalhado pela UI.
+  // Na Etapa 2 o estado global migra para EstadoApp (camada CORE).
+  state = {
+    ativo: true,
+    mostrarMensagem: true,
+    mensagem: 'Olá do dc-runtime!',
+    valorInput: '',
+    itens: [
+      { id: 'a', rotulo: 'Item A', selecionado: false },
+      { id: 'b', rotulo: 'Item B', selecionado: true  },
+    ],
+  };
+
+  // ── Refs imperativos ───────────────────────────────────────────────────────
+  // Regra 7: a função-ref armazena o DOM node; _inject é chamado depois.
+  svgRef = (el) => { this._svgEl = el; this._injetarSVG(); };
+
+  // ── Ciclo de vida ──────────────────────────────────────────────────────────
+  // Regra 9: mount — adiciona listeners e injeções iniciais
+  componentDidMount() {
+    this._injetarSVG();
+    // Exemplo de listener externo (deve ser removido no unmount):
+    this._onResize = () => this.forceUpdate && this.forceUpdate();
+    window.addEventListener('resize', this._onResize);
+  }
+
+  // Regra 9: update — re-injeta conteúdo imperativo quando o estado muda
+  componentDidUpdate() {
+    this._injetarSVG();
+  }
+
+  // Regra 9: unmount — SEMPRE remover listeners para evitar memory leak
+  componentWillUnmount() {
+    window.removeEventListener('resize', this._onResize);
+  }
+
+  // ── Helpers imperativos ────────────────────────────────────────────────────
+  // Regra 8: _inject é idempotente — só atualiza o DOM se o html mudou (cache por _k).
+  // Padrão extraído do protótipo Pipoca.dc.html.
+  _inject(el, html) {
+    if (el && el._k !== html) { el.innerHTML = html; el._k = html; }
+  }
+
+  _injetarSVG() {
+    const svg = "<svg viewBox='0 0 80 80' width='80' height='80' xmlns='http://www.w3.org/2000/svg'>"
+      + "<circle cx='40' cy='40' r='36' fill='#3f6f9e'/>"
+      + "<circle cx='40' cy='40' r='20' fill='#f4b65a' opacity='.85'/>"
+      + "</svg>";
+    this._inject(this._svgEl, svg);
+  }
+
+  // ── Handlers de evento ─────────────────────────────────────────────────────
+  // Regra 6: nomes em camelCase, retornam ao action-contract (eventos-acoes).
+  // Aqui usamos nomes descritivos do esqueleto; nas telas reais, mapear para
+  // os nomes canônicos de _contratos/eventos-acoes.md.
+  aoClicar() {
+    this.setState({ ativo: !this.state.ativo });
+  }
+
+  aoDigitar(e) {
+    this.setState({ valorInput: e.target.value });
+  }
+
+  // ── renderVals ─────────────────────────────────────────────────────────────
+  // Regra 2: ÚNICA ponte template ↔ lógica.
+  // Retorna objeto plano — sem JSX, sem DOM, sem efeitos colaterais.
+  // Estilos dependentes de estado são derivados aqui como strings (nunca no template).
+  renderVals() {
+    const { ativo, mostrarMensagem, mensagem, valorInput, itens } = this.state;
+    const nome = (this.props && this.props.nome) || 'Pingo';
+
+    return {
+      // Valores simples
+      nome,
+      ativo,
+      mostrarMensagem,
+      mensagem,
+      valorInput,
+
+      // Lista com estilos escalares por item (regra 5)
+      itens: itens.map(item => ({
+        ...item,
+        estilo: 'padding:8px 12px;border-radius:8px;margin-bottom:4px;'
+          + (item.selecionado
+            ? 'background:var(--pip-heeler);color:#fff;'
+            : 'background:var(--pip-areia);color:var(--pip-tinta);'),
+      })),
+
+      // Handlers (regra 6)
+      aoClicar: () => this.aoClicar(),
+      aoDigitar: (e) => this.aoDigitar(e),
+
+      // Ref para SVG (regra 7)
+      svgRef: this.svgRef,
+    };
+  }
+}
+</script>

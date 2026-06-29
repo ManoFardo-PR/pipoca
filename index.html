@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pipoca</title>
+  <!-- Design tokens — deve vir antes do support.js -->
+  <link rel="stylesheet" href="./src/tokens.css">
+  <!-- Google Fonts: Baloo 2, Nunito, Atkinson Hyperlegible, Lexend -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&family=Atkinson+Hyperlegible:wght@400;700&family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="./support.js"></script>
+  <!-- Roteador de telas — deve carregar antes do dc-runtime montar o Shell -->
+  <script src="./src/core/roteador.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <style>
+    *  { box-sizing: border-box; }
+    body { margin: 0; }
+  </style>
+</helmet>
+
+<!-- App shell: fundo creme + escalonador de moldura + roteador de telas -->
+<div style="position:fixed;inset:0;overflow:hidden;font-family:var(--pip-fonte-texto);color:var(--pip-tinta);background:radial-gradient(120% 120% at 50% 0%, var(--pip-areia) 0%, #ded2be 70%, #d3c5ad 100%);">
+
+  <!-- Cabeçalho de marca (só visível fora da moldura) -->
+  <div style="position:absolute;top:18px;left:24px;display:flex;align-items:center;gap:10px;z-index:30;">
+    <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(150deg,var(--pip-terracota),var(--pip-terracota-escuro));display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(181,86,40,.35);">
+      <div style="width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,var(--pip-vagalume) 60%,var(--pip-vagalume-escuro));box-shadow:0 0 9px 2px rgba(247,191,96,.8);"></div>
+    </div>
+    <div style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:17px;color:var(--pip-tinta);letter-spacing:.2px;">Pipoca <span style="font-family:var(--pip-fonte-texto);font-weight:700;font-size:11px;color:#8a7a64;letter-spacing:1.5px;text-transform:uppercase;margin-left:4px;">app</span></div>
+  </div>
+
+  <!-- Moldura tablet escalonada -->
+  <div ref="{{ refScaler }}" style="position:absolute;left:50%;top:calc(50% - 28px);transform:translate(-50%,-50%);transform-origin:center center;">
+    <div style="position:relative;width:1234px;height:874px;border-radius:46px;padding:20px;background:linear-gradient(155deg,#2c2722,#1b1814);box-shadow:0 40px 90px -30px rgba(40,30,18,.6), 0 0 0 2px rgba(255,255,255,.04) inset;">
+      <div style="position:absolute;top:50%;left:9px;transform:translateY(-50%);width:6px;height:46px;border-radius:4px;background:#3a342c;"></div>
+      <div style="position:absolute;top:30px;left:8px;width:5px;height:60px;border-radius:4px;background:#241f1a;"></div>
+      <!-- Tela interna -->
+      <div style="position:relative;width:1194px;height:834px;border-radius:30px;overflow:hidden;background:var(--pip-creme);">
+
+        <!-- câmera -->
+        <div style="position:absolute;top:11px;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:50%;background:#0d0b09;z-index:40;box-shadow:0 0 0 2px rgba(0,0,0,.25);"></div>
+
+        <!-- textura de papel -->
+        <div style="position:absolute;inset:0;z-index:25;pointer-events:none;opacity:.05;mix-blend-mode:multiply;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);"></div>
+
+        <!-- Conteúdo da tela atual (roteado por irParaTela) -->
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+          <div style="text-align:center;color:#8a7a64;">
+            <div style="font-family:var(--pip-fonte-titulo);font-size:28px;font-weight:700;">Pipoca</div>
+            <div style="font-size:14px;margin-top:8px;">Tela {{ tela }} — em construção</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Jumper de dev (visível apenas quando dev=true) -->
+  <sc-if value="{{ devMode }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(38,30,22,.82);backdrop-filter:blur(8px);padding:7px 10px;border-radius:var(--pip-raio-pill);box-shadow:0 8px 24px -6px rgba(0,0,0,.4);">
+    <button onClick="{{ goT1 }}" style="{{ navS1 }}">1</button>
+    <button onClick="{{ goT2 }}" style="{{ navS2 }}">2</button>
+    <button onClick="{{ goT3 }}" style="{{ navS3 }}">3</button>
+    <button onClick="{{ goT4 }}" style="{{ navS4 }}">4</button>
+    <button onClick="{{ goT5 }}" style="{{ navS5 }}">5</button>
+    <button onClick="{{ goT6 }}" style="{{ navS6 }}">6</button>
+    <button onClick="{{ goT7 }}" style="{{ navS7 }}">7</button>
+  </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;dev&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Shell&quot;,&quot;label&quot;:&quot;Mostrar jumper de telas (dev)&quot;}}">
+class Component extends DCLogic {
+  state = { tela: 1 };
+
+  refScaler = (el) => { this._scaler = el; this._fit && this._fit(); };
+
+  componentDidMount() {
+    this._fit = () => {
+      const el = this._scaler; if (!el) return;
+      const sw = window.innerWidth - 48;
+      const sh = window.innerHeight - 96;
+      const s = Math.min(sw / 1234, sh / 874, 1);
+      el.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+    };
+    this._fit();
+    window.addEventListener('resize', this._fit);
+    const R = window.PipocaRoteador;
+    if (R) {
+      this.setState({ tela: R.telaAtual() });
+      this._unsubRoteador = R.onTelaChange((n) => this.setState({ tela: n }));
+    }
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this._fit);
+    if (this._unsubRoteador) this._unsubRoteador();
+  }
+
+  irParaTela(n) {
+    const R = window.PipocaRoteador;
+    if (R) { R.irParaTela(n); } else { this.setState({ tela: n }); }
+  }
+
+  _navStyle(n) {
+    const ativo = this.state.tela === n;
+    return 'width:32px;height:32px;border-radius:8px;border:none;cursor:pointer;font-family:\'Baloo 2\';font-weight:700;font-size:14px;transition:background .15s;'
+      + (ativo
+        ? 'background:#e8965a;color:#fff;'
+        : 'background:rgba(255,255,255,.12);color:rgba(255,255,255,.65);');
+  }
+
+  renderVals() {
+    const { tela } = this.state;
+    const dev = this.props && this.props.dev;
+    return {
+      tela,
+      devMode: dev,
+      goT1: () => this.irParaTela(1),
+      goT2: () => this.irParaTela(2),
+      goT3: () => this.irParaTela(3),
+      goT4: () => this.irParaTela(4),
+      goT5: () => this.irParaTela(5),
+      goT6: () => this.irParaTela(6),
+      goT7: () => this.irParaTela(7),
+      navS1: this._navStyle(1),
+      navS2: this._navStyle(2),
+      navS3: this._navStyle(3),
+      navS4: this._navStyle(4),
+      navS5: this._navStyle(5),
+      navS6: this._navStyle(6),
+      navS7: this._navStyle(7),
+    };
+  }
+}
+</script>
+</body>
+</html>

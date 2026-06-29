@@ -1,0 +1,87 @@
+/* Pipoca — design tokens
+ * Fonte da verdade de cor, tipografia, espaço, raio, sombra e movimento.
+ * Toda tela e componente usa estas variáveis; nunca escreva hex/px crus
+ * para valores cobertos aqui. */
+
+:root {
+  /* ── Cor — creme / areia ─────────────────────────────────────────── */
+  --pip-creme:       #f6ecd7;
+  --pip-areia:       #ece3d4;
+  --pip-areia-clara: #f1e6cf;
+
+  /* ── Cor — azul-heeler ───────────────────────────────────────────── */
+  --pip-heeler:        #3f6f9e;
+  --pip-heeler-escuro: #2d5681;
+
+  /* ── Cor — laranja / terracota ───────────────────────────────────── */
+  --pip-terracota:        #e8965a;
+  --pip-terracota-escuro: #d5713f;
+
+  /* ── Cor — verde-folha ───────────────────────────────────────────── */
+  --pip-folha:       #6f9b4f;
+  --pip-folha-claro: #7a9a5b;
+
+  /* ── Cor — vaga-lume (glow âmbar) ───────────────────────────────── */
+  --pip-vagalume:        #f4b65a;
+  --pip-vagalume-escuro: #e89132;
+
+  /* ── Cor — tinta de texto ────────────────────────────────────────── */
+  --pip-tinta: #3a2c20;
+
+  /* ── Contraste (substituídos pelo bloco [data-contrast] abaixo) ──── */
+  --pip-tinta-contraste:    #1a1008;
+  --pip-vagalume-contraste: #d49020;
+
+  /* ── Tipografia ──────────────────────────────────────────────────── */
+  --pip-fonte-titulo:  'Baloo 2', cursive, system-ui, sans-serif;
+  --pip-fonte-texto:   'Nunito', system-ui, sans-serif;
+  --pip-fonte-dislexia:'Atkinson Hyperlegible', system-ui, sans-serif;
+  --pip-fonte-leitura: 'Lexend', system-ui, sans-serif;
+
+  /* ── Espaçamento ─────────────────────────────────────────────────── */
+  --pip-esp-1: 4px;
+  --pip-esp-2: 8px;
+  --pip-esp-3: 14px;
+  --pip-esp-4: 20px;
+  --pip-esp-5: 28px;
+
+  /* ── Raio de borda ───────────────────────────────────────────────── */
+  --pip-raio-1:    12px;
+  --pip-raio-2:    16px;
+  --pip-raio-3:    18px;
+  --pip-raio-pill: 999px;
+
+  /* ── Sombra ──────────────────────────────────────────────────────── */
+  --pip-sombra-card:  0 8px 20px -12px rgba(74, 59, 44, .3);
+  --pip-sombra-botao: 0 8px 20px -6px rgba(181, 86, 40, .55);
+
+  /* ── Movimento ───────────────────────────────────────────────────── */
+  /* --pip-mov é o multiplicador global: 1 = animações normais, 0 = paradas */
+  --pip-mov:        1;
+  --pip-dur-rapido: .18s;
+  --pip-dur-medio:  .28s;
+}
+
+/* ── Reduzir movimento ────────────────────────────────────────────────── */
+/* Ativado ao adicionar data-reduce-motion no <html> ou <body> */
+[data-reduce-motion] {
+  --pip-mov:        0;
+  --pip-dur-rapido: 0s;
+  --pip-dur-medio:  0s;
+}
+
+/* Também respeita a preferência do sistema operacional */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --pip-mov:        0;
+    --pip-dur-rapido: 0s;
+    --pip-dur-medio:  0s;
+  }
+}
+
+/* ── Alto contraste ───────────────────────────────────────────────────── */
+/* Ativado ao adicionar data-contrast no <html> ou <body> */
+[data-contrast] {
+  --pip-tinta:    var(--pip-tinta-contraste);
+  --pip-vagalume: var(--pip-vagalume-contraste);
+}

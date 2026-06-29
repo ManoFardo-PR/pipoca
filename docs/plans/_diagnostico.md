@@ -2,7 +2,7 @@
 
 Gerado por `node docs/plans/check_plans.mjs`.
 
-- Docs de sub-passo encontrados: **62**
+- Docs de sub-passo encontrados: **77**
 - Nós no mermaid: **43**
 - Checagens: **10/10 PASS**
 - Resultado: ✅ **TUDO VERDE**
@@ -35,7 +35,7 @@ Sem problemas.
 ## 5. Resolução de nomes — PASS
 Sem problemas.
 
-## 6. Ordem de dependências — PASS _(115 arestas)_
+## 6. Ordem de dependências — PASS _(141 arestas)_
 Sem problemas.
 
 ## 7. Auditoria do seam — PASS

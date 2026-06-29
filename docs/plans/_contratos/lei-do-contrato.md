@@ -25,3 +25,16 @@ amanhã). Quebrar a lei (uma tela importando MA/MB) acopla a UI ao motor e mata 
   ou "Interfaces / contratos" — só `MotorNarrativa` e/ou `ValidadorOrdem`.
 - `CN` e `AIPROV` devem estar marcados como `pivot`.
 - Todo nó `f2` (Motor B, AIPROV, GUARD, GEMINI/OPENAI/CLAUDE, ASR, AIMODEL) pertence só à `fase05`.
+
+## A lei do backend (fase06 — Supabase | Firebase)
+
+> A app, o CORE e as telas falam **somente** com `Backend` / `ServicoAuth` / `RepositorioPersistencia` / `ProxyIA`
+> ([[tipos-core]]). Nenhuma tela/CORE importa o SDK do Supabase ou do Firebase diretamente. Trocar de BaaS =
+> trocar o **adaptador** (`BackendSupabase` ↔ `BackendFirebase`), sem mudar nenhuma tela — exatamente como
+> MA↔MB ([[lei-do-contrato]] acima) e os adaptadores de `ProvedorIA`.
+
+Consequências:
+- **Login agnóstico:** família e super admin entram via `ServicoAuth`; o provedor é detalhe do adaptador.
+- **Chaves de IA nunca no cliente:** o LLM é chamado via `ProxyIA` (Edge Function / Cloud Function), não pelo SDK
+  no navegador. `ProvedorIA` (fase05) em produção aponta para `ProxyIA`.
+- **Migração fácil:** paridade de recursos documentada em [[../fase06/06-06_estrategia-migracao-e-config]].

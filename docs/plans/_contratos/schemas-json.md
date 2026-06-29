@@ -9,6 +9,7 @@
 | `pipoca.perfil.v1` | [[../fase00/00-14_schema-perfil-e-save]] | SAVE / PC_PROF |
 | `pipoca.save.v1` | [[../fase00/00-14_schema-perfil-e-save]] | SAVE |
 | `pipoca.telemetria.v1` | [[../fase03/03-01_telemetria-TELE]] | TELE / SAVE |
+| `pipoca.tenant.v1` | [[../fase06/06-04_multitenant-rls-e-regras]] | backend (SA_TENANT) |
 
 ---
 
@@ -102,3 +103,22 @@ Eventos privados de progresso (minutos, palavras, histórias). Detalhe e pontos 
 }
 ```
 Tipo TS correspondente (`EventoTelemetria`) é referenciado em [[tipos-core]] e definido em detalhe no doc dono.
+
+---
+
+## 5. `pipoca.tenant.v1`
+
+Conta/tenant da plataforma multi-tenant (dono: [[../fase06/06-04_multitenant-rls-e-regras]]; consumido por
+SA_TENANT [[../fase04/04-03_tenants-planos-SA_TENANT]]). Escopo aplicado por RLS (Supabase) / Security Rules (Firebase).
+```jsonc
+{
+  "esquema": "pipoca.tenant.v1",
+  "tenant": {
+    "id": "uuid",
+    "nome": "Escola/Família X",
+    "plano": "free | familia | escola",
+    "limites": { "perfis": 5, "iaCotaMes": 0 },
+    "criadoEm": 0
+  }
+}
+```

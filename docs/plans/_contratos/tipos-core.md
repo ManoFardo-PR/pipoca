@@ -171,6 +171,38 @@ export interface ProvedorIA {
 
 ---
 
+## 2.1 Backend trocável (fase06 — Supabase | Firebase)
+
+Mesmo padrão **seam + adaptador** dos motores e do provedor de IA: a app fala com estes contratos; os SDKs
+(Supabase/Firebase) ficam **só** nos adaptadores (`BackendSupabase`/`BackendFirebase`). Trocar de BaaS = trocar o
+adaptador, sem mudar tela/CORE. Ver a *lei do backend* em [[lei-do-contrato]].
+
+```ts
+export interface SessaoAuth { uid: string; tipo: "familia" | "superadmin"; tenantId?: string; }
+
+export interface ServicoAuth {                       // mesmo seam p/ família e super admin
+  entrarFamilia(cred: object): Promise<SessaoAuth>;
+  entrarSuperAdmin(cred: object): Promise<SessaoAuth>;
+  sair(): Promise<void>;
+  sessaoAtual(): SessaoAuth | null;
+}
+
+export interface ProxyIA {                           // server-side; chaves NUNCA no cliente
+  gerar(req: { prompt: string; schema: object; opts?: object }): Promise<Trecho>;
+}
+
+export interface Backend {                            // fachada trocável; consumida pela app
+  auth: ServicoAuth;
+  repo: RepositorioPersistencia;
+  proxyIA: ProxyIA;
+}
+```
+
+Schema multi-tenant `pipoca.tenant.v1` (tenant/plano/limites) em [[schemas-json]]. Em produção, `ProvedorIA`
+([[../fase05/05-04_provedor-ia-AIPROV]]) chama `ProxyIA`, não o SDK do LLM direto.
+
+---
+
 ## 3. Mapa tipo → nó da arquitetura → doc dono
 
 | Tipo | Nó | Doc dono |
@@ -192,3 +224,6 @@ export interface ProvedorIA {
 | `ServicoASR`, `ResultadoFala` | ASR | [[../fase05/05-09_asr-modo-fala-ASR]] |
 | `ProvedorIA` | AIPROV | [[../fase05/05-04_provedor-ia-AIPROV]] |
 | `EventoTelemetria` | TELE | [[../fase03/03-01_telemetria-TELE]] |
+| `Backend` | — | [[../fase06/06-01_seam-backend-e-portabilidade]] |
+| `ServicoAuth`, `SessaoAuth` | (HH_LOGIN/SA_LOGIN) | [[../fase06/06-02_auth-servico-e-adaptadores]] |
+| `ProxyIA` | — | [[../fase06/06-05_proxy-de-ia-server-side]] |

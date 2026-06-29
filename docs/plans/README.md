@@ -21,6 +21,13 @@ interação entre os arquivos.
 | 03 | [`fase03_painel_evolucao/`](fase03_painel_evolucao/) | telemetria + painel do cuidador (Fase 1.5) | TELE, PC_DASH |
 | 04 | [`fase04_super_admin/`](fase04_super_admin/) | plataforma multi-tenant | SA_LOGIN, SA_HOME/TENANT/CONTENT/AI/SAFE |
 | 05 | [`fase05_ia_e_fala/`](fase05_ia_e_fala/) | Fase 2: Motor B + provedor multi-IA + guardrails + ASR | MB, AIPROV, GUARD, GEMINI/OPENAI/CLAUDE, ASR, AIMODEL |
+| 06 | [`fase06_backend/`](fase06_backend/) | Backend e login agnósticos (Supabase \| Firebase), multi-tenant, proxy de IA | (implementa SAVE, HH_LOGIN, SA_LOGIN, SA_TENANT, SA_AI) |
+| 07 | [`fase07_qa_a11y/`](fase07_qa_a11y/) | Testes e2e da linha verde + auditoria de acessibilidade + teste com criança | — |
+| 08 | [`fase08_conteudo/`](fase08_conteudo/) | Pipeline de conteúdo: os 4 cenários restantes (grafos + arte) | (alimenta GRAPH via SA_CONTENT) |
+
+> As fases 06–08 são extensões pós-arquitetura-v2.0: não são donas de nós do mermaid (os 43 nós seguem nas fases
+> 00–05); elas **implementam/consomem** nós existentes. Backend e login são **trocáveis** (Supabase ou Firebase)
+> via seam + adaptador — ver [[_contratos/lei-do-contrato]] (lei do backend).
 
 ## A correção central
 O protótipo faz um **quebra-cabeça de ordenar cards**; o motor faz **adicionar objeto → ler → destravar**.

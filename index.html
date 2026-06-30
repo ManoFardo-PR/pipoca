@@ -51,23 +51,39 @@
 <!-- App shell: fundo creme + escalonador de moldura -->
 <div ref="{{ rootRef }}" style="position:fixed;inset:0;overflow:hidden;font-family:var(--pip-fonte-texto);color:var(--pip-tinta);background:radial-gradient(120% 120% at 50% 0%, var(--pip-areia) 0%, #ded2be 70%, #d3c5ad 100%);">
 
-  <!-- Cabeçalho de marca (fora da moldura) -->
-  <div style="position:absolute;top:18px;left:24px;display:flex;align-items:center;gap:10px;z-index:30;">
-    <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(150deg,var(--pip-terracota),var(--pip-terracota-escuro));display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(181,86,40,.35);">
-      <div style="width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,var(--pip-vagalume) 60%,var(--pip-vagalume-escuro));box-shadow:0 0 9px 2px rgba(247,191,96,.8);"></div>
-    </div>
-    <div style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:17px;color:var(--pip-tinta);">Pipoca <span style="font-family:var(--pip-fonte-texto);font-weight:700;font-size:11px;color:#8a7a64;letter-spacing:1.5px;text-transform:uppercase;margin-left:4px;">app</span></div>
-  </div>
+  <!-- App content fullscreen -->
+  <div style="position:absolute;inset:0;overflow:hidden;">
 
-  <!-- Moldura tablet escalonada -->
-  <div ref="{{ refScaler }}" style="position:absolute;left:50%;top:calc(50% - 28px);transform:translate(-50%,-50%);transform-origin:center center;">
-    <div style="position:relative;width:1234px;height:874px;border-radius:46px;padding:20px;background:linear-gradient(155deg,#2c2722,#1b1814);box-shadow:0 40px 90px -30px rgba(40,30,18,.6), 0 0 0 2px rgba(255,255,255,.04) inset;">
-      <div style="position:absolute;top:50%;left:9px;transform:translateY(-50%);width:6px;height:46px;border-radius:4px;background:#3a342c;"></div>
-      <div style="position:absolute;top:30px;left:8px;width:5px;height:60px;border-radius:4px;background:#241f1a;"></div>
-      <!-- Tela interna -->
-      <div style="position:relative;width:1194px;height:834px;border-radius:30px;overflow:hidden;background:var(--pip-creme);">
-        <div style="position:absolute;top:11px;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:50%;background:#0d0b09;z-index:40;box-shadow:0 0 0 2px rgba(0,0,0,.25);"></div>
-        <div style="position:absolute;inset:0;z-index:25;pointer-events:none;opacity:.05;mix-blend-mode:multiply;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);"></div>
+        <!-- ════════════════════════════════════════
+             TELA 1 — Portão Parental (PIN)
+             ════════════════════════════════════════ -->
+        <sc-if value="{{ isT1 }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:rgba(40,28,16,.55);backdrop-filter:blur(3px);">
+          <div style="width:100%;max-width:380px;background:#fdf9f2;border-radius:24px;box-shadow:0 30px 70px -20px rgba(40,30,18,.55);overflow:hidden;">
+            <div style="background:#3a4f63;padding:20px 24px;">
+              <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#fff;opacity:.65;">Para o cuidador</div>
+              <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:20px;color:#fff;line-height:1.1;margin-top:4px;">Digite o PIN</div>
+            </div>
+            <div style="padding:24px;">
+              <div style="display:flex;gap:12px;justify-content:center;margin-bottom:20px;">
+                <sc-for list="{{ t1Pontos }}" as="pt" hint-placeholder-count="4">
+                  <div style="width:16px;height:16px;border-radius:50%;{{ pt.style }}"></div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ t1TemDica }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center;color:#3a2c20;font-size:14px;min-height:20px;margin-bottom:12px;">{{ t1Dica }}</div>
+              </sc-if>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+                <sc-for list="{{ t1Teclas }}" as="tk" hint-placeholder-count="12">
+                  <button onClick="{{ tk.onTap }}" style="{{ tk.style }}" aria-label="{{ tk.aria }}">{{ tk.rotulo }}</button>
+                </sc-for>
+              </div>
+              <button onClick="{{ t1Cancelar }}" style="margin-top:18px;width:100%;min-height:44px;border:none;border-radius:14px;background:transparent;color:#3a2c20;opacity:.7;font-family:'Nunito',sans-serif;font-size:14px;cursor:pointer;">Voltar para a criança</button>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+
 
         <!-- ════════════════════════════════════════
              TELA 2 — Entrada da criança (avatar login)
@@ -516,13 +532,12 @@
         </div>
         </sc-if>
 
-      </div>
-    </div>
   </div>
 
   <!-- Dev jumper -->
   <sc-if value="{{ devMode }}" hint-placeholder-val="{{ false }}">
-  <div style="position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(38,30,22,.82);backdrop-filter:blur(8px);padding:7px 10px;border-radius:999px;box-shadow:0 8px 24px -6px rgba(0,0,0,.4);">
+  <div style="position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:40;display:flex;align-items:center;gap:6px;background:rgba(38,30,22,.82);backdrop-filter:blur(8px);padding:7px 10px;border-radius:999px;box-shadow:0 8px 24px -6px rgba(0,0,0,.4);">
+    <button onClick="{{ goT1 }}" style="{{ navS1 }}">1</button>
     <button onClick="{{ goT2 }}" style="{{ navS2 }}">2</button>
     <button onClick="{{ goT3 }}" style="{{ navS3 }}">3</button>
     <button onClick="{{ goT4 }}" style="{{ navS4 }}">4</button>
@@ -548,6 +563,9 @@ class Component extends DCLogic {
     modos: { palco: 'Palco', desfecho: 'convergente', verificacao: 'cuidador', iaLigada: false },
     a11y: { textScale: 1, dyslexia: false, syllable: false, contrast: false, reduceMotion: false },
     showA11y: false,
+    // T1 state
+    _t1Pin: '',
+    _t1Dica: '',
     // T4 state
     heroVariant: 'A',
     tiraStrip: [],
@@ -706,20 +724,30 @@ class Component extends DCLogic {
     return 'flex:1;border:none;cursor:pointer;border-radius:11px;padding:9px 0;font-family:"Baloo 2",cursive;font-weight:700;background:'+(on?'#3f6f9e':'#f1e7d4')+';color:'+(on?'#fff':'#8a7a64')+';';
   }
 
+  // ─── T1 actions ───────────────────────────────────────────────────────────────
+  _t1Digito(d) {
+    const pin = (this.state._t1Pin || '') + d;
+    if ((this.state._t1Pin || '').length >= 4) return;
+    if (pin.length === 4) {
+      this.setState({ _t1Pin: pin });
+      this._t1Submeter(pin);
+    } else {
+      this.setState({ _t1Pin: pin });
+    }
+  }
+
+  _t1Apagar() {
+    this.setState({ _t1Pin: (this.state._t1Pin || '').slice(0, -1), _t1Dica: '' });
+  }
+
+  _t1Submeter(pin) {
+    // Placeholder: any 4-digit PIN accepted; navigate to T2
+    this.setState({ _t1Pin: '', _t1Dica: '' });
+    this._irPara(2);
+  }
+
   // ─── Mount & setup ────────────────────────────────────────────────────────────
-  refScaler = (el) => { this._scaler = el; this._fit && this._fit(); };
-
   async componentDidMount() {
-    // Fit tablet frame
-    this._fit = () => {
-      const el = this._scaler; if (!el) return;
-      const sw = window.innerWidth - 48, sh = window.innerHeight - 96;
-      const s = Math.min(sw / 1234, sh / 874, 1);
-      el.style.transform = 'translate(-50%,-50%) scale('+s+')';
-    };
-    this._fit();
-    window.addEventListener('resize', this._fit);
-
     // PipocaRoteador — subscribe to future navigation events only
     // (router starts at 1 = parent screen; child flow starts at T2)
     const R = window.PipocaRoteador;
@@ -781,7 +809,6 @@ class Component extends DCLogic {
   }
 
   componentWillUnmount() {
-    window.removeEventListener('resize', this._fit);
     if (this._unsubR) this._unsubR();
   }
 
@@ -1117,10 +1144,20 @@ class Component extends DCLogic {
     const A = a11y;
     const t = (key) => () => this.setState(st => ({ a11y: { ...st.a11y, [key]: !st.a11y[key] } }));
 
+    // ── T1 ──────────────────────────────────────────────────────────────────────
+    const t1Pin = s._t1Pin || '';
+    const t1Pontos = [0,1,2,3].map((i) => ({
+      style: i < t1Pin.length ? 'background:#3a4f63;' : 'background:transparent;border:2px solid #8aa4be;',
+    }));
+    const baseTecla = 'min-height:56px;border:none;border-radius:14px;background:#fff;box-shadow:0 2px 6px rgba(74,59,44,.15);font-family:"Baloo 2",cursive;font-weight:700;font-size:22px;color:#3a2c20;cursor:pointer;';
+    const t1Teclas = ['1','2','3','4','5','6','7','8','9'].map((n) => ({ rotulo: n, aria: n, style: baseTecla, onTap: () => this._t1Digito(n) }));
+    t1Teclas.push({ rotulo: '', aria: 'vazio', style: 'visibility:hidden;', onTap: () => {} });
+    t1Teclas.push({ rotulo: '0', aria: '0', style: baseTecla, onTap: () => this._t1Digito('0') });
+    t1Teclas.push({ rotulo: '⌫', aria: 'Apagar', style: baseTecla + 'font-size:18px;', onTap: () => this._t1Apagar() });
+
     return {
-      refScaler: this.refScaler,
       rootRef: (el) => { this._rootEl = el; },
-      isT2:is(2), isT3:is(3), isT4:is(4), isT5:is(5), isT6:is(6), isT7:is(7),
+      isT1:is(1), isT2:is(2), isT3:is(3), isT4:is(4), isT5:is(5), isT6:is(6), isT7:is(7),
       showA11y: s.showA11y,
       vagalumes,
       childName,
@@ -1204,10 +1241,35 @@ class Component extends DCLogic {
       a11ySwSyl:    this._swStyle(A.syllable),     a11yKnobSyl:    this._knobStyle(A.syllable),     a11yToggleSyl:    t('syllable'),
       a11ySwCon:    this._swStyle(A.contrast),     a11yKnobCon:    this._knobStyle(A.contrast),     a11yToggleCon:    t('contrast'),
 
+      // T1
+      t1Pontos, t1Teclas,
+      t1Dica: s._t1Dica || '',
+      t1TemDica: !!(s._t1Dica),
+      t1Cancelar: () => this._irPara(2),
+
       // Dev
       devMode,
-      goT2:nav(2), goT3:nav(3), goT4:nav(4), goT5:nav(5), goT6:nav(6), goT7:nav(7),
-      navS2:navS(2), navS3:navS(3), navS4:navS(4), navS5:navS(5), navS6:navS(6), navS7:navS(7),
+      goT1: nav(1),
+      goT2: nav(2),
+      goT3: nav(3),
+      goT4: () => {
+        if (!this.state.perfil) this._devSeedDemo();
+        this.setState({ heroVariant: 'B' });
+        this._irPara(4);
+      },
+      goT5: () => {
+        if (!this.state.perfil) this._devSeedDemo();
+        const nivel = (this.state.perfil && this.state.perfil.nivel) || 'n2';
+        if (!this.state.gateTrecho) {
+          const ab = this._motorAbertura(nivel);
+          const trecho = ab.texto || 'A noite chegou no quintal, e a Joana foi ver.';
+          this.setState({ gateTrecho: trecho, gatePalavraIdx: 0, gateStage: 'reading' });
+        }
+        this._irPara(5);
+      },
+      goT6: nav(6),
+      goT7: nav(7),
+      navS1:navS(1), navS2:navS(2), navS3:navS(3), navS4:navS(4), navS5:navS(5), navS6:navS(6), navS7:navS(7),
       devSeedDemo: () => this._devSeedDemo(),
     };
   }

@@ -13,7 +13,7 @@
   </style>
 </helmet>
 
-<div style="position:fixed;inset:0;overflow:hidden;font-family:var(--pip-fonte-texto);color:var(--pip-tinta);background:radial-gradient(120% 120% at 50% 0%, var(--pip-areia) 0%, #ded2be 70%, #d3c5ad 100%);">
+<div ref="{{ refRoot }}" style="position:fixed;inset:0;overflow:hidden;font-family:var(--pip-fonte-texto);color:var(--pip-tinta);background:radial-gradient(120% 120% at 50% 0%, var(--pip-areia) 0%, #ded2be 70%, #d3c5ad 100%);">
 
   <!-- Cabeçalho de marca -->
   <div style="position:absolute;top:18px;left:24px;display:flex;align-items:center;gap:10px;z-index:30;">
@@ -39,23 +39,31 @@
         <div style="position:absolute;inset:0;z-index:25;pointer-events:none;opacity:.05;mix-blend-mode:multiply;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);"></div>
 
         <!-- Slot de conteúdo: o roteador (window.PipocaRoteador) escolhe a tela.
-             Cada <TelaX/> é montada por COMPONENTE-IRMÃO — o runtime busca
-             ./TelaX.dc.html relativo à página; o server.js resolve em
-             src/telas|componentes. As telas leem o estado via window.PipocaApp. -->
+             Cada <dc-import name="TelaX"> é montada por COMPONENTE-IRMÃO — o
+             runtime (walkComponent) busca ./TelaX.dc.html relativo à página; o
+             server.js resolve em src/telas|componentes. As telas leem o estado
+             via window.PipocaApp. -->
         <div style="position:absolute;inset:0;">
-          <sc-if value="{{ ehT2 }}" hint-placeholder-val="{{ true }}"><Tela2EntradaCrianca/></sc-if>
-          <sc-if value="{{ ehT3 }}" hint-placeholder-val="{{ false }}"><Tela3SelecaoCenario/></sc-if>
-          <sc-if value="{{ ehT4 }}" hint-placeholder-val="{{ false }}"><Tela4Heroi/></sc-if>
-          <sc-if value="{{ ehT5 }}" hint-placeholder-val="{{ false }}"><Tela5Portao/></sc-if>
-          <sc-if value="{{ ehT6 }}" hint-placeholder-val="{{ false }}"><Tela6Recompensa/></sc-if>
-          <sc-if value="{{ ehT7 }}" hint-placeholder-val="{{ false }}"><Tela7PoteCardapio/></sc-if>
-          <sc-if value="{{ ehT1 }}" hint-placeholder-val="{{ false }}"><PortaoParental/></sc-if>
-          <sc-if value="{{ ehPCHome }}" hint-placeholder-val="{{ false }}"><Onboarding/></sc-if>
+          <sc-if value="{{ ehT2 }}" hint-placeholder-val="{{ true }}"><dc-import name="Tela2EntradaCrianca"></dc-import></sc-if>
+          <sc-if value="{{ ehT3 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela3SelecaoCenario"></dc-import></sc-if>
+          <sc-if value="{{ ehT4 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela4Heroi"></dc-import></sc-if>
+          <sc-if value="{{ ehT5 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela5Portao"></dc-import></sc-if>
+          <sc-if value="{{ ehT6 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela6Recompensa"></dc-import></sc-if>
+          <sc-if value="{{ ehT7 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela7PoteCardapio"></dc-import></sc-if>
+          <sc-if value="{{ ehPCHome }}" hint-placeholder-val="{{ false }}"><dc-import name="Onboarding"></dc-import></sc-if>
         </div>
+
+        <!-- Overlay de acessibilidade ("Do meu jeito") — dentro da moldura. -->
+        <sc-if value="{{ showA11y }}" hint-placeholder-val="{{ false }}"><dc-import name="PainelA11y"></dc-import></sc-if>
 
       </div>
     </div>
   </div>
+
+  <!-- Portão parental (PIN) — modal de viewport (position:fixed). Fica FORA do
+       escalonador: um ancestral com `transform` viraria seu bloco de contenção
+       e o `overflow:hidden` da moldura o cortaria. -->
+  <sc-if value="{{ ehT1 }}" hint-placeholder-val="{{ false }}"><dc-import name="PortaoParental"></dc-import></sc-if>
 
   <!-- Screen-jumper de dev — NUNCA renderizar em produção (gated por prop dev) -->
   <sc-if value="{{ devMode }}" hint-placeholder-val="{{ false }}">
@@ -74,12 +82,27 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;dev&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Shell&quot;,&quot;label&quot;:&quot;Mostrar jumper de telas (apenas dev)&quot;}}">
 class Component extends DCLogic {
-  state = { tela: 1 };
+  // O fluxo da criança começa em T2; estado.js já posiciona o roteador em 2
+  // antes do boot do React. Lê o valor atual para evitar flash da T1.
+  state = { tela: (window.PipocaRoteador && window.PipocaRoteador.telaAtual && window.PipocaRoteador.telaAtual()) || 1 };
 
   // ── Escalonador ────────────────────────────────────────────────────────────
   // refScaler é atribuído pelo runtime quando o elemento monta.
   // _fit calcula a escala máxima que cabe na viewport sem cortar conteúdo.
   refScaler = (el) => { this._scaler = el; this._fit && this._fit(); };
+
+  // refRoot recebe a raiz do Shell — onde aplicamos as classes A11y transversais
+  // (pip-dyslexia / pip-contrast / pip-reduce-motion) lidas de PipocaApp.estado.a11y.
+  refRoot = (el) => { this._rootEl = el; this._aplicarA11y(); };
+
+  _aplicarA11y() {
+    const el = this._rootEl; if (!el) return;
+    const App = window.PipocaApp;
+    const a = (App && App.estado && App.estado.a11y) || {};
+    el.classList.toggle('pip-dyslexia', !!a.dyslexia);
+    el.classList.toggle('pip-contrast', !!a.contrast);
+    el.classList.toggle('pip-reduce-motion', !!a.reduceMotion);
+  }
 
   componentDidMount() {
     this._fit = () => {
@@ -99,11 +122,20 @@ class Component extends DCLogic {
       this.setState({ tela: R.telaAtual() });
       this._unsubRoteador = R.onTelaChange((n) => this.setState({ tela: n }));
     }
+
+    // Assina o estado do app (window.PipocaApp) — re-renderiza overlays
+    // (showA11y) e reaplica as classes A11y quando o estado muda sem trocar de tela.
+    const App = window.PipocaApp;
+    if (App && App.subscribe) {
+      this._unsubApp = App.subscribe(() => { this._aplicarA11y(); this.setState({}); });
+    }
+    this._aplicarA11y();
   }
 
   componentWillUnmount() {
     window.removeEventListener('resize', this._fit);
     if (this._unsubRoteador) this._unsubRoteador();
+    if (this._unsubApp) this._unsubApp();
   }
 
   // ── Roteador ───────────────────────────────────────────────────────────────
@@ -132,9 +164,12 @@ class Component extends DCLogic {
   renderVals() {
     const { tela } = this.state;
     const dev = this.props && this.props.dev;
+    const App = window.PipocaApp;
+    const showA11y = !!(App && App.estado && App.estado.showA11y);
     return {
       tela,
       devMode: dev,
+      showA11y,
       // Flags de montagem do slot (uma tela ativa por vez).
       ehT1: tela === 1,
       ehT2: tela === 2,

@@ -1,0 +1,1 @@
+- [Onboarding inline no monolito](onboarding-fix.md) — T1 PIN nunca criava perfil; onboarding foi adicionado inline em index.html (padrão sc-if overlay, igual ao A11y).

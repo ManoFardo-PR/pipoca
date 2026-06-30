@@ -22,7 +22,7 @@ pré-requisito** de tudo que vem depois.
 |------|--------|------|
 | 00 Fundação | 🟢 módulos prontos (desvios corrigidos) | `Economia` conformada, `spendPct` corrigido, `ValidadorOrdem` incremental |
 | 01 MVP linha verde | 🟢 **convergido** | `index.html` consome o seam canônico via `pipoca.bundle.js` (e2e 19/19) |
-| 02 Controle parental | 🟡 PINGATE ligado · PC_AI núcleo | T1 do `index.html` usa `acesso.ts` (e2e); `modos.autorizarIA` pronto; falta hub PC_HOME + PC_PROF/LIM/RULES/PRIV |
+| 02 Controle parental | 🟡 PINGATE ligado · HH_LOGIN/KIDMODE/PC_AI núcleo | T1 usa `acesso.ts` (e2e); `contaFamilia`/`modoApp`/`autorizarIA` prontos; falta wiring (telas) + PC_HOME/PROF/LIM/RULES/PRIV |
 | 03 Telemetria/painel | 🟢 TELE/03-03 · 🔴 PC_DASH | `telemetria.ts`+`captura.ts`+`telemetria_repo.ts` (testados); falta painel PC_DASH e captura ligada ao fluxo |
 | 04 Super admin | 🔴 não iniciado | — |
 | 05 IA e fala | 🔴 / 🟡 stub | fallback Motor B na fábrica; tipos `ProvedorIA`/`ServicoASR` |
@@ -98,10 +98,12 @@ testes) é consumido via `window.PipocaCanonico`.
 - **KIDMODE (02-02)** núcleo — `src/core/modoApp.ts` (`ModoApp`, guarda `aplicarGuarda`/`podeNavegar`, transições),
   no bridge `PipocaCanonico.modoApp`; falta o app fazer o wiring no roteador/T2.
 - **PC_AI (02-08)** núcleo — `modos.autorizarIA` + `IaToggle`.
+- **HH_LOGIN (02-01)** núcleo — `src/core/contaFamilia.ts` (`entrarFamilia` stub + `sessaoValida`) + `src/servicos/conta_repo.ts`
+  (sessão persistida); bridge `PipocaCanonico.conta`. Auth real = fase06.
 
-**A fazer:** wiring do KIDMODE no roteador (app); `HH_LOGIN (02-01)` (núcleo `ContaFamilia`/`SessaoConta` — auth real
-é fase06); `PC_HOME (02-04)` onboarding (dono da criação/recuperação do PIN, grava PERF/MODES/SESS); `PC_PROF/LIM/
-RULES/PRIV`. Nota infra: a porta 5000 está ocupada por outro dev server (vite); o e2e do Pipoca usa 5137.
+**A fazer (telas a cargo do app):** wiring do KIDMODE no roteador; tela `LoginFamilia` + rota inicial sessão-válida→KIDMODE;
+`PC_HOME (02-04)` onboarding (dono da criação/recuperação do PIN, grava PERF/MODES/SESS); `PC_PROF/LIM/RULES/PRIV`.
+Nota infra: a porta 5000 está ocupada por outro dev server (vite); o e2e do Pipoca usa 5137.
 
 ## Marco 3 — Fase 03 · Telemetria + Painel do cuidador (Tela 8)
 Pontos de captura em sessão/leitura/recompensa emitindo `EventoTelemetria` (`ts` injetado fora do motor);

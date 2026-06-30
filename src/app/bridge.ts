@@ -66,6 +66,14 @@ import {
 } from "../core/captura.js";
 import { acessoInicial, definirPin, verificarPin } from "../core/acesso.js";
 import { carregarAcesso, salvarAcesso, temPin } from "../servicos/acesso_repo.js";
+import { entrarFamilia, criarSessao, sessaoValida, DURACAO_SESSAO_MS } from "../core/contaFamilia.js";
+import {
+  carregarConta,
+  salvarConta,
+  carregarSessaoConta,
+  salvarSessaoConta,
+  limparSessaoConta,
+} from "../servicos/conta_repo.js";
 
 const PipocaCanonico = {
   // --- narrativa (eixo 1 / seam) ---
@@ -101,6 +109,17 @@ const PipocaCanonico = {
   a11y: { estiloLeitura, paletaContraste, transicao, animacaoCena },
   leitura: { tokenizarTrecho, ehPalavraDificil, silabar },
   acesso: { acessoInicial, definirPin, verificarPin, carregarAcesso, salvarAcesso, temPin },
+  conta: {
+    entrarFamilia,
+    criarSessao,
+    sessaoValida,
+    DURACAO_SESSAO_MS,
+    carregarConta,
+    salvarConta,
+    carregarSessaoConta,
+    salvarSessaoConta,
+    limparSessaoConta,
+  },
 
   // --- serviços / seams ---
   tts,

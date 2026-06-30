@@ -1,5 +1,7 @@
 # fase02 · 02-01 · Login da família
 
+> 🟡 **STATUS · 2026-06-29 · PARCIAL** — Núcleo `src/core/contaFamilia.ts` (`ContaFamilia`/`SessaoConta`, `entrarFamilia` stub MVP, `criarSessao`/`sessaoValida`) + store `src/servicos/conta_repo.ts` (sessão persistida em `pipoca.sessao-conta.v1`), exposto no bridge (`PipocaCanonico.conta`) e testado (`parciais.test.ts`). Autenticação real é fase06 (`ServicoAuth`). Falta a tela `LoginFamilia` + a rota inicial sessão-válida→KIDMODE (app). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase02-02-01`
 - nó(s) da arquitetura: HH_LOGIN

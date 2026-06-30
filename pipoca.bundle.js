@@ -1205,6 +1205,81 @@
     return carregarAcesso().pinHash !== null;
   }
 
+  // src/core/contaFamilia.ts
+  var DURACAO_SESSAO_MS = 30 * 86400000;
+  function idDoEmail(email) {
+    const e = email.trim().toLowerCase();
+    let h = 2166136261;
+    for (let i = 0;i < e.length; i++) {
+      h ^= e.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return "fam_" + (h >>> 0).toString(16);
+  }
+  function criarSessao(contaId, agora, duracaoMs = DURACAO_SESSAO_MS) {
+    return { contaId, autenticadaEm: agora, expiraEm: agora + duracaoMs };
+  }
+  function sessaoValida(sessao, agora) {
+    return !!sessao && typeof sessao.expiraEm === "number" && sessao.expiraEm > agora;
+  }
+  function entrarFamilia(email, senha, agora, duracaoMs = DURACAO_SESSAO_MS) {
+    const e = (email || "").trim();
+    const s = (senha || "").trim();
+    if (!e || !s)
+      return { ok: false, erro: "Preencha e-mail e senha para entrar." };
+    if (!/.+@.+\..+/.test(e))
+      return { ok: false, erro: "O e-mail parece incompleto. Confira, por favor." };
+    const conta = { id: idDoEmail(e), email: e.toLowerCase(), criadaEm: agora };
+    return { ok: true, conta, sessao: criarSessao(conta.id, agora, duracaoMs) };
+  }
+
+  // src/servicos/conta_repo.ts
+  var CHAVE_CONTA = "pipoca.conta.v1";
+  var CHAVE_SESSAO = "pipoca.sessao-conta.v1";
+  function carregarConta() {
+    try {
+      const raw = localStorage.getItem(CHAVE_CONTA);
+      if (!raw)
+        return null;
+      const p = JSON.parse(raw);
+      if (p && typeof p["id"] === "string" && typeof p["email"] === "string" && typeof p["criadaEm"] === "number") {
+        return { id: p["id"], email: p["email"], criadaEm: p["criadaEm"] };
+      }
+    } catch {}
+    return null;
+  }
+  function salvarConta(conta) {
+    try {
+      localStorage.setItem(CHAVE_CONTA, JSON.stringify(conta));
+    } catch {}
+  }
+  function carregarSessaoConta() {
+    try {
+      const raw = localStorage.getItem(CHAVE_SESSAO);
+      if (!raw)
+        return null;
+      const p = JSON.parse(raw);
+      if (p && typeof p["contaId"] === "string" && typeof p["autenticadaEm"] === "number" && typeof p["expiraEm"] === "number") {
+        return {
+          contaId: p["contaId"],
+          autenticadaEm: p["autenticadaEm"],
+          expiraEm: p["expiraEm"]
+        };
+      }
+    } catch {}
+    return null;
+  }
+  function salvarSessaoConta(sessao) {
+    try {
+      localStorage.setItem(CHAVE_SESSAO, JSON.stringify(sessao));
+    } catch {}
+  }
+  function limparSessaoConta() {
+    try {
+      localStorage.removeItem(CHAVE_SESSAO);
+    } catch {}
+  }
+
   // src/app/bridge.ts
   var PipocaCanonico = {
     validarGrafo,
@@ -1237,6 +1312,17 @@
     a11y: { estiloLeitura, paletaContraste, transicao, animacaoCena },
     leitura: { tokenizarTrecho, ehPalavraDificil, silabar },
     acesso: { acessoInicial, definirPin, verificarPin, carregarAcesso, salvarAcesso, temPin },
+    conta: {
+      entrarFamilia,
+      criarSessao,
+      sessaoValida,
+      DURACAO_SESSAO_MS,
+      carregarConta,
+      salvarConta,
+      carregarSessaoConta,
+      salvarSessaoConta,
+      limparSessaoConta
+    },
     tts,
     criarRepositorio,
     telemetria: {

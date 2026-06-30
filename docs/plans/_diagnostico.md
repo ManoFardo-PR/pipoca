@@ -4,8 +4,8 @@ Gerado por `node docs/plans/check_plans.mjs`.
 
 - Docs de sub-passo encontrados: **77**
 - Nós no mermaid: **43**
-- Checagens: **10/10 PASS**
-- Resultado: ✅ **TUDO VERDE**
+- Checagens: **9/10 PASS**
+- Resultado: ❌ **HÁ FALHAS**
 
 | # | Checagem | Status | Falhas |
 |---|----------|--------|--------|
@@ -13,7 +13,7 @@ Gerado por `node docs/plans/check_plans.mjs`.
 | 2 | Cobertura de telas do brief | ✅ PASS | 0 |
 | 3 | Linha verde completa | ✅ PASS | 0 |
 | 4 | Resolução de referências | ✅ PASS | 0 |
-| 5 | Resolução de nomes | ✅ PASS | 0 |
+| 5 | Resolução de nomes | ❌ FAIL | 1 |
 | 6 | Ordem de dependências | ✅ PASS | 0 |
 | 7 | Auditoria do seam | ✅ PASS | 0 |
 | 8 | Auditoria da reconciliação | ✅ PASS | 0 |
@@ -32,8 +32,8 @@ Sem problemas.
 ## 4. Resolução de referências — PASS
 Sem problemas.
 
-## 5. Resolução de nomes — PASS
-Sem problemas.
+## 5. Resolução de nomes — FAIL
+- SCHEMA DESCONHECIDO: fase02-02-01 → pipoca.sessao-conta.v1
 
 ## 6. Ordem de dependências — PASS _(141 arestas)_
 Sem problemas.

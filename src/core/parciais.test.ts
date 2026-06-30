@@ -17,6 +17,7 @@ import { podarPorRetencao } from "../servicos/telemetria_repo.js";
 import { acessoInicial, definirPin, verificarPin, MAX_TENTATIVAS, LOCKOUT_MS } from "./acesso.js";
 import { modosPadrao, autorizarIA } from "./modos.js";
 import { MODO_PADRAO, TELA_CRIANCA, aplicarGuarda, podeNavegar, aoPassarPortao, aoVoltarParaCrianca } from "./modoApp.js";
+import { entrarFamilia, sessaoValida } from "./contaFamilia.js";
 import { criarMotor } from "../motores/fabrica.js";
 import { validarGrafo } from "./grafo/validarGrafo.js";
 import { estadoInicial } from "./estado.js";
@@ -177,6 +178,21 @@ console.log("\n=== Modo do app (KIDMODE 02-02) — guarda de superfícies adulta
   assert(podeNavegar("cuidador", 8, ADULTAS) === true, "cuidador acessa superfície adulta");
   assert(aoPassarPortao() === "cuidador", "PINGATE → cuidador");
   assert(aoVoltarParaCrianca() === "crianca", "voltar/recarregar → crianca");
+}
+
+console.log("\n=== Conta/sessão da família (HH_LOGIN 02-01) ===");
+{
+  assert(entrarFamilia("", "x", 1000).ok === false, "login com e-mail vazio → erro acolhedor");
+  assert(entrarFamilia("semarroba", "senha", 1000).ok === false, "e-mail sem formato → erro");
+  const r = entrarFamilia("Casa@Exemplo.com", "segredo", 1000);
+  assert(r.ok === true && !!r.conta && !!r.sessao, "login válido cria conta + sessão");
+  assert(r.conta!.email === "casa@exemplo.com", "e-mail normalizado (lowercase)");
+  assert(r.sessao!.expiraEm > 1000, "sessão tem expiração futura");
+  assert(sessaoValida(r.sessao!, 1000) === true, "sessão válida logo após login");
+  assert(sessaoValida(r.sessao!, r.sessao!.expiraEm + 1) === false, "sessão expirada → inválida");
+  assert(sessaoValida(null, 1000) === false, "sessão nula → inválida");
+  const r2 = entrarFamilia("casa@exemplo.com", "outra", 2000);
+  assert(r2.conta!.id === r.conta!.id, "id de conta determinístico por e-mail");
 }
 
 console.log(`\n${"=".repeat(50)}`);

@@ -117,4 +117,44 @@ test.describe("linha verde · convergência", () => {
     }
     expect(erros).toEqual([]);
   });
+
+  test("portão parental (PINGATE): cria PIN no 1º uso, recusa errado, aceita correto", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForFunction(() => {
+      const w = window as Win;
+      return !!w.PipocaApp && !!w.PipocaCanonico && !!(w.PipocaCanonico as any).acesso;
+    });
+    // 1º uso determinístico
+    await page.evaluate(() => localStorage.removeItem("pipoca.acesso.v1"));
+    await page.reload();
+    await page.waitForFunction(() => !!(window as Win).PipocaApp && !!(window as any).PipocaCanonico?.acesso);
+
+    const digitar = async (pin: string) => {
+      for (const d of pin.split("")) await page.locator(`[aria-label="${d}"]`).first().click();
+    };
+    const irT1 = async () => {
+      await page.evaluate(() => {
+        const w = window as Win;
+        w.PipocaRoteador?.irParaTela(1);
+        w.PipocaApp.setState({ tela: 1, _t1Pin: "", _t1Dica: "" });
+      });
+      await page.waitForTimeout(120);
+    };
+
+    await irT1();
+    await digitar("1234"); // cria
+    await page.waitForTimeout(150);
+    expect(await page.evaluate(() => (window as Win).PipocaApp.estado.tela)).toBe(2);
+    expect(await page.evaluate(() => (window as any).PipocaCanonico.acesso.temPin())).toBe(true);
+
+    await irT1();
+    await digitar("0000"); // errado
+    await page.waitForTimeout(150);
+    expect(await page.evaluate(() => (window as Win).PipocaApp.estado.tela)).toBe(1);
+    expect(((await page.evaluate(() => (window as Win).PipocaApp.estado._t1Dica)) || "").length).toBeGreaterThan(0);
+
+    await digitar("1234"); // correto
+    await page.waitForTimeout(150);
+    expect(await page.evaluate(() => (window as Win).PipocaApp.estado.tela)).toBe(2);
+  });
 });

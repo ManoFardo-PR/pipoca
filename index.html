@@ -741,9 +741,25 @@ class Component extends DCLogic {
   }
 
   _t1Submeter(pin) {
-    // Placeholder: any 4-digit PIN accepted; navigate to T2
-    this.setState({ _t1Pin: '', _t1Dica: '' });
-    this._irPara(2);
+    // Portão parental canônico (PINGATE / acesso.ts via bundle): cria o PIN no 1º uso,
+    // depois verifica com lockout suave. Date.now() é tempo da BORDA (permitido).
+    const A = window.PipocaCanonico && window.PipocaCanonico.acesso;
+    if (!A) { this.setState({ _t1Pin: '', _t1Dica: '' }); this._irPara(2); return; } // degradação sem bundle
+    let st = A.carregarAcesso();
+    if (st.pinHash === null) {
+      A.salvarAcesso(A.definirPin(st, pin));
+      this.setState({ _t1Pin: '', _t1Dica: '' });
+      this._irPara(2);
+      return;
+    }
+    const r = A.verificarPin(st, pin, Date.now());
+    A.salvarAcesso(r.estado);
+    if (r.ok) {
+      this.setState({ _t1Pin: '', _t1Dica: '' });
+      this._irPara(2);
+    } else {
+      this.setState({ _t1Pin: '', _t1Dica: r.dica || 'PIN não confere. Tente de novo com calma.' });
+    }
   }
 
   // ─── Mount & setup ────────────────────────────────────────────────────────────
@@ -803,6 +819,12 @@ class Component extends DCLogic {
           this.setState({ _perfis: perfis });
         }
       }
+    } catch(_) {}
+
+    // Portão parental: no 1º uso (sem PIN salvo) orienta a criar um.
+    try {
+      const A = window.PipocaCanonico && window.PipocaCanonico.acesso;
+      if (A && !A.temPin()) this.setState({ _t1Dica: 'Crie um PIN de 4 dígitos para o cuidador.' });
     } catch(_) {}
 
     this.setState({});

@@ -10,14 +10,16 @@ export default defineConfig({
   fullyParallel: false,
   reporter: [["list"]],
   use: {
-    baseURL: "http://localhost:5000",
+    baseURL: "http://localhost:5137",
     headless: true,
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
+    // Porta dedicada para não colidir com outros dev servers (ex.: vite na 5000).
     command: "node server.js",
-    url: "http://localhost:5000",
-    reuseExistingServer: true,
+    env: { PORT: "5137" },
+    url: "http://localhost:5137",
+    reuseExistingServer: false,
     timeout: 20_000,
   },
 });

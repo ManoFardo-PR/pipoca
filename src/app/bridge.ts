@@ -56,6 +56,7 @@ import {
   capturarHistoriaConcluida,
 } from "../core/captura.js";
 import { acessoInicial, definirPin, verificarPin } from "../core/acesso.js";
+import { carregarAcesso, salvarAcesso, temPin } from "../servicos/acesso_repo.js";
 
 const PipocaCanonico = {
   // --- narrativa (eixo 1 / seam) ---
@@ -89,7 +90,7 @@ const PipocaCanonico = {
   sessao: { iniciarSessao, tick, encerrarSessao, formatarRestante },
   a11y: { estiloLeitura, paletaContraste, transicao, animacaoCena },
   leitura: { tokenizarTrecho, ehPalavraDificil, silabar },
-  acesso: { acessoInicial, definirPin, verificarPin },
+  acesso: { acessoInicial, definirPin, verificarPin, carregarAcesso, salvarAcesso, temPin },
 
   // --- serviços / seams ---
   tts,

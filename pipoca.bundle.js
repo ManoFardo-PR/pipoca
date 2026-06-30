@@ -1157,6 +1157,33 @@
     return { ok: false, estado: { ...base, tentativas }, bloqueado: false, dica: DICA_ERRO };
   }
 
+  // src/servicos/acesso_repo.ts
+  var CHAVE_ACESSO = "pipoca.acesso.v1";
+  function carregarAcesso() {
+    try {
+      const raw = localStorage.getItem(CHAVE_ACESSO);
+      if (!raw)
+        return { ...acessoInicial };
+      const p = JSON.parse(raw);
+      if (p && typeof p === "object") {
+        return {
+          pinHash: typeof p["pinHash"] === "string" ? p["pinHash"] : null,
+          tentativas: typeof p["tentativas"] === "number" ? p["tentativas"] : 0,
+          bloqueioAte: typeof p["bloqueioAte"] === "number" ? p["bloqueioAte"] : 0
+        };
+      }
+    } catch {}
+    return { ...acessoInicial };
+  }
+  function salvarAcesso(estado) {
+    try {
+      localStorage.setItem(CHAVE_ACESSO, JSON.stringify(estado));
+    } catch {}
+  }
+  function temPin() {
+    return carregarAcesso().pinHash !== null;
+  }
+
   // src/app/bridge.ts
   var PipocaCanonico = {
     validarGrafo,
@@ -1187,7 +1214,7 @@
     sessao: { iniciarSessao, tick, encerrarSessao, formatarRestante },
     a11y: { estiloLeitura, paletaContraste, transicao, animacaoCena },
     leitura: { tokenizarTrecho, ehPalavraDificil, silabar },
-    acesso: { acessoInicial, definirPin, verificarPin },
+    acesso: { acessoInicial, definirPin, verificarPin, carregarAcesso, salvarAcesso, temPin },
     tts,
     criarRepositorio,
     telemetria: {

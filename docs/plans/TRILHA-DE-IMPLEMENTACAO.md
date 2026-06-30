@@ -22,7 +22,7 @@ pré-requisito** de tudo que vem depois.
 |------|--------|------|
 | 00 Fundação | 🟢 módulos prontos (desvios corrigidos) | `Economia` conformada, `spendPct` corrigido, `ValidadorOrdem` incremental |
 | 01 MVP linha verde | 🟢 **convergido** | `index.html` consome o seam canônico via `pipoca.bundle.js` (e2e 19/19) |
-| 02 Controle parental | 🟡 núcleo PC_AI/PINGATE | `acesso.ts` (PIN+lockout), `modos.autorizarIA`, telas `PortaoParental`/`IaToggle`; falta hub PC_HOME + nav |
+| 02 Controle parental | 🟡 PINGATE ligado · PC_AI núcleo | T1 do `index.html` usa `acesso.ts` (e2e); `modos.autorizarIA` pronto; falta hub PC_HOME + PC_PROF/LIM/RULES/PRIV |
 | 03 Telemetria/painel | 🟢 TELE/03-03 · 🔴 PC_DASH | `telemetria.ts`+`captura.ts`+`telemetria_repo.ts` (testados); falta painel PC_DASH e captura ligada ao fluxo |
 | 04 Super admin | 🔴 não iniciado | — |
 | 05 IA e fala | 🔴 / 🟡 stub | fallback Motor B na fábrica; tipos `ProvedorIA`/`ServicoASR` |
@@ -85,11 +85,16 @@ pela versão definitiva baseada em `src/telas/*.dc.html` (x-import) é um refino
 
 ---
 
-## Marco 2 — Fase 02 · Acesso e controle parental
-Ordem por dependência: **HH_LOGIN → KIDMODE → PINGATE** (completar o stub `abrirPortaoParental`) **→ PC_HOME →
-PC_PROF → PC_LIM → PC_RULES → PC_AI** (completar o toggle de `iaLigada`) **→ PC_PRIV**.
-Reusa `Perfil`/`Modos`/`Sessao` e `RepositorioPersistencia` já prontos; introduz a Tela 1 (onboarding) e o
-modo criança/cuidador no roteador.
+## Marco 2 — Fase 02 · Acesso e controle parental · 🟡 **em progresso**
+Ordem por dependência: **HH_LOGIN → KIDMODE → PINGATE → PC_HOME → PC_PROF → PC_LIM → PC_RULES → PC_AI → PC_PRIV**.
+Reusa `Perfil`/`Modos`/`Sessao` e `RepositorioPersistencia` já prontos.
+
+**Feito (2026-06-29):** **PINGATE** ligado — o T1 do `index.html` (teclado de PIN) consome `src/core/acesso.ts` via
+`src/servicos/acesso_repo.ts` (`pipoca.acesso.v1`): cria o PIN no 1º uso, verifica com lockout suave e dica
+acolhedora; coberto por e2e (cria/recusa/aceita). `PC_AI` com núcleo pronto (`modos.autorizarIA` + `IaToggle`).
+**A fazer:** `HH_LOGIN`, `KIDMODE` (modo criança/cuidador no roteador), `PC_HOME` (onboarding — dono da criação/
+recuperação do PIN), `PC_PROF/LIM/RULES/PRIV`. Nota infra: a porta 5000 está ocupada por outro dev server (vite);
+o e2e do Pipoca usa porta dedicada (5137).
 
 ## Marco 3 — Fase 03 · Telemetria + Painel do cuidador (Tela 8)
 Pontos de captura em sessão/leitura/recompensa emitindo `EventoTelemetria` (`ts` injetado fora do motor);

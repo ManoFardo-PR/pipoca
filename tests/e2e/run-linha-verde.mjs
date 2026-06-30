@@ -15,7 +15,8 @@ const PW_CORE =
   "C:/Users/mfard/AppData/Local/npm-cache/_npx/705bc6b22212b352/node_modules/playwright-core";
 const { chromium } = require(PW_CORE);
 
-const PORT = 5000;
+// Porta dedicada (evita conflito com outros dev servers, ex.: vite na 5000).
+const PORT = Number(process.env.E2E_PORT) || 5137;
 const BASE = `http://localhost:${PORT}`;
 
 let passou = 0, falhou = 0;
@@ -40,7 +41,7 @@ function esperarPorta(port, timeoutMs = 15000) {
   });
 }
 
-const server = spawn("node", ["server.js"], { stdio: "ignore" });
+const server = spawn("node", ["server.js"], { stdio: "ignore", env: { ...process.env, PORT: String(PORT) } });
 let browser;
 try {
   await esperarPorta(PORT);
@@ -115,6 +116,48 @@ try {
     const telaAtual = await page.evaluate(() => window.PipocaApp.estado.tela);
     assert(telaAtual === n, `tela ${n} ativa`);
   }
+
+  console.log("\n=== Portão parental (PINGATE) — acesso canônico + teclado real ===");
+  // 1º uso determinístico: limpa o PIN salvo e recarrega
+  await page.evaluate(() => localStorage.removeItem("pipoca.acesso.v1"));
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => !!window.PipocaApp && !!window.PipocaCanonico && !!window.PipocaCanonico.acesso);
+
+  const acc = await page.evaluate(() => {
+    const A = window.PipocaCanonico.acesso;
+    let st = A.definirPin(A.acessoInicial, "1234");
+    const ok = A.verificarPin(st, "1234", 1000).ok;
+    const erro = A.verificarPin(st, "0000", 1000).ok;
+    let cur = st, bloqueado = false;
+    for (let i = 0; i < 5; i++) { const r = A.verificarPin(cur, "0000", 1000); cur = r.estado; bloqueado = r.bloqueado; }
+    return { ok, erro, bloqueado };
+  });
+  assert(acc.ok === true, "acesso.verificarPin: PIN correto → ok");
+  assert(acc.erro === false, "acesso.verificarPin: PIN errado → not ok");
+  assert(acc.bloqueado === true, "acesso: lockout suave após 5 erros");
+
+  const digitar = async (pin) => { for (const d of pin.split("")) await page.locator(`[aria-label="${d}"]`).first().click(); };
+  const irT1 = async () => {
+    await page.evaluate(() => { if (window.PipocaRoteador) window.PipocaRoteador.irParaTela(1); window.PipocaApp.setState({ tela: 1, _t1Pin: "", _t1Dica: "" }); });
+    await page.waitForTimeout(120);
+  };
+
+  await irT1();
+  await digitar("1234"); // 1º uso → cria o PIN e entra no modo criança
+  await page.waitForTimeout(150);
+  assert((await page.evaluate(() => window.PipocaApp.estado.tela)) === 2, "1º uso: digitar PIN cria e entra no modo criança (T2)");
+  assert((await page.evaluate(() => window.PipocaCanonico.acesso.temPin())) === true, "PIN persistido após criação");
+
+  await irT1();
+  await digitar("0000"); // PIN errado
+  await page.waitForTimeout(150);
+  assert((await page.evaluate(() => window.PipocaApp.estado.tela)) === 1, "PIN errado mantém no portão (T1)");
+  assert(((await page.evaluate(() => window.PipocaApp.estado._t1Dica)) || "").length > 0, "PIN errado mostra dica acolhedora (sem X vermelho)");
+
+  await digitar("1234"); // PIN correto
+  await page.waitForTimeout(150);
+  assert((await page.evaluate(() => window.PipocaApp.estado.tela)) === 2, "PIN correto abre o modo criança (T2)");
+
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 
   console.log(`\n${"=".repeat(50)}`);

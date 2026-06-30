@@ -1,6 +1,6 @@
 # fase02 · 02-03 · Portão parental (PIN)
 
-> 🟡 **STATUS · 2026-06-29 · PARCIAL** — Núcleo `src/core/acesso.ts` (`verificarPin` + lockout suave, puro/testado em `parciais.test.ts`) + tela `src/telas/PortaoParental.dc.html` (teclado de PIN). Falta a navegação para PC_HOME (depende de 02-04 + convergência). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/acesso.ts` (verificar+lockout) + store `src/servicos/acesso_repo.ts`, **ligado ao T1 do `index.html`** via bundle: cria PIN no 1º uso, verifica com lockout suave e dica acolhedora (sem X vermelho); coberto por e2e. Criação/recuperação definitivas do PIN passam ao onboarding (02-04). Tela canônica de referência: `src/telas/PortaoParental.dc.html`. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase02-02-03`

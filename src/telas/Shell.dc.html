@@ -43,7 +43,14 @@
              ./TelaX.dc.html relativo à página; o server.js resolve em
              src/telas|componentes. As telas leem o estado via window.PipocaApp. -->
         <div style="position:absolute;inset:0;">
-          <Tela2EntradaCrianca/>
+          <sc-if value="{{ ehT2 }}" hint-placeholder-val="{{ true }}"><Tela2EntradaCrianca/></sc-if>
+          <sc-if value="{{ ehT3 }}" hint-placeholder-val="{{ false }}"><Tela3SelecaoCenario/></sc-if>
+          <sc-if value="{{ ehT4 }}" hint-placeholder-val="{{ false }}"><Tela4Heroi/></sc-if>
+          <sc-if value="{{ ehT5 }}" hint-placeholder-val="{{ false }}"><Tela5Portao/></sc-if>
+          <sc-if value="{{ ehT6 }}" hint-placeholder-val="{{ false }}"><Tela6Recompensa/></sc-if>
+          <sc-if value="{{ ehT7 }}" hint-placeholder-val="{{ false }}"><Tela7PoteCardapio/></sc-if>
+          <sc-if value="{{ ehT1 }}" hint-placeholder-val="{{ false }}"><PortaoParental/></sc-if>
+          <sc-if value="{{ ehPCHome }}" hint-placeholder-val="{{ false }}"><Onboarding/></sc-if>
         </div>
 
       </div>

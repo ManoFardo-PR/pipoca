@@ -87,13 +87,10 @@ class Component extends DCLogic {
   // ponte e NÃO entra aqui — a criança pode pedir o portão.
   _superficiesAdultas() { return [8, 10, 11, 12, 13, 14, 15]; }
 
-  // Espelho síncrono do modo (evita corrida com o setState assíncrono na guarda).
-  _modoApp = 'crianca';
-
   _guardTela(n) {
     const M = window.PipocaCanonico && window.PipocaCanonico.modoApp;
     if (!M) return n;
-    return M.aplicarGuarda(this._modoApp || 'crianca', n, this._superficiesAdultas());
+    return M.aplicarGuarda(this.state.modoApp || 'crianca', n, this._superficiesAdultas());
   }
 
   _navegar(n) {
@@ -120,15 +117,14 @@ class Component extends DCLogic {
   _entrarCuidador() {
     const M = window.PipocaCanonico && window.PipocaCanonico.modoApp;
     const modoApp = M ? M.aoPassarPortao() : 'cuidador';
-    this._modoApp = modoApp;
-    this.setState({ modoApp, tela: 10 }); // PC_HOME (onboarding/hub do cuidador)
+    // setState direto (não pelo bridge): já entra em modo cuidador + PC_HOME sem guarda.
+    this.setState({ modoApp, tela: 10 });
     if (window.PipocaRoteador) window.PipocaRoteador.irParaTela(10);
   }
 
   _irParaCrianca() {
     const M = window.PipocaCanonico && window.PipocaCanonico.modoApp;
     const modoApp = M ? M.aoVoltarParaCrianca() : 'crianca';
-    this._modoApp = modoApp;
     this.setState({ modoApp, tela: 2 });
     if (window.PipocaRoteador) window.PipocaRoteador.irParaTela(2);
   }

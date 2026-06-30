@@ -1,5 +1,7 @@
 # fase02 · 02-05 · Perfis das crianças (PC_PROF)
 
+> 🟡 **STATUS · 2026-06-29 · PARCIAL** — CRUD coberto pelo seam: `criarPerfil` (`core/perfil.ts`) + `criarRepositorio` (`carregarPerfis`/`salvarPerfil`/`apagarPerfil` — este adicionado ao contrato `RepositorioPersistencia` para a remoção LGPD). Falta a tela `Perfis` (app). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase02-02-05`
 - nó(s) da arquitetura: PC_PROF

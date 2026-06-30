@@ -19,6 +19,8 @@ export interface RepositorioPersistencia {
   carregarSave(perfilId: string): Promise<EstadoApp | null>;
   salvarSave(perfilId: string, estado: EstadoApp): Promise<void>;
   registrarTelemetria(evento: EventoTelemetria): Promise<void>;
+  /** LGPD: remove o perfil + seu save + sua telemetria. */
+  apagarPerfil(perfilId: string): Promise<void>;
 }
 
 export { RepositorioLocalStorage } from "./RepositorioLocalStorage.js";

@@ -1,5 +1,7 @@
 # fase02 · 02-07 · Regras (cenários, verificação, recompensas)
 
+> 🟡 **STATUS · 2026-06-29 · PARCIAL** — Núcleo: setters `definirVerificacao`/`definirDesfecho` (`core/modos.ts`) + `src/core/cardapio.ts` (`CARDAPIO_PADRAO`, `normalizarCardapio`, `normalizarCenariosLiberados`), no bridge (`PipocaCanonico.modos`/`.cardapio`) e testado. Falta a tela `Regras` (app); `fala` exibe "Em breve" (ASR fase05). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase02-02-07`
 - nó(s) da arquitetura: PC_RULES

@@ -40,7 +40,16 @@ import {
   _returnToTray,
   _checkStory,
 } from "../core/historia.js";
-import { modosPadrao, alternarPalco, autorizarIA, normalizarModos } from "../core/modos.js";
+import { modosPadrao, alternarPalco, autorizarIA, normalizarModos, definirVerificacao, definirDesfecho } from "../core/modos.js";
+import { exportarDados, apagarDados } from "../core/lgpd.js";
+import { LIMITES_PADRAO, definirBlocoFoco, normalizarTempoDeTela, normalizarLimites } from "../core/limites.js";
+import {
+  CARDAPIO_PADRAO,
+  normalizarCardapio,
+  validarItemCardapio,
+  CENARIOS_PADRAO,
+  normalizarCenariosLiberados,
+} from "../core/cardapio.js";
 import {
   MODO_PADRAO,
   TELA_CRIANCA,
@@ -51,6 +60,7 @@ import {
   aoVoltarParaCrianca,
 } from "../core/modoApp.js";
 import { criarPerfil } from "../core/perfil.js";
+import { montarEstadoOnboarding, perfilDoOnboarding, BLOCO_PADRAO } from "../core/onboarding.js";
 import { iniciarSessao, tick, encerrarSessao, formatarRestante } from "../core/sessao.js";
 import { estiloLeitura, paletaContraste, transicao, animacaoCena } from "../core/a11y.js";
 import { tokenizarTrecho, ehPalavraDificil, silabar } from "../core/leitura.js";
@@ -102,9 +112,13 @@ const PipocaCanonico = {
     _returnToTray,
     _checkStory,
   },
-  modos: { modosPadrao, alternarPalco, autorizarIA, normalizarModos },
+  modos: { modosPadrao, alternarPalco, autorizarIA, normalizarModos, definirVerificacao, definirDesfecho },
   modoApp: { MODO_PADRAO, TELA_CRIANCA, ehAdulta, podeNavegar, aplicarGuarda, aoPassarPortao, aoVoltarParaCrianca },
+  limites: { LIMITES_PADRAO, definirBlocoFoco, normalizarTempoDeTela, normalizarLimites },
+  cardapio: { CARDAPIO_PADRAO, normalizarCardapio, validarItemCardapio, CENARIOS_PADRAO, normalizarCenariosLiberados },
+  lgpd: { exportarDados, apagarDados },
   perfil: { criarPerfil },
+  onboarding: { montarEstadoOnboarding, perfilDoOnboarding, BLOCO_PADRAO },
   sessao: { iniciarSessao, tick, encerrarSessao, formatarRestante },
   a11y: { estiloLeitura, paletaContraste, transicao, animacaoCena },
   leitura: { tokenizarTrecho, ehPalavraDificil, silabar },

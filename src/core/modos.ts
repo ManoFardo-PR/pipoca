@@ -73,6 +73,16 @@ export function autorizarIA(modos: Modos, on: boolean): Modos {
   return { ...modos, iaLigada: !!on };
 }
 
+/** Define o modo de verificação do portão (cuidador/auto/fala) — PC_RULES. */
+export function definirVerificacao(modos: Modos, verificacao: Verificacao): Modos {
+  return { ...modos, verificacao };
+}
+
+/** Define o modo de desfecho (convergente/aberto) — PC_RULES. */
+export function definirDesfecho(modos: Modos, desfecho: ModoDesfecho): Modos {
+  return { ...modos, desfecho };
+}
+
 /** Valida um objeto Modos candidato. Retorna lista de erros. */
 export function validarModos(m: unknown): string[] {
   const erros: string[] = [];

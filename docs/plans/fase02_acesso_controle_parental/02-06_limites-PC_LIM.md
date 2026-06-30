@@ -1,5 +1,7 @@
 # fase02 · 02-06 · Limites (tempo de tela, bloco de foco)
 
+> 🟡 **STATUS · 2026-06-29 · PARCIAL** — Núcleo `src/core/limites.ts` (`definirBlocoFoco` reinicia a SESS com o novo bloco; `normalizarTempoDeTela`/`normalizarLimites`), no bridge (`PipocaCanonico.limites`) e testado (`parciais.test.ts`). Falta a tela `Limites` (app). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase02-02-06`
 - nó(s) da arquitetura: PC_LIM

@@ -22,7 +22,7 @@ pré-requisito** de tudo que vem depois.
 |------|--------|------|
 | 00 Fundação | 🟢 módulos prontos (desvios corrigidos) | `Economia` conformada, `spendPct` corrigido, `ValidadorOrdem` incremental |
 | 01 MVP linha verde | 🟢 **convergido** | `index.html` consome o seam canônico via `pipoca.bundle.js` (e2e 19/19) |
-| 02 Controle parental | 🟡 PINGATE ligado · HH_LOGIN/KIDMODE/PC_AI núcleo | T1 usa `acesso.ts` (e2e); `contaFamilia`/`modoApp`/`autorizarIA` prontos; falta wiring (telas) + PC_HOME/PROF/LIM/RULES/PRIV |
+| 02 Controle parental | 🟢 núcleos completos · telas no app | PINGATE ligado (e2e); núcleos HH_LOGIN/KIDMODE/PC_HOME/PROF/LIM/RULES/PRIV/AI no bridge; falta o app ligar as telas |
 | 03 Telemetria/painel | 🟢 TELE/03-03 · 🔴 PC_DASH | `telemetria.ts`+`captura.ts`+`telemetria_repo.ts` (testados); falta painel PC_DASH e captura ligada ao fluxo |
 | 04 Super admin | 🔴 não iniciado | — |
 | 05 IA e fala | 🔴 / 🟡 stub | fallback Motor B na fábrica; tipos `ProvedorIA`/`ServicoASR` |
@@ -100,10 +100,15 @@ testes) é consumido via `window.PipocaCanonico`.
 - **PC_AI (02-08)** núcleo — `modos.autorizarIA` + `IaToggle`.
 - **HH_LOGIN (02-01)** núcleo — `src/core/contaFamilia.ts` (`entrarFamilia` stub + `sessaoValida`) + `src/servicos/conta_repo.ts`
   (sessão persistida); bridge `PipocaCanonico.conta`. Auth real = fase06.
+- **PC_HOME (02-04)** núcleo — `src/core/onboarding.ts` (`montarEstadoOnboarding` PERF/MODES/SESS → T2); bridge `PipocaCanonico.onboarding`.
+- **PC_PROF (02-05)** — CRUD via seam; `apagarPerfil` adicionado ao contrato `RepositorioPersistencia` (LGPD).
+- **PC_LIM (02-06)** núcleo — `src/core/limites.ts` (`definirBlocoFoco` + tempo de tela); bridge `PipocaCanonico.limites`.
+- **PC_RULES (02-07)** núcleo — `modos.definirVerificacao/definirDesfecho` + `src/core/cardapio.ts`; bridge `.modos`/`.cardapio`.
+- **PC_PRIV (02-09)** núcleo — `src/core/lgpd.ts` (`exportarDados`/`apagarDados`); bridge `PipocaCanonico.lgpd`.
 
-**A fazer (telas a cargo do app):** wiring do KIDMODE no roteador; tela `LoginFamilia` + rota inicial sessão-válida→KIDMODE;
-`PC_HOME (02-04)` onboarding (dono da criação/recuperação do PIN, grava PERF/MODES/SESS); `PC_PROF/LIM/RULES/PRIV`.
-Nota infra: a porta 5000 está ocupada por outro dev server (vite); o e2e do Pipoca usa 5137.
+**Todos os núcleos da Fase 02 prontos e testados no bridge.** A fazer (a cargo do app/telas): `LoginFamilia`, wiring do
+KIDMODE no roteador, `Onboarding`, `Perfis`, `Limites`, `Regras`, `Privacidade` — cada uma consome o respectivo
+`PipocaCanonico.*`. Nota infra: a porta 5000 é outro dev server (vite); o e2e do Pipoca usa 5137.
 
 ## Marco 3 — Fase 03 · Telemetria + Painel do cuidador (Tela 8)
 Pontos de captura em sessão/leitura/recompensa emitindo `EventoTelemetria` (`ts` injetado fora do motor);

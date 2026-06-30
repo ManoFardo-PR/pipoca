@@ -1,0 +1,60 @@
+/**
+ * Pipoca — Onboarding do cuidador (PC_HOME) · doc fase02-02-04
+ * ------------------------------------------------------------
+ * Núcleo do hub que prepara a sessão: monta Perfil + Modos + Sessao a partir dos dados do
+ * formulário e devolve o EstadoApp inicial do perfil (aterrissando no modo criança / T2).
+ *
+ * Puro e testável (`agora` da borda). A TELA (a cargo do app) coleta os campos, chama isto,
+ * persiste via `RepositorioPersistencia` (salvarPerfil/salvarSave) e cria o PIN (acesso.ts).
+ * Não toca motor/validador.
+ */
+
+import type { Perfil } from "./perfil.js";
+import { criarPerfil } from "./perfil.js";
+import type { Modos } from "./modos.js";
+import { modosPadrao, normalizarModos } from "./modos.js";
+import type { BlocoMin } from "./sessao.js";
+import { iniciarSessao } from "./sessao.js";
+import type { EstadoApp } from "./estado.js";
+import { estadoInicial } from "./estado.js";
+
+export interface DadosOnboarding {
+  id: string;
+  nome: string;
+  idade: number;
+  nivel: string; // normalizado por criarPerfil (n1..n4)
+  avatarId: string;
+  modos?: Partial<Modos>;
+  blocoMin?: BlocoMin;
+}
+
+/** Bloco de foco padrão quando o cuidador não escolhe. */
+export const BLOCO_PADRAO: BlocoMin = 15;
+
+/** Só o Perfil normalizado a partir dos dados do onboarding. */
+export function perfilDoOnboarding(dados: DadosOnboarding): Perfil {
+  return criarPerfil(dados.id, {
+    nome: dados.nome,
+    idade: dados.idade,
+    nivel: dados.nivel,
+    avatarId: dados.avatarId,
+  });
+}
+
+/**
+ * Monta o EstadoApp inicial do perfil recém-criado (PERF + MODES + SESS), aterrissando em T2
+ * (modo criança). Modos parciais são mesclados sobre os padrões seguros (iaLigada=false etc.).
+ */
+export function montarEstadoOnboarding(dados: DadosOnboarding, agora: number): EstadoApp {
+  const perfil = perfilDoOnboarding(dados);
+  const modos: Modos = normalizarModos({ ...modosPadrao, ...(dados.modos ?? {}) });
+  const blocoMin: BlocoMin = dados.blocoMin ?? BLOCO_PADRAO;
+  const sessao = iniciarSessao(perfil.id, blocoMin, agora);
+  return {
+    ...estadoInicial,
+    tela: 2, // KIDMODE → T2
+    perfil,
+    modos,
+    sessao,
+  };
+}

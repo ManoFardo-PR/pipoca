@@ -561,6 +561,12 @@
   function autorizarIA(modos, on) {
     return { ...modos, iaLigada: !!on };
   }
+  function definirVerificacao(modos, verificacao) {
+    return { ...modos, verificacao };
+  }
+  function definirDesfecho(modos, desfecho) {
+    return { ...modos, desfecho };
+  }
   function validarModos(m) {
     const erros = [];
     if (typeof m !== "object" || m === null)
@@ -575,27 +581,6 @@
     if (typeof r["iaLigada"] !== "boolean")
       erros.push("iaLigada deve ser boolean");
     return erros;
-  }
-
-  // src/core/modoApp.ts
-  var MODO_PADRAO = "crianca";
-  var TELA_CRIANCA = 2;
-  function ehAdulta(tela, superficiesAdultas) {
-    return superficiesAdultas.includes(tela);
-  }
-  function podeNavegar(modo, tela, superficiesAdultas) {
-    if (modo === "cuidador")
-      return true;
-    return !ehAdulta(tela, superficiesAdultas);
-  }
-  function aplicarGuarda(modo, telaPedida, superficiesAdultas) {
-    return podeNavegar(modo, telaPedida, superficiesAdultas) ? telaPedida : TELA_CRIANCA;
-  }
-  function aoPassarPortao() {
-    return "cuidador";
-  }
-  function aoVoltarParaCrianca() {
-    return "crianca";
   }
 
   // src/core/perfil.ts
@@ -699,6 +684,11 @@
     const seg = restanteSeg % 60;
     return `${String(min).padStart(2, "0")}:${String(seg).padStart(2, "0")}`;
   }
+  function normalizarBlocoMin(valor) {
+    if (BLOCOS_VALIDOS.includes(valor))
+      return valor;
+    return 15;
+  }
   function validarSessao(s) {
     const erros = [];
     if (typeof s !== "object" || s === null)
@@ -713,6 +703,191 @@
     if (typeof r["restanteSeg"] !== "number")
       erros.push("restanteSeg deve ser number");
     return erros;
+  }
+
+  // src/dados/schemas.ts
+  var ESQUEMA_PERFIL = "pipoca.perfil.v1";
+  var ESQUEMA_SAVE = "pipoca.save.v1";
+  var TEXT_SCALES_VALIDOS = [1, 1.2, 1.45];
+  function validarA11y(raw) {
+    const erros = [];
+    if (typeof raw !== "object" || raw === null)
+      return ["a11y deve ser objeto"];
+    const r = raw;
+    if (!TEXT_SCALES_VALIDOS.includes(r["textScale"]))
+      erros.push(`a11y.textScale inválido (deve ser 1, 1.2 ou 1.45)`);
+    for (const campo of ["dyslexia", "syllable", "contrast", "reduceMotion"]) {
+      if (typeof r[campo] !== "boolean")
+        erros.push(`a11y.${campo} deve ser boolean`);
+    }
+    return erros;
+  }
+  function validarSlicePerfil(raw) {
+    if (raw === null || raw === undefined)
+      return [];
+    return validarPerfil(raw);
+  }
+  function validarEnvelopePerfil(raw) {
+    if (typeof raw !== "object" || raw === null)
+      return null;
+    const r = raw;
+    if (r["esquema"] !== ESQUEMA_PERFIL)
+      return null;
+    const erros = validarPerfil(r["perfil"]);
+    if (erros.length > 0)
+      return null;
+    return r["perfil"];
+  }
+  function validarEnvelopeSave(raw) {
+    try {
+      if (typeof raw !== "object" || raw === null)
+        return null;
+      const r = raw;
+      if (r["esquema"] !== ESQUEMA_SAVE)
+        return null;
+      if (typeof r["perfilId"] !== "string" || r["perfilId"].trim() === "")
+        return null;
+      const estado = r["estado"];
+      if (typeof estado !== "object" || estado === null)
+        return null;
+      const e = estado;
+      if (typeof e["tela"] !== "number")
+        return null;
+      if (!("perfil" in e))
+        return null;
+      const errosPerfil = validarSlicePerfil(e["perfil"]);
+      if (errosPerfil.length > 0)
+        return null;
+      if (e["sessao"] !== null && e["sessao"] !== undefined) {
+        if (validarSessao(e["sessao"]).length > 0)
+          return null;
+      }
+      if (validarHistoriaState(e["historia"]).length > 0)
+        return null;
+      if (validarEconomia(e["economia"]).length > 0)
+        return null;
+      if (validarModos(e["modos"]).length > 0)
+        return null;
+      if (validarA11y(e["a11y"]).length > 0)
+        return null;
+      return estado;
+    } catch {
+      return null;
+    }
+  }
+  function criarEnvelopePerfil(perfil) {
+    return { esquema: ESQUEMA_PERFIL, perfil };
+  }
+  function criarEnvelopeSave(perfilId, estado) {
+    return { esquema: ESQUEMA_SAVE, perfilId, estado };
+  }
+
+  // src/core/lgpd.ts
+  async function exportarDados(perfilId, repo, agora) {
+    const perfis = await repo.carregarPerfis();
+    const perfil = perfis.find((p) => p.id === perfilId) ?? null;
+    const estado = await repo.carregarSave(perfilId);
+    return {
+      esquema: "pipoca.export.v1",
+      exportadoEm: agora,
+      perfil: perfil ? criarEnvelopePerfil(perfil) : null,
+      save: estado ? criarEnvelopeSave(perfilId, estado) : null
+    };
+  }
+  async function apagarDados(perfilId, repo) {
+    await repo.apagarPerfil(perfilId);
+  }
+
+  // src/core/limites.ts
+  var LIMITES_PADRAO = { blocoMin: 15, tempoDeTelaMin: null };
+  function definirBlocoFoco(sessao, blocoMin, agora) {
+    return iniciarSessao(sessao.perfilId, blocoMin, agora);
+  }
+  function normalizarTempoDeTela(valor) {
+    if (typeof valor !== "number" || !Number.isFinite(valor) || valor <= 0)
+      return null;
+    return Math.round(valor);
+  }
+  function normalizarLimites(raw) {
+    const r = raw && typeof raw === "object" ? raw : {};
+    return {
+      blocoMin: normalizarBlocoMin(r["blocoMin"]),
+      tempoDeTelaMin: normalizarTempoDeTela(r["tempoDeTelaMin"])
+    };
+  }
+
+  // src/core/cardapio.ts
+  var CARDAPIO_PADRAO = [
+    { id: "parque", label: "30 min de parque", icon: "\uD83D\uDEDD", cost: 6 },
+    { id: "jantar", label: "Escolher o jantar", icon: "\uD83C\uDF5D", cost: 4 },
+    { id: "historia", label: "História extra antes de dormir", icon: "\uD83D\uDCD6", cost: 3 },
+    { id: "bike", label: "Passeio de bike", icon: "\uD83D\uDEB2", cost: 8 },
+    { id: "tela", label: "Tempo de tela", icon: "\uD83D\uDCFA", cost: 5 },
+    { id: "amigo", label: "Brincar com um amigo", icon: "\uD83E\uDD1D", cost: 5 }
+  ];
+  function validarItemCardapio(it) {
+    if (!it || typeof it !== "object")
+      return false;
+    const r = it;
+    return typeof r["id"] === "string" && r["id"].length > 0 && typeof r["label"] === "string" && r["label"].length > 0 && typeof r["icon"] === "string" && typeof r["cost"] === "number" && r["cost"] >= 0;
+  }
+  function normalizarCardapio(raw) {
+    if (!Array.isArray(raw))
+      return [...CARDAPIO_PADRAO];
+    const itens = raw.filter(validarItemCardapio);
+    return itens.length > 0 ? itens : [...CARDAPIO_PADRAO];
+  }
+  var CENARIOS_PADRAO = ["quintal_anoitecer"];
+  function normalizarCenariosLiberados(raw) {
+    if (!Array.isArray(raw))
+      return [...CENARIOS_PADRAO];
+    const ids = raw.filter((x) => typeof x === "string" && x.length > 0);
+    return ids.length > 0 ? ids : [...CENARIOS_PADRAO];
+  }
+
+  // src/core/modoApp.ts
+  var MODO_PADRAO = "crianca";
+  var TELA_CRIANCA = 2;
+  function ehAdulta(tela, superficiesAdultas) {
+    return superficiesAdultas.includes(tela);
+  }
+  function podeNavegar(modo, tela, superficiesAdultas) {
+    if (modo === "cuidador")
+      return true;
+    return !ehAdulta(tela, superficiesAdultas);
+  }
+  function aplicarGuarda(modo, telaPedida, superficiesAdultas) {
+    return podeNavegar(modo, telaPedida, superficiesAdultas) ? telaPedida : TELA_CRIANCA;
+  }
+  function aoPassarPortao() {
+    return "cuidador";
+  }
+  function aoVoltarParaCrianca() {
+    return "crianca";
+  }
+
+  // src/core/onboarding.ts
+  var BLOCO_PADRAO = 15;
+  function perfilDoOnboarding(dados) {
+    return criarPerfil(dados.id, {
+      nome: dados.nome,
+      idade: dados.idade,
+      nivel: dados.nivel,
+      avatarId: dados.avatarId
+    });
+  }
+  function montarEstadoOnboarding(dados, agora) {
+    const perfil = perfilDoOnboarding(dados);
+    const modos = normalizarModos({ ...modosPadrao, ...dados.modos ?? {} });
+    const blocoMin = dados.blocoMin ?? BLOCO_PADRAO;
+    const sessao = iniciarSessao(perfil.id, blocoMin, agora);
+    return {
+      ...estadoInicial,
+      tela: 2,
+      perfil,
+      modos,
+      sessao
+    };
   }
 
   // src/core/a11y.ts
@@ -803,77 +978,6 @@
     }
   }
   var tts = new ServicoTTSWebSpeech;
-
-  // src/dados/schemas.ts
-  var ESQUEMA_PERFIL = "pipoca.perfil.v1";
-  var ESQUEMA_SAVE = "pipoca.save.v1";
-  var TEXT_SCALES_VALIDOS = [1, 1.2, 1.45];
-  function validarA11y(raw) {
-    const erros = [];
-    if (typeof raw !== "object" || raw === null)
-      return ["a11y deve ser objeto"];
-    const r = raw;
-    if (!TEXT_SCALES_VALIDOS.includes(r["textScale"]))
-      erros.push(`a11y.textScale inválido (deve ser 1, 1.2 ou 1.45)`);
-    for (const campo of ["dyslexia", "syllable", "contrast", "reduceMotion"]) {
-      if (typeof r[campo] !== "boolean")
-        erros.push(`a11y.${campo} deve ser boolean`);
-    }
-    return erros;
-  }
-  function validarSlicePerfil(raw) {
-    if (raw === null || raw === undefined)
-      return [];
-    return validarPerfil(raw);
-  }
-  function validarEnvelopePerfil(raw) {
-    if (typeof raw !== "object" || raw === null)
-      return null;
-    const r = raw;
-    if (r["esquema"] !== ESQUEMA_PERFIL)
-      return null;
-    const erros = validarPerfil(r["perfil"]);
-    if (erros.length > 0)
-      return null;
-    return r["perfil"];
-  }
-  function validarEnvelopeSave(raw) {
-    try {
-      if (typeof raw !== "object" || raw === null)
-        return null;
-      const r = raw;
-      if (r["esquema"] !== ESQUEMA_SAVE)
-        return null;
-      if (typeof r["perfilId"] !== "string" || r["perfilId"].trim() === "")
-        return null;
-      const estado = r["estado"];
-      if (typeof estado !== "object" || estado === null)
-        return null;
-      const e = estado;
-      if (typeof e["tela"] !== "number")
-        return null;
-      if (!("perfil" in e))
-        return null;
-      const errosPerfil = validarSlicePerfil(e["perfil"]);
-      if (errosPerfil.length > 0)
-        return null;
-      if (e["sessao"] !== null && e["sessao"] !== undefined) {
-        if (validarSessao(e["sessao"]).length > 0)
-          return null;
-      }
-      if (validarHistoriaState(e["historia"]).length > 0)
-        return null;
-      if (validarEconomia(e["economia"]).length > 0)
-        return null;
-      if (validarModos(e["modos"]).length > 0)
-        return null;
-      if (validarA11y(e["a11y"]).length > 0)
-        return null;
-      return estado;
-    } catch {
-      return null;
-    }
-  }
 
   // src/core/telemetria.ts
   var ESQUEMA_TELEMETRIA = "pipoca.telemetria.v1";
@@ -1022,7 +1126,7 @@
       }
       return removidos;
     }
-    apagarPerfil(perfilId) {
+    async apagarPerfil(perfilId) {
       try {
         localStorage.removeItem(chaveSave(perfilId));
       } catch {}
@@ -1050,6 +1154,9 @@
       return Promise.reject(new Error("RepositorioSupabase: não implementado — ponto de migração fase06."));
     }
     registrarTelemetria(_evento) {
+      return Promise.reject(new Error("RepositorioSupabase: não implementado — ponto de migração fase06."));
+    }
+    apagarPerfil(_perfilId) {
       return Promise.reject(new Error("RepositorioSupabase: não implementado — ponto de migração fase06."));
     }
   }
@@ -1305,9 +1412,13 @@
       _returnToTray,
       _checkStory
     },
-    modos: { modosPadrao, alternarPalco, autorizarIA, normalizarModos },
+    modos: { modosPadrao, alternarPalco, autorizarIA, normalizarModos, definirVerificacao, definirDesfecho },
     modoApp: { MODO_PADRAO, TELA_CRIANCA, ehAdulta, podeNavegar, aplicarGuarda, aoPassarPortao, aoVoltarParaCrianca },
+    limites: { LIMITES_PADRAO, definirBlocoFoco, normalizarTempoDeTela, normalizarLimites },
+    cardapio: { CARDAPIO_PADRAO, normalizarCardapio, validarItemCardapio, CENARIOS_PADRAO, normalizarCenariosLiberados },
+    lgpd: { exportarDados, apagarDados },
     perfil: { criarPerfil },
+    onboarding: { montarEstadoOnboarding, perfilDoOnboarding, BLOCO_PADRAO },
     sessao: { iniciarSessao, tick, encerrarSessao, formatarRestante },
     a11y: { estiloLeitura, paletaContraste, transicao, animacaoCena },
     leitura: { tokenizarTrecho, ehPalavraDificil, silabar },

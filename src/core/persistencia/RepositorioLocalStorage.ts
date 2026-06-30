@@ -137,7 +137,7 @@ export class RepositorioLocalStorage implements RepositorioPersistencia {
    * Apaga todos os dados de um perfil (LGPD).
    * Remove save + telemetria + entrada da lista de perfis.
    */
-  apagarPerfil(perfilId: string): void {
+  async apagarPerfil(perfilId: string): Promise<void> {
     try { localStorage.removeItem(chaveSave(perfilId)); } catch {}
     try { localStorage.removeItem(chaveTelemetria(perfilId)); } catch {}
     const envelopes = lerArrayEnvelopes<EnvelopePerfil>(CHAVE_PERFIS, "pipoca.perfil.v1");

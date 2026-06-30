@@ -18,6 +18,11 @@ import { acessoInicial, definirPin, verificarPin, MAX_TENTATIVAS, LOCKOUT_MS } f
 import { modosPadrao, autorizarIA } from "./modos.js";
 import { MODO_PADRAO, TELA_CRIANCA, aplicarGuarda, podeNavegar, aoPassarPortao, aoVoltarParaCrianca } from "./modoApp.js";
 import { entrarFamilia, sessaoValida } from "./contaFamilia.js";
+import { montarEstadoOnboarding } from "./onboarding.js";
+import { definirVerificacao, definirDesfecho } from "./modos.js";
+import { exportarDados, apagarDados } from "./lgpd.js";
+import { definirBlocoFoco, normalizarLimites } from "./limites.js";
+import { CARDAPIO_PADRAO, normalizarCardapio, normalizarCenariosLiberados } from "./cardapio.js";
 import { criarMotor } from "../motores/fabrica.js";
 import { validarGrafo } from "./grafo/validarGrafo.js";
 import { estadoInicial } from "./estado.js";
@@ -44,6 +49,11 @@ class RepoMem implements RepositorioPersistencia {
   async carregarSave(id: string): Promise<EstadoApp | null> { return this.saves.get(id) ?? null; }
   async salvarSave(id: string, e: EstadoApp): Promise<void> { this.saves.set(id, e); }
   async registrarTelemetria(ev: EventoTelemetria): Promise<void> { this.telemetria.push(ev); }
+  async apagarPerfil(id: string): Promise<void> {
+    this.perfis.delete(id);
+    this.saves.delete(id);
+    this.telemetria = this.telemetria.filter((e) => e.perfilId !== id);
+  }
 }
 
 const perfil: Perfil = criarPerfil("p1", { nome: "Joana", idade: 7, nivel: "n2", avatarId: "pingo" });
@@ -99,6 +109,7 @@ console.log("\n=== Captura — fire-and-forget (falha não trava UI) ===");
     carregarSave: async () => null,
     salvarSave: async () => {},
     registrarTelemetria: () => Promise.reject(new Error("offline")),
+    apagarPerfil: async () => {},
   };
   let lancou = false;
   let r = false;
@@ -193,6 +204,61 @@ console.log("\n=== Conta/sessão da família (HH_LOGIN 02-01) ===");
   assert(sessaoValida(null, 1000) === false, "sessão nula → inválida");
   const r2 = entrarFamilia("casa@exemplo.com", "outra", 2000);
   assert(r2.conta!.id === r.conta!.id, "id de conta determinístico por e-mail");
+}
+
+console.log("\n=== Onboarding (PC_HOME 02-04) — monta PERF/MODES/SESS ===");
+{
+  const est = montarEstadoOnboarding({ id: "p9", nome: "Bia", idade: 6, nivel: "n2", avatarId: "cacau", modos: { desfecho: "aberto" }, blocoMin: 20 }, 5000);
+  assert(est.perfil?.id === "p9" && est.perfil?.nome === "Bia", "perfil montado");
+  assert(est.perfil?.nivel === "n2", "nivel aplicado");
+  assert(est.modos.desfecho === "aberto", "modos parcial mesclado");
+  assert(est.modos.iaLigada === false, "default seguro mantido (iaLigada=false)");
+  assert(est.sessao?.blocoMin === 20 && est.sessao?.restanteSeg === 1200, "sessão iniciada com o bloco");
+  assert(est.tela === 2, "aterrissa no modo criança (T2)");
+  const def = montarEstadoOnboarding({ id: "p10", nome: "", idade: 99, nivel: "nX", avatarId: "zzz" }, 0);
+  assert(def.perfil?.idade === 12, "idade fora de range é clampada (criarPerfil)");
+  assert(def.sessao?.blocoMin === 15, "blocoMin padrão = 15");
+}
+
+console.log("\n=== PC_RULES (02-07) — setters de modos + cardápio + cenários ===");
+{
+  const m = definirVerificacao(modosPadrao, "auto");
+  assert(m.verificacao === "auto" && modosPadrao.verificacao === "cuidador", "definirVerificacao sem mutar original");
+  assert(definirDesfecho(modosPadrao, "aberto").desfecho === "aberto", "definirDesfecho aplica");
+  assert(CARDAPIO_PADRAO.length >= 3 && CARDAPIO_PADRAO.every((i) => i.cost >= 0), "cardápio padrão coerente");
+  assert(normalizarCardapio([]).length === CARDAPIO_PADRAO.length, "cardápio vazio → padrão");
+  assert(normalizarCardapio([{ id: "x", label: "X", icon: "✨", cost: 2 }]).length === 1, "cardápio válido preservado");
+  assert(normalizarCardapio([{ id: "", label: "", icon: "", cost: -1 }]).length === CARDAPIO_PADRAO.length, "itens inválidos → padrão");
+  assert(normalizarCenariosLiberados([]).includes("quintal_anoitecer"), "cenários vazios → quintal");
+}
+
+console.log("\n=== PC_LIM (02-06) — bloco de foco + tempo de tela ===");
+{
+  const sess = { perfilId: "p1", blocoMin: 15 as const, iniciadaEm: 0, restanteSeg: 900 };
+  const nova = definirBlocoFoco(sess, 25, 10000);
+  assert(nova.blocoMin === 25 && nova.restanteSeg === 1500 && nova.iniciadaEm === 10000, "definirBlocoFoco reinicia o timer");
+  assert(normalizarLimites({ blocoMin: 20, tempoDeTelaMin: 45 }).tempoDeTelaMin === 45, "tempo de tela válido");
+  assert(normalizarLimites({ blocoMin: 99, tempoDeTelaMin: -5 }).blocoMin === 15, "blocoMin inválido → padrão");
+  assert(normalizarLimites({ tempoDeTelaMin: 0 }).tempoDeTelaMin === null, "tempo de tela <=0 → null (sem limite)");
+}
+
+console.log("\n=== PC_PRIV (02-09) — exportar / apagar (LGPD) ===");
+{
+  await (async () => {
+    const repo = new RepoMem();
+    await repo.salvarPerfil(perfil);
+    await repo.salvarSave("p1", estado);
+    await repo.registrarTelemetria(criarEvento("objeto_destravado", "p1", { cenarioId: "q", objetoId: "vagalume", nivel: "n2" }, 1));
+    const exp = await exportarDados("p1", repo, 12345);
+    assert(exp.esquema === "pipoca.export.v1" && exp.exportadoEm === 12345, "exportação tem esquema + timestamp");
+    assert(exp.perfil?.perfil.id === "p1" && exp.save?.perfilId === "p1", "exporta perfil + save (schemas)");
+    const expVazio = await exportarDados("inexistente", repo, 1);
+    assert(expVazio.perfil === null && expVazio.save === null, "exportar sem dados → coerente (nulls)");
+    await apagarDados("p1", repo);
+    assert((await repo.carregarPerfis()).length === 0, "apagar remove o perfil");
+    assert((await repo.carregarSave("p1")) === null, "apagar remove o save");
+    assert(repo.telemetria.length === 0, "apagar remove a telemetria (sem resíduos)");
+  })();
 }
 
 console.log(`\n${"=".repeat(50)}`);

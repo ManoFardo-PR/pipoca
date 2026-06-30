@@ -1,5 +1,7 @@
 # fase02 · 02-09 · Privacidade e dados (LGPD)
 
+> 🟡 **STATUS · 2026-06-29 · PARCIAL** — Núcleo `src/core/lgpd.ts` (`exportarDados` → JSON dos schemas congelados; `apagarDados` → remove perfil+save+telemetria via seam `apagarPerfil`), no bridge (`PipocaCanonico.lgpd`) e testado (`parciais.test.ts`). Falta a tela `Privacidade` + registro de consentimento (app). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase02-02-09`
 - nó(s) da arquitetura: PC_PRIV

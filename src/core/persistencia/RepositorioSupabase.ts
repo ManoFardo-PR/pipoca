@@ -48,4 +48,10 @@ export class RepositorioSupabase implements RepositorioPersistencia {
       new Error("RepositorioSupabase: não implementado — ponto de migração fase06.")
     );
   }
+
+  apagarPerfil(_perfilId: string): Promise<void> {
+    return Promise.reject(
+      new Error("RepositorioSupabase: não implementado — ponto de migração fase06.")
+    );
+  }
 }

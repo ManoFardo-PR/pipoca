@@ -89,12 +89,19 @@ pela versão definitiva baseada em `src/telas/*.dc.html` (x-import) é um refino
 Ordem por dependência: **HH_LOGIN → KIDMODE → PINGATE → PC_HOME → PC_PROF → PC_LIM → PC_RULES → PC_AI → PC_PRIV**.
 Reusa `Perfil`/`Modos`/`Sessao` e `RepositorioPersistencia` já prontos.
 
-**Feito (2026-06-29):** **PINGATE** ligado — o T1 do `index.html` (teclado de PIN) consome `src/core/acesso.ts` via
-`src/servicos/acesso_repo.ts` (`pipoca.acesso.v1`): cria o PIN no 1º uso, verifica com lockout suave e dica
-acolhedora; coberto por e2e (cria/recusa/aceita). `PC_AI` com núcleo pronto (`modos.autorizarIA` + `IaToggle`).
-**A fazer:** `HH_LOGIN`, `KIDMODE` (modo criança/cuidador no roteador), `PC_HOME` (onboarding — dono da criação/
-recuperação do PIN), `PC_PROF/LIM/RULES/PRIV`. Nota infra: a porta 5000 está ocupada por outro dev server (vite);
-o e2e do Pipoca usa porta dedicada (5137).
+**Divisão de trabalho:** o app/usuário implementa as **telas** (index.html); o núcleo canônico em `src/` (lógica +
+testes) é consumido via `window.PipocaCanonico`.
+
+**Feito (2026-06-29):**
+- **PINGATE (02-03)** ligado — o T1 do `index.html` consome `src/core/acesso.ts` via `src/servicos/acesso_repo.ts`
+  (`pipoca.acesso.v1`): cria o PIN no 1º uso, verifica com lockout suave e dica acolhedora; e2e cria/recusa/aceita.
+- **KIDMODE (02-02)** núcleo — `src/core/modoApp.ts` (`ModoApp`, guarda `aplicarGuarda`/`podeNavegar`, transições),
+  no bridge `PipocaCanonico.modoApp`; falta o app fazer o wiring no roteador/T2.
+- **PC_AI (02-08)** núcleo — `modos.autorizarIA` + `IaToggle`.
+
+**A fazer:** wiring do KIDMODE no roteador (app); `HH_LOGIN (02-01)` (núcleo `ContaFamilia`/`SessaoConta` — auth real
+é fase06); `PC_HOME (02-04)` onboarding (dono da criação/recuperação do PIN, grava PERF/MODES/SESS); `PC_PROF/LIM/
+RULES/PRIV`. Nota infra: a porta 5000 está ocupada por outro dev server (vite); o e2e do Pipoca usa 5137.
 
 ## Marco 3 — Fase 03 · Telemetria + Painel do cuidador (Tela 8)
 Pontos de captura em sessão/leitura/recompensa emitindo `EventoTelemetria` (`ts` injetado fora do motor);

@@ -577,6 +577,27 @@
     return erros;
   }
 
+  // src/core/modoApp.ts
+  var MODO_PADRAO = "crianca";
+  var TELA_CRIANCA = 2;
+  function ehAdulta(tela, superficiesAdultas) {
+    return superficiesAdultas.includes(tela);
+  }
+  function podeNavegar(modo, tela, superficiesAdultas) {
+    if (modo === "cuidador")
+      return true;
+    return !ehAdulta(tela, superficiesAdultas);
+  }
+  function aplicarGuarda(modo, telaPedida, superficiesAdultas) {
+    return podeNavegar(modo, telaPedida, superficiesAdultas) ? telaPedida : TELA_CRIANCA;
+  }
+  function aoPassarPortao() {
+    return "cuidador";
+  }
+  function aoVoltarParaCrianca() {
+    return "crianca";
+  }
+
   // src/core/perfil.ts
   var AVATARES = ["pingo", "fubá", "cacau", "lua", "tuca"];
   var NOME_PADRAO = "Pipoquinha";
@@ -1210,6 +1231,7 @@
       _checkStory
     },
     modos: { modosPadrao, alternarPalco, autorizarIA, normalizarModos },
+    modoApp: { MODO_PADRAO, TELA_CRIANCA, ehAdulta, podeNavegar, aplicarGuarda, aoPassarPortao, aoVoltarParaCrianca },
     perfil: { criarPerfil },
     sessao: { iniciarSessao, tick, encerrarSessao, formatarRestante },
     a11y: { estiloLeitura, paletaContraste, transicao, animacaoCena },

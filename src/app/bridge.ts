@@ -41,6 +41,15 @@ import {
   _checkStory,
 } from "../core/historia.js";
 import { modosPadrao, alternarPalco, autorizarIA, normalizarModos } from "../core/modos.js";
+import {
+  MODO_PADRAO,
+  TELA_CRIANCA,
+  ehAdulta,
+  podeNavegar,
+  aplicarGuarda,
+  aoPassarPortao,
+  aoVoltarParaCrianca,
+} from "../core/modoApp.js";
 import { criarPerfil } from "../core/perfil.js";
 import { iniciarSessao, tick, encerrarSessao, formatarRestante } from "../core/sessao.js";
 import { estiloLeitura, paletaContraste, transicao, animacaoCena } from "../core/a11y.js";
@@ -86,6 +95,7 @@ const PipocaCanonico = {
     _checkStory,
   },
   modos: { modosPadrao, alternarPalco, autorizarIA, normalizarModos },
+  modoApp: { MODO_PADRAO, TELA_CRIANCA, ehAdulta, podeNavegar, aplicarGuarda, aoPassarPortao, aoVoltarParaCrianca },
   perfil: { criarPerfil },
   sessao: { iniciarSessao, tick, encerrarSessao, formatarRestante },
   a11y: { estiloLeitura, paletaContraste, transicao, animacaoCena },

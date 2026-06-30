@@ -16,6 +16,7 @@ import {
 import { podarPorRetencao } from "../servicos/telemetria_repo.js";
 import { acessoInicial, definirPin, verificarPin, MAX_TENTATIVAS, LOCKOUT_MS } from "./acesso.js";
 import { modosPadrao, autorizarIA } from "./modos.js";
+import { MODO_PADRAO, TELA_CRIANCA, aplicarGuarda, podeNavegar, aoPassarPortao, aoVoltarParaCrianca } from "./modoApp.js";
 import { criarMotor } from "../motores/fabrica.js";
 import { validarGrafo } from "./grafo/validarGrafo.js";
 import { estadoInicial } from "./estado.js";
@@ -163,6 +164,19 @@ console.log("\n=== Migração (06-03) — migrar(de, para) ===");
     assert((await para.carregarPerfis()).length === 2, "destino tem os perfis");
     assert((await para.carregarSave("p1"))?.historia.objetos[0] === "vagalume", "save preservado no destino");
   })();
+}
+
+console.log("\n=== Modo do app (KIDMODE 02-02) — guarda de superfícies adultas ===");
+{
+  const ADULTAS = [1, 8, 9];
+  assert(MODO_PADRAO === "crianca", "modo padrão = crianca");
+  assert(podeNavegar("crianca", 2, ADULTAS) === true, "crianca pode ir à T2");
+  assert(podeNavegar("crianca", 8, ADULTAS) === false, "crianca não acessa superfície adulta (8)");
+  assert(aplicarGuarda("crianca", 8, ADULTAS) === TELA_CRIANCA, "rota adulta no modo criança redireciona à T2");
+  assert(aplicarGuarda("crianca", 4, ADULTAS) === 4, "rota infantil passa direto");
+  assert(podeNavegar("cuidador", 8, ADULTAS) === true, "cuidador acessa superfície adulta");
+  assert(aoPassarPortao() === "cuidador", "PINGATE → cuidador");
+  assert(aoVoltarParaCrianca() === "crianca", "voltar/recarregar → crianca");
 }
 
 console.log(`\n${"=".repeat(50)}`);

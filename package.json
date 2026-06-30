@@ -8,7 +8,8 @@
     "serve": "node server.js",
     "typecheck": "bun x tsc --noEmit",
     "test": "bun run src/motores/motor.test.ts && bun run src/core/persistencia/persistencia.test.ts && bun run src/core/parciais.test.ts",
-    "test:e2e": "node tests/e2e/run-linha-verde.mjs"
+    "test:e2e": "node tests/e2e/run-linha-verde.mjs",
+    "test:e2e:canonico": "node tests/e2e/run-linha-verde-canonico.mjs"
   },
   "engines": {
     "node": ">=18"

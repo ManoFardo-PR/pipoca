@@ -21,6 +21,24 @@ const mimeTypes = {
   ".ttf": "font/ttf",
 };
 
+// Convergência (TRILHA M-A): o dc-runtime monta componentes-irmãos buscando
+// `./<Nome>.dc.html` relativo à URL da página (support.js: COMPONENT_DIR ".").
+// As telas/itens canônicos vivem em src/telas e src/componentes, não na raiz —
+// então resolvemos GET /<Nome>.dc.html procurando nessas pastas (e na raiz).
+const DC_DIRS = ["src/telas", "src/componentes", "."];
+
+function resolverCaminho(urlPath) {
+  // Componente .dc.html na raiz da URL (sem subpasta) → procurar nas pastas canônicas.
+  const m = /^\/([^/]+\.dc\.html)$/.exec(urlPath);
+  if (m) {
+    for (const dir of DC_DIRS) {
+      const candidato = path.join(__dirname, dir, m[1]);
+      if (fs.existsSync(candidato)) return candidato;
+    }
+  }
+  return path.join(__dirname, urlPath);
+}
+
 const server = http.createServer((req, res) => {
   let urlPath = req.url.split("?")[0];
 
@@ -28,7 +46,7 @@ const server = http.createServer((req, res) => {
     urlPath = "/index.html";
   }
 
-  const filePath = path.join(__dirname, urlPath);
+  const filePath = resolverCaminho(urlPath);
 
   fs.readFile(filePath, (err, data) => {
     if (err) {

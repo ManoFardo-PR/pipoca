@@ -69,6 +69,32 @@ class Component extends DCLogic {
 
   state = { pin: '', dica: '' };
 
+  // Seam: a ação de verificar pode vir por prop (editor/standalone) OU do app
+  // via window.PipocaApp.verificarPinCuidador (quando montado no Shell). A tela
+  // continua sem validar PIN — só chama a ação injetada.
+  _acaoVerificar() {
+    if (this.props && this.props.verificarPin) return this.props.verificarPin;
+    const App = window.PipocaApp;
+    if (App && App.verificarPinCuidador) return (pin) => App.verificarPinCuidador(pin);
+    return null;
+  }
+  _acaoCancelar() {
+    if (this.props && this.props.aoCancelar) return this.props.aoCancelar;
+    const App = window.PipocaApp;
+    if (App && App.aoVoltarParaCrianca) return () => App.aoVoltarParaCrianca();
+    return null;
+  }
+
+  componentDidMount() {
+    // 1º uso (sem PIN salvo) orienta a criar — sem props injetadas (montado no Shell).
+    try {
+      const A = window.PipocaCanonico && window.PipocaCanonico.acesso;
+      if (A && !(this.props && this.props.verificarPin) && !A.temPin()) {
+        this.setState({ dica: 'Crie um PIN de 4 dígitos para o cuidador.' });
+      }
+    } catch (_) {}
+  }
+
   _digito(d) {
     if (this.state.pin.length >= 4) return;
     const pin = this.state.pin + d;
@@ -85,13 +111,16 @@ class Component extends DCLogic {
   }
 
   _submeter(pin) {
-    const fn = this.props && this.props.verificarPin;
+    const fn = this._acaoVerificar();
     if (!fn) { this.setState({ pin: '', dica: '' }); return; }
     const r = fn(pin) || { ok: false };
     if (r.ok) {
       this.setState({ pin: '', dica: '' }); // app navega para PC_HOME
     } else {
-      this.setState({ pin: '', dica: r.dica || 'PIN não confere. Tente de novo com calma.' });
+      const dica = r.dica || (r.bloqueado
+        ? 'Muitas tentativas. Espere um pouquinho e tente de novo.'
+        : 'PIN não confere. Tente de novo com calma.');
+      this.setState({ pin: '', dica });
     }
   }
 
@@ -116,7 +145,7 @@ class Component extends DCLogic {
       teclas,
       dica: this.state.dica || '',
       temDica: !!this.state.dica,
-      aoCancelar: () => { const fn = this.props && this.props.aoCancelar; if (fn) fn(); },
+      aoCancelar: () => { const fn = this._acaoCancelar(); if (fn) fn(); },
     };
   }
 }

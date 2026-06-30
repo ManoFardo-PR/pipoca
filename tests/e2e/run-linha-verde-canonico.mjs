@@ -1,0 +1,208 @@
+/**
+ * Runner e2e da LINHA VERDE CANÔNICA (TRILHA Marco M-A).
+ * --------------------------------------------------------
+ * Diferente de run-linha-verde.mjs (que aponta para o monólito index.html em "/"),
+ * este aponta para "/app.html" — o app montado a partir das TELAS CANÔNICAS
+ * (Shell + src/telas/*.dc.html), que sobem por componente-irmão (fetch on-demand).
+ *
+ * Verifica: (1) boot + seam canônico (motor da fábrica, não stub); (2) narrativa
+ * cresce (abertura + trechos + desfecho); (3) cada tela T2–T7 MONTA de verdade
+ * (texto-marcador aparece no DOM) ao navegar; (4) sem erros de página.
+ *
+ * Usa playwright-core em cache (registry offline). Porta dedicada 5137.
+ */
+import { createRequire } from "node:module";
+import { spawn } from "node:child_process";
+import net from "node:net";
+
+const require = createRequire(import.meta.url);
+const PW_CORE =
+  process.env.PW_CORE ||
+  "C:/Users/mfard/AppData/Local/npm-cache/_npx/705bc6b22212b352/node_modules/playwright-core";
+const { chromium } = require(PW_CORE);
+
+const PORT = Number(process.env.E2E_PORT) || 5137;
+const BASE = `http://localhost:${PORT}`;
+
+let passou = 0, falhou = 0;
+const assert = (cond, msg) => {
+  if (cond) { console.log(`  ✓ ${msg}`); passou++; }
+  else { console.error(`  ✗ ${msg}`); falhou++; }
+};
+
+function esperarPorta(port, timeoutMs = 15000) {
+  const inicio = Date.now();
+  return new Promise((resolve, reject) => {
+    const tentar = () => {
+      const s = net.connect(port, "localhost");
+      s.on("connect", () => { s.end(); resolve(); });
+      s.on("error", () => {
+        s.destroy();
+        if (Date.now() - inicio > timeoutMs) reject(new Error("timeout esperando o server"));
+        else setTimeout(tentar, 200);
+      });
+    };
+    tentar();
+  });
+}
+
+// Marcadores de montagem por tela (texto sempre visível quando a tela renderiza).
+const MARCADORES = {
+  2: /ler hoje|Oi!|Carregando/i,
+  3: /história acontece hoje|Favorito de hoje|Quintal/i,
+  4: /história até agora|Ateliê|Quintal/i,
+  5: /luzinha|Uma|palavra|confirmar/i,
+  6: /Você leu/i,
+  7: /agrado|dividir o que você/i,
+};
+
+const server = spawn("node", ["server.js"], { stdio: "ignore", env: { ...process.env, PORT: String(PORT) } });
+let browser;
+try {
+  await esperarPorta(PORT);
+  const EXEC =
+    process.env.PW_CHROME ||
+    "C:/Users/mfard/AppData/Local/ms-playwright/chromium-1223/chrome-win64/chrome.exe";
+  browser = await chromium.launch({ headless: true, executablePath: EXEC });
+  const page = await browser.newPage();
+  const erros = [];
+  page.on("pageerror", (e) => erros.push(String(e)));
+
+  await page.goto(BASE + "/app.html", { waitUntil: "domcontentloaded" });
+  await page.waitForFunction(
+    () => !!window.PipocaCanonico && !!window.PipocaApp && !!window.PipocaApp.motor && !!window.PipocaApp.ordem && !!window.PipocaApp.repo,
+    { timeout: 15000 }
+  );
+
+  console.log("\n=== Boot do app canônico (/app.html) + seam ===");
+  const r = await page.evaluate(() => {
+    const motor = window.PipocaApp.motor, ordem = window.PipocaApp.ordem;
+    return {
+      temCanon: !!window.PipocaCanonico,
+      temRepo: !!window.PipocaApp.repo && typeof window.PipocaApp.repo.carregarPerfis === "function",
+      temDesfecho: typeof motor.desfecho === "function",
+      aberturaN3: motor.abertura("n3").texto,
+      frascoRule: motor.aoAdicionarObjeto(["vagalume"], "frasco", "n3").texto,
+      validarParcial: ordem.validar(["vagalume", "frasco"]).ok,
+      validarForaDeOrdem: ordem.validar(["frasco", "vagalume"]).ok,
+    };
+  });
+  assert(r.temCanon, "window.PipocaCanonico presente (bundle carregado)");
+  assert(r.temRepo, "window.PipocaApp.repo exposto (seam de persistência)");
+  assert(r.temDesfecho, "motor.desfecho existe → motor da fábrica canônica (não stub)");
+  assert(/Quando a noite chegou/.test(r.aberturaN3), "abertura n3 sai do grafo");
+  assert(/casinha de vidro/.test(r.frascoRule), "regra tem:vagalume avaliada pelo motor");
+  assert(r.validarParcial === true, "ValidadorOrdem aceita ordem parcial consistente");
+  assert(r.validarForaDeOrdem === false, "ValidadorOrdem rejeita dependência fora de ordem");
+
+  console.log("\n=== Narrativa cresce pelo seam (abertura → 3 objetos → desfecho) ===");
+  const linhas = await page.evaluate(() => {
+    const motor = window.PipocaApp.motor, ordem = window.PipocaApp.ordem;
+    const ids = ordem.ordemCanonica();
+    const out = [motor.abertura("n3").texto];
+    const hist = [];
+    for (const id of ids) { out.push(motor.aoAdicionarObjeto(hist, id, "n3").texto); hist.push(id); }
+    out.push(motor.desfecho(hist, "convergente", "n3").texto);
+    return out;
+  });
+  assert(linhas.length >= 5, `narrativa acumula ${linhas.length} trechos (abertura + 3 + desfecho)`);
+  assert(linhas.every((t) => typeof t === "string" && t.length > 0), "nenhum trecho vazio/undefined");
+  assert(/acendeu a noite toda/.test(linhas[linhas.length - 1]), "última linha é o desfecho convergente");
+
+  console.log("\n=== Telas T2–T7 MONTAM de verdade (componente-irmão) ===");
+  // Semeia o estado para as telas renderizarem conteúdo real.
+  await page.evaluate(() => {
+    window.PipocaApp.setState({
+      perfil: { id: "p1", nome: "Joana", idade: 7, nivel: "n3", avatarId: "pingo" },
+      historia: { cenarioId: "quintal_anoitecer", objetos: ["vagalume"], aberta: true },
+      gateObjId: "vagalume", gateTrecho: "Uma luzinha piscando no escuro.",
+      gatePalavraIdx: 0, gateStage: "reading", gateEarned: 3,
+      economia: { vagalumes: 3, poupado: 0 },
+    });
+  });
+  for (const n of [2, 3, 4, 5, 6, 7]) {
+    await page.evaluate((tela) => {
+      if (window.PipocaRoteador) window.PipocaRoteador.irParaTela(tela);
+      window.PipocaApp.setState({ tela });
+    }, n);
+    let montou = true;
+    try {
+      await page.waitForFunction(
+        (re) => new RegExp(re.source, re.flags).test(document.body.innerText),
+        { timeout: 4000 },
+        { source: MARCADORES[n].source, flags: MARCADORES[n].flags }
+      );
+    } catch { montou = false; }
+    const telaAtual = await page.evaluate(() => window.PipocaApp.estado.tela);
+    assert(telaAtual === n && montou, `tela ${n} ativa e montada no slot do Shell`);
+  }
+
+  console.log("\n=== M-B · PINGATE (1º uso) + KIDMODE + Onboarding cria perfil ===");
+  // Estado limpo e determinístico (sem PIN salvo).
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(
+    () => !!window.PipocaApp && !!window.PipocaCanonico && !!window.PipocaCanonico.acesso,
+    { timeout: 15000 }
+  );
+
+  const digitar = async (pin) => {
+    for (const d of pin.split("")) { await page.locator(`[aria-label="${d}"]`).first().click(); await page.waitForTimeout(40); }
+  };
+
+  // Abre o portão (T1) e cria o PIN no 1º uso → entra no hub do cuidador (PC_HOME, tela 10).
+  await page.evaluate(() => window.PipocaApp.abrirPortao());
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 1, { timeout: 4000 });
+  await digitar("1234");
+  await page.waitForTimeout(250);
+  const posPin = await page.evaluate(() => ({
+    tela: window.PipocaApp.estado.tela,
+    temPin: window.PipocaCanonico.acesso.temPin(),
+    modo: window.PipocaApp.estado.modoApp,
+  }));
+  assert(posPin.temPin === true, "PINGATE 1º uso cria o PIN (acesso.ts)");
+  assert(posPin.tela === 10, "após criar o PIN entra no hub do cuidador (PC_HOME, tela 10)");
+  assert(posPin.modo === "cuidador", "KIDMODE: modoApp vira cuidador ao passar o portão");
+
+  // Onboarding monta perfil e persiste no repo (seam), aterrissando na criança (T2).
+  await page.waitForFunction(() => /Configurar a leitura/.test(document.body.innerText), { timeout: 4000 });
+  await page.fill('[aria-label="Nome da criança"]', "Tião");
+  await page.locator("button", { hasText: "Tudo pronto" }).first().click();
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 2 && !!window.PipocaApp.estado.perfil, { timeout: 4000 });
+  const posOb = await page.evaluate(async () => {
+    const perfis = await window.PipocaApp.repo.carregarPerfis();
+    return {
+      nPerfis: perfis.length,
+      perfilNome: window.PipocaApp.estado.perfil && window.PipocaApp.estado.perfil.nome,
+      modo: window.PipocaApp.estado.modoApp,
+    };
+  });
+  assert(posOb.nPerfis >= 1, "onboarding persiste o perfil no repo (seam salvarPerfil)");
+  assert(posOb.perfilNome === "Tião", "perfil ativo passa a ser o recém-criado");
+  assert(posOb.modo === "crianca", "conclui no modo criança (KIDMODE volta)");
+
+  // PIN errado mantém no portão (sem entrar).
+  await page.evaluate(() => window.PipocaApp.abrirPortao());
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 1, { timeout: 4000 });
+  await digitar("0000");
+  await page.waitForTimeout(250);
+  assert((await page.evaluate(() => window.PipocaApp.estado.tela)) === 1, "PIN errado mantém no portão do cuidador");
+
+  // KIDMODE: no modo criança, navegar a uma superfície adulta (10) é barrado p/ T2.
+  await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); window.PipocaApp.setState({ tela: 10 }); });
+  await page.waitForTimeout(150);
+  assert((await page.evaluate(() => window.PipocaApp.estado.tela)) === 2, "KIDMODE barra acesso direto ao hub adulto (redireciona a T2)");
+
+  assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
+
+  console.log(`\n${"=".repeat(50)}`);
+  console.log(`Total: ${passou + falhou} | ✓ ${passou} passou | ✗ ${falhou} falhou`);
+} catch (e) {
+  console.error("ERRO no runner e2e:", e);
+  falhou++;
+} finally {
+  if (browser) await browser.close();
+  server.kill();
+}
+
+process.exit(falhou > 0 ? 1 : 0);

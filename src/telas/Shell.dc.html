@@ -38,13 +38,21 @@
         <!-- textura de papel (overlay suave) -->
         <div style="position:absolute;inset:0;z-index:25;pointer-events:none;opacity:.05;mix-blend-mode:multiply;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);"></div>
 
-        <!-- Slot de conteúdo: telas T1–T7 serão montadas aqui via <x-import> -->
-        <!-- Por ora mostra o placeholder de "em construção" -->
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
-          <div style="text-align:center;color:#8a7a64;">
-            <div style="font-family:var(--pip-fonte-titulo);font-size:28px;font-weight:700;">Pipoca</div>
-            <div style="font-size:14px;margin-top:8px;">Tela {{ tela }} — em construção</div>
-          </div>
+        <!-- Slot de conteúdo: o roteador (window.PipocaRoteador) escolhe a tela.
+             Cada <TelaX/> é montada por COMPONENTE-IRMÃO — o runtime busca
+             ./TelaX.dc.html relativo à página; o server.js resolve em
+             src/telas|componentes. As telas leem o estado via window.PipocaApp. -->
+        <div style="position:absolute;inset:0;">
+          <sc-if value="{{ ehT2 }}" hint-placeholder-val="{{ true }}"><Tela2EntradaCrianca/></sc-if>
+          <sc-if value="{{ ehT3 }}" hint-placeholder-val="{{ false }}"><Tela3SelecaoCenario/></sc-if>
+          <sc-if value="{{ ehT4 }}" hint-placeholder-val="{{ false }}"><Tela4Heroi/></sc-if>
+          <sc-if value="{{ ehT5 }}" hint-placeholder-val="{{ false }}"><Tela5Portao/></sc-if>
+          <sc-if value="{{ ehT6 }}" hint-placeholder-val="{{ false }}"><Tela6Recompensa/></sc-if>
+          <sc-if value="{{ ehT7 }}" hint-placeholder-val="{{ false }}"><Tela7PoteCardapio/></sc-if>
+          <!-- T1 = PINGATE (portão do cuidador). Auto-liga ao window.PipocaApp. -->
+          <sc-if value="{{ ehT1 }}" hint-placeholder-val="{{ false }}"><PortaoParental/></sc-if>
+          <!-- PC_HOME (tela 10) = hub/onboarding do cuidador, atrás do PINGATE. -->
+          <sc-if value="{{ ehPCHome }}" hint-placeholder-val="{{ false }}"><Onboarding/></sc-if>
         </div>
 
       </div>
@@ -129,6 +137,15 @@ class Component extends DCLogic {
     return {
       tela,
       devMode: dev,
+      // Flags de montagem do slot (uma tela ativa por vez).
+      ehT1: tela === 1,
+      ehT2: tela === 2,
+      ehT3: tela === 3,
+      ehT4: tela === 4,
+      ehT5: tela === 5,
+      ehT6: tela === 6,
+      ehT7: tela === 7,
+      ehPCHome: tela === 10, // hub/onboarding do cuidador
       goT1: () => this.irParaTela(1),
       goT2: () => this.irParaTela(2),
       goT3: () => this.irParaTela(3),

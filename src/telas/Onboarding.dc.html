@@ -1,0 +1,169 @@
+<!-- Onboarding.dc.html — Hub/Onboarding do cuidador (PC_HOME) · doc fase02-02-04
+     ─────────────────────────────────────────────────────────────
+     Atrás do PINGATE. Cria o perfil da criança (PERF) e prepara a sessão (SESS),
+     aterrissando no modo criança (T2). Seam: usa window.PipocaApp + window.PipocaCanonico
+     (onboarding/perfil + repo). Não toca motor/validador.
+
+     Núcleo: PipocaCanonico.onboarding.perfilDoOnboarding / montarEstadoOnboarding.
+     Persistência: window.PipocaApp.repo.salvarPerfil (lei do seam).
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-ob-campo { width:100%;padding:13px 15px;border-radius:14px;border:2px solid #e3d4ba;background:#fffdf7;font-family:'Nunito';font-size:16px;color:#3a2c20;outline:none; }
+    .pip-ob-campo:focus { border-color:#c9a86f; }
+    .pip-ob-opt { cursor:pointer;transition:transform .12s ease; }
+    .pip-ob-opt:active { transform:scale(.97); }
+  </style>
+</helmet>
+
+<div style="position:absolute;inset:0;overflow-y:auto;background:radial-gradient(120% 120% at 50% 0%, var(--pip-areia,#efe6d4) 0%, #ded2be 70%, #d3c5ad 100%);padding:32px 20px;">
+  <div style="max-width:560px;margin:0 auto;">
+
+    <!-- Cabeçalho -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div>
+        <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
+        <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Configurar a leitura</div>
+      </div>
+      <button class="pip-ob-opt" onClick="{{ voltar }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Para a criança</button>
+    </div>
+    <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 22px;">Crie o perfil de quem vai ler. É rapidinho e calmo — sem pressa.</p>
+
+    <!-- Cartão do formulário -->
+    <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
+
+      <!-- Nome -->
+      <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;">Nome da criança</label>
+      <input class="pip-ob-campo" style="margin-top:7px;" value="{{ nome }}" onInput="{{ setNome }}" placeholder="Como te chamam em casa?" aria-label="Nome da criança" />
+
+      <!-- Idade -->
+      <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Idade</label>
+      <input class="pip-ob-campo" style="margin-top:7px;max-width:120px;" value="{{ idade }}" onInput="{{ setIdade }}" type="number" min="3" max="12" aria-label="Idade" />
+
+      <!-- Nível de leitura -->
+      <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Nível de leitura</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
+        <sc-for list="{{ niveis }}" as="nv" hint-placeholder-count="4">
+          <button class="pip-ob-opt" onClick="{{ nv.onTap }}" style="{{ nv.style }}">{{ nv.label }}</button>
+        </sc-for>
+      </div>
+
+      <!-- Avatar -->
+      <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Escolha um amiguinho</label>
+      <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;">
+        <sc-for list="{{ avatares }}" as="av" hint-placeholder-count="5">
+          <button class="pip-ob-opt" onClick="{{ av.onTap }}" aria-label="{{ av.name }}" style="{{ av.style }}">
+            <span style="{{ av.disco }}">{{ av.inicial }}</span>
+            <span style="font-family:'Nunito';font-weight:700;font-size:12px;color:#5a4a38;margin-top:6px;">{{ av.name }}</span>
+          </button>
+        </sc-for>
+      </div>
+
+      <!-- Erro acolhedor -->
+      <sc-if value="{{ temErro }}" hint-placeholder-val="{{ false }}">
+        <div role="status" aria-live="polite" style="margin-top:16px;color:#9a5a3a;font-family:'Nunito';font-size:14px;">{{ erro }}</div>
+      </sc-if>
+
+      <!-- Tudo pronto -->
+      <button class="pip-ob-opt" onClick="{{ tudoPronto }}" style="{{ prontoStyle }}">{{ prontoLabel }}</button>
+    </div>
+
+    <div style="height:24px;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { nome: '', idade: '7', nivel: 'n2', avatarId: 'pingo', salvando: false, erro: '' };
+
+  _niveisDefs() {
+    return [
+      { id: 'n1', label: 'Primeiras palavras' },
+      { id: 'n2', label: 'Frases curtas' },
+      { id: 'n3', label: 'Pequenos textos' },
+      { id: 'n4', label: 'Parágrafos' },
+    ];
+  }
+  _avataresDefs() {
+    return [
+      { id: 'pingo', name: 'Pingo', cor: '#3f6f9e' },
+      { id: 'fubá',  name: 'Fubá',  cor: '#d98a4e' },
+      { id: 'cacau', name: 'Cacau', cor: '#7a9a5b' },
+      { id: 'lua',   name: 'Lua',   cor: '#9c7cb0' },
+      { id: 'tuca',  name: 'Tuca',  cor: '#5fa9b8' },
+    ];
+  }
+
+  async _tudoPronto() {
+    if (this.state.salvando) return;
+    const App = window.PipocaApp;
+    const Canon = window.PipocaCanonico;
+    const nome = (this.state.nome || '').trim();
+    if (!nome) { this.setState({ erro: 'Conte o nome da criança para começar.' }); return; }
+    if (!App || !Canon || !Canon.onboarding) { this.setState({ erro: 'App indisponível. Recarregue a página.' }); return; }
+
+    this.setState({ salvando: true, erro: '' });
+    const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('p' + Date.now());
+    const idade = parseInt(this.state.idade, 10) || 7;
+    const dados = { id, nome, idade, nivel: this.state.nivel, avatarId: this.state.avatarId };
+    try {
+      const perfil = Canon.onboarding.perfilDoOnboarding(dados);
+      if (App.repo) await App.repo.salvarPerfil(perfil);
+      const est = Canon.onboarding.montarEstadoOnboarding(dados, Date.now());
+      App.setState({ perfil: est.perfil, modos: est.modos, sessao: est.sessao });
+      App.aoVoltarParaCrianca(); // modo criança + T2; a criança já vê o avatar
+    } catch (e) {
+      console.warn('[Onboarding] salvar perfil falhou:', e);
+      this.setState({ salvando: false, erro: 'Não consegui salvar agora. Tente de novo.' });
+    }
+  }
+
+  renderVals() {
+    const s = this.state;
+    const optBase = 'min-height:46px;border-radius:14px;border:2px solid;font-family:Nunito;font-weight:700;font-size:14px;cursor:pointer;padding:8px 10px;';
+    const niveis = this._niveisDefs().map((nv) => {
+      const sel = s.nivel === nv.id;
+      return {
+        label: nv.label,
+        onTap: () => this.setState({ nivel: nv.id }),
+        style: optBase + (sel
+          ? 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;'
+          : 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;'),
+      };
+    });
+    const avatares = this._avataresDefs().map((av) => {
+      const sel = s.avatarId === av.id;
+      return {
+        name: av.name,
+        inicial: av.name.slice(0, 1),
+        onTap: () => this.setState({ avatarId: av.id }),
+        style: 'display:flex;flex-direction:column;align-items:center;background:transparent;border:none;cursor:pointer;padding:4px;'
+          + (sel ? 'transform:scale(1.04);' : 'opacity:.78;'),
+        disco: 'width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;'
+          + 'font-family:Baloo 2;font-weight:800;font-size:22px;color:#fff;background:' + av.cor + ';'
+          + (sel ? 'box-shadow:0 0 0 3px #fff,0 0 0 6px ' + av.cor + ';' : 'box-shadow:0 6px 16px -6px rgba(0,0,0,.3);'),
+      };
+    });
+    const podeSalvar = !!(s.nome || '').trim() && !s.salvando;
+    return {
+      nome: s.nome,
+      idade: s.idade,
+      setNome: (e) => this.setState({ nome: e.target.value }),
+      setIdade: (e) => this.setState({ idade: e.target.value }),
+      niveis,
+      avatares,
+      erro: s.erro || '',
+      temErro: !!s.erro,
+      tudoPronto: () => this._tudoPronto(),
+      voltar: () => { const App = window.PipocaApp; if (App && App.aoVoltarParaCrianca) App.aoVoltarParaCrianca(); },
+      prontoLabel: s.salvando ? 'Salvando…' : 'Tudo pronto ✓',
+      prontoStyle: 'margin-top:22px;width:100%;min-height:52px;border:none;border-radius:16px;'
+        + 'font-family:Baloo 2;font-weight:800;font-size:17px;color:#fff;cursor:' + (podeSalvar ? 'pointer' : 'not-allowed') + ';'
+        + (podeSalvar
+          ? 'background:linear-gradient(150deg,#e8965a,#d5713f);box-shadow:0 10px 24px -8px rgba(181,86,40,.55);'
+          : 'background:#cbb692;opacity:.7;'),
+    };
+  }
+}
+</script>

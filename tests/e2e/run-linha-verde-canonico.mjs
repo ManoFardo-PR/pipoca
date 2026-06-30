@@ -67,6 +67,10 @@ try {
   const page = await browser.newPage();
   const erros = [];
   page.on("pageerror", (e) => erros.push(String(e)));
+  const consoleErr = [];
+  page.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") consoleErr.push(m.type() + ": " + m.text()); });
+  const http404 = [];
+  page.on("response", (r) => { if (r.status() >= 400) http404.push(r.status() + " " + r.url()); });
 
   await page.goto(BASE + "/app.html", { waitUntil: "domcontentloaded" });
   await page.waitForFunction(
@@ -138,21 +142,44 @@ try {
   }
 
   console.log("\n=== M-B · PINGATE (1º uso) + KIDMODE + Onboarding cria perfil ===");
-  // Estado limpo e determinístico (sem PIN salvo).
-  await page.evaluate(() => localStorage.clear());
-  await page.reload({ waitUntil: "domcontentloaded" });
-  await page.waitForFunction(
-    () => !!window.PipocaApp && !!window.PipocaCanonico && !!window.PipocaCanonico.acesso,
-    { timeout: 15000 }
-  );
+  // 1º uso determinístico: zera só o PIN salvo e os perfis (acesso é lido fresco do
+  // localStorage a cada chamada — sem reload, mantendo o app "quente").
+  await page.evaluate(() => { localStorage.removeItem("pipoca.acesso.v1"); });
 
   const digitar = async (pin) => {
     for (const d of pin.split("")) { await page.locator(`[aria-label="${d}"]`).first().click(); await page.waitForTimeout(40); }
   };
 
   // Abre o portão (T1) e cria o PIN no 1º uso → entra no hub do cuidador (PC_HOME, tela 10).
-  await page.evaluate(() => window.PipocaApp.abrirPortao());
-  await page.waitForFunction(() => window.PipocaApp.estado.tela === 1, { timeout: 4000 });
+  const estrutura = () => page.evaluate(() => ({
+    brand: /Pipoca/.test(document.body.innerText),
+    nbtn: document.querySelectorAll('button').length,
+    itLen: document.body.innerText.length,
+    bodyHTML: document.body.innerHTML.replace(/\s+/g, ' ').slice(0, 600),
+  }));
+  const ePosLoop = await estrutura();
+  console.log("  [estrutura pos-loop tela7] itLen=" + ePosLoop.itLen + " nbtn=" + ePosLoop.nbtn);
+  await page.evaluate(() => { window.PipocaRoteador.irParaTela(2); window.PipocaApp.setState({ tela: 2 }); });
+  await page.waitForTimeout(1200);
+  const e2 = await estrutura();
+  console.log("  [estrutura T2] brand=" + e2.brand + " nbtn=" + e2.nbtn + " itLen=" + e2.itLen + " body=" + JSON.stringify(e2.bodyHTML));
+  await page.evaluate(() => { window.PipocaRoteador.irParaTela(1); window.PipocaApp.setState({ tela: 1 }); });
+  await page.waitForTimeout(1200);
+  const e1 = await estrutura();
+  console.log("  [estrutura T1] brand=" + e1.brand + " nbtn=" + e1.nbtn + " tree=" + JSON.stringify(e1.tree));
+  await page.waitForTimeout(300);
+  const dbg = await page.evaluate(() => ({
+    txt: document.body.innerText.slice(0, 160),
+    aria1: !!document.querySelector('[aria-label="1"]'),
+    nbtn: document.querySelectorAll('button').length,
+    hostTela: window.PipocaApp && window.PipocaApp.estado && window.PipocaApp.estado.tela,
+    rootHTML: ((document.querySelector('#dc-root') || document.body).innerHTML || '').replace(/\s+/g, ' ').slice(0, 320),
+  }));
+  console.log("  [debug PINGATE] aria1=" + dbg.aria1 + " nbtn=" + dbg.nbtn + " hostTela=" + dbg.hostTela + " txt=" + JSON.stringify(dbg.txt));
+  console.log("  [debug rootHTML] " + JSON.stringify(dbg.rootHTML));
+  console.log("  [debug console] " + (consoleErr.length ? consoleErr.slice(-6).join(" || ") : "nenhum"));
+  console.log("  [debug pageerror] " + (erros.length ? erros.slice(-3).join(" || ") : "nenhum"));
+  console.log("  [debug http>=400] " + (http404.length ? http404.join(" || ") : "nenhum"));
   await digitar("1234");
   await page.waitForTimeout(250);
   const posPin = await page.evaluate(() => ({

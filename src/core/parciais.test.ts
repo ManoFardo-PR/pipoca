@@ -14,6 +14,14 @@ import {
   capturarSessaoEncerrada,
 } from "./captura.js";
 import { podarPorRetencao } from "../servicos/telemetria_repo.js";
+import {
+  resumir,
+  gerarSeries,
+  calcularEngajamento,
+  filtrarPorPeriodo,
+  chaveDia,
+  TETO_MINUTOS_SESSAO,
+} from "./agregadosTelemetria.js";
 import { acessoInicial, definirPin, verificarPin, MAX_TENTATIVAS, LOCKOUT_MS } from "./acesso.js";
 import { modosPadrao, autorizarIA } from "./modos.js";
 import { MODO_PADRAO, TELA_CRIANCA, aplicarGuarda, podeNavegar, aoPassarPortao, aoVoltarParaCrianca } from "./modoApp.js";
@@ -49,6 +57,7 @@ class RepoMem implements RepositorioPersistencia {
   async carregarSave(id: string): Promise<EstadoApp | null> { return this.saves.get(id) ?? null; }
   async salvarSave(id: string, e: EstadoApp): Promise<void> { this.saves.set(id, e); }
   async registrarTelemetria(ev: EventoTelemetria): Promise<void> { this.telemetria.push(ev); }
+  async carregarTelemetria(id: string): Promise<EventoTelemetria[]> { return this.telemetria.filter((e) => e.perfilId === id); }
   async apagarPerfil(id: string): Promise<void> {
     this.perfis.delete(id);
     this.saves.delete(id);
@@ -109,6 +118,7 @@ console.log("\n=== Captura — fire-and-forget (falha não trava UI) ===");
     carregarSave: async () => null,
     salvarSave: async () => {},
     registrarTelemetria: () => Promise.reject(new Error("offline")),
+    carregarTelemetria: async () => [],
     apagarPerfil: async () => {},
   };
   let lancou = false;
@@ -259,6 +269,60 @@ console.log("\n=== PC_PRIV (02-09) — exportar / apagar (LGPD) ===");
     assert((await repo.carregarSave("p1")) === null, "apagar remove o save");
     assert(repo.telemetria.length === 0, "apagar remove a telemetria (sem resíduos)");
   })();
+}
+
+console.log("\n=== Agregados do painel (PC_DASH 03-02) — resumir / gerarSeries / engajamento ===");
+{
+  const D = 86_400_000;
+  const mkL = (dia: number, palavras: number, cenario = "quintal_anoitecer"): EventoTelemetria =>
+    ({ esquema: "pipoca.telemetria.v1", tipo: "leitura_confirmada", perfilId: "p1", ts: dia * D, dados: { palavras, cenarioId: cenario, nivel: "n2", verificacao: "cuidador" } });
+  const mkS = (dia: number, minutos: number): EventoTelemetria =>
+    ({ esquema: "pipoca.telemetria.v1", tipo: "sessao_encerrada", perfilId: "p1", ts: dia * D, dados: { minutos, palavras: 0, historias: 0 } });
+  const mkH = (dia: number): EventoTelemetria =>
+    ({ esquema: "pipoca.telemetria.v1", tipo: "historia_concluida", perfilId: "p1", ts: dia * D, dados: { cenarioId: "quintal_anoitecer", nivel: "n2", objetos: 3, palavras: 20 } });
+
+  const agora = 100 * D + 1;
+  const eventos: EventoTelemetria[] = [
+    mkL(98, 5), mkL(99, 7), mkL(100, 6), mkL(50, 4),
+    mkS(100, 10), mkS(100, 999), mkH(100),
+  ];
+
+  // --- período / janela ---
+  assert(filtrarPorPeriodo(eventos, "semana", agora).length === 6, "semana (7d) exclui o evento do dia 50");
+  assert(filtrarPorPeriodo(eventos, "tudo", agora).length === 7, "tudo não filtra por janela");
+
+  // --- resumir (tudo) ---
+  const rt = resumir(eventos, "tudo", agora);
+  assert(rt.palavras === 22, "palavras = soma de leitura_confirmada (5+7+6+4)");
+  assert(rt.minutos === 10 + TETO_MINUTOS_SESSAO, "minutos clampa outlier (999→teto) e soma (10+60)");
+  assert(rt.historias === 1, "histórias = contagem de historia_concluida");
+  assert(rt.diasAtivos === 4, "diasAtivos = dias distintos com evento (50,98,99,100)");
+  assert(rt.sequenciaDias === 3, "sequenciaDias = maior cadeia de dias seguidos lendo (98-99-100)");
+
+  // --- resumir (semana) exclui o dia 50 ---
+  const rs = resumir(eventos, "semana", agora);
+  assert(rs.palavras === 18 && rs.diasAtivos === 3, "semana ignora o dia 50 (palavras 18, 3 dias)");
+
+  // --- séries ---
+  const s = gerarSeries(eventos, "tudo", agora);
+  assert(s.minutosPorDia.length === 1 && s.minutosPorDia[0]!.valor === 70, "minutosPorDia agrega o dia 100 (70)");
+  assert(s.palavrasPorDia.length === 4 && s.palavrasPorDia[0]!.rotulo === chaveDia(50 * D), "palavrasPorDia ordenado começa no dia 50");
+  assert(s.historiasPorSemana.length === 1 && s.historiasPorSemana[0]!.valor === 1, "historiasPorSemana agrupa por semana");
+  assert(s.engajamentoPorDia.every((p) => p.valor >= 0 && p.valor <= 1), "engajamentoPorDia normalizado em 0..1");
+
+  // --- engajamento: heurística calorosa, não nota ---
+  const diaCheio: EventoTelemetria[] = [
+    mkL(100, 6, "quintal_anoitecer"), mkL(100, 6, "floresta"), mkL(100, 6, "espaco"),
+    mkL(100, 6, "fundomar"), mkL(100, 6, "quarto"),
+  ];
+  assert(calcularEngajamento(diaCheio, chaveDia(100 * D)) === 1, "dia cheio (5 leituras, 3+ cenários) → engajamento 1");
+  assert(calcularEngajamento(eventos, chaveDia(7 * D)) === 0, "dia sem leitura → engajamento 0 (sem culpa)");
+  const parcial = calcularEngajamento([mkL(100, 6)], chaveDia(100 * D));
+  assert(parcial > 0 && parcial < 1, "1 leitura, 1 cenário → engajamento parcial (0<v<1)");
+
+  // --- vazio / read-only ---
+  const vazio = resumir([], "tudo", agora);
+  assert(vazio.minutos === 0 && vazio.palavras === 0 && vazio.sequenciaDias === 0, "sem telemetria → zeros coerentes (estado vazio)");
 }
 
 console.log(`\n${"=".repeat(50)}`);

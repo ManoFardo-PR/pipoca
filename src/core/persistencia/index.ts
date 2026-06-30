@@ -19,6 +19,8 @@ export interface RepositorioPersistencia {
   carregarSave(perfilId: string): Promise<EstadoApp | null>;
   salvarSave(perfilId: string, estado: EstadoApp): Promise<void>;
   registrarTelemetria(evento: EventoTelemetria): Promise<void>;
+  /** Lê os eventos de telemetria de um perfil (origem do painel PC_DASH). */
+  carregarTelemetria(perfilId: string): Promise<EventoTelemetria[]>;
   /** LGPD: remove o perfil + seu save + sua telemetria. */
   apagarPerfil(perfilId: string): Promise<void>;
 }

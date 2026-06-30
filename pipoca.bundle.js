@@ -1109,12 +1109,12 @@
       };
       gravarItem(chave, [...lista, envelope]);
     }
-    carregarTelemetria(perfilId) {
+    async carregarTelemetria(perfilId) {
       const envelopes = lerArrayEnvelopes(chaveTelemetria(perfilId), "pipoca.telemetria.v1");
       return envelopes.map((e) => e.evento).filter((ev) => validarEvento(ev));
     }
-    podarTelemetria(perfilId, agora, retencaoDias = RETENCAO_DIAS_PADRAO) {
-      const eventos = this.carregarTelemetria(perfilId);
+    async podarTelemetria(perfilId, agora, retencaoDias = RETENCAO_DIAS_PADRAO) {
+      const eventos = await this.carregarTelemetria(perfilId);
       const mantidos = podarPorRetencao(eventos, agora, retencaoDias);
       const removidos = eventos.length - mantidos.length;
       if (removidos > 0) {
@@ -1154,6 +1154,9 @@
       return Promise.reject(new Error("RepositorioSupabase: não implementado — ponto de migração fase06."));
     }
     registrarTelemetria(_evento) {
+      return Promise.reject(new Error("RepositorioSupabase: não implementado — ponto de migração fase06."));
+    }
+    carregarTelemetria(_perfilId) {
       return Promise.reject(new Error("RepositorioSupabase: não implementado — ponto de migração fase06."));
     }
     apagarPerfil(_perfilId) {
@@ -1236,6 +1239,137 @@
     };
     despachar(repo, criarEvento("historia_concluida", estado.perfil.id, dados, agora));
     return true;
+  }
+
+  // src/core/agregadosTelemetria.ts
+  var MS_POR_DIA2 = 86400000;
+  var TETO_MINUTOS_SESSAO = 60;
+  var META_LEITURAS_DIA = 5;
+  var META_CENARIOS_DIA = 3;
+  var PESO_REGULARIDADE = 0.4;
+  var PESO_VOLUME = 0.4;
+  var PESO_VARIEDADE = 0.2;
+  function diasDoPeriodo(periodo) {
+    switch (periodo) {
+      case "semana":
+        return 7;
+      case "mes":
+        return 30;
+      case "tudo":
+        return Infinity;
+    }
+  }
+  function indiceDia(ts) {
+    return Math.floor(ts / MS_POR_DIA2);
+  }
+  function rotuloDia(idxDia) {
+    return new Date(idxDia * MS_POR_DIA2).toISOString().slice(0, 10);
+  }
+  function chaveDia(ts) {
+    return rotuloDia(indiceDia(ts));
+  }
+  function filtrarPorPeriodo(eventos, periodo, agora) {
+    const dias = diasDoPeriodo(periodo);
+    if (!Number.isFinite(dias))
+      return eventos.slice();
+    const limite = agora - dias * MS_POR_DIA2;
+    return eventos.filter((e) => e.ts >= limite);
+  }
+  function minutosClampados(e) {
+    const m = e.dados.minutos;
+    if (typeof m !== "number" || !Number.isFinite(m))
+      return 0;
+    return Math.max(0, Math.min(TETO_MINUTOS_SESSAO, m));
+  }
+  function maiorSequencia(indices) {
+    if (indices.size === 0)
+      return 0;
+    const ordenados = [...indices].sort((a, b) => a - b);
+    let melhor = 1;
+    let atual = 1;
+    for (let i = 1;i < ordenados.length; i++) {
+      atual = ordenados[i] === ordenados[i - 1] + 1 ? atual + 1 : 1;
+      if (atual > melhor)
+        melhor = atual;
+    }
+    return melhor;
+  }
+  function resumir(eventos, periodo, agora) {
+    const janela = filtrarPorPeriodo(eventos, periodo, agora);
+    let minutos = 0;
+    let palavras = 0;
+    let historias = 0;
+    const diasComEvento = new Set;
+    const diasComLeitura = new Set;
+    for (const e of janela) {
+      diasComEvento.add(indiceDia(e.ts));
+      if (e.tipo === "sessao_encerrada") {
+        minutos += minutosClampados(e);
+      } else if (e.tipo === "leitura_confirmada") {
+        palavras += e.dados.palavras ?? 0;
+        diasComLeitura.add(indiceDia(e.ts));
+      } else if (e.tipo === "historia_concluida") {
+        historias += 1;
+      }
+    }
+    return {
+      minutos,
+      palavras,
+      historias,
+      diasAtivos: diasComEvento.size,
+      sequenciaDias: maiorSequencia(diasComLeitura)
+    };
+  }
+  function serieDiaria(eventos, valorDe) {
+    const porDia = new Map;
+    for (const e of eventos) {
+      const v = valorDe(e);
+      if (v === 0)
+        continue;
+      const idx = indiceDia(e.ts);
+      porDia.set(idx, (porDia.get(idx) ?? 0) + v);
+    }
+    return [...porDia.entries()].sort((a, b) => a[0] - b[0]).map(([idx, valor]) => ({ rotulo: rotuloDia(idx), valor }));
+  }
+  function gerarSeries(eventos, periodo, agora) {
+    const janela = filtrarPorPeriodo(eventos, periodo, agora);
+    const minutosPorDia = serieDiaria(janela, (e) => e.tipo === "sessao_encerrada" ? minutosClampados(e) : 0);
+    const palavrasPorDia = serieDiaria(janela, (e) => e.tipo === "leitura_confirmada" ? e.dados.palavras ?? 0 : 0);
+    const porSemana = new Map;
+    for (const e of janela) {
+      if (e.tipo !== "historia_concluida")
+        continue;
+      const semana = Math.floor(indiceDia(e.ts) / 7);
+      porSemana.set(semana, (porSemana.get(semana) ?? 0) + 1);
+    }
+    const historiasPorSemana = [...porSemana.entries()].sort((a, b) => a[0] - b[0]).map(([semana, valor]) => ({ rotulo: rotuloDia(semana * 7), valor }));
+    const diasAtivos = new Set(janela.map((e) => indiceDia(e.ts)));
+    const engajamentoPorDia = [...diasAtivos].sort((a, b) => a - b).map((idx) => {
+      const dia = rotuloDia(idx);
+      return { rotulo: dia, valor: calcularEngajamento(janela, dia) };
+    });
+    return { minutosPorDia, palavrasPorDia, historiasPorSemana, engajamentoPorDia };
+  }
+  function calcularEngajamento(eventos, dia) {
+    let leituras = 0;
+    const cenarios = new Set;
+    for (const e of eventos) {
+      if (e.tipo !== "leitura_confirmada")
+        continue;
+      if (chaveDia(e.ts) !== dia)
+        continue;
+      leituras += 1;
+      const c = e.dados.cenarioId;
+      if (typeof c === "string" && c.length > 0)
+        cenarios.add(c);
+    }
+    if (leituras === 0)
+      return 0;
+    const regularidade = 1;
+    const volume = Math.min(leituras / META_LEITURAS_DIA, 1);
+    const variedade = Math.min(cenarios.size / META_CENARIOS_DIA, 1);
+    const valor = PESO_REGULARIDADE * regularidade + PESO_VOLUME * volume + PESO_VARIEDADE * variedade;
+    return Math.max(0, Math.min(1, valor));
   }
 
   // src/core/acesso.ts
@@ -1443,6 +1577,15 @@
       capturarSessaoIniciada,
       capturarSessaoEncerrada,
       capturarHistoriaConcluida
+    },
+    agregados: {
+      resumir,
+      gerarSeries,
+      calcularEngajamento,
+      filtrarPorPeriodo,
+      chaveDia,
+      rotuloDia,
+      TETO_MINUTOS_SESSAO
     }
   };
   globalThis.PipocaCanonico = PipocaCanonico;

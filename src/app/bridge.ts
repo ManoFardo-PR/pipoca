@@ -74,6 +74,15 @@ import {
   capturarSessaoEncerrada,
   capturarHistoriaConcluida,
 } from "../core/captura.js";
+import {
+  resumir,
+  gerarSeries,
+  calcularEngajamento,
+  filtrarPorPeriodo,
+  chaveDia,
+  rotuloDia,
+  TETO_MINUTOS_SESSAO,
+} from "../core/agregadosTelemetria.js";
 import { acessoInicial, definirPin, verificarPin } from "../core/acesso.js";
 import { carregarAcesso, salvarAcesso, temPin } from "../servicos/acesso_repo.js";
 import { entrarFamilia, criarSessao, sessaoValida, DURACAO_SESSAO_MS } from "../core/contaFamilia.js";
@@ -147,6 +156,17 @@ const PipocaCanonico = {
     capturarSessaoIniciada,
     capturarSessaoEncerrada,
     capturarHistoriaConcluida,
+  },
+
+  // --- agregados do painel (PC_DASH) ---
+  agregados: {
+    resumir,
+    gerarSeries,
+    calcularEngajamento,
+    filtrarPorPeriodo,
+    chaveDia,
+    rotuloDia,
+    TETO_MINUTOS_SESSAO,
   },
 };
 

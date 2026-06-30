@@ -49,6 +49,12 @@ export class RepositorioSupabase implements RepositorioPersistencia {
     );
   }
 
+  carregarTelemetria(_perfilId: string): Promise<EventoTelemetria[]> {
+    return Promise.reject(
+      new Error("RepositorioSupabase: não implementado — ponto de migração fase06.")
+    );
+  }
+
   apagarPerfil(_perfilId: string): Promise<void> {
     return Promise.reject(
       new Error("RepositorioSupabase: não implementado — ponto de migração fase06.")

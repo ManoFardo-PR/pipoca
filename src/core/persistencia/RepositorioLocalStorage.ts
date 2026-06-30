@@ -103,7 +103,7 @@ export class RepositorioLocalStorage implements RepositorioPersistencia {
   }
 
   /** Lê os eventos de telemetria válidos de um perfil (descarta corrompidos). */
-  carregarTelemetria(perfilId: string): EventoTelemetria[] {
+  async carregarTelemetria(perfilId: string): Promise<EventoTelemetria[]> {
     const envelopes = lerArrayEnvelopes<EnvelopeTelemetria>(
       chaveTelemetria(perfilId),
       "pipoca.telemetria.v1"
@@ -115,12 +115,12 @@ export class RepositorioLocalStorage implements RepositorioPersistencia {
    * Poda eventos mais velhos que `retencaoDias` (política de retenção — fase03-03-03).
    * `agora` é injetado pela borda. Retorna quantos eventos foram removidos.
    */
-  podarTelemetria(
+  async podarTelemetria(
     perfilId: string,
     agora: number,
     retencaoDias: number = RETENCAO_DIAS_PADRAO
-  ): number {
-    const eventos = this.carregarTelemetria(perfilId);
+  ): Promise<number> {
+    const eventos = await this.carregarTelemetria(perfilId);
     const mantidos = podarPorRetencao(eventos, agora, retencaoDias);
     const removidos = eventos.length - mantidos.length;
     if (removidos > 0) {

@@ -160,6 +160,7 @@ export interface RepositorioPersistencia {
   carregarSave(perfilId: string): Promise<EstadoApp | null>;
   salvarSave(perfilId: string, estado: EstadoApp): Promise<void>;
   registrarTelemetria(evento: EventoTelemetria): Promise<void>;
+  carregarTelemetria(perfilId: string): Promise<EventoTelemetria[]>; // origem do painel PC_DASH (read-only)
   apagarPerfil(perfilId: string): Promise<void>;   // LGPD: remove perfil + save + telemetria
 }
 

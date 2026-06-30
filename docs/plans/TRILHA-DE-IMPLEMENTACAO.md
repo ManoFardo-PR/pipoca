@@ -23,7 +23,7 @@ pré-requisito** de tudo que vem depois.
 | 00 Fundação | 🟢 módulos prontos (desvios corrigidos) | `Economia` conformada, `spendPct` corrigido, `ValidadorOrdem` incremental |
 | 01 MVP linha verde | 🟢 **convergido** | `index.html` consome o seam canônico via `pipoca.bundle.js` (e2e 19/19) |
 | 02 Controle parental | 🟢 núcleos completos · telas no app | PINGATE ligado (e2e); núcleos HH_LOGIN/KIDMODE/PC_HOME/PROF/LIM/RULES/PRIV/AI no bridge; falta o app ligar as telas |
-| 03 Telemetria/painel | 🟢 TELE/03-03 · 🔴 PC_DASH | `telemetria.ts`+`captura.ts`+`telemetria_repo.ts` (testados); falta painel PC_DASH e captura ligada ao fluxo |
+| 03 Telemetria/painel | 🟢 núcleos completos · telas no app | `telemetria.ts`+`captura.ts`+`telemetria_repo.ts`+`agregadosTelemetria.ts` (testados); falta tela `PainelEvolucao` e captura ligada ao fluxo (app) |
 | 04 Super admin | 🔴 não iniciado | — |
 | 05 IA e fala | 🔴 / 🟡 stub | fallback Motor B na fábrica; tipos `ProvedorIA`/`ServicoASR` |
 | 06 Backend | 🟡 migração pronta | `migrar(de,para)` em `src/backend/migracao.ts` (testado); adaptadores BaaS aguardam 06-01 |
@@ -113,6 +113,22 @@ KIDMODE no roteador, `Onboarding`, `Perfis`, `Limites`, `Regras`, `Privacidade` 
 ## Marco 3 — Fase 03 · Telemetria + Painel do cuidador (Tela 8)
 Pontos de captura em sessão/leitura/recompensa emitindo `EventoTelemetria` (`ts` injetado fora do motor);
 payloads `pipoca.telemetria.v1`; agregados; tela `PC_DASH`. Aproveita `registrarTelemetria` já no seam.
+
+### Progresso 2026-06-29 — núcleos da Fase 03 completos (track canônica)
+Núcleo de agregados do painel pronto e testado no bridge (`tsc` limpo; parciais 86/86; checker 10/10; e2e 27/27):
+- **03-02 PC_DASH** 🟡 — `src/core/agregadosTelemetria.ts`: `resumir` (minutos/palavras/histórias/diasAtivos/sequenciaDias),
+  `gerarSeries` (minutos·palavras por dia, histórias por semana, engajamento por dia), `calcularEngajamento`
+  (heurística calorosa 0..1 — regularidade·volume·variedade, nunca nota). Puras, `agora` injetado, dia em UTC
+  determinístico, clamp de outlier (`TETO_MINUTOS_SESSAO=60`). No bridge: `PipocaCanonico.agregados`.
+- **Seam:** `carregarTelemetria(perfilId): Promise<EventoTelemetria[]>` promovido ao contrato
+  `RepositorioPersistencia` (LocalStorage async + stub Supabase) — o painel lê eventos **pelo seam**, nunca do
+  localStorage direto.
+
+**A fazer (a cargo do app/telas):** tela `PainelEvolucao.dc.html` (frase calorosa → cartões grandes → gráficos
+via `ref`+`_inject`, `reduceMotion` estático) consumindo `PipocaCanonico.agregados` + `criarRepositorio().carregarTelemetria`;
+link "Evolução da leitura" no `PainelCuidador`; **ligar a captura aos fluxos reais** (portão→`capturarLeituraConfirmada`,
+recompensa→`capturarObjetoDestravado`, borda de sessão→`capturarSessao*`, desfecho→`capturarHistoriaConcluida`),
+todos com `Date.now()` injetado na borda.
 
 ## Marco 4 — Fase 04 · Super admin / multi-tenant
 `src/admin/*` (login SA, home, tenants, conteúdo, IA, segurança); schema `pipoca.tenant.v1`. Mantém o seam:

@@ -66,8 +66,8 @@
 
     <!-- Controles -->
     <div style="display:flex;gap:14px;margin-top:24px;width:100%;max-width:700px;justify-content:center;">
-      <button onClick="{{ ouvirAtual }}" style="padding:13px 24px;border:1.5px solid rgba(160,140,110,.3);border-radius:14px;background:rgba(255,255,255,.7);cursor:pointer;font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#7a6a54;">🔊 Ouvir</button>
-      <button onClick="{{ proximaPalavra }}" style="flex:1;padding:15px 24px;border:none;border-radius:16px;background:linear-gradient(150deg,#e8965a,#d5713f);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:17px;cursor:pointer;box-shadow:0 8px 20px -6px rgba(181,86,40,.5);">{{ nextLabel }}</button>
+      <button onClick="{{ ouvirTudo }}" style="padding:13px 24px;border:1.5px solid rgba(160,140,110,.3);border-radius:14px;background:rgba(255,255,255,.7);cursor:pointer;font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#7a6a54;white-space:nowrap;">{{ ouvirLabel }}</button>
+      <button onClick="{{ avancarHistoria }}" style="flex:1;padding:15px 24px;border:none;border-radius:16px;background:linear-gradient(150deg,#e8965a,#d5713f);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:17px;cursor:pointer;box-shadow:0 8px 20px -6px rgba(181,86,40,.5);">{{ nextLabel }}</button>
     </div>
 
   </div>
@@ -104,20 +104,46 @@ class Component extends DCLogic {
   state = {
     palavraIdx: 0,
     stage: 'reading',
+    lendoAuto: false,   // "Ouvir" lendo a frase inteira (pausável)
   };
 
+  // Escolhe a melhor voz pt-BR disponível (getVoices carrega async — ver _warmVoices).
+  _pickVoz() {
+    try {
+      const synth = window.speechSynthesis;
+      const vozes = (synth && synth.getVoices()) || [];
+      return vozes.find(v => /pt[-_]?BR/i.test(v.lang)) || vozes.find(v => /pt/i.test(v.lang)) || null;
+    } catch(_) { return null; }
+  }
+
+  // Fala uma palavra isolada (cancela o que estava falando). Degrada sem voz.
   _speak(texto) {
     try {
       const synth = window.speechSynthesis;
-      if (!synth) return;
+      if (!synth || !texto) return;
       synth.cancel();
       const u = new SpeechSynthesisUtterance(texto);
       u.lang = 'pt-BR'; u.rate = 0.82; u.pitch = 1.05;
-      const vozes = synth.getVoices();
-      const voz = vozes.find(v => /pt[-_]?BR/i.test(v.lang)) || vozes.find(v => /pt/i.test(v.lang));
+      const voz = this._pickVoz();
       if (voz) u.voice = voz;
       synth.speak(u);
     } catch(_) {}
+  }
+
+  // Fala em sequência (NÃO cancela antes) e avisa ao terminar — usado na leitura
+  // corrida do botão "Ouvir", p/ sincronizar o destaque com a fala real.
+  _speakSeq(texto, onend) {
+    try {
+      const synth = window.speechSynthesis;
+      if (!synth || !texto) { if (onend) setTimeout(onend, 260); return; }
+      const u = new SpeechSynthesisUtterance(texto);
+      u.lang = 'pt-BR'; u.rate = 0.82; u.pitch = 1.05;
+      const voz = this._pickVoz();
+      if (voz) u.voice = voz;
+      u.onend = function () { if (onend) onend(); };
+      u.onerror = function () { if (onend) onend(); };
+      synth.speak(u);
+    } catch(_) { if (onend) setTimeout(onend, 260); }
   }
 
   _tokenizar(texto) {
@@ -158,6 +184,7 @@ class Component extends DCLogic {
   }
 
   componentDidMount() {
+    this._warmVoices();
     const App = window.PipocaApp;
     if (App) {
       const idx = App.estado.gatePalavraIdx || 0;
@@ -166,11 +193,30 @@ class Component extends DCLogic {
     }
   }
 
+  componentWillUnmount() {
+    this._pararLeituraAuto();
+  }
+
+  // Dispara o carregamento assíncrono das vozes (getVoices vem vazio até carregar),
+  // para a 1ª fala já ter voz pt-BR.
+  _warmVoices() {
+    try {
+      const synth = window.speechSynthesis;
+      if (!synth) return;
+      synth.getVoices();
+      if (!this._vozHook) {
+        this._vozHook = true;
+        synth.addEventListener('voiceschanged', function () {}, { once: true });
+      }
+    } catch(_) {}
+  }
+
   _getApp() { return window.PipocaApp; }
 
   _commit() {
     const App = this._getApp();
     if (!App) return;
+    this._pararLeituraAuto();
     // Idempotência: uma leitura credita/avança a rodada uma única vez.
     if (this._committed) return;
     this._committed = true;
@@ -199,7 +245,9 @@ class Component extends DCLogic {
     if (R) R.irParaTela(6);
   }
 
+  // Tap numa palavra: fala AQUELA palavra e a destaca. Interrompe a leitura corrida.
   ouvirPalavra(i) {
+    this._pararLeituraAuto();
     const App = this._getApp();
     const trecho = App ? App.estado.gateTrecho : '';
     const palavras = this._tokenizar(trecho);
@@ -208,21 +256,46 @@ class Component extends DCLogic {
     this.setState({ palavraIdx: i });
   }
 
-  proximaPalavra() {
+  // ── Leitura corrida (botão "Ouvir"): fala a frase inteira, palavra por palavra,
+  //    com destaque sincronizado e pausável. ────────────────────────────────────
+  _pararLeituraAuto() {
+    this._lerGen = (this._lerGen || 0) + 1; // invalida callbacks/timers pendentes
+    if (this._lerTimer) { clearTimeout(this._lerTimer); this._lerTimer = null; }
+    try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch(_) {}
+    if (this.state.lendoAuto) this.setState({ lendoAuto: false });
+  }
+
+  alternarOuvirTudo() {
+    if (this.state.lendoAuto) { this._pararLeituraAuto(); return; } // 2º toque = pausar
     const App = this._getApp();
-    const trecho = App ? App.estado.gateTrecho : '';
-    const palavras = this._tokenizar(trecho);
-    const next = this.state.palavraIdx + 1;
-    if (next >= palavras.length) {
-      this.setState({ stage: 'verifying' });
-    } else {
-      const w = palavras[next];
-      this.setState({ palavraIdx: next });
-      if (w) this._speak(w);
-    }
+    const palavras = this._tokenizar(App ? App.estado.gateTrecho : '');
+    if (!palavras.length) return;
+    try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch(_) {}
+    const gen = (this._lerGen || 0) + 1;
+    this._lerGen = gen;
+    this.setState({ lendoAuto: true, palavraIdx: 0 });
+    const self = this;
+    const passo = function (i) {
+      if (self._lerGen !== gen) return;            // pausado/cancelado
+      if (i >= palavras.length) { self._pararLeituraAuto(); return; }
+      self.setState({ palavraIdx: i });            // destaca a palavra atual
+      self._speakSeq(palavras[i], function () {
+        if (self._lerGen !== gen) return;
+        self._lerTimer = setTimeout(function () { passo(i + 1); }, 140); // respiro calmo
+      });
+    };
+    passo(0);
+  }
+
+  // Botão grande: avança a HISTÓRIA (leitura → verificação → recompensa/próxima
+  // rodada). A leitura em si é tap-na-palavra + "Ouvir"; sem stepping obrigatório.
+  avancarHistoria() {
+    this._pararLeituraAuto();
+    this.setState({ stage: 'verifying' });
   }
 
   voltarCena() {
+    this._pararLeituraAuto();
     const App = this._getApp();
     // Descarta o move pendente: a composição não foi consumida, T4 recomeça limpa.
     if (App) App.setState({ gatePendente: null, tela: 4 });
@@ -282,8 +355,6 @@ class Component extends DCLogic {
     const verificacao = estado.modos ? estado.modos.verificacao : 'cuidador';
     const vagalumes = estado.economia ? estado.economia.vagalumes : 0;
 
-    const nextLabel = curIdx >= palavras.length - 1 ? 'Terminei a frase ✓' : 'Próxima palavra ›';
-
     return {
       modoLendo,
       modoVerificacao,
@@ -295,12 +366,13 @@ class Component extends DCLogic {
       totalPalavras: total,
       pctLabel: total > 0 ? pct + '%' : '',
       progressoPct: pct + '%',
-      nextLabel,
+      nextLabel: 'Continuar a história ›',
+      ouvirLabel: this.state.lendoAuto ? '⏸ Pausar' : '🔊 Ouvir',
       verifyIsCuidador: verificacao === 'cuidador',
       verifyIsAuto: verificacao === 'auto',
-      ouvirAtual: () => this.ouvirPalavra(curIdx),
+      ouvirTudo: () => this.alternarOuvirTudo(),
       ouvirDeNovo: () => this.ouvirPalavra(curIdx),
-      proximaPalavra: () => this.proximaPalavra(),
+      avancarHistoria: () => this.avancarHistoria(),
       voltarCena: () => this.voltarCena(),
       abrirAjustesA11y: () => this.abrirAjustesA11y(),
       confirmSozinho: () => this._commit(),

@@ -1,5 +1,5 @@
 <!-- Shell.dc.html — Pipoca app shell
-     Escalonador de moldura + roteador de telas.
+     Container responsivo (tela cheia) + roteador de telas.
      Importar tokens.css e as fontes antes de carregar este componente.
 
      Props:
@@ -15,54 +15,40 @@
 
 <div ref="{{ refRoot }}" style="position:fixed;inset:0;overflow:hidden;font-family:var(--pip-fonte-texto);color:var(--pip-tinta);background:radial-gradient(120% 120% at 50% 0%, var(--pip-areia) 0%, #ded2be 70%, #d3c5ad 100%);">
 
-  <!-- Cabeçalho de marca -->
+  <!-- Cabeçalho de marca — só nas telas sem barra própria (T2), para não
+       sobrepor a app bar das demais telas em tela cheia. -->
+  <sc-if value="{{ mostrarMarca }}" hint-placeholder-val="{{ true }}">
   <div style="position:absolute;top:18px;left:24px;display:flex;align-items:center;gap:10px;z-index:30;">
     <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(150deg,var(--pip-terracota),var(--pip-terracota-escuro));display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(181,86,40,.35);">
       <div style="width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,var(--pip-vagalume) 60%,var(--pip-vagalume-escuro));box-shadow:0 0 9px 2px rgba(247,191,96,.8);"></div>
     </div>
     <div style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:17px;color:var(--pip-tinta);letter-spacing:.2px;">Pipoca</div>
   </div>
+  </sc-if>
 
-  <!-- Moldura tablet — escalonada para caber na viewport (1234×874 base) -->
-  <div ref="{{ refScaler }}" style="position:absolute;left:50%;top:calc(50% - 28px);transform:translate(-50%,-50%);transform-origin:center center;">
-    <div style="position:relative;width:1234px;height:874px;border-radius:46px;padding:20px;background:linear-gradient(155deg,#2c2722,#1b1814);box-shadow:0 40px 90px -30px rgba(40,30,18,.6), 0 0 0 2px rgba(255,255,255,.04) inset;">
-      <!-- botões laterais decorativos -->
-      <div style="position:absolute;top:50%;left:9px;transform:translateY(-50%);width:6px;height:46px;border-radius:4px;background:#3a342c;"></div>
-      <div style="position:absolute;top:30px;left:8px;width:5px;height:60px;border-radius:4px;background:#241f1a;"></div>
-      <!-- tela interna -->
-      <div style="position:relative;width:1194px;height:834px;border-radius:30px;overflow:hidden;background:var(--pip-creme);">
-
-        <!-- câmera frontal -->
-        <div style="position:absolute;top:11px;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:50%;background:#0d0b09;z-index:40;box-shadow:0 0 0 2px rgba(0,0,0,.25);"></div>
-
-        <!-- textura de papel (overlay suave) -->
-        <div style="position:absolute;inset:0;z-index:25;pointer-events:none;opacity:.05;mix-blend-mode:multiply;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);"></div>
-
-        <!-- Slot de conteúdo: o roteador (window.PipocaRoteador) escolhe a tela.
-             Cada <dc-import name="TelaX"> é montada por COMPONENTE-IRMÃO — o
-             runtime (walkComponent) busca ./TelaX.dc.html relativo à página; o
-             server.js resolve em src/telas|componentes. As telas leem o estado
-             via window.PipocaApp. -->
-        <div style="position:absolute;inset:0;">
-          <sc-if value="{{ ehT2 }}" hint-placeholder-val="{{ true }}"><dc-import name="Tela2EntradaCrianca"></dc-import></sc-if>
-          <sc-if value="{{ ehT3 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela3SelecaoCenario"></dc-import></sc-if>
-          <sc-if value="{{ ehT4 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela4Heroi"></dc-import></sc-if>
-          <sc-if value="{{ ehT5 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela5Portao"></dc-import></sc-if>
-          <sc-if value="{{ ehT6 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela6Recompensa"></dc-import></sc-if>
-          <sc-if value="{{ ehT7 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela7PoteCardapio"></dc-import></sc-if>
-          <sc-if value="{{ ehPCHome }}" hint-placeholder-val="{{ false }}"><dc-import name="Onboarding"></dc-import></sc-if>
-        </div>
-
-        <!-- Overlay de acessibilidade ("Do meu jeito") — dentro da moldura. -->
-        <sc-if value="{{ showA11y }}" hint-placeholder-val="{{ false }}"><dc-import name="PainelA11y"></dc-import></sc-if>
-
-      </div>
-    </div>
+  <!-- Slot de conteúdo responsivo — preenche a viewport inteira.
+       O roteador (window.PipocaRoteador) escolhe a tela. Cada
+       <dc-import name="TelaX"> é montada por COMPONENTE-IRMÃO — o runtime
+       (walkComponent) busca ./TelaX.dc.html relativo à página; o server.js
+       resolve em src/telas|componentes. As telas leem o estado via
+       window.PipocaApp e já usam layouts fluidos (flex + inset:0). -->
+  <div style="position:absolute;inset:0;">
+    <sc-if value="{{ ehT2 }}" hint-placeholder-val="{{ true }}"><dc-import name="Tela2EntradaCrianca"></dc-import></sc-if>
+    <sc-if value="{{ ehT3 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela3SelecaoCenario"></dc-import></sc-if>
+    <sc-if value="{{ ehT4 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela4Heroi"></dc-import></sc-if>
+    <sc-if value="{{ ehT5 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela5Portao"></dc-import></sc-if>
+    <sc-if value="{{ ehT6 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela6Recompensa"></dc-import></sc-if>
+    <sc-if value="{{ ehT7 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela7PoteCardapio"></dc-import></sc-if>
+    <sc-if value="{{ ehPCHome }}" hint-placeholder-val="{{ false }}"><dc-import name="Onboarding"></dc-import></sc-if>
   </div>
 
-  <!-- Portão parental (PIN) — modal de viewport (position:fixed). Fica FORA do
-       escalonador: um ancestral com `transform` viraria seu bloco de contenção
-       e o `overflow:hidden` da moldura o cortaria. -->
+  <!-- Textura de papel — overlay suave sobre toda a viewport (não capta clique). -->
+  <div style="position:absolute;inset:0;z-index:25;pointer-events:none;opacity:.05;mix-blend-mode:multiply;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E&quot;);"></div>
+
+  <!-- Overlay de acessibilidade ("Do meu jeito") — preenche a viewport. -->
+  <sc-if value="{{ showA11y }}" hint-placeholder-val="{{ false }}"><dc-import name="PainelA11y"></dc-import></sc-if>
+
+  <!-- Portão parental (PIN) — modal de viewport (position:fixed), no nível da raiz. -->
   <sc-if value="{{ ehT1 }}" hint-placeholder-val="{{ false }}"><dc-import name="PortaoParental"></dc-import></sc-if>
 
   <!-- Screen-jumper de dev — NUNCA renderizar em produção (gated por prop dev) -->
@@ -86,11 +72,6 @@ class Component extends DCLogic {
   // antes do boot do React. Lê o valor atual para evitar flash da T1.
   state = { tela: (window.PipocaRoteador && window.PipocaRoteador.telaAtual && window.PipocaRoteador.telaAtual()) || 1 };
 
-  // ── Escalonador ────────────────────────────────────────────────────────────
-  // refScaler é atribuído pelo runtime quando o elemento monta.
-  // _fit calcula a escala máxima que cabe na viewport sem cortar conteúdo.
-  refScaler = (el) => { this._scaler = el; this._fit && this._fit(); };
-
   // refRoot recebe a raiz do Shell — onde aplicamos as classes A11y transversais
   // (pip-dyslexia / pip-contrast / pip-reduce-motion) lidas de PipocaApp.estado.a11y.
   refRoot = (el) => { this._rootEl = el; this._aplicarA11y(); };
@@ -105,16 +86,6 @@ class Component extends DCLogic {
   }
 
   componentDidMount() {
-    this._fit = () => {
-      const el = this._scaler; if (!el) return;
-      const sw = window.innerWidth - 48;   // margem horizontal
-      const sh = window.innerHeight - 96;  // margem vertical (considera cabeçalho)
-      const s = Math.min(sw / 1234, sh / 874, 1);
-      el.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
-    };
-    this._fit();
-    window.addEventListener('resize', this._fit);
-
     // Assina o roteador global (window.PipocaRoteador, carregado de src/core/roteador.js).
     // Quando o CORE (Etapa 2) chamar PipocaRoteador.irParaTela(n), o Shell atualiza.
     const R = window.PipocaRoteador;
@@ -133,7 +104,6 @@ class Component extends DCLogic {
   }
 
   componentWillUnmount() {
-    window.removeEventListener('resize', this._fit);
     if (this._unsubRoteador) this._unsubRoteador();
     if (this._unsubApp) this._unsubApp();
   }
@@ -170,6 +140,8 @@ class Component extends DCLogic {
       tela,
       devMode: dev,
       showA11y,
+      // Marca só onde a tela não traz app bar própria (evita cabeçalho duplo).
+      mostrarMarca: tela === 2,
       // Flags de montagem do slot (uma tela ativa por vez).
       ehT1: tela === 1,
       ehT2: tela === 2,

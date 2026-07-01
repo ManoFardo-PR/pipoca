@@ -28,7 +28,7 @@
 
   <!-- Reading state -->
   <sc-if value="{{ modoLendo }}" hint-placeholder-val="{{ true }}">
-  <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 60px;">
+  <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:safe center;padding:clamp(16px,3vw,40px) clamp(16px,4vw,60px);">
 
     <!-- Barra de progresso -->
     <div style="width:100%;max-width:700px;margin-bottom:24px;background:rgba(255,255,255,.6);border-radius:16px;padding:12px 18px;">
@@ -42,7 +42,7 @@
     </div>
 
     <!-- Frase com palavras tocáveis -->
-    <div style="width:100%;max-width:720px;background:rgba(255,255,255,.8);border-radius:26px;padding:36px 42px;box-shadow:0 20px 50px -20px rgba(74,59,44,.35);text-align:center;">
+    <div style="width:100%;max-width:720px;background:rgba(255,255,255,.8);border-radius:26px;padding:clamp(20px,4vw,36px) clamp(18px,4vw,42px);box-shadow:0 20px 50px -20px rgba(74,59,44,.35);text-align:center;">
       <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px 2px;align-items:baseline;">
         <sc-for list="{{ gateWords }}" as="gwd" hint-placeholder-count="6">
           <span onClick="{{ gwd.onTap }}" style="{{ gwd.style }}" class="{{ gwd.animClass }}">{{ gwd.text }}</span>
@@ -248,7 +248,13 @@ class Component extends DCLogic {
 
     const readFont = a11y.dyslexia ? "'Atkinson Hyperlegible', sans-serif" : "'Nunito', sans-serif";
     const readScale = a11y.textScale || 1;
-    const wordPx = Math.round(46 * readScale);
+    // Fonte de leitura fluida: acompanha o MENOR entre largura e altura da
+    // viewport (entre um piso e um teto, ambos escalados pela acessibilidade),
+    // para o trecho caber em janelas curtas/estreitas sem cortar — sem depender
+    // da antiga moldura de tablet que escalava tudo.
+    const wordFont = 'clamp(' + Math.round(18 * readScale) + 'px, '
+      + 'min(' + (3.4 * readScale).toFixed(2) + 'vw, ' + (5.2 * readScale).toFixed(2) + 'vh), '
+      + Math.round(42 * readScale) + 'px)';
     const letterSp = a11y.dyslexia ? '0.06em' : '0.01em';
     const ink = a11y.contrast ? '#1a1008' : '#3a2c20';
     const hi = a11y.contrast ? '#fbd98f' : '#fce6bf';
@@ -264,7 +270,7 @@ class Component extends DCLogic {
         idx: i,
         onTap: () => this.ouvirPalavra(i),
         animClass: isCur && isStuck ? 'word-stuck' : '',
-        style: 'font-family:'+readFont+';font-weight:800;font-size:'+wordPx+'px;line-height:1.55;letter-spacing:'+letterSp+';cursor:pointer;padding:3px 12px;border-radius:16px;display:inline-block;'
+        style: 'font-family:'+readFont+';font-weight:800;font-size:'+wordFont+';line-height:1.5;letter-spacing:'+letterSp+';cursor:pointer;padding:3px 12px;border-radius:16px;display:inline-block;'
           + (isCur
             ? (isStuck ? 'background:#fbe6b8;color:#9a6a1e;box-shadow:0 0 0 3px rgba(243,183,90,.55);' : 'background:'+hi+';color:'+ink+';')
             : 'background:transparent;color:'+ink+';'),

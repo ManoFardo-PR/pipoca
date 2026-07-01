@@ -1,3 +1,4 @@
 - [Composição de telas dc-runtime](dc-runtime-composition.md) — componentes só montam via `<dc-import name="X">`; tags PascalCase = tela branca; modais fixed ficam fora do escalonador.
 - [Onboarding canônico](onboarding-fix.md) — fluxo T2→T1(PIN)→Onboarding(T10)→T2; perfis em localStorage 'pipoca.perfis.v1' via PipocaApp.repo.
 - [Portão: prévia vs commit](composicao-portao-preview.md) — em T4 não mutar comp; montar gatePendente + prévia pura, aplicar só no _commit de T5 (voltar sem perdas).
+- [Telas responsivas](telas-responsivas.md) — sem escalador global no Shell, cada tela cuida da própria adaptação; texto longo usa clamp(min(vw,vh)) + scroll safe-center.

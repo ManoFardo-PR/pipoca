@@ -171,34 +171,26 @@ class Component extends DCLogic {
   _commit() {
     const App = this._getApp();
     if (!App) return;
+    // Idempotência: uma leitura credita/avança a rodada uma única vez.
+    if (this._committed) return;
+    this._committed = true;
+
     const estado = App.estado;
-    const objetoId = estado.gateObjId;
-    const motor = App.motor;
-    const nivel = estado.perfil ? estado.perfil.nivel : 'n1';
-    const historia = estado.historia;
-
-    if (!objetoId || !motor || !historia) return;
-    // Idempotência via HISTORIA.objetos (fonte única de verdade — Economia não guarda ledger).
-    if ((historia.objetos || []).includes(objetoId)) {
-      App.setState({ tela: 6 });
-      const R = window.PipocaRoteador;
-      if (R) R.irParaTela(6);
-      return;
-    }
-
-    const novaHistoria = {
-      ...historia,
-      objetos: [...(historia.objetos || []), objetoId],
-    };
     const economia = estado.economia || { vagalumes: 0, poupado: 0 };
     const Canon = window.PipocaCanonico;
     const novaEconomia = Canon
       ? Canon.economia.creditarVagalumes(economia, 3)
       : { ...economia, vagalumes: (economia.vagalumes || 0) + 3 };
 
+    // v2 · só AGORA aplica o move autoral montado em T4 (a leitura foi confirmada)…
+    App.aplicarComposicao(estado.gatePendente);
+    // …e faz a história crescer: abre a próxima rodada (revela +1 objeto) ou,
+    // na última, marca a convergência (desfecho lido).
+    App.abrirProximaRodadaComposicao();
+
     App.setState({
-      historia: novaHistoria,
       economia: novaEconomia,
+      gatePendente: null,
       gateStage: 'success',
       gateEarned: 3,
       tela: 6,
@@ -232,7 +224,8 @@ class Component extends DCLogic {
 
   voltarCena() {
     const App = this._getApp();
-    if (App) App.setState({ tela: 4 });
+    // Descarta o move pendente: a composição não foi consumida, T4 recomeça limpa.
+    if (App) App.setState({ gatePendente: null, tela: 4 });
     const R = window.PipocaRoteador;
     if (R) R.irParaTela(4);
   }

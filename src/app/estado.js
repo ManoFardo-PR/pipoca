@@ -54,6 +54,10 @@
     gatePalavraIdx: 0,
     gateStage: "reading",
     gateEarned: 3,
+    // v2 · composição autoral por rodada (linha verde). null até o grafo v2 carregar.
+    comp: null,
+    // move autoral pendente (montado em T4, aplicado só na confirmação em T5).
+    gatePendente: null,
   };
 
   // ─── Internos ────────────────────────────────────────────────────────────
@@ -63,6 +67,8 @@
   var _cenario = null;
   var _motor = null;
   var _ordem = null;
+  var _grafoV2 = null;
+  var _cenarioV2 = null;
 
   function notify() {
     _subs.slice().forEach(function (fn) {
@@ -187,6 +193,112 @@
       });
   }
 
+  // ─── COMPOSIÇÃO AUTORAL v2 (linha verde) via PipocaCanonico.composicao ──────
+  // O grafo v2 (docs/quintal.v2.json) é separado do grafo v1 do motor narrativo.
+  function _initComposicao() {
+    fetch("./docs/quintal.v2.json")
+      .then(function (resp) { return resp.json(); })
+      .then(function (j) {
+        _grafoV2 = j || null;
+        _cenarioV2 = j && j.cenario ? j.cenario : null;
+        notify();
+      })
+      .catch(function (e) {
+        console.warn("[PipocaApp] Falha ao carregar quintal.v2.json:", e);
+      });
+  }
+
+  function _comp() {
+    var Canon = window.PipocaCanonico;
+    return Canon && Canon.composicao ? Canon.composicao : null;
+  }
+
+  // Inicia (ou reinicia) uma sessão de composição no cenário v2 (rodada 1).
+  function iniciarComposicao() {
+    var C = _comp();
+    if (!C || !_cenarioV2) return null;
+    var comp = C.iniciar(_cenarioV2, state.modos);
+    setState({ comp: comp });
+    return comp;
+  }
+
+  // R1: coloca e ordena os 3 escolhidos; trava as pontas.
+  function ordenarR1Composicao(ordemIds) {
+    var C = _comp();
+    if (!C || !state.comp) return;
+    setState({ comp: C.ordenarR1(state.comp, ordemIds) });
+  }
+
+  function podeInserirComposicao(objetoId, slotIndex) {
+    var C = _comp();
+    if (!C || !state.comp) return false;
+    return C.podeInserir(state.comp, objetoId, slotIndex);
+  }
+
+  // R2–4: insere 1 objeto no miolo. Retorna true se inseriu.
+  function inserirComposicao(objetoId, slotIndex) {
+    var C = _comp();
+    if (!C || !state.comp) return false;
+    if (!C.podeInserir(state.comp, objetoId, slotIndex)) return false;
+    setState({ comp: C.inserir(state.comp, objetoId, slotIndex) });
+    return true;
+  }
+
+  // Tece a história (abertura + contas + desfecho na última) no nível pedido.
+  function montarComposicao(nivel) {
+    var C = _comp();
+    if (!C || !state.comp) return "";
+    return C.montar(state.comp, nivel);
+  }
+
+  // Após leitura no portão: avança a rodada (revela +1) ou marca convergência.
+  function abrirProximaRodadaComposicao() {
+    var C = _comp();
+    if (!C || !state.comp) return;
+    setState({ comp: C.abrirProximaRodada(state.comp) });
+  }
+
+  function composicaoConvergiu() {
+    var C = _comp();
+    if (!C || !state.comp) return false;
+    return C.convergiu(state.comp);
+  }
+
+  // Metadados (emoji/nome) de um objeto do cenário v2, p/ as telas.
+  function objetoMetaV2(id) {
+    var o = _cenarioV2 && _cenarioV2.objetos ? _cenarioV2.objetos[id] : null;
+    return o
+      ? { id: id, emoji: o.emoji || "✨", nome: o.nome || id }
+      : { id: id, emoji: "✨", nome: id };
+  }
+
+  // Aplica (puro) um move autoral a uma composição, devolvendo a nova composição.
+  // { tipo:"r1", ordem:[ids] } · { tipo:"insere", objetoId, slot }
+  function _aplicarMove(comp, pendente) {
+    var C = _comp();
+    if (!C || !comp || !pendente) return comp;
+    if (pendente.tipo === "r1") return C.ordenarR1(comp, pendente.ordem);
+    if (pendente.tipo === "insere") {
+      if (!C.podeInserir(comp, pendente.objetoId, pendente.slot)) return comp;
+      return C.inserir(comp, pendente.objetoId, pendente.slot);
+    }
+    return comp;
+  }
+
+  // Prévia SEM efeito colateral: tece o texto como ficaria após o move.
+  // (T4 mostra o portão sem consumir a rodada — voltar de T5 é sem perdas.)
+  function preverComposicao(pendente, nivel) {
+    var C = _comp();
+    if (!C || !state.comp) return "";
+    return C.montar(_aplicarMove(state.comp, pendente), nivel);
+  }
+
+  // Aplica de fato o move na composição (chamado no portão, na confirmação).
+  function aplicarComposicao(pendente) {
+    if (!state.comp || !pendente) return;
+    setState({ comp: _aplicarMove(state.comp, pendente) });
+  }
+
   // ─── API pública ──────────────────────────────────────────────────────────
   window.PipocaApp = {
     get estado() { return state; },
@@ -195,14 +307,27 @@
     get motor() { return _motor; },
     get ordem() { return _ordem; },
     get cenario() { return _cenario; },
+    get cenarioV2() { return _cenarioV2; },
     repo: repo,
     verificarPinCuidador: verificarPinCuidador,
     aoVoltarParaCrianca: aoVoltarParaCrianca,
+    // composição autoral v2 (linha verde T2→T7)
+    iniciarComposicao: iniciarComposicao,
+    ordenarR1Composicao: ordenarR1Composicao,
+    podeInserirComposicao: podeInserirComposicao,
+    inserirComposicao: inserirComposicao,
+    montarComposicao: montarComposicao,
+    preverComposicao: preverComposicao,
+    aplicarComposicao: aplicarComposicao,
+    abrirProximaRodadaComposicao: abrirProximaRodadaComposicao,
+    composicaoConvergiu: composicaoConvergiu,
+    objetoMetaV2: objetoMetaV2,
   };
 
   // ─── Inicialização (na borda) ─────────────────────────────────────────────
   repo.carregarPerfis();   // popula cache _perfis (localStorage é síncrono)
   _initMotor();
+  _initComposicao();
   var R0 = window.PipocaRoteador;
   if (R0) R0.irParaTela(2); // o fluxo da criança começa em T2 (roteador inicia em 1)
 })();

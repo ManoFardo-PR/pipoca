@@ -14,6 +14,17 @@ import { validarGrafo } from "../core/grafo/validarGrafo.js";
 import { criarMotor } from "../motores/fabrica.js";
 
 import {
+  iniciar as compIniciar,
+  bancoDaRodada as compBancoDaRodada,
+  podeInserir as compPodeInserir,
+  inserir as compInserir,
+  ordenarR1 as compOrdenarR1,
+  montar as compMontar,
+  abrirProximaRodada as compAbrirProximaRodada,
+  convergiu as compConvergiu,
+} from "../core/composicao.js";
+
+import {
   estadoInicial,
   patchEstado,
   perfilAtivo,
@@ -98,6 +109,18 @@ const PipocaCanonico = {
   // --- narrativa (eixo 1 / seam) ---
   validarGrafo,
   criarMotor,
+
+  // --- composição autoral v2 (linha verde T2→T7) ---
+  composicao: {
+    iniciar: compIniciar,
+    bancoDaRodada: compBancoDaRodada,
+    podeInserir: compPodeInserir,
+    inserir: compInserir,
+    ordenarR1: compOrdenarR1,
+    montar: compMontar,
+    abrirProximaRodada: compAbrirProximaRodada,
+    convergiu: compConvergiu,
+  },
 
   // --- CORE ---
   estado: { estadoInicial, patchEstado, perfilAtivo, nivelAtivo, storyLines },

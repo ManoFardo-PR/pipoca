@@ -1,0 +1,86 @@
+%% Pipoca — Fluxo-alvo completo · v2 (composição por rodada + super admin + configs)
+%% Verde = linha do teste do Pietro · Amarelo = história nascendo · Laranja = cuidador · Cinza = plataforma · Violeta = a11y
+flowchart TD
+    START([App abre · modo criança])
+    HH_LOGIN["HH_LOGIN · login da família (1 conta)"]
+    START --> HH_LOGIN --> T2
+
+    %% ================= LINHA VERDE — a criança (o que o Pietro testa) =================
+    subgraph KID["🟢 LINHA VERDE · a criança"]
+      T2["T2 · Entrada da criança<br/>escolhe avatar · ou 'sou o cuidador'"]
+      T3["T3 · Escolhe o cenário (Quintal)"]
+      T4["T4 · PALCO — compõe a cena"]
+      R1{"é a Rodada 1?"}
+      COMP1["revela 4 objetos<br/>escolhe e ORDENA 3<br/>as pontas TRAVAM (âncoras)"]
+      COMPN["revela +1 objeto<br/>escolhe 1 · insere só no MIOLO"]
+      NASCE["a história CRESCE<br/>abertura + contas na ordem + desfecho"]
+      T5["T5 · Portão de Leitura<br/>lê a história que cresceu (nível do perfil)"]
+      GATE{"leu?"}
+      DICA["dica calorosa · sem X vermelho"]
+      T6["T6 · Recompensa<br/>vaga-lumes + abre a próxima rodada"]
+      CONV{"chegou na Rodada 4?<br/>(história convergiu)"}
+      T7["T7 · Pote / Cardápio<br/>guarda ou troca vaga-lumes"]
+
+      T2 --> T3 --> T4 --> R1
+      R1 -- "sim" --> COMP1
+      R1 -- "não (2ª–4ª)" --> COMPN
+      COMP1 --> NASCE
+      COMPN --> NASCE
+      NASCE --> T5 --> GATE
+      GATE -- "não / imperfeito" --> DICA
+      DICA -.-> T5
+      GATE -- "sim" --> T6 --> CONV
+      CONV -- "não · próximo objeto" --> T4
+      CONV -- "sim · desfecho" --> T7
+      T7 -. "brincar de novo" .-> T3
+    end
+
+    %% ================= CUIDADOR — atrás do PIN =================
+    subgraph CARE["🟠 CUIDADOR · atrás do PIN"]
+      PIN["T1 · Portão parental (PIN)"]
+      PC_HOME["PC_HOME · onboarding / perfis"]
+      PC_PROF["PC_PROF · perfil<br/>nome · idade · nível · avatar"]
+      PC_LIM["PC_LIM · limites (tempo · foco)"]
+      PC_RULES["PC_RULES · regras<br/>verificação · desfecho conv/aberto"]
+      PC_AI["PC_AI · autorizar IA (Motor B) · OFF"]
+      PC_PRIV["PC_PRIV · privacidade (LGPD)"]
+      PC_DASH["PC_DASH · painel de evolução (Tela 8)"]
+      PIN --> PC_HOME
+      PC_HOME --> PC_PROF & PC_LIM & PC_RULES & PC_AI & PC_PRIV & PC_DASH
+    end
+
+    %% ================= PLATAFORMA — super admin (login separado) =================
+    subgraph PLAT["🛡️ PLATAFORMA · Super Admin"]
+      SA_LOGIN["SA_LOGIN · login de plataforma (separado)"]
+      SA_HOME["SA_HOME · painel"]
+      SA_CONTENT["SA_CONTENT · biblioteca de cenários<br/>edita · valida · publica grafos"]
+      SA_AI["SA_AI · provedores de IA<br/>Gemini · OpenAI · Claude"]
+      SA_SAFE["SA_SAFE · guardrails de segurança"]
+      SA_USERS["SA_USERS · contas de família"]
+      SA_LOGIN --> SA_HOME
+      SA_HOME --> SA_CONTENT & SA_AI & SA_SAFE & SA_USERS
+    end
+
+    %% ----- pontes entre territórios -----
+    T2 -- "'sou o cuidador'" --> PIN
+    PC_HOME -. "voltar p/ criança" .-> T2
+    SA_CONTENT -. "publica cenário" .-> T3
+    SA_AI -. "habilita provedor p/ Motor B" .-> PC_AI
+
+    %% ----- overlay de acessibilidade -----
+    A11Y["A11y · painel de acessibilidade (overlay)<br/>fonte · contraste · reduzir movimento"]
+    T3 & T4 & T5 & T7 -. "⚙️ engrenagem" .-> A11Y
+    A11Y -. "fecha" .-> T3
+    A11Y -. "configurações completas" .-> PIN
+
+    classDef verde fill:#cdeccd,stroke:#3f9142,color:#10331a;
+    classDef nasce fill:#fff3c4,stroke:#c9a227,color:#3b2f05;
+    classDef cuidador fill:#ffe2c2,stroke:#c97a2b,color:#3b2410;
+    classDef plataforma fill:#dfe3ea,stroke:#5b6472,color:#1c2129;
+    classDef overlay fill:#e7d8ff,stroke:#7a52c0,color:#241040;
+
+    class T2,T3,T4,T5,T6,T7,R1,GATE,CONV,COMP1,COMPN verde;
+    class NASCE,DICA nasce;
+    class HH_LOGIN,PIN,PC_HOME,PC_PROF,PC_LIM,PC_RULES,PC_AI,PC_PRIV,PC_DASH cuidador;
+    class SA_LOGIN,SA_HOME,SA_CONTENT,SA_AI,SA_SAFE,SA_USERS plataforma;
+    class A11Y overlay;

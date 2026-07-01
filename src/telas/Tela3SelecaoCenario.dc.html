@@ -116,6 +116,8 @@ class Component extends DCLogic {
   escolherCenario(cenarioId) {
     const App = window.PipocaApp;
     if (!cenarioId || !App) return;
+    // v2 · inicia a composição autoral no Quintal (rodada 1).
+    App.iniciarComposicao();
     App.setState({
       historia: { cenarioId, objetos: [], aberta: true },
       tela: 4,

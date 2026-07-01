@@ -3,37 +3,27 @@
   var __getOwnPropNames = Object.getOwnPropertyNames;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
-  function __accessProp(key) {
-    return this[key];
-  }
+  var __moduleCache = /* @__PURE__ */ new WeakMap;
   var __toCommonJS = (from) => {
-    var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+    var entry = __moduleCache.get(from), desc;
     if (entry)
       return entry;
     entry = __defProp({}, "__esModule", { value: true });
-    if (from && typeof from === "object" || typeof from === "function") {
-      for (var key of __getOwnPropNames(from))
-        if (!__hasOwnProp.call(entry, key))
-          __defProp(entry, key, {
-            get: __accessProp.bind(from, key),
-            enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-          });
-    }
+    if (from && typeof from === "object" || typeof from === "function")
+      __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+        get: () => from[key],
+        enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+      }));
     __moduleCache.set(from, entry);
     return entry;
   };
-  var __moduleCache;
-  var __returnValue = (v) => v;
-  function __exportSetter(name, newValue) {
-    this[name] = __returnValue.bind(null, newValue);
-  }
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, {
         get: all[name],
         enumerable: true,
         configurable: true,
-        set: __exportSetter.bind(all, name)
+        set: (newValue) => all[name] = () => newValue
       });
   };
 
@@ -338,6 +328,143 @@
     console.warn("[fabrica] iaLigada=true mas Motor B não está disponível (fase05). " + "Usando Motor A como fallback seguro.");
     const motor = criarMotorA(cenario);
     return { motor, ordem };
+  }
+
+  // src/core/composicao.ts
+  function nivelKey(nivel) {
+    const s = String(nivel ?? "").trim().toLowerCase();
+    if (s === "n1" || s === "n2" || s === "n3" || s === "n4")
+      return s;
+    const d = s.replace(/[^0-9]/g, "");
+    if (d === "1" || d === "2" || d === "3" || d === "4")
+      return "n" + d;
+    return "n2";
+  }
+  function totalRodadas(cenario) {
+    return cenario.rodadas && cenario.rodadas.length || 0;
+  }
+  function reveladosAte(cenario, rodada) {
+    const out = [];
+    for (const r of cenario.rodadas) {
+      if (r.n <= rodada) {
+        for (const id of r.revela)
+          if (out.indexOf(id) === -1)
+            out.push(id);
+      }
+    }
+    return out;
+  }
+  function estaNaUltimaRodada(estado) {
+    return estado.rodada >= totalRodadas(estado.cenario);
+  }
+  function contaComTempera(cenario, objId, linha, nivel) {
+    const obj = cenario.objetos[objId];
+    if (!obj)
+      return "";
+    const temperas = obj.tempera || [];
+    for (const t of temperas) {
+      const cond = String(t.se || "");
+      if (cond.indexOf("tem:") === 0) {
+        const alvo = cond.slice(4);
+        if (alvo !== objId && linha.indexOf(alvo) !== -1) {
+          const txt = t.entao && t.entao[nivel];
+          if (txt)
+            return txt;
+        }
+      }
+    }
+    return obj.conta[nivel] || "";
+  }
+  function textoDesfecho(estado, nivel) {
+    const d = estado.cenario.moldura.desfecho;
+    if (estado.modos && estado.modos.desfecho === "aberto" && d.aberto && d.aberto.length) {
+      const ultimo = estado.linha[estado.linha.length - 1];
+      const match = d.aberto.find((a) => a.se_terminou_com === ultimo);
+      if (match && match.fragmento[nivel])
+        return match.fragmento[nivel];
+    }
+    return d.convergente[nivel] || "";
+  }
+  function iniciar(cenario, modos) {
+    const estado = {
+      cenarioId: cenario.id,
+      rodada: 1,
+      banco: [],
+      linha: [],
+      pontasTravadas: false,
+      historiaTexto: "",
+      convergiu: false,
+      cenario,
+      modos: modos || {}
+    };
+    estado.banco = bancoDaRodada(estado);
+    return estado;
+  }
+  function bancoDaRodada(estado) {
+    const revelados = reveladosAte(estado.cenario, estado.rodada);
+    return revelados.filter((id) => estado.linha.indexOf(id) === -1);
+  }
+  function podeInserir(estado, objetoId, slotIndex) {
+    if (estado.rodada < 2)
+      return false;
+    if (estado.banco.indexOf(objetoId) === -1)
+      return false;
+    if (estado.linha.indexOf(objetoId) !== -1)
+      return false;
+    return slotIndex > 0 && slotIndex < estado.linha.length;
+  }
+  function inserir(estado, objetoId, slotIndex) {
+    if (!podeInserir(estado, objetoId, slotIndex))
+      return estado;
+    const linha = estado.linha.slice();
+    linha.splice(slotIndex, 0, objetoId);
+    const novo = { ...estado, linha };
+    novo.banco = bancoDaRodada(novo);
+    return novo;
+  }
+  function ordenarR1(estado, ordemIds) {
+    const rodada1 = estado.cenario.rodadas.find((r) => r.n === 1);
+    const limite = rodada1 && rodada1.escolhe || 3;
+    const banco = bancoDaRodada({ ...estado, linha: [] });
+    const linha = [];
+    for (const id of ordemIds || []) {
+      if (banco.indexOf(id) !== -1 && linha.indexOf(id) === -1 && linha.length < limite) {
+        linha.push(id);
+      }
+    }
+    const novo = { ...estado, linha, pontasTravadas: true };
+    novo.banco = bancoDaRodada(novo);
+    return novo;
+  }
+  function montar(estado, nivel) {
+    const nk = nivelKey(nivel);
+    const partes = [];
+    const abertura = estado.cenario.moldura.abertura[nk];
+    if (abertura)
+      partes.push(abertura);
+    for (const id of estado.linha) {
+      const conta = contaComTempera(estado.cenario, id, estado.linha, nk);
+      if (conta)
+        partes.push(conta);
+    }
+    if (estaNaUltimaRodada(estado)) {
+      const fim = textoDesfecho(estado, nk);
+      if (fim)
+        partes.push(fim);
+    }
+    return partes.join(" ");
+  }
+  function abrirProximaRodada(estado) {
+    if (estado.rodada >= totalRodadas(estado.cenario)) {
+      return { ...estado, convergiu: true };
+    }
+    const rodada = estado.rodada + 1;
+    const novo = { ...estado, rodada, historiaTexto: "" };
+    novo.banco = bancoDaRodada(novo);
+    return novo;
+  }
+  function convergiu(estado) {
+    return !!estado.convergiu;
   }
 
   // src/core/estado.ts
@@ -1525,6 +1652,16 @@
   var PipocaCanonico = {
     validarGrafo,
     criarMotor,
+    composicao: {
+      iniciar,
+      bancoDaRodada,
+      podeInserir,
+      inserir,
+      ordenarR1,
+      montar,
+      abrirProximaRodada,
+      convergiu
+    },
     estado: { estadoInicial, patchEstado, perfilAtivo, nivelAtivo, storyLines },
     economia: {
       economiaInicial,

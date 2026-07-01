@@ -1,39 +1,30 @@
-<!-- Tela4Heroi.dc.html — Ambiente herói (T4)
-     ────────────────────────────────────────────
-     Duas variações: Palco (imersivo) e Ateliê (estruturado).
-     Ateliê tem a tira/bandeja (puzzle de ordenação).
-     Tira validada → "Ler em voz alta" → T5.
-     Seam: usa motor/ordem via window.PipocaApp (nunca importa motor concreto).
+<!-- Tela4Heroi.dc.html — Palco de composição por rodada (T4) · linha verde v2
+     ────────────────────────────────────────────────────────────────────────
+     Mecânica-coração: a criança COMBINA objetos numa cena; a história nasce do
+     arranjo dela e É a recompensa (cresce a cada leitura no portão).
+       R1 → revela 4 · escolhe e ORDENA 3 · as pontas travam (âncoras).
+       R2–4 → revela +1 · escolhe 1 · insere SÓ no miolo (entre as pontas).
+     "Ler em voz alta" tece a história (montar) e leva ao portão (T5).
+     Sem esteira próximo→próximo. Temperos são sabor, nunca portão.
 -->
 <x-dc>
 <helmet>
   <style>
-    @keyframes pipFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
-    @keyframes pipBloom{0%{transform:scale(.5);opacity:0}55%{transform:scale(1.12);opacity:1}100%{transform:scale(1);opacity:1}}
-    .strip-slot-empty { border: 2px dashed rgba(160,140,110,.4); background: rgba(255,255,255,.3); }
-    .strip-slot-filled { border: 2px solid #c8b090; background: #fffdf7; }
-    .chip-drag { cursor:grab; }
-    .chip-drag:active { cursor:grabbing; }
+    @keyframes pipFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+    @keyframes pipPulse { 0%,100%{box-shadow:0 0 0 0 rgba(232,150,90,.5)} 50%{box-shadow:0 0 0 8px rgba(232,150,90,0)} }
+    .pip-slot-livre { animation: pipPulse 1.8s ease-in-out infinite; }
+    .pip-chip:hover { transform: translateY(-3px); }
   </style>
 </helmet>
 
-<div style="position:absolute;inset:0;display:flex;flex-direction:column;background:#f1e6cf;">
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;background:linear-gradient(180deg,#fdf3df,#f6ead2);">
 
   <!-- App bar -->
-  <div style="height:60px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:rgba(255,255,255,.6);backdrop-filter:blur(8px);border-bottom:1px solid rgba(160,140,110,.18);z-index:6;">
-    <div style="display:flex;align-items:center;gap:13px;">
-      <button onClick="{{ voltarCenarios }}" title="Voltar" style="width:40px;height:40px;border-radius:12px;border:1.5px solid rgba(160,140,110,.25);background:rgba(255,255,255,.7);cursor:pointer;font-size:17px;color:#7a6a54;">←</button>
-      <div>
-        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:#3a4f63;line-height:1;">O Quintal</div>
-        <div style="font-size:11.5px;color:#9a8a72;margin-top:3px;">A Joana e o vaga-lume</div>
-      </div>
-    </div>
-    <div style="display:flex;align-items:center;gap:13px;">
-      <div style="display:flex;gap:3px;background:rgba(140,120,95,.14);border-radius:999px;padding:3px;width:188px;">
-        <button onClick="{{ setVarA }}" style="{{ varAStyle }}">Palco</button>
-        <button onClick="{{ setVarB }}" style="{{ varBStyle }}">Ateliê</button>
-      </div>
-      <div style="display:flex;align-items:center;gap:7px;background:#fff3da;border:1.5px solid #f0d9a8;border-radius:999px;padding:6px 13px 6px 9px;">
+  <div style="height:58px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:rgba(255,255,255,.55);backdrop-filter:blur(8px);border-bottom:1px solid rgba(160,140,110,.18);">
+    <button onClick="{{ voltar }}" style="width:40px;height:40px;border-radius:12px;border:1.5px solid rgba(160,140,110,.25);background:rgba(255,255,255,.7);cursor:pointer;font-size:17px;color:#7a6a54;">←</button>
+    <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:#3a4f63;">O Quintal · Rodada {{ rodadaNum }} de {{ rodadaTotal }}</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="display:flex;align-items:center;gap:7px;background:#fff3da;border:1.5px solid #f0d9a8;border-radius:999px;padding:6px 14px 6px 10px;">
         <div style="width:17px;height:17px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 8px 1px rgba(247,191,96,.7);"></div>
         <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#b8693c;">{{ vagalumes }}</span>
       </div>
@@ -41,166 +32,179 @@
     </div>
   </div>
 
-  <!-- Stage -->
-  <div style="flex:1;min-height:0;position:relative;">
+  <!-- Preparando (grafo v2 ainda carregando) -->
+  <sc-if value="{{ preparando }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;color:#9a8a72;font-family:'Baloo 2',cursive;font-size:18px;">Preparando o quintal…</div>
+  </sc-if>
 
-    <!-- PALCO (variação A) -->
-    <sc-if value="{{ heroIsA }}" hint-placeholder-val="{{ true }}">
-    <div style="position:absolute;inset:0;">
-      <div ref="{{ heroSceneRef }}" style="position:absolute;inset:0;"></div>
-      <div style="position:absolute;top:0;left:0;right:0;height:210px;background:linear-gradient(180deg,rgba(38,24,10,.34),transparent);"></div>
+  <!-- Palco -->
+  <sc-if value="{{ pronto }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:1;min-height:0;display:flex;flex-direction:column;padding:20px 34px 26px;">
 
-      <!-- Story panel -->
-      <div style="position:absolute;top:24px;left:30px;width:430px;background:rgba(255,251,240,.88);backdrop-filter:blur(7px);border-radius:22px;padding:20px 24px;box-shadow:0 14px 32px -12px rgba(40,30,18,.45);">
-        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:13px;letter-spacing:1.3px;text-transform:uppercase;color:#9a8a72;">A história até agora</div>
-        <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;">
-          <sc-for list="{{ storyLines }}" as="sl" hint-placeholder-count="2">
-            <p style="font-size:15px;color:#3a2c20;line-height:1.55;margin:0;">{{ sl.text }}</p>
-          </sc-for>
-        </div>
-      </div>
-
-      <!-- Next object locked -->
-      <div style="position:absolute;bottom:32px;right:34px;display:flex;align-items:center;gap:16px;">
-        <div style="background:rgba(255,251,240,.82);backdrop-filter:blur(6px);border-radius:18px;padding:16px 20px;box-shadow:0 10px 24px -10px rgba(40,30,18,.4);">
-          <div style="font-size:12px;color:#9a8a72;font-weight:700;letter-spacing:.8px;text-transform:uppercase;">Próximo objeto</div>
-          <div style="font-size:28px;margin-top:6px;filter:blur(6px);opacity:.5;">{{ proximoObjeto }}</div>
-        </div>
-        <button onClick="{{ lerEmVozAlta }}" style="{{ readBtnStyle }}">
-          🔊 Ler em voz alta
-        </button>
-      </div>
+    <!-- Instrução da rodada -->
+    <div style="flex-shrink:0;">
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:26px;color:#3a4f63;">{{ instrucaoTitulo }}</div>
+      <p style="font-size:14.5px;color:#8a7a64;margin-top:3px;max-width:640px;">{{ instrucaoAjuda }}</p>
     </div>
-    </sc-if>
 
-    <!-- ATELIÊ (variação B) -->
-    <sc-if value="{{ heroIsB }}" hint-placeholder-val="{{ false }}">
-    <div style="position:absolute;inset:0;display:flex;gap:0;">
-
-      <!-- Scene panel -->
-      <div style="width:340px;flex-shrink:0;position:relative;overflow:hidden;border-right:1px solid rgba(160,140,110,.18);">
-        <div ref="{{ heroSceneRefB }}" style="position:absolute;inset:0;"></div>
-        <div style="position:absolute;inset:0;background:rgba(241,230,207,.15);"></div>
-      </div>
-
-      <!-- Story + tira -->
-      <div style="flex:1;min-width:0;padding:22px 26px;overflow-y:auto;display:flex;flex-direction:column;gap:16px;">
-
-        <!-- Story lines -->
-        <div style="background:#fffdf7;border-radius:18px;padding:16px 20px;box-shadow:0 8px 20px -12px rgba(74,59,44,.25);">
-          <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:12px;letter-spacing:1.3px;text-transform:uppercase;color:#9a8a72;">A história até agora</div>
-          <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">
-            <sc-for list="{{ storyLines }}" as="sl" hint-placeholder-count="2">
-              <p style="font-size:15px;color:#3a2c20;line-height:1.55;margin:0;">{{ sl.text }}</p>
-            </sc-for>
-          </div>
-        </div>
-
-        <!-- Tira (strip) -->
-        <div style="background:#fffdf7;border-radius:18px;padding:16px 20px;box-shadow:0 8px 20px -12px rgba(74,59,44,.25);">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-            <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:14px;color:#5a4a3a;">Monte a ordem da história</div>
-            <div style="{{ storyMsgStyle }}">{{ storyMsgText }}</div>
-          </div>
-
-          <!-- Strip slots -->
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;"
-               onDragOver="{{ tiraOnDragOver }}" onDrop="{{ tiraOnDrop }}">
-            <sc-for list="{{ stripSlots }}" as="slot" hint-placeholder-count="3">
-              <div onDrop="{{ slot.onDrop }}" onDragOver="{{ slot.onOver }}"
-                   style="width:140px;min-height:72px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:10px;{{ slot.slotStyle }}">
-                <sc-if value="{{ slot.filled }}" hint-placeholder-val="{{ false }}">
-                  <span style="font-size:24px;">{{ slot.emoji }}</span>
-                  <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:13px;color:#3a2c20;">{{ slot.nome }}</span>
-                  <button onClick="{{ slot.devolver }}" style="font-size:10px;color:#9a8a72;background:none;border:none;cursor:pointer;padding:2px 6px;">↩ devolver</button>
-                </sc-if>
-                <sc-if value="{{ slot.empty }}" hint-placeholder-val="{{ false }}">
-                  <span style="font-size:12px;color:#c0b09a;font-weight:600;">{{ slot.num }}º</span>
-                </sc-if>
-              </div>
-            </sc-for>
-          </div>
-
-          <!-- Tray (bandeja) -->
-          <div style="border-top:1px solid rgba(160,140,110,.18);padding-top:14px;">
-            <div style="font-size:12px;color:#9a8a72;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;">Objetos disponíveis</div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;"
-                 onDragOver="{{ bandejaOnDragOver }}" onDrop="{{ bandejaOnDrop }}">
-              <sc-for list="{{ bandejaChips }}" as="chip" hint-placeholder-count="3">
-                <div draggable="true"
-                     onDragStart="{{ chip.onDragStart }}"
-                     onClick="{{ chip.onTap }}"
-                     style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;border:2px solid #e3d4ba;background:#fffdf7;cursor:grab;box-shadow:0 4px 10px -6px rgba(74,59,44,.3);min-height:44px;" class="chip-drag">
-                  <span style="font-size:20px;">{{ chip.emoji }}</span>
-                  <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:14px;color:#3a2c20;">{{ chip.nome }}</span>
-                </div>
-              </sc-for>
+    <!-- A cena que você está montando (a linha) -->
+    <div style="flex-shrink:0;margin-top:16px;background:linear-gradient(180deg,#fbeecf,#f6e3bf);border:2px dashed rgba(200,156,108,.5);border-radius:22px;padding:18px;min-height:132px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;">
+      <sc-for list="{{ linhaCells }}" as="cell" hint-placeholder-count="3">
+        <div style="{{ cell.wrapStyle }}">
+          <!-- lacuna de inserção (miolo, R2-4) -->
+          <sc-if value="{{ cell.ehGap }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ cell.onGap }}" title="Colocar aqui no meio" style="{{ cell.gapStyle }}">{{ cell.gapLabel }}</button>
+          </sc-if>
+          <!-- carta de objeto colocado -->
+          <sc-if value="{{ cell.ehCarta }}" hint-placeholder-val="{{ true }}">
+          <div style="{{ cell.cardStyle }}">
+            <sc-if value="{{ cell.travada }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#c8956c;color:#fff;border-radius:999px;padding:1px 9px;font-size:10px;font-weight:800;letter-spacing:.4px;white-space:nowrap;">🔒 âncora</div>
+            </sc-if>
+            <div style="font-size:38px;line-height:1;">{{ cell.emoji }}</div>
+            <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:13px;color:#5a4632;margin-top:4px;">{{ cell.nome }}</div>
+            <!-- controles R1 (mover / tirar) -->
+            <sc-if value="{{ cell.editavel }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:4px;margin-top:7px;">
+              <button onClick="{{ cell.mover_esq }}" title="Mover para trás" style="{{ cell.miniBtn }}">◀</button>
+              <button onClick="{{ cell.tirar }}" title="Tirar" style="{{ cell.miniBtnX }}">✕</button>
+              <button onClick="{{ cell.mover_dir }}" title="Mover para frente" style="{{ cell.miniBtn }}">▶</button>
             </div>
+            </sc-if>
           </div>
+          </sc-if>
+          <!-- slot vazio (R1) -->
+          <sc-if value="{{ cell.ehVazio }}" hint-placeholder-val="{{ false }}">
+          <div class="{{ cell.vazioAnim }}" style="{{ cell.vazioStyle }}">{{ cell.ordinal }}</div>
+          </sc-if>
         </div>
+      </sc-for>
+    </div>
 
-        <!-- Ler em voz alta -->
-        <button onClick="{{ lerEmVozAlta }}" style="{{ readBtnStyle }}">
-          🔊 Ler em voz alta
-        </button>
-
+    <!-- Banco: as coisas do quintal -->
+    <div style="flex:1;min-height:0;margin-top:18px;display:flex;flex-direction:column;">
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#7a6a54;flex-shrink:0;">{{ bancoTitulo }}</div>
+      <div style="flex:1;min-height:0;margin-top:12px;display:flex;flex-wrap:wrap;gap:14px;align-content:flex-start;">
+        <sc-for list="{{ bancoChips }}" as="chip" hint-placeholder-count="4">
+          <button onClick="{{ chip.onTap }}" class="pip-chip" style="{{ chip.style }}">
+            <div style="font-size:40px;line-height:1;">{{ chip.emoji }}</div>
+            <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:14px;color:#5a4632;margin-top:5px;">{{ chip.nome }}</div>
+          </button>
+        </sc-for>
       </div>
     </div>
-    </sc-if>
+
+    <!-- Ação: ler em voz alta -->
+    <div style="flex-shrink:0;margin-top:8px;display:flex;align-items:center;gap:14px;">
+      <div style="flex:1;font-size:13.5px;color:#9a8a72;">{{ dica }}</div>
+      <button onClick="{{ lerEmVozAlta }}" disabled="{{ lerDisabled }}" style="{{ lerBtnStyle }}">📖 Ler em voz alta →</button>
+    </div>
 
   </div>
+  </sc-if>
 </div>
 
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
   state = {
-    heroVariant: 'A',
-    strip: [],
-    _dragId: null,
+    arranjo: [],   // R1: ordem de trabalho (ids) antes de confirmar
+    selObj: null,  // R2-4: objeto escolhido no banco
+    selSlot: null, // R2-4: posição escolhida no miolo
   };
-
-  _inject(el, html) { if (el && el._k !== html) { el.innerHTML = html; el._k = html; } }
-
-  _scene(key) {
-    const S = {
-      quintal: "<svg viewBox='0 0 400 300' width='100%' height='100%' preserveAspectRatio='xMidYMid slice' xmlns='http://www.w3.org/2000/svg'><defs><linearGradient id='qsky2' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#fce7bd'/><stop offset='.55' stop-color='#f8d291'/><stop offset='1' stop-color='#f4ba74'/></linearGradient><radialGradient id='qsun2' cx='.5' cy='.5' r='.5'><stop offset='0' stop-color='#fff8e2'/><stop offset='.55' stop-color='#ffe49e'/><stop offset='1' stop-color='#ffe49e' stop-opacity='0'/></radialGradient><filter id='qsof2' x='-30%' y='-30%' width='160%' height='160%'><feGaussianBlur stdDeviation='2.2'/></filter></defs><rect width='400' height='300' fill='url(#qsky2)'/><circle cx='305' cy='86' r='74' fill='url(#qsun2)'/><circle cx='305' cy='86' r='30' fill='#fff3d0'/><path d='M0 208 Q120 168 240 203 T400 198 V300 H0 Z' fill='#c2d693' opacity='.92'/><path d='M0 234 Q140 206 280 231 T400 229 V300 H0 Z' fill='#a6c372'/><rect y='250' width='400' height='50' fill='#90b65d'/><rect x='86' y='150' width='16' height='92' rx='6' fill='#9d6d43'/><g filter='url(#qsof2)'><circle cx='94' cy='139' r='43' fill='#7da94f'/><circle cx='64' cy='155' r='28' fill='#8db75b'/><circle cx='122' cy='156' r='30' fill='#6f9a49'/></g><g fill='#c89c6c'><rect x='250' y='205' width='12' height='48' rx='3'/><rect x='285' y='205' width='12' height='48' rx='3'/></g><rect x='245' y='214' width='60' height='8' rx='4' fill='#ba8c5b'/></svg>",
-    };
-    return S[key] || S.quintal;
-  }
 
   _getApp() { return window.PipocaApp; }
 
-  _getEstado() {
+  componentDidMount() { this._sync(); }
+  componentDidUpdate() { this._sync(); }
+
+  // Inicia a composição se necessário e reseta o rascunho local a cada rodada nova.
+  _sync() {
     const App = this._getApp();
-    return App ? App.estado : { historia: { objetos: [], cenarioId: '' }, economia: { vagalumes: 0 }, modos: { palco: 'Palco', verificacao: 'cuidador', desfecho: 'convergente' }, a11y: { reduceMotion: false }, perfil: null };
+    if (!App) return;
+    const comp = App.estado.comp;
+    if (!comp) {
+      if (App.cenarioV2 && !this._triedInit) {
+        this._triedInit = true;
+        App.iniciarComposicao();
+      }
+      return;
+    }
+    if (this._rodada !== comp.rodada) {
+      this._rodada = comp.rodada;
+      this.setState({ arranjo: [], selObj: null, selSlot: null });
+    }
   }
 
-  _getCenario() {
+  _meta(id) {
     const App = this._getApp();
-    return App ? App.cenario : null;
+    return App && App.objetoMetaV2 ? App.objetoMetaV2(id) : { id, emoji: '✨', nome: id };
   }
 
-  _getMotor() {
+  // ── R1: escolher e ordenar 3 ──────────────────────────────────────────────
+  _addArranjo(id) {
+    const a = this.state.arranjo;
+    if (a.indexOf(id) !== -1 || a.length >= 3) return;
+    this.setState({ arranjo: a.concat([id]) });
+  }
+  _tirarArranjo(id) {
+    this.setState({ arranjo: this.state.arranjo.filter(x => x !== id) });
+  }
+  _moverArranjo(id, dir) {
+    const a = this.state.arranjo.slice();
+    const i = a.indexOf(id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= a.length) return;
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+    this.setState({ arranjo: a });
+  }
+
+  // ── R2-4: escolher 1 e inserir no miolo ───────────────────────────────────
+  _selecionarObj(id) {
+    this.setState({ selObj: this.state.selObj === id ? null : id });
+  }
+  _selecionarSlot(slot) {
+    if (!this.state.selObj) return;
+    this.setState({ selSlot: slot });
+  }
+
+  lerEmVozAlta() {
     const App = this._getApp();
-    return App ? App.motor : null;
+    if (!App) return;
+    const comp = App.estado.comp;
+    if (!comp) return;
+    const perfil = App.estado.perfil;
+    const nivel = (perfil && perfil.nivel) || 'n2';
+
+    // Monta um MOVE pendente — sem consumir a rodada. A composição só é
+    // aplicada na confirmação da leitura (T5), para que voltar seja sem perdas.
+    let pendente, objParaGate;
+    if (comp.rodada === 1) {
+      if (this.state.arranjo.length !== 3) return;
+      pendente = { tipo: 'r1', ordem: this.state.arranjo.slice() };
+      objParaGate = this.state.arranjo[this.state.arranjo.length - 1];
+    } else {
+      const { selObj, selSlot } = this.state;
+      if (!selObj || selSlot == null) return;
+      if (!App.podeInserirComposicao(selObj, selSlot)) return;
+      pendente = { tipo: 'insere', objetoId: selObj, slot: selSlot };
+      objParaGate = selObj;
+    }
+
+    const texto = App.preverComposicao(pendente, nivel);
+    App.setState({
+      gatePendente: pendente,
+      gateObjId: objParaGate,
+      gateTrecho: texto,
+      gatePalavraIdx: 0,
+      gateStage: 'reading',
+      tela: 5,
+    });
+    const R = window.PipocaRoteador;
+    if (R) R.irParaTela(5);
   }
 
-  _getOrdem() {
-    const App = this._getApp();
-    return App ? App.ordem : null;
-  }
-
-  componentDidMount() { this._renderScene(); }
-  componentDidUpdate() { this._renderScene(); }
-
-  _renderScene() {
-    const svg = this._scene('quintal');
-    if (this._heroSceneEl) this._inject(this._heroSceneEl, svg);
-    if (this._heroSceneElB) this._inject(this._heroSceneElB, svg);
-  }
-
-  voltarCenarios() {
+  voltar() {
     const App = this._getApp();
     if (App) App.setState({ tela: 3 });
     const R = window.PipocaRoteador;
@@ -212,157 +216,157 @@ class Component extends DCLogic {
     if (App) App.setState({ showA11y: true });
   }
 
-  setVarA() { this.setState({ heroVariant: 'A' }); }
-  setVarB() { this.setState({ heroVariant: 'B' }); }
-
-  _placeInStrip(id) {
-    const cenario = this._getCenario();
-    if (!cenario) return;
-    const todos = cenario.objetos.map(o => o.id);
-    const commitados = new Set(this._getEstado().historia.objetos);
-    const bandeja = todos.filter(x => !commitados.has(x) && !this.state.strip.includes(x));
-    if (!bandeja.includes(id)) return;
-    this.setState({ strip: [...this.state.strip, id] });
-    this._checkStory([...this.state.strip, id]);
-  }
-
-  _returnToTray(id) {
-    this.setState({ strip: this.state.strip.filter(x => x !== id) });
-    this._checkStory(this.state.strip.filter(x => x !== id));
-  }
-
-  _checkStory(strip) {
-    const ordem = this._getOrdem();
-    if (!ordem) return;
-    const resultado = ordem.validar(strip);
-    const App = this._getApp();
-    if (App) App.setState({ storyMsg: resultado });
-  }
-
-  lerEmVozAlta() {
-    const App = this._getApp();
-    const ordem = this._getOrdem();
-    if (!App || !ordem) return;
-    const strip = this.state.strip;
-    const resultado = ordem ? ordem.validar(strip) : { ok: false };
-    if (!resultado.ok) return;
-
-    const estado = this._getEstado();
-    const cenario = this._getCenario();
-    const motor = this._getMotor();
-    const nivel = estado.perfil ? estado.perfil.nivel : 'n1';
-    const historia = estado.historia.objetos;
-    const proximoId = strip.find(id => !historia.includes(id));
-
-    if (!proximoId) return;
-
-    const trecho = motor ? motor.aoAdicionarObjeto(historia, proximoId, nivel) : { texto: '' };
-    App.setState({ gateObjId: proximoId, gateTrecho: trecho.texto, gatePalavraIdx: 0, gateStage: 'reading', tela: 5 });
-    const R = window.PipocaRoteador;
-    if (R) R.irParaTela(5);
-  }
-
   renderVals() {
-    const estado = this._getEstado();
-    const cenario = this._getCenario();
-    const motor = this._getMotor();
     const App = this._getApp();
-    const a11y = estado.a11y || {};
-    const heroVariant = this.state.heroVariant;
-    const heroIsA = heroVariant === 'A';
-    const heroIsB = heroVariant === 'B';
-
-    const varTab = (on) => 'flex:1;padding:7px 14px;border-radius:999px;border:none;cursor:pointer;font-family:"Nunito",sans-serif;font-weight:800;font-size:12.5px;color:'+(on?'#2d5681':'#8a7a64')+';background:'+(on?'#fff':'transparent')+';'+(on?'box-shadow:0 2px 6px rgba(0,0,0,.14);':'');
-
-    const nivel = estado.perfil ? estado.perfil.nivel : 'n1';
-    const historiaObjetos = estado.historia ? estado.historia.objetos : [];
-
-    const storyLines = [];
-    if (motor) {
-      const abertura = motor.abertura(nivel);
-      storyLines.push({ text: abertura.texto });
-      const hist = [];
-      for (const id of historiaObjetos) {
-        const t = motor.aoAdicionarObjeto(hist, id, nivel);
-        hist.push(id);
-        if (t.texto) storyLines.push({ text: t.texto });
-      }
-    } else {
-      storyLines.push({ text: 'A noite chegou no quintal, e a Joana foi ver.' });
-    }
-
-    const todos = cenario ? cenario.objetos.map(o => o.id) : ['vagalume','frasco','vento'];
-    const commitados = new Set(historiaObjetos);
-    const bandejaIds = todos.filter(id => !commitados.has(id) && !this.state.strip.includes(id));
-
-    const _objMeta = (id) => {
-      if (!cenario) return { id, emoji:'🪲', nome: id };
-      const obj = cenario.objetos.find(o => o.id === id);
-      return obj ? { id, emoji: obj.emoji, nome: obj.nome } : { id, emoji:'?', nome: id };
-    };
-
-    const bandejaChips = bandejaIds.map(id => {
-      const meta = _objMeta(id);
-      return {
-        emoji: meta.emoji,
-        nome: meta.nome,
-        onDragStart: (e) => { e.dataTransfer && e.dataTransfer.setData('text/plain', id); this.setState({ _dragId: id }); },
-        onTap: () => this._placeInStrip(id),
-      };
-    });
-
-    const stripSize = todos.filter(id => !commitados.has(id)).length;
-    const stripSlots = Array.from({ length: stripSize }, (_, i) => {
-      const id = this.state.strip[i] || null;
-      const meta = id ? _objMeta(id) : null;
-      return {
-        num: i + 1,
-        filled: !!id,
-        empty: !id,
-        emoji: meta ? meta.emoji : '',
-        nome: meta ? meta.nome : '',
-        slotStyle: id ? 'border:2px solid #c8b090;background:#fffdf7;' : 'border:2px dashed rgba(160,140,110,.4);background:rgba(255,255,255,.3);',
-        onDrop: (e) => { e.preventDefault(); const d = (e.dataTransfer && e.dataTransfer.getData('text/plain')) || this.state._dragId; if (d) this._placeInStrip(d); },
-        onOver: (e) => e.preventDefault(),
-        devolver: id ? (() => this._returnToTray(id)) : (() => {}),
-      };
-    });
-
-    const storyMsgData = App ? App.estado.storyMsg : null;
-    const storyOk = storyMsgData && storyMsgData.ok;
-    const storyMsgText = storyOk ? 'Tira pronta! Hora de ler. 🌟' : (storyMsgData && storyMsgData.dica ? storyMsgData.dica : 'Arraste os objetos para montar a história.');
-    const storyMsgStyle = 'font-size:13px;font-weight:700;max-width:230px;text-align:right;line-height:1.35;color:' + (storyOk ? '#4f7a3f' : '#a9824e') + ';';
-
-    const readBtnStyle = 'display:flex;align-items:center;justify-content:center;gap:9px;padding:15px 28px;border:none;border-radius:16px;cursor:'+(storyOk?'pointer':'not-allowed')+';font-family:"Baloo 2",cursive;font-weight:700;font-size:18px;color:#fff;background:linear-gradient(150deg,#e8965a,#d5713f);box-shadow:0 8px 20px -6px rgba(181,86,40,.55);'+(storyOk?'':'filter:saturate(.5);opacity:.7;');
-
-    const proximoIdx = historiaObjetos.length;
-    const proximoId = todos[proximoIdx] || null;
-    const proximoMeta = proximoId ? _objMeta(proximoId) : null;
-    const proximoObjeto = proximoMeta ? proximoMeta.emoji : '🌟';
-
+    const estado = App ? App.estado : {};
+    const comp = estado.comp || null;
     const vagalumes = estado.economia ? estado.economia.vagalumes : 0;
 
+    const preparando = !comp;
+    const pronto = !!comp;
+
+    const rodadaNum = comp ? comp.rodada : 1;
+    const rodadaTotal = comp && comp.cenario && comp.cenario.rodadas ? comp.cenario.rodadas.length : 4;
+    const ehR1 = !comp || comp.rodada === 1;
+
+    const miniBtn = 'width:26px;height:26px;border-radius:8px;border:1.5px solid rgba(160,140,110,.3);background:rgba(255,255,255,.85);cursor:pointer;font-size:12px;color:#7a6a54;display:flex;align-items:center;justify-content:center;';
+    const miniBtnX = miniBtn + 'color:#c25e33;';
+
+    const cardBase = 'position:relative;width:104px;min-height:96px;border-radius:18px;background:rgba(255,255,255,.92);box-shadow:0 8px 20px -12px rgba(74,59,44,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;';
+
+    let instrucaoTitulo, instrucaoAjuda, bancoTitulo, dica, linhaCells = [], bancoChips = [], lerDisabled;
+
+    if (ehR1) {
+      // ── RODADA 1 · escolher e ordenar 3 ──
+      instrucaoTitulo = 'Monte sua cena';
+      instrucaoAjuda = 'Escolha 3 coisas do quintal e coloque na ordem que você quiser. As pontas viram âncoras da história.';
+      bancoTitulo = 'As coisas do quintal — toque para colocar na cena';
+      const arranjo = this.state.arranjo;
+
+      const ordinais = ['1º', '2º', '3º'];
+      for (let i = 0; i < 3; i++) {
+        const id = arranjo[i];
+        if (id) {
+          const m = this._meta(id);
+          linhaCells.push({
+            wrapStyle: 'display:flex;align-items:center;',
+            ehCarta: true, ehGap: false, ehVazio: false,
+            travada: false, editavel: true,
+            emoji: m.emoji, nome: m.nome,
+            cardStyle: cardBase,
+            miniBtn, miniBtnX,
+            mover_esq: () => this._moverArranjo(id, -1),
+            mover_dir: () => this._moverArranjo(id, +1),
+            tirar: () => this._tirarArranjo(id),
+          });
+        } else {
+          linhaCells.push({
+            wrapStyle: 'display:flex;align-items:center;',
+            ehCarta: false, ehGap: false, ehVazio: true,
+            ordinal: ordinais[i],
+            vazioAnim: i === arranjo.length ? 'pip-slot-livre' : '',
+            vazioStyle: 'width:104px;min-height:96px;border-radius:18px;border:2px dashed rgba(160,140,110,.45);display:flex;align-items:center;justify-content:center;font-family:"Baloo 2",cursive;font-weight:700;font-size:20px;color:rgba(122,106,84,.55);',
+          });
+        }
+      }
+
+      const banco = comp ? comp.banco : [];
+      bancoChips = banco
+        .filter(id => arranjo.indexOf(id) === -1)
+        .map(id => {
+          const m = this._meta(id);
+          const cheio = arranjo.length >= 3;
+          return {
+            emoji: m.emoji, nome: m.nome,
+            onTap: cheio ? (() => {}) : (() => this._addArranjo(id)),
+            style: 'width:108px;min-height:104px;border:1.5px solid rgba(200,156,108,.4);border-radius:18px;background:#fffdf7;box-shadow:0 8px 18px -12px rgba(74,59,44,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;transition:transform .12s ease;cursor:' + (cheio ? 'not-allowed' : 'pointer') + ';' + (cheio ? 'opacity:.5;' : ''),
+          };
+        });
+
+      lerDisabled = arranjo.length !== 3;
+      dica = lerDisabled ? 'Coloque 3 coisas para poder ler.' : 'Prontinho! Toque para ler a sua história.';
+
+    } else {
+      // ── RODADA 2-4 · escolher 1 e inserir no miolo ──
+      instrucaoTitulo = 'A história cresceu! Coloque mais uma coisa';
+      instrucaoAjuda = 'Escolha 1 coisa do banco e coloque no meio da cena (entre as âncoras). Depois leia a história maior.';
+      bancoTitulo = 'Escolha 1 para juntar ao meio';
+      const linha = comp.linha;
+      const selObj = this.state.selObj;
+      const selSlot = this.state.selSlot;
+      const temSel = !!selObj;
+
+      linha.forEach((id, idx) => {
+        // lacuna de inserção ANTES de cada carta a partir da 2ª (miolo: 1..len-1)
+        if (idx >= 1) {
+          const ativo = selSlot === idx && temSel;
+          if (ativo) {
+            const m = this._meta(selObj);
+            linhaCells.push({
+              wrapStyle: 'display:flex;align-items:center;',
+              ehCarta: true, ehGap: false, ehVazio: false,
+              travada: false, editavel: false,
+              emoji: m.emoji, nome: m.nome,
+              cardStyle: cardBase + 'outline:3px solid #e8965a;outline-offset:2px;',
+              miniBtn, miniBtnX,
+              mover_esq: () => {}, mover_dir: () => {}, tirar: () => {},
+            });
+          } else {
+            linhaCells.push({
+              wrapStyle: 'display:flex;align-items:center;',
+              ehCarta: false, ehVazio: false, ehGap: true,
+              gapLabel: temSel ? '+' : '·',
+              onGap: temSel ? (() => this._selecionarSlot(idx)) : (() => {}),
+              gapStyle: 'width:40px;min-height:96px;border-radius:14px;border:2px dashed ' + (temSel ? 'rgba(232,150,90,.75)' : 'rgba(160,140,110,.3)') + ';background:' + (temSel ? 'rgba(232,150,90,.1)' : 'transparent') + ';cursor:' + (temSel ? 'pointer' : 'default') + ';font-size:22px;font-weight:800;color:' + (temSel ? '#c25e33' : 'rgba(122,106,84,.4)') + ';display:flex;align-items:center;justify-content:center;',
+            });
+          }
+        }
+        const m = this._meta(id);
+        const ponta = idx === 0 || idx === linha.length - 1;
+        linhaCells.push({
+          wrapStyle: 'display:flex;align-items:center;',
+          ehCarta: true, ehGap: false, ehVazio: false,
+          travada: ponta, editavel: false,
+          emoji: m.emoji, nome: m.nome,
+          cardStyle: cardBase + (ponta ? 'background:rgba(250,238,207,.95);' : ''),
+          miniBtn, miniBtnX,
+          mover_esq: () => {}, mover_dir: () => {}, tirar: () => {},
+        });
+      });
+
+      bancoChips = (comp.banco || []).map(id => {
+        const m = this._meta(id);
+        const sel = selObj === id;
+        return {
+          emoji: m.emoji, nome: m.nome,
+          onTap: () => this._selecionarObj(id),
+          style: 'width:108px;min-height:104px;border:2px solid ' + (sel ? '#e8965a' : 'rgba(200,156,108,.4)') + ';border-radius:18px;background:' + (sel ? '#fff1e2' : '#fffdf7') + ';box-shadow:0 8px 18px -12px rgba(74,59,44,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;transition:transform .12s ease;cursor:pointer;',
+        };
+      });
+
+      const podeLer = temSel && selSlot != null;
+      lerDisabled = !podeLer;
+      dica = !temSel
+        ? 'Escolha 1 coisa no banco.'
+        : (selSlot == null ? 'Agora toque no “+” no meio da cena.' : 'Prontinho! Toque para ler a história maior.');
+    }
+
+    const lerBtnStyle = 'padding:15px 26px;border:none;border-radius:16px;font-family:"Baloo 2",cursive;font-weight:700;font-size:17px;white-space:nowrap;'
+      + (lerDisabled
+        ? 'background:#ece2cf;color:#a8997e;cursor:not-allowed;'
+        : 'background:linear-gradient(150deg,#e8965a,#d5713f);color:#fff;cursor:pointer;box-shadow:0 8px 20px -6px rgba(181,86,40,.5);');
+
     return {
+      preparando, pronto,
+      rodadaNum, rodadaTotal,
       vagalumes,
-      heroIsA, heroIsB,
-      varAStyle: varTab(heroIsA), varBStyle: varTab(heroIsB),
-      setVarA: () => this.setVarA(), setVarB: () => this.setVarB(),
-      heroSceneRef: (el) => { this._heroSceneEl = el; if (el) this._inject(el, this._scene('quintal')); },
-      heroSceneRefB: (el) => { this._heroSceneElB = el; if (el) this._inject(el, this._scene('quintal')); },
-      storyLines,
-      proximoObjeto,
-      stripSlots,
-      bandejaChips,
-      storyMsgText,
-      storyMsgStyle,
-      readBtnStyle,
+      instrucaoTitulo, instrucaoAjuda,
+      bancoTitulo, dica,
+      linhaCells, bancoChips,
+      lerDisabled, lerBtnStyle,
       lerEmVozAlta: () => this.lerEmVozAlta(),
-      voltarCenarios: () => this.voltarCenarios(),
+      voltar: () => this.voltar(),
       abrirAjustesA11y: () => this.abrirAjustesA11y(),
-      tiraOnDragOver: (e) => e.preventDefault(),
-      tiraOnDrop: (e) => { e.preventDefault(); },
-      bandejaOnDragOver: (e) => e.preventDefault(),
-      bandejaOnDrop: (e) => { e.preventDefault(); const d = (e.dataTransfer && e.dataTransfer.getData('text/plain')) || this.state._dragId; if (d) this._returnToTray(d); },
     };
   }
 }

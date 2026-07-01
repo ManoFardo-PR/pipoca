@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<!--
+  Pipoca · index.v2 (SCAFFOLD)
+  ============================
+  Alvo pra a IA reprocessar. NÃO é o arquivo final — é a ESTRUTURA correta com
+  os call-sites na sequência v2 e placeholders em posição.
+
+  O que este scaffold assume (fatos do repo atual):
+   • O motor JÁ é canônico via bundle: window.PipocaCanonico.{validarGrafo,criarMotor,...}
+     (o Marco 1 removeu o motor inline — não há mais monolito de motor a extrair).
+   • O que muda no v2 é SÓ o fluxo da criança (T3→T4→T5→T6): sai o `tiraStrip`
+     (v1, "organiza sequência") e entra a COMPOSIÇÃO POR RODADA.
+   • Um seam NOVO carrega a mecânica v2: window.PipocaCanonico.composicao.*
+     — a construir no próximo passo (validador/motor v2). Aqui só as chamadas.
+   • PIN/acesso, onboarding, a11y, pote, telemetria, economia: MANTIDOS via seam
+     existente. Marcados como <<mantém o atual>> pra não reescrever o que funciona.
+-->
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Pipoca</title>
+  <script src="./support.js"></script>
+  <script src="./src/core/roteador.js"></script>
+  <!-- Motor + composição v2 canônicos (src/) empacotados. Carrega ANTES do app. -->
+  <script src="./pipoca.bundle.js"></script>
+  <!-- <style> … mantém o atual … --> </head>
+<body>
+  <!-- App content fullscreen — mantém o shell atual (holes do dc-runtime) -->
+
+<script type="text/x-dc" data-dc-script data-props='{"dev":{"editor":"boolean","default":true,"section":"Shell","label":"Jumper de telas (dev)"}}'>
+class Component extends DCLogic {
+
+  // ─── Estado do app ──────────────────────────────────────────────────────────
+  state = {
+    tela: 2,
+    perfil: null,
+    modos: { palco: 'Palco', desfecho: 'convergente', verificacao: 'cuidador', iaLigada: false },
+    economia: { vagalumes: 0, poupado: 0 },
+    a11y: { textScale: 1, dyslexia: false, contrast: false, reduceMotion: false },
+
+    // ─── T3/T4 · COMPOSIÇÃO POR RODADA (v2) — substitui o tiraStrip do v1 ───
+    comp: {
+      cenarioId: 'quintal_anoitecer',
+      rodada: 1,               // 1..4
+      banco: [],               // objetos revelados disponíveis (revela + sobras)
+      linha: [],               // objetos colocados, EM ORDEM (índices das pontas travam após R1)
+      pontasTravadas: false,
+      _selObj: null,           // objeto mirado no banco
+      _selSlot: null,          // slot do miolo mirado
+      historiaTexto: '',       // história tecida p/ ler no portão
+    },
+
+    // ─── T5 · portão ── (mantém o padrão atual de leitura palavra-a-palavra)
+    gate: { palavraIdx: 0, stage: 'reading', earned: 3 },
+
+    // overlays
+    showA11y: false, showOnboarding: false, _t1Pin: '', _t1Dica: '',
+  };
+
+  // ============================================================================
+  //  SETUP · componentDidMount
+  // ============================================================================
+  componentDidMount() {
+    const Canon = window.PipocaCanonico;
+
+    // 1) Motor narrativo canônico (mantém o atual — lei do contrato) ------------
+    const grafoRaw = /* TODO: carregar o grafo do cenário selecionado (v2) */ null;
+    const g = (Canon && grafoRaw) ? Canon.validarGrafo(grafoRaw) : null;
+    if (g) {
+      const par = Canon.criarMotor(g.cenario, this.state.modos);
+      this._motor = par.motor;     // A↔B trocam SÓ aqui
+      this._ordem = par.ordem;
+    }
+
+    // 2) NOVO · sessão de composição v2 -----------------------------------------
+    //    inicia rodada 1, monta o banco inicial (revela 4), linha vazia.
+    // TODO(v2): this._comp = Canon.composicao.iniciar(g.cenario, this.state.modos);
+    //           this.setState({ comp: { ...this.state.comp, banco: this._comp.banco } });
+
+    // 3) roteador começa em 1 (cuidador); fluxo da criança começa em T2 --------
+    // <<mantém o atual>>
+  }
+
+  // ============================================================================
+  //  T3 · seleção de cenário  →  inicia composição e vai pro Palco
+  // ============================================================================
+  _t3EscolherCenario(cenarioId) {
+    // TODO(v2): buscar grafo do cenário, validarGrafo, criarMotor, composicao.iniciar
+    const comp = { ...this.state.comp, cenarioId, rodada: 1, linha: [], pontasTravadas: false };
+    // TODO(v2): comp.banco = PipocaCanonico.composicao.bancoDaRodada(this._comp);
+    this.setState({ comp, tela: 4 });
+  }
+
+  // ============================================================================
+  //  T4 · PALCO — composição por rodada
+  //  Rodada 1: revela 4 · escolhe e ORDENA 3 · pontas travam
+  //  Rodadas 2–4: revela +1 · escolhe 1 · insere só no MIOLO
+  // ============================================================================
+  _t4MirarObjeto(objId)  { this.setState({ comp: { ...this.state.comp, _selObj: objId } }); }
+  _t4MirarSlot(slotIdx)  { this.setState({ comp: { ...this.state.comp, _selSlot: slotIdx } }); }
+
+  _t4Colocar() {
+    const c = this.state.comp;
+    if (!c._selObj) return;
+
+    let novaLinha;
+    if (c.rodada === 1) {
+      // escolhe/ordena 3 nos 3 slots iniciais (livre)
+      // TODO(v2): novaLinha = PipocaCanonico.composicao.ordenarR1(this._comp, c.linha, c._selObj, c._selSlot);
+      novaLinha = [...c.linha, c._selObj]; // placeholder ingênuo
+    } else {
+      // insere 1 SÓ no miolo — pontas travadas; valida posição
+      // TODO(v2): if (!PipocaCanonico.composicao.podeInserir(this._comp, c._selObj, c._selSlot)) return this._dicaCalorosa();
+      // TODO(v2): novaLinha = PipocaCanonico.composicao.inserir(this._comp, c._selObj, c._selSlot);
+      novaLinha = [...c.linha]; // placeholder
+    }
+
+    const pontasTravadas = c.rodada === 1 ? true : c.pontasTravadas;
+    this.setState({ comp: { ...c, linha: novaLinha, pontasTravadas, _selObj: null, _selSlot: null } });
+  }
+
+  // encerra a composição da rodada → tece a história → vai pro portão (T5)
+  _t4Confirmar() {
+    const c = this.state.comp;
+    const nivel = (this.state.perfil && this.state.perfil.nivel) || 'n2';
+    // A história tecida = abertura + contas na ordem da linha + temperos + (desfecho se última)
+    // TODO(v2): const texto = PipocaCanonico.composicao.montar(this._comp, nivel);
+    const texto = ''; // placeholder
+    this.setState({ comp: { ...c, historiaTexto: texto }, gate: { palavraIdx: 0, stage: 'reading', earned: 3 }, tela: 5 });
+  }
+
+  _dicaCalorosa() { /* TODO: mostrar dica sem X vermelho, sem bloquear — mantém o tom perdoador */ }
+
+  // ============================================================================
+  //  T5 · PORTÃO — lê a história que cresceu (palavra a palavra)
+  // ============================================================================
+  _t5Palavra() { /* <<mantém o atual>>: avança gate.palavraIdx sobre comp.historiaTexto */ }
+
+  _t5Confirmar() {
+    // leitura ok → credita vaga-lumes e ABRE a próxima rodada
+    // TODO(v2): const prox = PipocaCanonico.composicao.abrirProximaRodada(this._comp);
+    //           this._comp = prox;
+    this._creditarRecompensa();
+
+    // convergiu? (rodada 4 lida) → Pote ; senão → volta ao Palco com +1 no banco
+    // TODO(v2): const fim = PipocaCanonico.composicao.convergiu(this._comp);
+    const fim = this.state.comp.rodada >= 4;
+    if (fim) {
+      this.setState({ tela: 7 });
+    } else {
+      const c = this.state.comp;
+      // TODO(v2): banco = composicao.bancoDaRodada(this._comp) // revela +1 + sobras
+      this.setState({ comp: { ...c, rodada: c.rodada + 1, historiaTexto: '' }, tela: 4 });
+    }
+  }
+
+  // ============================================================================
+  //  T6 · RECOMPENSA (economia via seam existente)
+  // ============================================================================
+  _creditarRecompensa() {
+    const Canon = window.PipocaCanonico;
+    // <<mantém o atual>>: creditar vaga-lumes de forma idempotente pela economia canônica
+    // TODO: this.setState({ economia: Canon.economia.creditar(this.state.economia, gate.earned) });
+  }
+
+  // ============================================================================
+  //  T7 · POTE / CARDÁPIO  ·  T1 PIN  ·  Onboarding  ·  A11y  — <<mantém o atual>>
+  // ============================================================================
+  _t1Digitar(d)     { /* <<mantém o atual>> via PipocaCanonico.acesso (PINGATE) */ }
+  _t7GuardarTrocar()  { /* <<mantém o atual>> via PipocaCanonico.cardapio */ }
+  _abrirOnboarding() { /* <<mantém o atual>> via PipocaCanonico.onboarding */ }
+  _toggleA11y()     { this.setState({ showA11y: !this.state.showA11y }); }
+
+  // ============================================================================
+  //  RENDER · troca de telas por `is(n)` (mantém o motor de template atual)
+  // ============================================================================
+  renderVals() {
+    const s = this.state, tela = s.tela, is = (n) => tela === n;
+    const c = s.comp;
+
+    return {
+      // T2 — entrada da criança (avatar | 'sou o cuidador') ...... <<mantém o atual>>
+      t2Visible: is(2),
+
+      // T3 — galeria de cenários (Quintal jogável; outros "em breve")
+      t3Visible: is(3),
+      t3EscolherQuintal: () => this._t3EscolherCenario('quintal_anoitecer'),
+
+      // T4 — PALCO (composição por rodada) ── holes p/ a UI nova ──
+      t4Visible: is(4),
+      t4Rodada: c.rodada,
+      t4Banco: c.banco,                 // TODO: render dos objetos disponíveis (leque)
+      t4Linha: c.linha,                 // TODO: render da linha com pontas travadas + slots do miolo
+      t4PontasTravadas: c.pontasTravadas,
+      t4Mirar: (id) => this._t4MirarObjeto(id),
+      t4MirarSlot: (i) => this._t4MirarSlot(i),
+      t4Colocar: () => this._t4Colocar(),
+      t4Confirmar: () => this._t4Confirmar(),
+
+      // T5 — portão (lê comp.historiaTexto) ...................... <<mantém o padrão>>
+      t5Visible: is(5),
+      t5Texto: c.historiaTexto,
+      t5Palavra: () => this._t5Palavra(),
+      t5Confirmar: () => this._t5Confirmar(),
+
+      // T6/T7 — recompensa / pote ............................... <<mantém o atual>>
+      t6Visible: is(6),
+      t7Visible: is(7),
+      economia: s.economia,
+
+      // overlays
+      showA11y: s.showA11y, toggleA11y: () => this._toggleA11y(),
+    };
+  }
+}
+</script>
+</body>
+</html>

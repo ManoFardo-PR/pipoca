@@ -71,21 +71,13 @@ class Component extends DCLogic {
   continuar() {
     const App = this._getApp();
     if (!App) return;
-    const estado = App.estado;
-    const cenario = App.cenario;
-    const historia = estado.historia;
 
-    if (cenario && historia) {
-      const todos = cenario.objetos.map(o => o.id);
-      const commitados = new Set(historia.objetos);
-      const restantes = todos.filter(id => !commitados.has(id));
-
-      if (restantes.length === 0) {
-        App.setState({ tela: 7 });
-        const R = window.PipocaRoteador;
-        if (R) R.irParaTela(7);
-        return;
-      }
+    // v2 · história convergiu (desfecho lido) → Pote; senão, próxima rodada em T4.
+    if (App.composicaoConvergiu && App.composicaoConvergiu()) {
+      App.setState({ tela: 7 });
+      const R = window.PipocaRoteador;
+      if (R) R.irParaTela(7);
+      return;
     }
 
     App.setState({ storyMsg: null, tela: 4 });
@@ -106,21 +98,18 @@ class Component extends DCLogic {
     const a11y = estado.a11y || {};
     const economia = estado.economia || { vagalumes: 0 };
     const earned = estado.gateEarned || 3;
-    const cenario = App ? App.cenario : null;
-    const historia = estado.historia || { objetos: [] };
 
+    // v2 · metadados do objeto que entrou na cena nesta rodada.
     const gateObjId = estado.gateObjId;
     let objetoEmoji = '🌟';
     let objetoNome = 'Novo objeto';
-    if (cenario && gateObjId) {
-      const obj = cenario.objetos.find(o => o.id === gateObjId);
-      if (obj) { objetoEmoji = obj.emoji; objetoNome = obj.nome; }
+    if (App && App.objetoMetaV2 && gateObjId) {
+      const meta = App.objetoMetaV2(gateObjId);
+      if (meta) { objetoEmoji = meta.emoji; objetoNome = meta.nome; }
     }
 
-    const todos = cenario ? cenario.objetos.map(o => o.id) : [];
-    const commitados = new Set(historia.objetos);
-    const restantes = todos.filter(id => !commitados.has(id));
-    const continuarLabel = restantes.length === 0 ? 'Ver o final' : 'Continuar lendo';
+    const convergiu = App && App.composicaoConvergiu ? App.composicaoConvergiu() : false;
+    const continuarLabel = convergiu ? 'Ver o final' : 'Continuar lendo';
 
     const bloomClass = a11y.reduceMotion ? '' : 'earn-bloom';
     const popClass = a11y.reduceMotion ? '' : 'earn-pop';

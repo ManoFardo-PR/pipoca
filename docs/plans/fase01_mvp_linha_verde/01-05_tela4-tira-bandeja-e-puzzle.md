@@ -1,6 +1,6 @@
 # fase01 · 01-05 · Tela 4 · Tira, bandeja e o quebra-cabeça
 
-> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — tira/bandeja em `index.html:1000-1040` + `src/core/historia.ts`. Nota: ✅ Marco 1 — validação via `ValidadorOrdem` canônico (ordem parcial consistente). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🔄 **STATUS · 2026-07-01 · SUPERADO PELA COMPOSIÇÃO v2** — a T4 vigente é `src/telas/Tela4Heroi.dc.html` sobre a composição autoral v2 (`src/core/composicao.ts`); a tira/bandeja (`src/core/historia.ts`) permanece como legado v1 — ver [[fase00-00-20]]. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase01-01-05`

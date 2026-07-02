@@ -1,6 +1,6 @@
 # fase00 · 00-09 · Estado da história (HIST)
 
-> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/historia.ts` (`EstadoTira`, `_placeInSlot`/`_returnToTray`, `commitarObjeto` com regra de ouro, `derivarBandeja`). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/historia.ts` (`EstadoTira`, `_placeInSlot`/`_returnToTray`, `commitarObjeto` com regra de ouro, `derivarBandeja`). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md Nota 2026-07-01: a linha verde vigente usa a composição autoral v2 (`EstadoComp`, `src/core/composicao.ts`); `EstadoTira` permanece como legado v1 — ver [[fase00-00-20]].
 
 ## Identidade
 - id: `fase00-00-09`

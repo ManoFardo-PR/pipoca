@@ -1,6 +1,6 @@
 # fase00 · 00-18 · Validador de ordem (suporte ao quebra-cabeça)
 
-> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/motores/validador_ordem.ts` (topo-sort, `ordemCanonica`, `validar` com dicas acolhedoras). Nota: ✅ Marco 1 — `validar` aceita ordem parcial consistente (critério 00-18). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/motores/validador_ordem.ts` (topo-sort, `ordemCanonica`, `validar` com dicas acolhedoras). Nota: ✅ Marco 1 — `validar` aceita ordem parcial consistente (critério 00-18). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md Nota 2026-07-01: o quebra-cabeça foi superado pela composição autoral v2 (ordenação só na R1, com pontas travadas); `ValidadorOrdem` segue em `src/` a serviço do Motor A/v1 — ver [[fase00-00-20]].
 
 ## Identidade
 - id: `fase00-00-18`

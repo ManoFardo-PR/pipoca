@@ -38,9 +38,10 @@
     <div style="width:320px;flex-shrink:0;display:flex;flex-direction:column;gap:16px;">
       <!-- Pote visual -->
       <div style="flex:1;border-radius:24px;background:linear-gradient(180deg,#33406a,#4a4878 70%,#5e5183);position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 16px 36px -16px rgba(40,30,50,.5);">
-        <div style="position:absolute;top:26px;left:32px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle,#fff3cf,#f4b65a);box-shadow:0 0 14px 4px rgba(247,191,96,.7);"></div>
-        <div style="position:absolute;top:70px;right:46px;width:6px;height:6px;border-radius:50%;background:radial-gradient(circle,#fff3cf,#f4b65a);box-shadow:0 0 12px 3px rgba(247,191,96,.65);"></div>
-        <div style="position:absolute;bottom:80px;left:60px;width:5px;height:5px;border-radius:50%;background:radial-gradient(circle,#fff3cf,#f4b65a);box-shadow:0 0 10px 3px rgba(247,191,96,.6);"></div>
+        <!-- estrelas pálidas do céu — nada âmbar fora do frasco, para não parecer vaga-lume solto -->
+        <div style="position:absolute;top:26px;left:32px;width:3px;height:3px;border-radius:50%;background:rgba(225,235,255,.7);box-shadow:0 0 4px 1px rgba(220,230,255,.35);"></div>
+        <div style="position:absolute;top:70px;right:46px;width:2px;height:2px;border-radius:50%;background:rgba(225,235,255,.6);box-shadow:0 0 3px 1px rgba(220,230,255,.3);"></div>
+        <div style="position:absolute;bottom:80px;left:60px;width:2px;height:2px;border-radius:50%;background:rgba(225,235,255,.55);box-shadow:0 0 3px 1px rgba(220,230,255,.28);"></div>
         <!-- frasco -->
         <div style="width:150px;height:170px;border-radius:24px 24px 34px 34px;background:linear-gradient(180deg,rgba(190,225,232,.22),rgba(150,200,212,.12));border:2px solid rgba(207,234,240,.4);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;">
           <div style="position:absolute;top:-14px;width:96px;height:18px;border-radius:7px;background:#c89a64;box-shadow:0 2px 6px rgba(0,0,0,.25);z-index:3;"></div>
@@ -181,27 +182,32 @@ class Component extends DCLogic {
     const childName = perfil ? perfil.nome : 'criança';
     const a11y = estado.a11y || {};
 
-    // Luzes do pote: 1 vaga-lume aceso por unidade até um teto visual (TETO); acima
-    // do teto mantém o nº de pontos e intensifica o brilho (o número segue exato).
-    // Posições DETERMINÍSTICAS (hash do índice) — não "tremem" a cada re-render.
-    const TETO = 24;
+    // Luzes do pote: 1 vaga-lume DISTINTO e contável por unidade até um teto visual
+    // (TETO); acima do teto mantém o nº de pontos e intensifica o brilho (o número
+    // segue exato). Grade 6×8 com jitter determinístico: a luz i ocupa a célula
+    // (i·17) % 48 (17 coprimo de 48 → preenche espalhado), garantindo espaçamento
+    // mínimo de ~11px entre centros — sem sobreposição, sem "tremer" a re-render,
+    // e as luzes já acesas não mudam de lugar quando o saldo cresce.
+    const COLS = 6, ROWS = 8, TETO = COLS * ROWS;
     const n = Math.max(0, vagalumes | 0);
     const acimaDoTeto = n > TETO;
     const qtd = Math.min(n, TETO);
     const luzes = [];
     for (let i = 0; i < qtd; i++) {
+      const cel = (i * 17) % TETO;
       const hx = Math.abs(Math.sin((i + 1) * 12.9898) * 43758.5453) % 1;
       const hy = Math.abs(Math.sin((i + 1) * 78.233) * 12345.6789) % 1;
-      const x = (12 + hx * 76).toFixed(1);   // 12%..88% (margem interna do frasco)
-      const y = (14 + hy * 72).toFixed(1);   // 14%..86%
-      const sz = 5 + (i % 3);                // 5..7 px
-      const glow = acimaDoTeto ? 5 : 3;
-      const alpha = (acimaDoTeto ? 0.85 : 0.6).toFixed(2);
+      // faixa útil 12%..88% × 14%..86%; jitter ±20% da célula
+      const x = (12 + ((cel % COLS) + 0.5) * (76 / COLS) + (hx - 0.5) * (76 / COLS) * 0.4).toFixed(1);
+      const y = (14 + (Math.floor(cel / COLS) + 0.5) * (72 / ROWS) + (hy - 0.5) * (72 / ROWS) * 0.4).toFixed(1);
+      const sz = 4 + (i % 3);                // 4..6 px
+      const glow = acimaDoTeto ? 4 : 2;
+      const alpha = (acimaDoTeto ? 0.85 : 0.55).toFixed(2);
       const op = acimaDoTeto ? 1 : 0.85;
       luzes.push({
         cls: a11y.reduceMotion ? '' : 'pip-luz',
         style: 'position:absolute;left:' + x + '%;top:' + y + '%;width:' + sz + 'px;height:' + sz + 'px;border-radius:50%;'
-          + 'background:radial-gradient(circle,#fff6da,#f4b65a);box-shadow:0 0 ' + (6 + glow) + 'px ' + glow + 'px rgba(247,191,96,' + alpha + ');'
+          + 'background:radial-gradient(circle,#fff6da,#f4b65a);box-shadow:0 0 ' + (4 + glow) + 'px ' + glow + 'px rgba(247,191,96,' + alpha + ');'
           + 'opacity:' + op + ';animation-delay:' + ((i % 7) * 0.28).toFixed(2) + 's;',
       });
     }

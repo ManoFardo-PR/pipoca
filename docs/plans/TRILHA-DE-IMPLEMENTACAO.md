@@ -1,28 +1,45 @@
 # Pipoca · Trilha de implementação (roteiro mestre)
 
 > Roteiro **vivo** da sequência a partir do estado atual. Cada doc de sub-passo já implementado/parcial
-> carrega um selo `STATUS` que aponta para cá. Atualizado: **2026-06-29**.
+> carrega um selo `STATUS` que aponta para cá. Atualizado: **2026-07-01**.
 > Visão por fase: [README.md](README.md) · vocabulário: [`_contratos/`](_contratos/) · checker: `node docs/plans/check_plans.mjs`.
 
-## O fato dominante do estado atual
-Existem **duas implementações paralelas do caminho verde que não se encontram**:
+## O estado atual (2026-07-01)
+O caminho verde roda **inteiro sobre os módulos canônicos** — a convergência do Marco 1 aconteceu e foi além
+(o registro das duas tracks divergentes que motivou o Marco 1 está preservado no "Feito" do próprio marco):
 
-- **Track canônica (`src/`)** — CORE, Motor A, `ValidadorOrdem`, fábrica, persistência, telas `.dc.html`.
-  Construída e testada: `tsc --noEmit` limpo, `motor.test.ts` **36/36**.
-- **Track runtime (`index.html`)** — o monólito portado do protótipo que **efetivamente roda**. Ele
-  **reimplementa** motor/validador/CORE inline (`_motorAbertura`/`_motorAoAdicionar`/`_validarOrdem`/
-  `_ordemCanonica`, index.html:567-610) e **nunca instancia** `criarMotor`/`validarGrafo`/`ValidadorOrdem`.
+- **Composição autoral v2 implementada e viva** — `src/core/composicao.ts` (funções puras; o grafo do
+  cenário viaja dentro do `EstadoComp`), grafo `docs/quintal.v2.json` (esquema `pipoca.grafo-autoral.v2`),
+  exposta no bridge como `PipocaCanonico.composicao` e consumida por `src/app/estado.js` e pelas telas
+  T3/T4/T5. Mecânica: R1 revela 4 objetos e a criança escolhe e **ordena 3** (as pontas travam como
+  âncoras); R2–R4 revelam +1 cada e a escolha entra **só no miolo**; banco = novas + sobras (objeto
+  revelado e não escolhido segue disponível; nada repete); história = abertura + contas (na ordem da
+  linha) + desfecho (`convergente`/`aberto` por `Modos.desfecho`); tempero `tem:X` é sabor, nunca portão.
+  Prévia vs commit: T4 monta um `gatePendente` e mostra prévia pura (`preverComposicao`, sem efeito
+  colateral); o commit acontece só na confirmação em T5 — voltar de T5 é sem perdas.
+- **Monólito aposentado** — `index.html` é entry fino (~70 linhas): carrega `pipoca.bundle.js` +
+  `src/app/estado.js` e compõe `Shell.dc.html` + telas canônicas de `src/telas/` via `<dc-import>`;
+  o cérebro do app é `window.PipocaApp` (`src/app/estado.js`).
+- **Fluxo do cuidador montado no app** — T2 → T1 (`PortaoParental`, PIN via `acesso.ts`) → `Onboarding`
+  (T10, quando não há perfis) → T2. Perfis persistem em localStorage chave `pipoca.perfis.v1` via
+  `PipocaApp.repo`.
+- **Dívida conhecida (coexistência v1/v2)** — `_initMotor()` em `src/app/estado.js` ainda carrega
+  `quintal_grafo.json` (v1 / Motor A) em paralelo à v2; o Motor A segue instanciado, mas a linha verde
+  usa a composição.
 
-Consequência: a **lei do contrato** (telas falam só com `MotorNarrativa`/`ValidadorOrdem`) vale nos módulos,
-mas **não no app que roda**. Toda fase futura assume o CORE/seam canônico como base — por isso o **Marco 1 é
-pré-requisito** de tudo que vem depois.
+### Pendências reais (2026-07-01)
+- Captura de telemetria exportada no bridge (`capturar*`) mas não chamada por nenhuma tela.
+- Telas do cuidador faltantes: `LoginFamilia`, `Perfis`, `Limites`, `Regras`, `Privacidade`,
+  `PainelEvolucao` — núcleos prontos e testados no bridge.
+- Caminho Windows hardcoded (`PW_CORE`) em `tests/e2e/run-linha-verde-canonico.mjs`.
+- Fases 04–08 não iniciadas.
 
 ## Mapa de status (resumo)
 | Fase | Status | Onde |
 |------|--------|------|
 | 00 Fundação | 🟢 módulos prontos (desvios corrigidos) | `Economia` conformada, `spendPct` corrigido, `ValidadorOrdem` incremental |
-| 01 MVP linha verde | 🟢 **convergido** | `index.html` consome o seam canônico via `pipoca.bundle.js` (e2e 19/19) |
-| 02 Controle parental | 🟢 núcleos completos · telas no app | PINGATE ligado (e2e); núcleos HH_LOGIN/KIDMODE/PC_HOME/PROF/LIM/RULES/PRIV/AI no bridge; falta o app ligar as telas |
+| 01 MVP linha verde | 🟢 **vivo na composição v2** | telas canônicas de `src/telas/` sobre `PipocaCanonico.composicao`; entry fino `index.html` + `Shell.dc.html` via `<dc-import>` |
+| 02 Controle parental | 🟢 núcleos completos · fluxo parcial no app | PINGATE (T1) e Onboarding (T10) ligados (T2→T1→T10→T2); núcleos HH_LOGIN/KIDMODE/PC_PROF/LIM/RULES/PRIV/AI no bridge; faltam as demais telas |
 | 03 Telemetria/painel | 🟢 núcleos completos · telas no app | `telemetria.ts`+`captura.ts`+`telemetria_repo.ts`+`agregadosTelemetria.ts` (testados); falta tela `PainelEvolucao` e captura ligada ao fluxo (app) |
 | 04 Super admin | 🔴 não iniciado | — |
 | 05 IA e fala | 🔴 / 🟡 stub | fallback Motor B na fábrica; tipos `ProvedorIA`/`ServicoASR` |
@@ -55,8 +72,9 @@ instancia `{ motor, ordem }` pela fábrica canônica e cujos métodos inline vir
 duplicada; `_avaliarCondicao` removido). `ValidadorOrdem` aceita ordem parcial consistente; `Economia` conformada a
 `{vagalumes,poupado}` (idempotência via `HISTORIA.objetos`); `spendPct` corrigido; desfecho via `motor.desfecho()`.
 Travado por e2e em chromium real (`tests/e2e/linha-verde.spec.ts` para CI + `npm run test:e2e` standalone, 19/19) e
-pelos portões `tsc` (0), unidade (100 asserts) e `check_plans` (10/10). O `index.html` segue como app; a substituição
-pela versão definitiva baseada em `src/telas/*.dc.html` (x-import) é um refino opcional posterior.
+pelos portões `tsc` (0), unidade (100 asserts) e `check_plans` (10/10). ✅ Concluído (2026-07-01): o monólito foi
+aposentado — `index.html` é entry fino (~70 linhas) que compõe `Shell.dc.html` + telas canônicas de `src/telas/`
+via `<dc-import>`; o cérebro do app é `window.PipocaApp` (`src/app/estado.js`).
 
 1. **Build TS→browser.** Criar entry `src/app/bridge.ts` expondo em `window.PipocaCanonico`: `criarMotor`
    (`src/motores/fabrica.ts`), `validarGrafo` (`src/core/grafo/validarGrafo.ts`), CORE
@@ -72,6 +90,7 @@ pela versão definitiva baseada em `src/telas/*.dc.html` (x-import) é um refino
    destrava o próximo). Ajustar `validar()` para (a) aceitar ordens **parciais** consistentes com dependências
    — critério 00-18: `validar(["vagalume","frasco"]) → ok:true` — e (b) validar `strip ∪ committed`, sem
    regredir a leitura do 2º objeto. Adicionar o caso parcial a `motor.test.ts`.
+   *(Superado em 2026-07-01: a linha verde vigente é a composição autoral v2 — ver "O estado atual".)*
 4. **Corrigir desvios de contrato fase00.** Conformar `Economia` a `{vagalumes,poupado}` (realocar o ledger de
    idempotência: derivar de `HistoriaState.objetos`, não num campo extra); corrigir `spendPct` (fração gasta);
    alinhar `index.html`/`Tela7PoteCardapio`.

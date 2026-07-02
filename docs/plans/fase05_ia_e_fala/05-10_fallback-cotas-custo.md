@@ -1,5 +1,7 @@
 # fase05 · 05-10 · Fallback, cotas e custo
 
+> 🟡 **STATUS · 2026-07-02 · PARCIAL (MVP local)** — `src/ia/orquestrador.ts`: cadeia primário → fallback com cotas/custo (`cotaRestante`/`custoAcumulado`) e telemetria de uso sem PII (só números); o degrau final "motorA" da cadeia é o throw que faz o consumidor degradar. Pool de cota/custo é LOCAL em memória com teto injetável — a leitura da config real por tenant (SA_AI) e a persistência/medição de verdade chegam com o backend (fase06).
+
 ## Identidade
 - id: `fase05-05-10`
 - nó(s) da arquitetura: —

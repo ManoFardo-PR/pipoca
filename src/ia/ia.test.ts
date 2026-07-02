@@ -15,6 +15,7 @@ import {
   type Transporte,
 } from "./provedor.js";
 import { criarProvedorSimulado } from "./simulado.js";
+import { criarOrquestrador } from "./orquestrador.js";
 import { criarAdaptadorClaude } from "./adaptadores/claude.js";
 import { criarAdaptadorGemini } from "./adaptadores/gemini.js";
 import { criarAdaptadorOpenAI } from "./adaptadores/openai.js";
@@ -284,6 +285,67 @@ console.log("\n=== selecionarAdaptador (05-04) — config do SA_AI ===");
   let guardou = false;
   try { await selecionarAdaptador(cfg("openai", "gpt-mini"), { transporte: tSujo }).gerar("conte", TRECHO_JSON_SCHEMA); } catch { guardou = true; }
   assert(guardou, "GUARD sempre no caminho: saída suja do adaptador é bloqueada");
+}
+
+// ─── Etapa 3 · Orquestrador de fallback/cotas/custo (05-10) ──────────────────
+
+console.log("\n=== orquestrador (05-10) — cadeia, cotas e custo ===");
+{
+  const provedorBom = (marca: string, contador: { n: number }) => ({
+    async gerar() { contador.n++; return { texto: `✨ ${marca}`, ehFinal: false }; },
+  });
+  const provedorRuim = (contador: { n: number }) => ({
+    async gerar(): Promise<Trecho> { contador.n++; throw new Error("indisponível"); },
+  });
+  const c1 = { n: 0 }, c2 = { n: 0 };
+  const orq1 = criarOrquestrador([provedorRuim(c1), provedorBom("do fallback", c2)]);
+  const t1 = await orq1.gerar("conte", TRECHO_JSON_SCHEMA);
+  assert(t1.texto.indexOf("do fallback") >= 0, "falha do primário aciona o próximo da cadeia");
+  assert(c1.n === 1 && c2.n === 1, "cada tentativa conta uma chamada");
+
+  const c3 = { n: 0 }, c4 = { n: 0 };
+  const orq2 = criarOrquestrador([provedorBom("do primário", c3), provedorBom("do fallback", c4)]);
+  const t2 = await orq2.gerar("conte", TRECHO_JSON_SCHEMA);
+  assert(t2.texto.indexOf("do primário") >= 0 && c4.n === 0, "primário ok → fallback nem é chamado");
+
+  const c5 = { n: 0 };
+  const orq3 = criarOrquestrador([provedorRuim(c5), provedorRuim(c5)]);
+  let todosFalharam = false;
+  try { await orq3.gerar("conte", TRECHO_JSON_SCHEMA); } catch { todosFalharam = true; }
+  assert(todosFalharam, "todos os provedores falham → throw (degrada p/ Motor A)");
+
+  const c6 = { n: 0 };
+  const orqCota0 = criarOrquestrador([provedorBom("x", c6)], { cotaMensal: 0 });
+  let cotaZero = false;
+  try { await orqCota0.gerar("conte", TRECHO_JSON_SCHEMA); } catch { cotaZero = true; }
+  assert(cotaZero && c6.n === 0, "cota zerada → degrada SEM chamar provedor");
+
+  const c7 = { n: 0 };
+  const orqCota2 = criarOrquestrador([provedorBom("x", c7)], { cotaMensal: 2 });
+  await orqCota2.gerar("a", TRECHO_JSON_SCHEMA);
+  await orqCota2.gerar("b", TRECHO_JSON_SCHEMA);
+  let estourou = false;
+  try { await orqCota2.gerar("c", TRECHO_JSON_SCHEMA); } catch { estourou = true; }
+  assert(estourou && c7.n === 2, "cota estourada no meio do mês → degrada");
+  assert(orqCota2.uso().cotaRestante === 0 && orqCota2.uso().chamadas === 2, "uso() expõe chamadas/cotaRestante");
+
+  const c8 = { n: 0 };
+  const orqCusto = criarOrquestrador([provedorBom("x", c8)], { custoMaxMensal: 3, custoPorChamada: 2 });
+  await orqCusto.gerar("a", TRECHO_JSON_SCHEMA);
+  let custoEstourou = false;
+  try { await orqCusto.gerar("b", TRECHO_JSON_SCHEMA); } catch { custoEstourou = true; }
+  assert(custoEstourou && orqCusto.uso().custoAcumulado === 2, "teto de custo atingido → degrada; custoAcumulado soma");
+
+  const usos: Array<{ chamadas: number; custoAcumulado: number; cotaRestante: number }> = [];
+  const c9 = { n: 0 };
+  const orqTele = criarOrquestrador([provedorBom("x", c9)], { aoRegistrarUso: (u) => usos.push(u) });
+  await orqTele.gerar("conte a abertura do quintal", TRECHO_JSON_SCHEMA);
+  assert(usos.length === 1 && typeof usos[0]!.custoAcumulado === "number", "telemetria de uso registrada");
+  assert(JSON.stringify(usos[0]).indexOf("quintal") < 0, "telemetria sem PII: só números, nunca o conteúdo");
+
+  let cadeiaVazia = false;
+  try { await criarOrquestrador([]).gerar("x", TRECHO_JSON_SCHEMA); } catch { cadeiaVazia = true; }
+  assert(cadeiaVazia, "cadeia vazia → erro claro");
 }
 
 console.log(`\n${"=".repeat(50)}`);

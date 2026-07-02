@@ -74,7 +74,7 @@ export interface RespostaTransporte {
 
 export type Transporte = (
   url: string,
-  init: { method: string; headers: Record<string, string>; body: string }
+  init: { method: string; headers: Record<string, string>; body?: string }
 ) => Promise<RespostaTransporte>;
 
 /** Default: fetch global (só usado fora do MVP — fase06 via proxy). */

@@ -147,7 +147,7 @@ console.log("\n=== envolverComGuardrails (05-08) — GUARD sempre no caminho ===
 function transporteFake(resposta: unknown, status = 200) {
   const capturas: Array<{ url: string; corpo: Record<string, unknown>; headers: Record<string, string> }> = [];
   const t: Transporte = async (url, init) => {
-    capturas.push({ url, corpo: JSON.parse(init.body) as Record<string, unknown>, headers: init.headers });
+    capturas.push({ url, corpo: JSON.parse(init.body || "null") as Record<string, unknown>, headers: init.headers });
     return { status, json: async () => resposta };
   };
   return { t, capturas };

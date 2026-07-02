@@ -37,6 +37,32 @@ import {
   vincularConta,
   ERRO_FORA_DE_ESCOPO,
 } from "./tenant/repositorioTenant.js";
+import {
+  validarGrafoAutoral,
+  listarCenarios,
+  salvarRascunho,
+  versionarCenario,
+  publicarCenario,
+} from "./validar_grafo.js";
+import {
+  CONFIG_IA_PADRAO,
+  validarConfigIA,
+  iaEfetivaDisponivel,
+  carregarConfigIA,
+  salvarConfigIA,
+  type ConfigIaTenant,
+} from "./ia_config.js";
+import {
+  FLAGS_PADRAO,
+  definirFlag,
+  killSwitch,
+  killSwitchAtivo,
+  aplicarFlagsAosModos,
+  carregarFlags,
+  salvarFlags,
+} from "./flags.js";
+import { modosPadrao } from "../core/modos.js";
+import grafoQuintal from "../dados/quintal_grafo.json" with { type: "json" };
 
 let passou = 0;
 let falhou = 0;
@@ -217,6 +243,126 @@ console.log("\n=== SA_TENANT · tenants, planos e isolamento por escopo ===");
   const c1 = vincularConta("mae@familia.dev", tA.id, st);
   const c2 = vincularConta("mae@familia.dev", tB.id, st);
   assert(c1.id === c2.id && c2.tenants.length === 2, "vincularConta agrega tenants na mesma conta (sem PII de criança)");
+}
+
+// ─── conteúdo · validação dupla (04-04) ──────────────────────────────────────
+console.log("\n=== SA_CONTENT · validarGrafoAutoral (schema + simulação) ===");
+{
+  const rOk = validarGrafoAutoral(grafoQuintal);
+  assert(rOk.ok && rOk.erros.length === 0, "grafo do Quintal passa a validação dupla (0 erros)");
+
+  const rEsq = validarGrafoAutoral({ ...grafoQuintal, esquema: "outra.coisa" });
+  assert(!rEsq.ok && rEsq.erros.length > 0, "esquema errado é rejeitado com motivo");
+
+  assert(!validarGrafoAutoral({}).ok, "objeto vazio é rejeitado");
+
+  const comCiclo = JSON.parse(JSON.stringify(grafoQuintal));
+  delete comCiclo.cenario.ordem_canonica;
+  const [oA, oB] = comCiclo.cenario.objetos;
+  oA.regras = [{ se: "tem:" + oB.id, entao: oA.gatilho }];
+  oB.regras = [{ se: "tem:" + oA.id, entao: oB.gatilho }];
+  const rCiclo = validarGrafoAutoral(comCiclo);
+  assert(!rCiclo.ok && rCiclo.erros.some((e) => /ciclo/i.test(e)), "ciclo de dependência tem: vira erro com diagnóstico");
+
+  const semRamos = JSON.parse(JSON.stringify(grafoQuintal));
+  semRamos.cenario.desfechos.aberto = [];
+  const rAviso = validarGrafoAutoral(semRamos);
+  assert(rAviso.ok && rAviso.avisos.some((a) => /degrada/.test(a)), "desfecho aberto sem ramo vira AVISO (degrada p/ convergente), não erro");
+}
+
+// ─── conteúdo · biblioteca (04-04) ───────────────────────────────────────────
+console.log("\n=== SA_CONTENT · rascunho → versão → publicação com teto ===");
+{
+  const st = new ArmazemMem();
+  const v1 = salvarRascunho(grafoQuintal, "ten_escola", st);
+  assert(v1.cenarioId === "quintal_anoitecer" && v1.versao === 1 && v1.publicadoEm === null, "salvarRascunho abre v1 rascunho com o cenarioId do grafo");
+
+  let recusouSemId = false;
+  try { salvarRascunho({ cenario: {} }, null, st); } catch { recusouSemId = true; }
+  assert(recusouSemId, "grafo sem cenario.id não entra na biblioteca");
+
+  const semTeto = publicarCenario("quintal_anoitecer", 1, AGORA, limitesDoPlano("gratis"), st);
+  assert(!semTeto.ok && /teto|permite/.test(semTeto.motivo || ""), "plano gratis (0 customizados) recusa publicar com motivo");
+
+  const pub = publicarCenario("quintal_anoitecer", 1, AGORA, limitesDoPlano("familia"), st);
+  assert(pub.ok, "plano familia publica dentro do teto");
+  assert(listarCenarios(st).find((c) => c.versao === 1)?.publicadoEm === AGORA, "publicação carimba publicadoEm");
+
+  const v2 = versionarCenario("quintal_anoitecer", st);
+  assert(!!v2 && v2.versao === 2 && v2.publicadoEm === null, "versionar clona a última como v2 rascunho");
+  assert(listarCenarios(st).length === 2, "…preservando a v1 publicada");
+
+  const invalido = JSON.parse(JSON.stringify(grafoQuintal));
+  invalido.cenario.abertura = { n1: "só um nível" };
+  salvarRascunho(invalido, "ten_escola", st); // atualiza o rascunho v2
+  const pubInv = publicarCenario("quintal_anoitecer", 2, AGORA + 1, limitesDoPlano("familia"), st);
+  assert(!pubInv.ok && /inválido/i.test(pubInv.motivo || ""), "grafo inválido não publica (motivo explícito)");
+
+  // Teto por cenarioId distinto: 2º cenário do mesmo tenant no plano familia (teto 2) passa; 3º recusa.
+  const outro = JSON.parse(JSON.stringify(grafoQuintal));
+  outro.cenario.id = "quarto_noite";
+  salvarRascunho(outro, "ten_escola", st);
+  assert(publicarCenario("quarto_noite", 1, AGORA + 2, limitesDoPlano("familia"), st).ok, "2º cenário distinto ainda cabe no teto 2");
+  const terceiro = JSON.parse(JSON.stringify(grafoQuintal));
+  terceiro.cenario.id = "floresta_dia";
+  salvarRascunho(terceiro, "ten_escola", st);
+  assert(!publicarCenario("floresta_dia", 1, AGORA + 3, limitesDoPlano("familia"), st).ok, "3º cenário distinto estoura o teto 2 e recusa");
+
+  const plataforma = JSON.parse(JSON.stringify(grafoQuintal));
+  plataforma.cenario.id = "espaco_estrelas";
+  salvarRascunho(plataforma, null, st);
+  assert(publicarCenario("espaco_estrelas", 1, AGORA + 4, null, st).ok, "catálogo da plataforma (tenantId null) não tem teto");
+}
+
+// ─── IA por tenant (04-05) ───────────────────────────────────────────────────
+console.log("\n=== SA_AI · config por tenant, gate triplo, sem chaves ===");
+{
+  const st = new ArmazemMem();
+  const familia = limitesDoPlano("familia");
+  const gratis = limitesDoPlano("gratis");
+  const flagsIaOn = definirFlag(FLAGS_PADRAO, "ia", true);
+
+  assert(!iaEfetivaDisponivel(CONFIG_IA_PADRAO, familia, flagsIaOn), "config padrão (sem provedor) → IA indisponível");
+
+  const valida: ConfigIaTenant = { provedor: "claude", modelo: "claude-haiku-4-5", cotaMensal: 100, custoMaxMensal: 10, fallback: "gemini" };
+  assert(validarConfigIA(valida).length === 0, "config completa é válida");
+  assert(iaEfetivaDisponivel(valida, familia, flagsIaOn), "plano permite + config válida + flag ligada → IA disponível");
+  assert(!iaEfetivaDisponivel(valida, gratis, flagsIaOn), "plano gratis (iaPermitida=false) barra mesmo com config válida");
+  assert(!iaEfetivaDisponivel(valida, familia, FLAGS_PADRAO), "flag global de IA desligada barra (kill-switch)");
+  assert(!iaEfetivaDisponivel({ ...valida, cotaMensal: 0 }, familia, flagsIaOn), "cota 0 → IA indisponível");
+
+  const erros = validarConfigIA({ ...valida, cotaMensal: -1, fallback: "claude", modelo: "gpt-mini" });
+  assert(erros.length >= 3, "cota negativa + fallback=provedor + modelo fora do catálogo → erros");
+  assert(!JSON.stringify(valida).toLowerCase().includes("chave"), "a config não tem campo de chave (server-side, fase06)");
+
+  salvarConfigIA("ten_a", valida, st);
+  salvarConfigIA("ten_b", { ...valida, provedor: "gemini", modelo: "gemini-flash", fallback: null }, st);
+  assert(carregarConfigIA("ten_a", st).provedor === "claude" && carregarConfigIA("ten_b", st).provedor === "gemini", "configs por tenant não se misturam");
+  assert(carregarConfigIA("ten_novo", st).provedor === null, "tenant sem config carrega o padrão sem IA");
+}
+
+// ─── flags globais (04-06) ───────────────────────────────────────────────────
+console.log("\n=== SA_SAFE · flags, kill-switch e efeito nos Modos ===");
+{
+  const st = new ArmazemMem();
+  assert(FLAGS_PADRAO.ia === false && FLAGS_PADRAO.fala === false, "defaults seguros: IA e fala nascem desligadas");
+
+  const ligada = definirFlag(FLAGS_PADRAO, "ia", true);
+  assert(ligada.ia === true && FLAGS_PADRAO.ia === false, "definirFlag é puro (não muta o original)");
+
+  const morta = killSwitch(ligada, "ia");
+  assert(morta.ia === false && killSwitchAtivo(morta, "ia"), "killSwitch força o recurso a desligado");
+  assert(killSwitchAtivo(FLAGS_PADRAO, "recurso_desconhecido"), "recurso desconhecido conta como desligado (fail-closed)");
+
+  const modosComIa = { ...modosPadrao, iaLigada: true };
+  assert(aplicarFlagsAosModos(modosComIa, FLAGS_PADRAO).iaLigada === false, "IA global desligada IGNORA Modos.iaLigada");
+  const aplicado = aplicarFlagsAosModos(modosComIa, ligada);
+  assert(aplicado.iaLigada === true && aplicado.desfecho === modosPadrao.desfecho, "IA global ligada respeita o cuidador (demais campos intactos)");
+
+  st.setItem("pipoca.admin.flags.v1", "{corrompido");
+  assert(carregarFlags(st).ia === false, "storage corrompido volta aos defaults seguros");
+  salvarFlags(morta, st);
+  assert(carregarFlags(st).ia === false && carregarFlags(st).telemetria === true, "salvar/carregar preserva o mapa (com defaults por baixo)");
 }
 
 console.log(`\n${"=".repeat(50)}`);

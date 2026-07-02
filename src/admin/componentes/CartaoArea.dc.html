@@ -1,0 +1,49 @@
+<!-- CartaoArea.dc.html — Cartão de área do hub (SA_HOME) · doc fase04-04-02
+     ─────────────────────────────────────────────────────────────
+     Props:
+       titulo      string  — nome da área
+       descricao   string  — o que se faz lá
+       emoji       string  — ícone simples
+       disponivel  boolean — fora do escopo → atenuado e NÃO navega (fail-closed)
+       onAbrir     fn()    — navegação injetada pelo hub
+-->
+<x-dc>
+<button onClick="{{ abrir }}" aria-disabled="{{ indisponivel }}" style="{{ estilo }}">
+  <span style="font-size:24px;flex-shrink:0;">{{ emoji }}</span>
+  <span style="display:flex;flex-direction:column;gap:2px;text-align:left;min-width:0;">
+    <span style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:#2c241a;">{{ titulo }}</span>
+    <span style="font-family:'Nunito';font-size:13px;color:#7a6c56;">{{ descricao }}</span>
+  </span>
+  <span style="margin-left:auto;color:#b8ab90;font-size:18px;">{{ seta }}</span>
+</button>
+</x-dc>
+<script type="text/x-dc" data-dc-script
+  data-props="{
+    &quot;titulo&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;CartaoArea&quot;, &quot;label&quot;: &quot;Título&quot; },
+    &quot;descricao&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;CartaoArea&quot;, &quot;label&quot;: &quot;Descrição&quot; },
+    &quot;emoji&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;▦&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;CartaoArea&quot;, &quot;label&quot;: &quot;Emoji&quot; },
+    &quot;disponivel&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;CartaoArea&quot;, &quot;label&quot;: &quot;Disponível&quot; },
+    &quot;onAbrir&quot;: { &quot;editor&quot;: &quot;fn&quot;, &quot;default&quot;: null, &quot;tsType&quot;: &quot;(() => void) | null&quot;, &quot;section&quot;: &quot;CartaoArea&quot;, &quot;label&quot;: &quot;Abrir&quot; }
+  }">
+class Component extends DCLogic {
+  state = {};
+
+  renderVals() {
+    const p = this.props || {};
+    const disponivel = p.disponivel !== false;
+    return {
+      titulo: p.titulo || '',
+      descricao: disponivel ? (p.descricao || '') : 'fora do seu escopo de operação',
+      emoji: p.emoji || '▦',
+      seta: disponivel ? '›' : '·',
+      indisponivel: !disponivel,
+      // Indisponível: atenuado, cursor neutro, clique é no-op (sem mensagem de erro).
+      abrir: () => { if (disponivel && p.onAbrir) p.onAbrir(); },
+      estilo: 'display:flex;align-items:center;gap:14px;width:100%;border:1px solid #e4dcc9;'
+        + 'border-radius:14px;background:#fffdf8;padding:16px 18px;'
+        + 'box-shadow:0 10px 28px -18px rgba(44,36,26,.35);'
+        + (disponivel ? 'cursor:pointer;' : 'cursor:default;opacity:.45;'),
+    };
+  }
+}
+</script>

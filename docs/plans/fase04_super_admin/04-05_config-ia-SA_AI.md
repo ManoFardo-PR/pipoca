@@ -1,5 +1,7 @@
 # fase04 · 04-05 · Configuração de IA (SA_AI)
 
+> 🟡 **STATUS · 2026-07-02 · PARCIAL (lado cliente completo; chaves/teste = fase06)** — `src/admin/ia_config.ts` + tela `src/admin/ConfigIA.dc.html`: provedor/modelo/cotas/custo/fallback POR TENANT, default sem IA até config válida, gate do plano (`iaPermitida`) e `iaEfetivaDisponivel` com gate triplo (plano ∧ config ∧ flag global). O tipo **não tem campo de chave** e a tela não tem input de chave — chaves e teste de conexão são server-side (fase06); consumo pelo provedor real (AIPROV) é fase05. Testado + e2e admin. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase04-04-05`
 - nó(s) da arquitetura: SA_AI

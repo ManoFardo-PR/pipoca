@@ -1,5 +1,7 @@
 # fase04 · 04-02 · Painel do Super Admin
 
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO (MVP local)** — Hub `src/admin/telas/SaHome.dc.html` + componente `src/admin/componentes/CartaoArea.dc.html`: 4 cartões (tenants/conteúdo/IA/segurança) fail-closed por escopo (`areaDisponivel` — fora do escopo fica atenuado e não navega); hub puro (só roteia, nenhuma escrita); logout limpo volta ao login. Coberto pelo e2e admin. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 > Doc de planejamento autocontido. Segue o gabarito de [[_contratos/glossario]] e o [_TEMPLATE](../_TEMPLATE.md).
 > Idioma: PT-BR. Nomes canônicos vêm de [[_contratos/tipos-core]], [[_contratos/schemas-json]] e [[_contratos/eventos-acoes]].
 

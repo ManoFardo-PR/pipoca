@@ -66,6 +66,11 @@ try {
     "C:/Users/mfard/AppData/Local/ms-playwright/chromium-1223/chrome-win64/chrome.exe";
   browser = await chromium.launch({ headless: true, executablePath: EXEC });
   const page = await browser.newPage();
+  // fase06 · o e2e roda SEMPRE offline: força o backend "local" ANTES de
+  // qualquer script da página (o pipoca.config.js commitado respeita via ||).
+  await page.addInitScript(() => {
+    window.PIPOCA_CONFIG = { provedor: "local" };
+  });
   const erros = [];
   page.on("pageerror", (e) => erros.push(String(e)));
   const consoleErr = [];
@@ -80,6 +85,10 @@ try {
   );
 
   console.log("\n=== Boot do app canônico (/) + seam ===");
+  assert(
+    (await page.evaluate(() => window.PIPOCA_CONFIG && window.PIPOCA_CONFIG.provedor)) === "local",
+    "fase06: backend local forçado no e2e (config injetada vence o pipoca.config.js)"
+  );
   const r = await page.evaluate(() => {
     const motor = window.PipocaApp.motor, ordem = window.PipocaApp.ordem;
     return {

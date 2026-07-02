@@ -55,6 +55,11 @@ try {
     "C:/Users/mfard/AppData/Local/ms-playwright/chromium-1223/chrome-win64/chrome.exe";
   browser = await chromium.launch({ headless: true, executablePath: EXEC });
   const page = await browser.newPage();
+  // fase06 · o e2e roda SEMPRE offline: força o backend "local" ANTES de
+  // qualquer script (sobrevive ao reload; o pipoca.config.js respeita via ||).
+  await page.addInitScript(() => {
+    window.PIPOCA_CONFIG = { provedor: "local" };
+  });
   const erros = [];
   page.on("pageerror", (e) => erros.push(String(e)));
 
@@ -73,6 +78,10 @@ try {
   }));
   assert(boot.isolado, "o admin NÃO carrega o app da criança (sem PipocaApp/PipocaCanonico)");
   assert(boot.tela === 1, "sem sessão, o boot cai no SA_LOGIN (tela 1)");
+  assert(
+    (await page.evaluate(() => window.PIPOCA_CONFIG && window.PIPOCA_CONFIG.provedor)) === "local",
+    "fase06: backend local forçado no e2e (config injetada vence o pipoca.config.js)"
+  );
   await page.waitForFunction(() => /Operador da plataforma/i.test(document.body.innerText), { timeout: 8000 });
   assert(true, "SA_LOGIN monta (marcador visível)");
 

@@ -70,6 +70,8 @@
     comp: null,
     // move autoral pendente (montado em T4, aplicado só na confirmação em T5).
     gatePendente: null,
+    // fase05 · qual motor narrativo está de pé ("A" | "B") — informativo (e2e/painel).
+    motorAtivo: "A",
   };
 
   // ─── Internos ────────────────────────────────────────────────────────────
@@ -109,6 +111,12 @@
         }
         var R = window.PipocaRoteador;
         if (R) R.irParaTela(state.tela);
+      }
+      // fase05 · borda de remontagem do motor: chaveia por EFETIVO vs ATIVO
+      // (cobre também o kill-switch da plataforma flipado com iaLigada constante).
+      // Síncrona: reusa o grafo já buscado; PipocaApp.motor segue sempre não-nulo.
+      if ("modos" in patch && _grafo && _motorAlvo() !== state.motorAtivo) {
+        _montarMotor(_grafo);
       }
     }
     notify();
@@ -268,6 +276,51 @@
   }
 
   // ─── Motor/validador CANÔNICOS (src/) via window.PipocaCanonico ────────────
+
+  // fase05 · modos EFETIVOS na borda de consumo: state.modos é a INTENÇÃO do
+  // cuidador (persistível, nunca reescrita); o kill-switch global da
+  // plataforma (SA_SAFE) é aplicado só aqui. Fail-closed: sem módulo de
+  // flags/ia no bundle, a IA não sobe.
+  function _modosEfetivos() {
+    var Canon = window.PipocaCanonico;
+    var modos = state.modos || (Canon && Canon.modos ? Canon.modos.modosPadrao : {});
+    if (!Canon || !Canon.flags) return modos;
+    try {
+      return Canon.flags.aplicarFlagsAosModos(modos, Canon.flags.carregarFlags());
+    } catch (_) {
+      return modos;
+    }
+  }
+
+  // Qual motor DEVERIA estar de pé agora ("A" | "B") — decide a remontagem.
+  function _motorAlvo() {
+    var Canon = window.PipocaCanonico;
+    if (!Canon || !Canon.ia || !Canon.flags) return "A";
+    return _modosEfetivos().iaLigada ? "B" : "A";
+  }
+
+  // Monta {motor, ordem} pela fábrica canônica. Com IA efetiva, injeta o
+  // provedor do MVP (simulado → guardrails → orquestrador) e aquece o cache
+  // (fire-and-forget); qualquer falha degrada para o Motor A pela própria
+  // fábrica/motor.
+  function _montarMotor(g) {
+    var Canon = window.PipocaCanonico;
+    if (!Canon || !g) return;
+    var efetivos = _modosEfetivos();
+    var deps;
+    if (efetivos.iaLigada && Canon.ia && Canon.flags) {
+      try { deps = { provedor: Canon.ia.montarProvedorPadrao(g) }; } catch (_) { deps = undefined; }
+    }
+    var par = Canon.criarMotor(g.cenario, efetivos, deps);
+    _motor = par.motor;
+    _ordem = par.ordem;
+    state.motorAtivo = deps && deps.provedor ? "B" : "A";
+    if (state.motorAtivo === "B" && _motor && typeof _motor.aquecer === "function") {
+      var nivel = (state.perfil && state.perfil.nivel) || "n2";
+      try { _motor.aquecer([], nivel).catch(function () {}); } catch (_) {}
+    }
+  }
+
   function _initMotor() {
     var Canon = window.PipocaCanonico;
     fetch("./src/dados/quintal_grafo.json")
@@ -278,10 +331,7 @@
           if (g) {
             _grafo = g;
             _cenario = g.cenario;
-            var modos = state.modos || (Canon.modos && Canon.modos.modosPadrao);
-            var par = Canon.criarMotor(g.cenario, modos);
-            _motor = par.motor;
-            _ordem = par.ordem;
+            _montarMotor(g);
           }
         } catch (e) {
           console.warn("[PipocaApp] Falha ao montar o motor canônico:", e);

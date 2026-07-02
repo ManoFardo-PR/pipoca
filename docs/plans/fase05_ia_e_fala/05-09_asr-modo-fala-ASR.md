@@ -1,5 +1,7 @@
 # fase05 · 05-09 · ASR · modo Fala (ASR)
 
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO** — `src/servicos/asr.ts` (`ServicoASR`/`ResultadoFala` no padrão injetável do irmão tts.ts) + integração na verificação da T5 (botão 🎤; participou → confirma; indisponível/silêncio → fallback acolhedor com os botões do cuidador, sem culpar a criança) + opção "Pela voz" nas Regras (aberta quando o aparelho tem reconhecimento e o kill-switch de fala da plataforma não está ativo). Participação, não perfeição: baixa confiança conta. Nunca rejeita — sem microfone o portão não quebra (e2e cobre). Sem áudio armazenado.
+
 ## Identidade
 - id: `fase05-05-09`
 - nó(s) da arquitetura: ASR

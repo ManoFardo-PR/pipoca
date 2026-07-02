@@ -1,5 +1,7 @@
 # fase05 · 05-03 · Motor B via Provedor de IA
 
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO (MVP local)** — a geração vive no aquecimento do `src/motores/motor_ia.ts`: prompt do 05-02 → `ProvedorIA.gerar(prompt, schema do Trecho)` (provedor já embrulhado em guardrails na composição) → validação/coerção pelo motor; erro/timeout/recusa não entram no cache e o miss degrada para Motor A. Saída sempre é Trecho válido ou ocorre degradação; nenhuma tela muda.
+
 ## Identidade
 - id: `fase05-05-03`
 - nó(s) da arquitetura: —

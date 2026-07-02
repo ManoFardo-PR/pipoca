@@ -1,5 +1,7 @@
 # fase05 · 05-04 · Provedor de IA (abstração / AIPROV)
 
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO (MVP local)** — interface única em `src/ia/provedor.ts` (schema do Trecho, validação que descarta `objetoId`, erro tipado de recusa, `Transporte` injetável) + `selecionarAdaptador(config)` em `src/ia/adaptadores/selecionar.ts`, que devolve o adaptador JÁ embrulhado em guardrails (GUARD sempre no caminho). No runtime da criança o provedor é o SIMULADO (`src/ia/simulado.ts`, sem rede/chave); a seleção real por config de tenant é consumida a partir da fase06 (ProxyIA).
+
 ## Identidade
 - id: `fase05-05-04`
 - nó(s) da arquitetura: AIPROV

@@ -1,5 +1,7 @@
 # fase05 · 05-05 · Adaptador Anthropic Claude (CLAUDE)
 
+> 🟡 **STATUS · 2026-07-02 · PARCIAL (pronto, sem chamada real)** — `src/ia/adaptadores/claude.ts`: montador de requisição + parser sobre `Transporte` injetável, testado com transporte fake (`refusal` tratado ANTES do conteúdo; sem temperature/top_p/budget_tokens; `output_config` json_schema; nenhuma chave no cliente). SDK e chamada real de API chegam com o ProxyIA server-side (fase06).
+
 ## Identidade
 - id: `fase05-05-05`
 - nó(s) da arquitetura: CLAUDE

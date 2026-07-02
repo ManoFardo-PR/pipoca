@@ -12,6 +12,17 @@
 
 import { validarGrafo } from "../core/grafo/validarGrafo.js";
 import { criarMotor } from "../motores/fabrica.js";
+import type { GrafoAutoral } from "../core/grafo/tipos.js";
+import type { ProvedorIA } from "../ia/provedor.js";
+import { montarPrompt, PROMPT_BASE } from "../ia/prompt.js";
+import { criarGuardrails, envolverComGuardrails } from "../ia/guardrails.js";
+import { criarProvedorSimulado } from "../ia/simulado.js";
+import { criarOrquestrador } from "../ia/orquestrador.js";
+// fase05: consumo das flags da plataforma pelo runtime da criança (previsto na
+// TRILHA). Módulo puro + storage versionado — NADA do runtime admin vem junto.
+// Os adaptadores reais (claude/gemini/openai) ficam FORA do bundle da criança:
+// o provedor do MVP é o simulado; a seleção por config chega com a fase06.
+import { aplicarFlagsAosModos, carregarFlags, killSwitchAtivo } from "../admin/flags.js";
 
 import {
   iniciar as compIniciar,
@@ -76,6 +87,7 @@ import { iniciarSessao, tick, encerrarSessao, formatarRestante } from "../core/s
 import { estiloLeitura, paletaContraste, transicao, animacaoCena } from "../core/a11y.js";
 import { tokenizarTrecho, ehPalavraDificil, silabar } from "../core/leitura.js";
 import { tts } from "../servicos/tts.js";
+import { asr, asrDisponivel, avaliarParticipacao, criarServicoASR } from "../servicos/asr.js";
 import { criarRepositorio } from "../core/persistencia/index.js";
 import { criarEvento } from "../core/telemetria.js";
 import {
@@ -167,8 +179,28 @@ const PipocaCanonico = {
     limparSessaoConta,
   },
 
+  // --- IA (fase05 · Motor B, MVP local com provedor simulado) ---
+  ia: {
+    montarPrompt,
+    PROMPT_BASE,
+    criarGuardrails,
+    envolverComGuardrails,
+    criarProvedorSimulado,
+    criarOrquestrador,
+    /** Composição padrão do MVP: simulado → guardrails → orquestrador. */
+    montarProvedorPadrao(grafo: GrafoAutoral): ProvedorIA {
+      const simulado = criarProvedorSimulado(grafo);
+      const guardado = envolverComGuardrails(simulado) as ProvedorIA;
+      return criarOrquestrador([guardado]);
+    },
+  },
+
+  // --- flags da plataforma (kill-switches do SA_SAFE, fase04→05) ---
+  flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos },
+
   // --- serviços / seams ---
   tts,
+  asr: { asr, criarServicoASR, asrDisponivel, avaliarParticipacao },
   criarRepositorio,
 
   // --- telemetria (TELE) ---

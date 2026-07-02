@@ -3,27 +3,37 @@
   var __getOwnPropNames = Object.getOwnPropertyNames;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
-  var __moduleCache = /* @__PURE__ */ new WeakMap;
+  function __accessProp(key) {
+    return this[key];
+  }
   var __toCommonJS = (from) => {
-    var entry = __moduleCache.get(from), desc;
+    var entry = (__moduleCache ??= new WeakMap).get(from), desc;
     if (entry)
       return entry;
     entry = __defProp({}, "__esModule", { value: true });
-    if (from && typeof from === "object" || typeof from === "function")
-      __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
-        get: () => from[key],
-        enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-      }));
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (var key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(entry, key))
+          __defProp(entry, key, {
+            get: __accessProp.bind(from, key),
+            enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+          });
+    }
     __moduleCache.set(from, entry);
     return entry;
   };
+  var __moduleCache;
+  var __returnValue = (v) => v;
+  function __exportSetter(name, newValue) {
+    this[name] = __returnValue.bind(null, newValue);
+  }
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, {
         get: all[name],
         enumerable: true,
         configurable: true,
-        set: (newValue) => all[name] = () => newValue
+        set: __exportSetter.bind(all, name)
       });
   };
 
@@ -218,6 +228,169 @@
     }
   }
 
+  // src/ia/prompt.ts
+  var descricaoNivel = {
+    n1: "pré-leitor: frases mínimas, palavras curtas e concretas, ritmo de cantiga",
+    n2: "leitor inicial: frases curtas e diretas, vocabulário do dia a dia",
+    n3: "leitor em prática: frases um pouco mais longas, com uma imagem poética simples",
+    n4: "leitor fluente: frases mais ricas, ainda curtas o bastante para o portão de leitura"
+  };
+  var PROMPT_BASE = [
+    "Você é o narrador do Pipoca, um app de leitura para crianças de 3 a 12 anos.",
+    "Sua voz é calma, acolhedora e encantada com as coisas pequenas do mundo.",
+    "",
+    "REGRAS DE SEGURANÇA (obrigatórias, sem exceção):",
+    "- Conteúdo sempre adequado a crianças de 3 a 12 anos.",
+    "- Proibido: violência gráfica, medo extremo, temas adultos, marcas comerciais, links, endereços, telefones ou qualquer dado pessoal.",
+    "- Tom acolhedor, nunca condescendente nem clínico; nunca envergonhe a criança.",
+    "- Se o pedido levar a conteúdo inseguro, recuse e reformule para algo seguro e gentil.",
+    "",
+    "FORMATO DA RESPOSTA:",
+    'Responda SOMENTE com um JSON no formato Trecho: { "texto": string, "ehFinal": boolean }.',
+    "Sem markdown, sem comentários, sem nada fora do JSON."
+  ].join(`
+`);
+  function acharObjeto(grafo, id) {
+    return grafo.cenario.objetos.find((o) => o.id === id);
+  }
+  function nomeLegivel(grafo, id) {
+    const o = acharObjeto(grafo, id);
+    return o ? `${o.emoji} ${o.nome}` : id;
+  }
+  function montarPrompt(ctx) {
+    const { tipo, historia, objetoId, nivel, modoDesfecho, grafo } = ctx;
+    const cen = grafo.cenario;
+    const linhas = [];
+    const personagem = cen.personagem || "uma criança curiosa";
+    const paleta = cen.paleta ? `paleta "${cen.paleta}"` : "tom neutro acolhedor";
+    linhas.push(`CENÁRIO: "${cen.nome}" — personagem: ${personagem}; ${paleta}.`);
+    const bruta = grafo.niveis ? grafo.niveis[nivel] : "";
+    const desc = bruta && bruta !== nivel ? bruta : descricaoNivel[nivel];
+    linhas.push(`NÍVEL DE LEITURA: ${nivel} — ${desc}.`);
+    linhas.push("Escreva o texto SOMENTE neste nível (um único fragmento, nunca os quatro).");
+    linhas.push("O texto precisa ser curto o bastante para a criança ler no portão antes do próximo objeto.");
+    if (historia.length === 0) {
+      linhas.push("HISTÓRIA ATÉ AGORA: nenhuma — este é o comecinho.");
+    } else {
+      linhas.push("HISTÓRIA ATÉ AGORA (objetos na ordem): " + historia.map((id) => nomeLegivel(grafo, id)).join(" → ") + ".");
+    }
+    if (tipo === "abertura") {
+      linhas.push("PEDIDO: escreva a ABERTURA da história, apresentando o cenário e o personagem.");
+      linhas.push('Marque "ehFinal": false.');
+    } else if (tipo === "objeto") {
+      const obj = objetoId ? acharObjeto(grafo, objetoId) : undefined;
+      if (obj) {
+        linhas.push(`PEDIDO: a criança acabou de colocar o objeto ${obj.emoji} "${obj.nome}" na história` + (historia.length === 0 ? " (é o primeiro objeto)" : "") + `. Escreva o trecho que esse objeto desperta, coerente com o papel dele no fim ("${obj.papel_no_fim}").`);
+      } else {
+        linhas.push(`PEDIDO: a criança colocou um objeto novo ("${objetoId || "?"}"). Escreva um trecho gentil que o acolha na história.`);
+      }
+      linhas.push('Marque "ehFinal": false.');
+    } else {
+      const ultimo = historia[historia.length - 1];
+      const temRamo = !!ultimo && cen.desfechos.aberto.some((d) => d.se_terminou_com === ultimo);
+      if (modoDesfecho === "aberto" && temRamo && ultimo) {
+        linhas.push(`PEDIDO: escreva o DESFECHO ABERTO da história, amarrado ao último objeto (${nomeLegivel(grafo, ultimo)}).`);
+      } else if (modoDesfecho === "aberto") {
+        linhas.push("PEDIDO: escreva um DESFECHO convergente e acolhedor — o último objeto não tem ramo próprio, e a história se fecha com o mesmo carinho.");
+      } else {
+        linhas.push("PEDIDO: escreva o DESFECHO CONVERGENTE da história, fechando o dia com aconchego.");
+      }
+      linhas.push('Marque "ehFinal": true.');
+    }
+    linhas.push('Responda SOMENTE com o JSON do Trecho: { "texto": string, "ehFinal": boolean }.');
+    return linhas.join(`
+`);
+  }
+
+  // src/ia/provedor.ts
+  var TRECHO_JSON_SCHEMA = {
+    type: "object",
+    properties: {
+      texto: { type: "string" },
+      ehFinal: { type: "boolean" }
+    },
+    required: ["texto", "ehFinal"],
+    additionalProperties: false
+  };
+
+  // src/motores/motor_ia.ts
+  function chaveDe(tipo, nivel, modo, historia, objetoId) {
+    return tipo + "|" + nivel + "|" + modo + "|" + historia.join(",") + "|" + (objetoId || "");
+  }
+
+  class MotorIA {
+    provedor;
+    grafo;
+    modoDesfecho;
+    motorA;
+    cache = new Map;
+    constructor(provedor, grafo, modoDesfecho) {
+      this.provedor = provedor;
+      this.grafo = grafo;
+      this.modoDesfecho = modoDesfecho;
+      this.motorA = new MotorGrafoAutoral(grafo);
+    }
+    abertura(nivel) {
+      return this.servir(chaveDe("abertura", nivel, "", []), () => this.motorA.abertura(nivel));
+    }
+    aoAdicionarObjeto(historia, objetoId, nivel) {
+      return this.servir(chaveDe("objeto", nivel, "", historia, objetoId), () => this.motorA.aoAdicionarObjeto(historia, objetoId, nivel));
+    }
+    desfecho(historia, modo, nivel) {
+      return this.servir(chaveDe("desfecho", nivel, modo, historia), () => this.motorA.desfecho(historia, modo, nivel));
+    }
+    async aquecer(historia, nivel) {
+      const alvos = [];
+      if (historia.length === 0) {
+        alvos.push({ tipo: "abertura", historia: [], modo: this.modoDesfecho });
+      }
+      const ordem = this.grafo.cenario.ordem_canonica || [];
+      const acumulada = historia.slice();
+      for (const id of ordem) {
+        if (acumulada.indexOf(id) >= 0)
+          continue;
+        alvos.push({ tipo: "objeto", historia: acumulada.slice(), objetoId: id, modo: this.modoDesfecho });
+        acumulada.push(id);
+      }
+      alvos.push({ tipo: "desfecho", historia: acumulada.slice(), modo: "convergente" });
+      alvos.push({ tipo: "desfecho", historia: acumulada.slice(), modo: "aberto" });
+      for (const alvo of alvos) {
+        await this.gerarEArmazenar(alvo, nivel);
+      }
+    }
+    servir(chave, deMotorA) {
+      const pronto = this.cache.get(chave);
+      if (pronto)
+        return { ...pronto };
+      const doA = deMotorA();
+      this.cache.set(chave, doA);
+      return { ...doA };
+    }
+    async gerarEArmazenar(alvo, nivel) {
+      const chave = chaveDe(alvo.tipo, nivel, alvo.tipo === "desfecho" ? alvo.modo : "", alvo.historia, alvo.objetoId);
+      if (this.cache.has(chave))
+        return;
+      try {
+        const prompt = montarPrompt({
+          tipo: alvo.tipo,
+          historia: alvo.historia,
+          objetoId: alvo.objetoId,
+          nivel,
+          modoDesfecho: alvo.modo,
+          grafo: this.grafo
+        });
+        const gerado = await this.provedor.gerar(prompt, TRECHO_JSON_SCHEMA, { system: PROMPT_BASE });
+        if (!gerado || typeof gerado.texto !== "string" || gerado.texto.trim() === "")
+          return;
+        const trecho = { texto: gerado.texto, ehFinal: alvo.tipo === "desfecho" };
+        if (alvo.tipo === "objeto" && alvo.objetoId)
+          trecho.objetoId = alvo.objetoId;
+        if (!this.cache.has(chave))
+          this.cache.set(chave, trecho);
+      } catch {}
+    }
+  }
+
   // src/motores/validador_ordem.ts
   var RE_TEM = /^tem:(\w+)$/;
   function topoSort(cenario) {
@@ -307,27 +480,234 @@
   }
 
   // src/motores/fabrica.ts
-  function criarMotor(cenario, modos) {
+  function criarMotor(cenario, modos, deps) {
     const ordem = criarValidadorOrdem(cenario);
     if (modos.iaLigada) {
+      const provedor = deps ? deps.provedor : undefined;
+      if (provedor) {
+        const motor2 = new MotorIA(provedor, montarGrafoAutoral(cenario), modos.desfecho);
+        return { motor: motor2, ordem };
+      }
       return criarMotorComFallback(cenario, ordem);
     }
     const motor = criarMotorA(cenario);
     return { motor, ordem };
   }
-  function criarMotorA(cenario) {
-    const grafo = {
+  function montarGrafoAutoral(cenario) {
+    return {
       esquema: "pipoca.grafo-autoral.v1",
       niveis: { n1: "n1", n2: "n2", n3: "n3", n4: "n4" },
       regra_de_ouro: "Todo fragmento novo precisa ser lido no portão antes de soltar o próximo objeto.",
       cenario
     };
-    return new MotorGrafoAutoral(grafo);
+  }
+  function criarMotorA(cenario) {
+    return new MotorGrafoAutoral(montarGrafoAutoral(cenario));
   }
   function criarMotorComFallback(cenario, ordem) {
-    console.warn("[fabrica] iaLigada=true mas Motor B não está disponível (fase05). " + "Usando Motor A como fallback seguro.");
+    console.warn("[fabrica] iaLigada=true mas nenhum provedor de IA foi injetado. " + "Usando Motor A como fallback seguro.");
     const motor = criarMotorA(cenario);
     return { motor, ordem };
+  }
+
+  // src/ia/guardrails.ts
+  var MAX_CHARS_SAIDA = 700;
+  var RE_TERMOS_BLOQUEADOS = new RegExp("\\b(?:matar|morrer|morte|mortes|sangue|armas?|tiros?|facadas?|" + "terror|pavor|pesadelos?|demonios?|" + "cervejas?|vodka|cigarros?|drogas?|sexo|nudez|apostas?)\\b" + "|\\b(?:assassin|violenc)");
+  var RE_URL = /https?:\/\/|www\./i;
+  var RE_EMAIL = /\S+@\S+\.\S+/;
+  var RE_TELEFONE = /\b\d{4,5}[-\s]\d{4}\b|\d{8,}/;
+  function normalizar(texto) {
+    return texto.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
+  }
+  function categoriaProibida(texto) {
+    if (RE_URL.test(texto))
+      return "link";
+    if (RE_EMAIL.test(texto))
+      return "dado pessoal (e-mail)";
+    if (RE_TELEFONE.test(texto))
+      return "dado pessoal (telefone)";
+    if (RE_TERMOS_BLOQUEADOS.test(normalizar(texto)))
+      return "termo impróprio para crianças";
+    return null;
+  }
+  function criarGuardrails() {
+    return {
+      filtrarEntrada(prompt) {
+        if (!prompt || prompt.trim() === "")
+          return { permitir: false, motivo: "prompt vazio" };
+        const cat = categoriaProibida(prompt);
+        if (cat)
+          return { permitir: false, motivo: cat };
+        return { permitir: true };
+      },
+      filtrarSaida(trecho) {
+        const texto = trecho && typeof trecho.texto === "string" ? trecho.texto : "";
+        if (texto.trim() === "")
+          return { permitir: false, motivo: "texto vazio" };
+        if (texto.length > MAX_CHARS_SAIDA)
+          return { permitir: false, motivo: "texto longo demais para o portão" };
+        const cat = categoriaProibida(texto);
+        if (cat)
+          return { permitir: false, motivo: cat };
+        return { permitir: true };
+      }
+    };
+  }
+  function envolverComGuardrails(provedor, guardrails) {
+    const g = guardrails || criarGuardrails();
+    return {
+      async gerar(prompt, schema, opts) {
+        const entrada = g.filtrarEntrada(prompt);
+        if (!entrada.permitir) {
+          throw new Error("guardrails: entrada bloqueada (" + (entrada.motivo || "regra de segurança") + ")");
+        }
+        const trecho = await provedor.gerar(prompt, schema, opts);
+        const saida = g.filtrarSaida(trecho);
+        if (!saida.permitir) {
+          throw new Error("guardrails: saída bloqueada (" + (saida.motivo || "regra de segurança") + ")");
+        }
+        return saida.trechoReformulado || trecho;
+      }
+    };
+  }
+
+  // src/ia/simulado.ts
+  function fnv(s) {
+    let h = 2166136261;
+    for (let i = 0;i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+  function escolher(opcoes, semente) {
+    return opcoes[fnv(semente) % opcoes.length];
+  }
+  function criarProvedorSimulado(grafo, opts) {
+    const cen = grafo.cenario;
+    const personagem = cen.personagem || "a criança";
+    return {
+      async gerar(prompt, _schema, _opts) {
+        if (opts && opts.falhar) {
+          throw new Error("Provedor simulado em modo falha (teste de degradação).");
+        }
+        const ehFinal = prompt.indexOf('"ehFinal": true') >= 0;
+        const nivelM = /NÍVEL DE LEITURA: (n[1-4])/.exec(prompt);
+        const nivel = nivelM ? nivelM[1] : "n2";
+        const curto = nivel === "n1" || nivel === "n2";
+        const objetoM = /objeto (\S+) "([^"]+)"/.exec(prompt);
+        const abertura = prompt.indexOf("PEDIDO: escreva a ABERTURA") >= 0;
+        let texto;
+        if (abertura) {
+          texto = curto ? `✨ ${personagem} olha em volta. Hoje tem história nova.` : `✨ ${personagem} olha devagar em volta: alguma coisa pequenina está para acontecer, e hoje a história é novinha.`;
+        } else if (objetoM) {
+          const emoji = objetoM[1];
+          const nome = objetoM[2];
+          const verbo = escolher(["chega", "aparece", "acorda"], prompt);
+          texto = curto ? `✨ ${emoji} ${nome} ${verbo} na história. ${personagem} sorri.` : `✨ ${emoji} ${nome} ${verbo} bem no meio da história, e ${personagem} sorri como quem guarda um segredo bom.`;
+        } else if (ehFinal) {
+          texto = curto ? `✨ A história se aninha. ${personagem} respira fundo. Fim por hoje.` : `✨ A história inteira se aninha como um bicho de estimação, e ${personagem} respira fundo: fim por hoje, com gosto de amanhã.`;
+        } else {
+          texto = `✨ A história continua, um passinho de cada vez.`;
+        }
+        return { texto, ehFinal };
+      }
+    };
+  }
+
+  // src/ia/orquestrador.ts
+  function criarOrquestrador(cadeiaFallback, opts) {
+    const cotaMensal = opts && typeof opts.cotaMensal === "number" ? opts.cotaMensal : 1000;
+    const custoMaxMensal = opts && typeof opts.custoMaxMensal === "number" ? opts.custoMaxMensal : 1000;
+    const custoPorChamada = opts && typeof opts.custoPorChamada === "number" ? opts.custoPorChamada : 1;
+    const aoRegistrarUso = opts ? opts.aoRegistrarUso : undefined;
+    let chamadas = 0;
+    let custoAcumulado = 0;
+    function usoAtual() {
+      return { chamadas, custoAcumulado, cotaRestante: Math.max(0, cotaMensal - chamadas) };
+    }
+    function registrar() {
+      chamadas += 1;
+      custoAcumulado += custoPorChamada;
+      if (aoRegistrarUso) {
+        try {
+          aoRegistrarUso(usoAtual());
+        } catch {}
+      }
+    }
+    return {
+      uso: usoAtual,
+      async gerar(prompt, schema, optsGeracao) {
+        if (!cadeiaFallback.length) {
+          throw new Error("Orquestrador sem provedores na cadeia.");
+        }
+        let ultimoErro = null;
+        for (const provedor of cadeiaFallback) {
+          if (cotaMensal - chamadas <= 0) {
+            throw new Error("Cota de IA esgotada — degradando para o motor autoral.");
+          }
+          if (custoAcumulado + custoPorChamada > custoMaxMensal) {
+            throw new Error("Teto de custo de IA atingido — degradando para o motor autoral.");
+          }
+          try {
+            registrar();
+            return await provedor.gerar(prompt, schema, optsGeracao);
+          } catch (e) {
+            ultimoErro = e;
+          }
+        }
+        throw ultimoErro instanceof Error ? ultimoErro : new Error("Todos os provedores falharam.");
+      }
+    };
+  }
+
+  // src/admin/flags.ts
+  var FLAGS_PADRAO = {
+    ia: false,
+    fala: false,
+    conteudoCustomizado: true,
+    telemetria: true
+  };
+  function killSwitchAtivo(flags, recurso) {
+    return flags[recurso] !== true;
+  }
+  function aplicarFlagsAosModos(modos, flags) {
+    const efetivos = { ...modos };
+    if (killSwitchAtivo(flags, "ia"))
+      efetivos.iaLigada = false;
+    if (killSwitchAtivo(flags, "fala") && efetivos.verificacao === "fala")
+      efetivos.verificacao = "cuidador";
+    return efetivos;
+  }
+  var CHAVE_FLAGS = "pipoca.admin.flags.v1";
+  function storagePadrao() {
+    try {
+      const g = globalThis;
+      return g.localStorage ?? null;
+    } catch {
+      return null;
+    }
+  }
+  function carregarFlags(armazem) {
+    const st = armazem ?? storagePadrao();
+    if (!st)
+      return { ...FLAGS_PADRAO };
+    try {
+      const raw = st.getItem(CHAVE_FLAGS);
+      if (raw === null)
+        return { ...FLAGS_PADRAO };
+      const obj = JSON.parse(raw);
+      if (!obj || typeof obj !== "object" || Array.isArray(obj))
+        return { ...FLAGS_PADRAO };
+      const limpo = { ...FLAGS_PADRAO };
+      for (const [k, v] of Object.entries(obj)) {
+        if (typeof v === "boolean")
+          limpo[k] = v;
+      }
+      return limpo;
+    } catch {
+      return { ...FLAGS_PADRAO };
+    }
   }
 
   // src/core/composicao.ts
@@ -1106,6 +1486,98 @@
   }
   var tts = new ServicoTTSWebSpeech;
 
+  // src/servicos/asr.ts
+  function avaliarParticipacao(transcricao, confianca) {
+    const falou = typeof transcricao === "string" && transcricao.trim().length > 0;
+    if (!falou)
+      return { participou: false, confianca: 0 };
+    const c = typeof confianca === "number" && confianca >= 0 && confianca <= 1 ? confianca : 0.3;
+    return { participou: true, confianca: c };
+  }
+  function asrDisponivel() {
+    try {
+      const g = globalThis;
+      return !!(g["SpeechRecognition"] || g["webkitSpeechRecognition"]);
+    } catch {
+      return false;
+    }
+  }
+  function reconhecimentoDoNavegador() {
+    try {
+      const g = globalThis;
+      const Ctor = g["SpeechRecognition"] || g["webkitSpeechRecognition"];
+      return Ctor ? new Ctor : null;
+    } catch {
+      return null;
+    }
+  }
+  function criarServicoASR(deps) {
+    const fabricaRec = deps && deps.criarReconhecimento || reconhecimentoDoNavegador;
+    const duracaoPadrao = deps && deps.duracaoMaxMs || 6000;
+    return {
+      ouvir(opts) {
+        return new Promise((resolve) => {
+          let terminado = false;
+          let timer = null;
+          const fim = (r) => {
+            if (terminado)
+              return;
+            terminado = true;
+            if (timer)
+              clearTimeout(timer);
+            resolve(r);
+          };
+          let rec = null;
+          try {
+            rec = fabricaRec();
+          } catch {
+            rec = null;
+          }
+          if (!rec) {
+            fim({ participou: false, confianca: 0 });
+            return;
+          }
+          try {
+            rec.lang = opts && opts.lang || "pt-BR";
+            if ("interimResults" in rec)
+              rec.interimResults = false;
+            if ("maxAlternatives" in rec)
+              rec.maxAlternatives = 1;
+            rec.onresult = (ev) => {
+              try {
+                const r = ev;
+                const alt = r && r.results && r.results[0] ? r.results[0][0] : undefined;
+                const transcricao = alt && typeof alt.transcript === "string" ? alt.transcript : "";
+                fim(avaliarParticipacao(transcricao, alt ? alt.confidence : undefined));
+              } catch {
+                fim({ participou: false, confianca: 0 });
+              }
+              try {
+                if (rec && rec.stop)
+                  rec.stop();
+              } catch {}
+            };
+            rec.onerror = () => fim({ participou: false, confianca: 0 });
+            rec.onend = () => fim({ participou: false, confianca: 0 });
+            const teto = opts && opts.duracaoMaxMs || duracaoPadrao;
+            timer = setTimeout(() => {
+              try {
+                const parar = rec && (rec.abort || rec.stop);
+                if (rec && parar)
+                  parar.call(rec);
+              } catch {}
+              fim({ participou: false, confianca: 0 });
+            }, teto);
+            rec.start();
+          } catch {
+            fim({ participou: false, confianca: 0 });
+          }
+        });
+      }
+    };
+  }
+  var asr = criarServicoASR();
+
   // src/core/telemetria.ts
   var ESQUEMA_TELEMETRIA = "pipoca.telemetria.v1";
   var TIPOS_VALIDOS = [
@@ -1705,7 +2177,22 @@
       salvarSessaoConta,
       limparSessaoConta
     },
+    ia: {
+      montarPrompt,
+      PROMPT_BASE,
+      criarGuardrails,
+      envolverComGuardrails,
+      criarProvedorSimulado,
+      criarOrquestrador,
+      montarProvedorPadrao(grafo) {
+        const simulado = criarProvedorSimulado(grafo);
+        const guardado = envolverComGuardrails(simulado);
+        return criarOrquestrador([guardado]);
+      }
+    },
+    flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos },
     tts,
+    asr: { asr, criarServicoASR, asrDisponivel, avaliarParticipacao },
     criarRepositorio,
     telemetria: {
       criarEvento,

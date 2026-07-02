@@ -1,5 +1,7 @@
 # fase05 · 05-06 · Adaptador Google Gemini (GEMINI)
 
+> 🟡 **STATUS · 2026-07-02 · PARCIAL (pronto, sem chamada real)** — `src/ia/adaptadores/gemini.ts`: mesma interface dos demais (intercambiável sem mudar o Motor B), `responseSchema` restringe ao Trecho, bloqueios de segurança viram recusa tipada antes do conteúdo. Chamada real com chave server-side = fase06 (ProxyIA).
+
 ## Identidade
 - id: `fase05-05-06`
 - nó(s) da arquitetura: GEMINI

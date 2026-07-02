@@ -93,6 +93,26 @@
     <button onClick="{{ confirmSozinho }}" style="padding:22px 44px;border:none;border-radius:20px;background:linear-gradient(150deg,#7da94f,#5d8a3a);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(77,122,57,.5);">✓ Eu li!</button>
     </sc-if>
 
+    <!-- Modo fala (fase05 · ASR): participação já conta; sem voz, ninguém fica preso -->
+    <sc-if value="{{ verifyIsFala }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+      <sc-if value="{{ falaPronta }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ comecarFala }}" style="padding:22px 44px;border:none;border-radius:20px;background:linear-gradient(150deg,#5a86b0,#3f6f9e);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(45,86,129,.4);">🎤 Ler em voz alta</button>
+        <p style="font-size:13px;color:#9a8a72;text-align:center;max-width:420px;line-height:1.4;">Leia do seu jeito — participar já conta. 💚</p>
+      </sc-if>
+      <sc-if value="{{ falaOuvindo }}" hint-placeholder-val="{{ false }}">
+        <div role="status" aria-live="polite" style="font-family:'Baloo 2',cursive;font-weight:700;font-size:20px;color:#3a4f63;">🎤 Estou te ouvindo… pode ler!</div>
+      </sc-if>
+      <sc-if value="{{ falaFalhou }}" hint-placeholder-val="{{ false }}">
+        <div role="status" aria-live="polite" style="font-family:'Nunito',sans-serif;font-size:16px;color:#6a6a55;text-align:center;max-width:460px;line-height:1.5;">Tudo bem! Vamos confirmar de outro jeito. 💚</div>
+        <div style="display:flex;gap:16px;">
+          <button onClick="{{ confirmSozinho }}" style="padding:20px 32px;border:none;border-radius:20px;background:linear-gradient(150deg,#7da94f,#5d8a3a);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(77,122,57,.5);">🌱 Leu sozinho</button>
+          <button onClick="{{ confirmJuntos }}" style="padding:20px 32px;border:none;border-radius:20px;background:linear-gradient(150deg,#5a86b0,#3f6f9e);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(45,86,129,.4);">🤝 Tentamos juntos</button>
+        </div>
+      </sc-if>
+    </div>
+    </sc-if>
+
   </div>
   </sc-if>
 
@@ -105,6 +125,7 @@ class Component extends DCLogic {
     palavraIdx: 0,
     stage: 'reading',
     lendoAuto: false,   // "Ouvir" lendo a frase inteira (pausável)
+    falaStage: 'pronta', // fase05 · modo fala: pronta | ouvindo | falhou
   };
 
   // Escolhe a melhor voz pt-BR disponível (getVoices carrega async — ver _warmVoices).
@@ -291,7 +312,25 @@ class Component extends DCLogic {
   // rodada). A leitura em si é tap-na-palavra + "Ouvir"; sem stepping obrigatório.
   avancarHistoria() {
     this._pararLeituraAuto();
-    this.setState({ stage: 'verifying' });
+    this.setState({ stage: 'verifying', falaStage: 'pronta' });
+  }
+
+  // fase05 · modo fala (ASR): participação já conta; indisponível/silêncio NÃO
+  // culpa a criança — abre o caminho do cuidador. O serviço nunca rejeita.
+  _comecarFala() {
+    const C = window.PipocaCanonico;
+    const servico = C && C.asr ? C.asr.asr : null;
+    if (!servico) { this.setState({ falaStage: 'falhou' }); return; }
+    const gen = (this._falaGen || 0) + 1;
+    this._falaGen = gen;
+    this.setState({ falaStage: 'ouvindo' });
+    servico.ouvir({ duracaoMaxMs: 8000 }).then((r) => {
+      if (this._falaGen !== gen) return;
+      if (r && r.participou) this._commit();
+      else this.setState({ falaStage: 'falhou' });
+    }).catch(() => {
+      if (this._falaGen === gen) this.setState({ falaStage: 'falhou' });
+    });
   }
 
   voltarCena() {
@@ -352,7 +391,17 @@ class Component extends DCLogic {
 
     const total = palavras.length;
     const pct = total > 0 ? Math.min(100, Math.round(((curIdx + 1) / total) * 100)) : 0;
-    const verificacao = estado.modos ? estado.modos.verificacao : 'cuidador';
+    // fase05 · verificação EFETIVA na borda da tela: o kill-switch da plataforma
+    // degrada fala→cuidador (a intenção em state.modos fica intacta); sem o
+    // serviço ASR no bundle, mesma degradação (guarda dupla).
+    let verificacao = estado.modos ? estado.modos.verificacao : 'cuidador';
+    try {
+      const C5 = window.PipocaCanonico;
+      if (C5 && C5.flags && estado.modos) {
+        verificacao = C5.flags.aplicarFlagsAosModos(estado.modos, C5.flags.carregarFlags()).verificacao;
+      }
+      if (verificacao === 'fala' && !(C5 && C5.asr)) verificacao = 'cuidador';
+    } catch (_) {}
     const vagalumes = estado.economia ? estado.economia.vagalumes : 0;
 
     return {
@@ -370,6 +419,11 @@ class Component extends DCLogic {
       ouvirLabel: this.state.lendoAuto ? '⏸ Pausar' : '🔊 Ouvir',
       verifyIsCuidador: verificacao === 'cuidador',
       verifyIsAuto: verificacao === 'auto',
+      verifyIsFala: verificacao === 'fala',
+      falaPronta: (this.state.falaStage || 'pronta') === 'pronta',
+      falaOuvindo: this.state.falaStage === 'ouvindo',
+      falaFalhou: this.state.falaStage === 'falhou',
+      comecarFala: () => this._comecarFala(),
       ouvirTudo: () => this.alternarOuvirTudo(),
       ouvirDeNovo: () => this.ouvirPalavra(curIdx),
       avancarHistoria: () => this.avancarHistoria(),

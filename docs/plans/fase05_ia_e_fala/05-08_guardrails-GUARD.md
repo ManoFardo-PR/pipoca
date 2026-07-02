@@ -1,5 +1,7 @@
 # fase05 · 05-08 · Guardrails de conteúdo infantil (GUARD)
 
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO** — `src/ia/guardrails.ts`: `filtrarEntrada`/`filtrarSaida` (blocklist PT-BR por palavra inteira, links, e-mail, telefone, vazio, tamanho) + `envolverComGuardrails` (decorator que garante GUARD sempre no caminho; violação → throw → degradação para Motor A). Motivos sem PII. MVP não usa `trechoReformulado` (degrada em vez de reescrever). Testes em `src/ia/ia.test.ts`.
+
 ## Identidade
 - id: `fase05-05-08`
 - nó(s) da arquitetura: GUARD

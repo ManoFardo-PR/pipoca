@@ -246,6 +246,18 @@
     _irPara(2);
   }
 
+  // Sair da conta da família (HH_LOGIN): limpa a sessão de conta e volta ao login (T9).
+  function sairDaConta() {
+    var Canon = window.PipocaCanonico;
+    var C = Canon && Canon.conta;
+    if (C) { try { C.limparSessaoConta(); } catch (_) {} }
+    var M = Canon && Canon.modoApp;
+    state.modoApp = M ? M.aoVoltarParaCrianca() : "crianca";
+    state.showA11y = false;
+    state.showOnboarding = false;
+    _irPara(9);
+  }
+
   // ─── Motor/validador CANÔNICOS (src/) via window.PipocaCanonico ────────────
   function _initMotor() {
     var Canon = window.PipocaCanonico;
@@ -394,6 +406,7 @@
     verificarPinCuidador: verificarPinCuidador,
     abrirPortao: function () { _irPara(1); },
     aoVoltarParaCrianca: aoVoltarParaCrianca,
+    sairDaConta: sairDaConta,
     // composição autoral v2 (linha verde T2→T7)
     iniciarComposicao: iniciarComposicao,
     ordenarR1Composicao: ordenarR1Composicao,
@@ -411,6 +424,12 @@
   _migrarPerfisLegado().then(function () { return repo.carregarPerfis(); }); // popula cache _perfis
   _initMotor();
   _initComposicao();
-  var R0 = window.PipocaRoteador;
-  if (R0) R0.irParaTela(2); // o fluxo da criança começa em T2 (roteador inicia em 1)
+  // Rota inicial: sem sessão de conta válida → login da família (T9, HH_LOGIN);
+  // com sessão → modo criança (T2). O boot navega por _irPara (anterior à guarda).
+  var _telaInicial = 2;
+  try {
+    var C0 = window.PipocaCanonico && window.PipocaCanonico.conta;
+    if (C0 && !C0.sessaoValida(C0.carregarSessaoConta(), Date.now())) _telaInicial = 9;
+  } catch (_) {}
+  _irPara(_telaInicial);
 })();

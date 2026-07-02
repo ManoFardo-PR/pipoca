@@ -40,6 +40,14 @@
     <sc-if value="{{ ehT6 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela6Recompensa"></dc-import></sc-if>
     <sc-if value="{{ ehT7 }}" hint-placeholder-val="{{ false }}"><dc-import name="Tela7PoteCardapio"></dc-import></sc-if>
     <sc-if value="{{ ehPCHome }}" hint-placeholder-val="{{ false }}"><dc-import name="Onboarding"></dc-import></sc-if>
+    <!-- Superfícies do cuidador (fase02/03): login (T9), hub (T11), telas 12–15 e painel (T8). -->
+    <sc-if value="{{ ehT8 }}" hint-placeholder-val="{{ false }}"><dc-import name="PainelEvolucao"></dc-import></sc-if>
+    <sc-if value="{{ ehT9 }}" hint-placeholder-val="{{ false }}"><dc-import name="LoginFamilia"></dc-import></sc-if>
+    <sc-if value="{{ ehT11 }}" hint-placeholder-val="{{ false }}"><dc-import name="PainelCuidador"></dc-import></sc-if>
+    <sc-if value="{{ ehT12 }}" hint-placeholder-val="{{ false }}"><dc-import name="Perfis"></dc-import></sc-if>
+    <sc-if value="{{ ehT13 }}" hint-placeholder-val="{{ false }}"><dc-import name="Limites"></dc-import></sc-if>
+    <sc-if value="{{ ehT14 }}" hint-placeholder-val="{{ false }}"><dc-import name="Regras"></dc-import></sc-if>
+    <sc-if value="{{ ehT15 }}" hint-placeholder-val="{{ false }}"><dc-import name="Privacidade"></dc-import></sc-if>
   </div>
 
   <!-- Textura de papel — overlay suave sobre toda a viewport (não capta clique). -->
@@ -141,7 +149,7 @@ class Component extends DCLogic {
       devMode: dev,
       showA11y,
       // Marca só onde a tela não traz app bar própria (evita cabeçalho duplo).
-      mostrarMarca: tela === 2,
+      mostrarMarca: tela === 2 || tela === 9,
       // Flags de montagem do slot (uma tela ativa por vez).
       ehT1: tela === 1,
       ehT2: tela === 2,
@@ -150,7 +158,14 @@ class Component extends DCLogic {
       ehT5: tela === 5,
       ehT6: tela === 6,
       ehT7: tela === 7,
-      ehPCHome: tela === 10, // hub/onboarding do cuidador
+      ehPCHome: tela === 10, // onboarding do cuidador (1º uso, sem perfis)
+      ehT8: tela === 8,   // painel de evolução (PC_DASH)
+      ehT9: tela === 9,   // login da família (HH_LOGIN)
+      ehT11: tela === 11, // hub do cuidador (PC_HOME)
+      ehT12: tela === 12, // perfis (PC_PROF)
+      ehT13: tela === 13, // limites (PC_LIM)
+      ehT14: tela === 14, // regras + IA (PC_RULES/PC_AI)
+      ehT15: tela === 15, // privacidade (PC_PRIV)
       goT1: () => this.irParaTela(1),
       goT2: () => this.irParaTela(2),
       goT3: () => this.irParaTela(3),

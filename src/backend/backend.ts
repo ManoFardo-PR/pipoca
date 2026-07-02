@@ -27,6 +27,10 @@ import { ERRO_LOGIN_NEUTRO, type CredenciaisLogin, type ServicoAuth, type Sessao
 import { configDoAmbiente, type ConfigBackend } from "./config.js";
 import { criarAuthFirebase } from "./adaptadores/auth_firebase.js";
 import { RepositorioFirebase } from "./adaptadores/repo_firebase.js";
+import { criarAuthSupabase } from "./adaptadores/auth_supabase.js";
+import { RepositorioSupabase } from "./adaptadores/repo_supabase.js";
+import { criarRepositorioSincronizado } from "./adaptadores/repo_sincronizado.js";
+import { escopoTenant } from "./tenant.js";
 
 /** Contrato do doc 06-05 (ipsis litteris) — o cliente concreto chega na etapa do proxy. */
 export interface ProxyIA {
@@ -113,16 +117,34 @@ function criarBackendFirebase(): Backend {
   };
 }
 
+// ─── Adaptador SUPABASE (REST puro — auth GoTrue + repo PostgREST) ───────────
+// Remoto com fallback local: o repo é o SINCRONIZADO (local = base; o remoto
+// espelha fire-and-forget). O ProxyIA concreto chega na etapa do proxy.
+
+function criarBackendSupabase(cfg: ConfigBackend): Backend {
+  const auth = criarAuthSupabase({ url: cfg.supabaseUrl as string, anonKey: cfg.supabaseAnonKey as string });
+  const remoto = new RepositorioSupabase({
+    url: cfg.supabaseUrl as string,
+    anonKey: cfg.supabaseAnonKey as string,
+    obterToken: () => auth.obterToken(),
+    tenant: () => escopoTenant(auth.sessaoAtual()),
+  });
+  const repo = criarRepositorioSincronizado(criarRepositorio(), remoto);
+  return {
+    auth,
+    repo,
+    proxyIA: proxyIndisponivel("ProxyIA ainda não configurado neste build — degradando para o provedor simulado."),
+  };
+}
+
 /**
  * Seleção do adaptador por config (06-01/06-06). A config vem LAZY do
  * ambiente (window.PIPOCA_CONFIG via pipoca.config.js) quando não é passada.
  */
 export function obterBackend(config?: ConfigBackend): Backend {
   const cfg = config || configDoAmbiente();
-  if (cfg.provedor === "supabase") {
-    // Adaptadores REST entram nas próximas etapas; até lá, offline-first.
-    console.warn("[backend] provedor supabase ainda sem adaptadores neste build — usando o local.");
-    return criarBackendLocal();
+  if (cfg.provedor === "supabase" && cfg.supabaseUrl && cfg.supabaseAnonKey) {
+    return criarBackendSupabase(cfg);
   }
   if (cfg.provedor === "firebase") return criarBackendFirebase();
   return criarBackendLocal();

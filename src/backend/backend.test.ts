@@ -10,6 +10,20 @@ import { CONFIG_LOCAL, configDoAmbiente, normalizarConfigBackend } from "./confi
 import { escopoTenant } from "./tenant.js";
 import { criarBackendLocal, obterBackend } from "./backend.js";
 import { CHAVE_SESSAO_BACKEND, criarAuthSupabase } from "./adaptadores/auth_supabase.js";
+import { RepositorioSupabase } from "./adaptadores/repo_supabase.js";
+import { RepositorioLocalStorage } from "./adaptadores/repo_local.js";
+import {
+  adicionarTombstone,
+  CHAVE_TOMBSTONES,
+  criarRepositorioSincronizado,
+  lerTombstones,
+} from "./adaptadores/repo_sincronizado.js";
+import { sincronizarInicial } from "./sync.js";
+import { migrar } from "./migracao.js";
+import type { RepositorioPersistencia } from "../core/persistencia/index.js";
+import { criarPerfil, type Perfil } from "../core/perfil.js";
+import { estadoInicial, type EstadoApp, type EventoTelemetria } from "../core/estado.js";
+import { criarEvento } from "../core/telemetria.js";
 import type { Transporte } from "../ia/provedor.js";
 
 // ─── storage fake GLOBAL (conta_repo/criarRepositorioAdmin leem localStorage) ─
@@ -88,9 +102,9 @@ console.log("\n=== obterBackend (06-01) — fachada e adaptador local ===");
   });
   assert(proxyRejeitou, "proxyIA local rejeita limpo (orquestrador degrada p/ simulado)");
 
-  // supabase ainda sem adaptadores neste build → degrada p/ local (offline-first)
+  // config supabase → adaptadores REST reais (sem sessão em storage → null; sem rede aqui)
   const bSupa = obterBackend({ provedor: "supabase", supabaseUrl: "https://x.supabase.co", supabaseAnonKey: "k" });
-  assert(!!bSupa.auth && bSupa.auth.sessaoAtual() === null, "config supabase sem adaptadores → backend funcional (local) sem sessão");
+  assert(!!bSupa.auth && bSupa.auth.sessaoAtual() === null && typeof bSupa.repo.carregarPerfis === "function", "config supabase → backend supabase montado, sem sessão no boot limpo");
 
   const bFire = obterBackend({ provedor: "firebase" });
   let fireErro = "";
@@ -323,6 +337,242 @@ console.log("\n=== auth Supabase — operador (06-02) ===");
   const { t: tEscopo } = comOperador([{ uid: "uid-1", escopo: ["ten_escola"] }]);
   const opEscopo = await criarAuthSupabase({ url: URL_SUPA, anonKey: "anon-k", transporte: tEscopo }).entrarSuperAdmin({ email: "op@x.dev", senha: "x1" });
   assert(opEscopo.tenantId === "ten_escola", "escopo restrito vira tenantId na SessaoAuth");
+}
+
+// ─── Etapa 3 · Repo Supabase (PostgREST) + sincronizado + sync (06-03) ───────
+
+/** PostgREST fake COM ESTADO: upsert/select/delete nas 3 tabelas. */
+function servidorSupabaseFake() {
+  const perfis = new Map<string, { id: string; tenant_id?: string; dados: unknown }>();
+  const saves = new Map<string, { perfil_id: string; dados: unknown }>();
+  const telemetria: Array<{ perfil_id: string; evento: unknown }> = [];
+  const chamadas: Array<{ url: string; metodo: string; headers: Record<string, string> }> = [];
+  const ok = (json: unknown, status = 200) => ({ status, json: async () => json });
+
+  const t: Transporte = async (url, init) => {
+    chamadas.push({ url, metodo: init.method, headers: init.headers });
+    const u = new URL(url);
+    const tabela = u.pathname.split("/").pop() || "";
+    const corpo = init.body ? (JSON.parse(init.body) as unknown) : null;
+    const eq = (param: string): string | null => {
+      const v = u.searchParams.get(param);
+      return v && v.indexOf("eq.") === 0 ? v.slice(3) : null;
+    };
+    if (init.method === "GET") {
+      if (tabela === "perfis") return ok([...perfis.values()].map((r) => ({ dados: r.dados })));
+      if (tabela === "saves") {
+        const id = eq("perfil_id");
+        const r = id ? saves.get(id) : undefined;
+        return ok(r ? [{ dados: r.dados }] : []);
+      }
+      if (tabela === "telemetria") {
+        const id = eq("perfil_id");
+        return ok(telemetria.filter((x) => x.perfil_id === id).map((x) => ({ evento: x.evento })));
+      }
+    }
+    if (init.method === "POST") {
+      const linhas = (Array.isArray(corpo) ? corpo : [corpo]) as Array<Record<string, unknown>>;
+      if (tabela === "perfis") for (const l of linhas) perfis.set(l["id"] as string, l as never);
+      if (tabela === "saves") for (const l of linhas) saves.set(l["perfil_id"] as string, l as never);
+      if (tabela === "telemetria") for (const l of linhas) telemetria.push(l as never);
+      return ok(null, 201);
+    }
+    if (init.method === "DELETE") {
+      if (tabela === "perfis") {
+        const id = eq("id");
+        if (id) perfis.delete(id);
+      }
+      if (tabela === "saves") {
+        const id = eq("perfil_id");
+        if (id) saves.delete(id);
+      }
+      if (tabela === "telemetria") {
+        const id = eq("perfil_id");
+        for (let i = telemetria.length - 1; i >= 0; i--) if (telemetria[i]!.perfil_id === id) telemetria.splice(i, 1);
+      }
+      return ok(null, 204);
+    }
+    return ok({}, 404);
+  };
+  return { t, perfis, saves, telemetria, chamadas };
+}
+
+/** Repo em memória com espião de chamadas (p/ sincronizado/sync). */
+function repoMem(nome: string) {
+  const perfis = new Map<string, Perfil>();
+  const saves = new Map<string, EstadoApp>();
+  const eventos: EventoTelemetria[] = [];
+  const chamadas: string[] = [];
+  let falhar = false;
+  const repo: RepositorioPersistencia = {
+    async carregarPerfis() {
+      chamadas.push(nome + ".carregarPerfis");
+      if (falhar) throw new Error("offline");
+      return [...perfis.values()];
+    },
+    async salvarPerfil(p) {
+      chamadas.push(nome + ".salvarPerfil:" + p.id);
+      if (falhar) throw new Error("offline");
+      perfis.set(p.id, { ...p });
+    },
+    async carregarSave(id) {
+      chamadas.push(nome + ".carregarSave:" + id);
+      if (falhar) throw new Error("offline");
+      return saves.get(id) || null;
+    },
+    async salvarSave(id, e) {
+      chamadas.push(nome + ".salvarSave:" + id);
+      if (falhar) throw new Error("offline");
+      saves.set(id, e);
+    },
+    async registrarTelemetria(ev) {
+      chamadas.push(nome + ".registrarTelemetria");
+      if (falhar) throw new Error("offline");
+      eventos.push(ev);
+    },
+    async carregarTelemetria(id) {
+      chamadas.push(nome + ".carregarTelemetria:" + id);
+      if (falhar) throw new Error("offline");
+      return eventos.filter((e) => e.perfilId === id);
+    },
+    async apagarPerfil(id) {
+      chamadas.push(nome + ".apagarPerfil:" + id);
+      if (falhar) throw new Error("offline");
+      perfis.delete(id);
+      saves.delete(id);
+    },
+  };
+  return { repo, perfis, saves, eventos, chamadas, setFalhar: (f: boolean) => (falhar = f) };
+}
+
+const PERFIL_A = criarPerfil("p-aaa", { nome: "Aline", idade: 7, nivel: "n2", avatarId: "lua" });
+const PERFIL_B = criarPerfil("p-bbb", { nome: "Bento", idade: 9, nivel: "n3", avatarId: "pingo" });
+
+console.log("\n=== repo Supabase (06-03) — PostgREST via REST ===");
+{
+  const srv = servidorSupabaseFake();
+  const tokens = ["tokA", "tokB", "tokC", "tokD", "tokE", "tokF", "tokG", "tokH", "tokI", "tokJ"];
+  let nTok = 0;
+  const repo = new RepositorioSupabase({
+    url: "https://proj.supabase.co",
+    anonKey: "anon-k",
+    obterToken: async () => tokens[Math.min(nTok++, tokens.length - 1)] as string,
+    tenant: () => "familia:uid-1",
+    transporte: srv.t,
+  });
+
+  await repo.salvarPerfil(PERFIL_A);
+  const primeira = srv.chamadas[0]!;
+  assert(primeira.url.indexOf("/rest/v1/perfis?on_conflict=id") >= 0, "salvarPerfil faz upsert com on_conflict=id");
+  assert((primeira.headers["Prefer"] || "").indexOf("merge-duplicates") >= 0, "Prefer resolution=merge-duplicates no upsert");
+  assert(primeira.headers["Authorization"] === "Bearer tokA" && primeira.headers["apikey"] === "anon-k", "request autenticada com bearer + apikey");
+  const linhaPerfil = srv.perfis.get("p-aaa")!;
+  assert(!("dono" in linhaPerfil), "coluna dono NUNCA é enviada (default auth.uid() + RLS fecham spoofing)");
+  assert(linhaPerfil.tenant_id === "familia:uid-1", "tenant_id aplicado por escopoTenant");
+
+  const perfis = await repo.carregarPerfis();
+  assert(perfis.length === 1 && perfis[0]!.nome === "Aline", "round-trip do perfil (envelope revalidado na leitura)");
+  const segunda = srv.chamadas[1]!;
+  assert(segunda.headers["Authorization"] === "Bearer tokB", "token é RELIDO a cada request (nunca capturado em closure)");
+
+  await repo.salvarSave("p-aaa", estadoInicial);
+  const save = await repo.carregarSave("p-aaa");
+  assert(!!save && save.tela === estadoInicial.tela, "round-trip do save (envelope pipoca.save.v1)");
+  assert((await repo.carregarSave("p-inexistente")) === null, "save inexistente → null");
+
+  const ev = criarEvento("sessao_iniciada", "p-aaa", { blocoMin: 15 }, 1_750_000_000_000);
+  await repo.registrarTelemetria(ev);
+  const eventos = await repo.carregarTelemetria("p-aaa");
+  assert(eventos.length === 1 && eventos[0]!.tipo === "sessao_iniciada", "round-trip da telemetria (validada na leitura)");
+
+  srv.perfis.set("corrompido", { id: "corrompido", dados: { esquema: "outro", perfil: null } });
+  const soValidos = await repo.carregarPerfis();
+  assert(soValidos.length === 1, "envelope corrompido no servidor é descartado em silêncio");
+  srv.perfis.delete("corrompido");
+
+  await repo.apagarPerfil("p-aaa");
+  assert(!srv.perfis.has("p-aaa") && !srv.saves.has("p-aaa") && srv.telemetria.length === 0, "apagarPerfil (LGPD) limpa as 3 tabelas no servidor");
+
+  let semSessao = false;
+  const repoSemToken = new RepositorioSupabase({ url: "https://x.supabase.co", anonKey: "k", obterToken: async () => null, transporte: srv.t });
+  await repoSemToken.salvarPerfil(PERFIL_A).catch(() => {
+    semSessao = true;
+  });
+  assert(semSessao, "sem sessão → operação remota rejeita (o sincronizado engole)");
+}
+
+console.log("\n=== migrar(local → supabase) preserva perfis/saves (critério 06-03) ===");
+{
+  armazem.limpar();
+  const local = new RepositorioLocalStorage();
+  await local.salvarPerfil(PERFIL_A);
+  await local.salvarPerfil(PERFIL_B);
+  await local.salvarSave("p-aaa", estadoInicial);
+  const srv = servidorSupabaseFake();
+  const remoto = new RepositorioSupabase({ url: "https://proj.supabase.co", anonKey: "k", obterToken: async () => "tok", transporte: srv.t });
+  const res = await migrar(local, remoto);
+  assert(res.perfis === 2 && res.saves === 1, "migrar copia 2 perfis + 1 save");
+  assert(srv.perfis.has("p-aaa") && srv.perfis.has("p-bbb") && srv.saves.has("p-aaa"), "dados chegam às tabelas remotas");
+}
+
+console.log("\n=== repo sincronizado (06-03) — local base + espelho fail-soft ===");
+{
+  armazem.limpar();
+  const local = repoMem("local");
+  const remoto = repoMem("remoto");
+  const sinc = criarRepositorioSincronizado(local.repo, remoto.repo);
+
+  await sinc.salvarPerfil(PERFIL_A);
+  await new Promise((r) => setTimeout(r, 0)); // deixa o fire-and-forget assentar
+  assert(local.perfis.has("p-aaa") && remoto.perfis.has("p-aaa"), "escrita vai ao local E espelha no remoto");
+
+  remoto.setFalhar(true);
+  let resolveu = false;
+  await sinc.salvarPerfil(PERFIL_B).then(() => {
+    resolveu = true;
+  });
+  await new Promise((r) => setTimeout(r, 0));
+  assert(resolveu && local.perfis.has("p-bbb"), "remoto OFFLINE não quebra a escrita (fail-soft, catch explícito)");
+
+  remoto.chamadas.length = 0;
+  await sinc.carregarPerfis();
+  await sinc.carregarSave("p-aaa");
+  assert(remoto.chamadas.length === 0, "leituras vêm SÓ do local (remoto nem é consultado)");
+
+  await sinc.apagarPerfil("p-bbb");
+  await new Promise((r) => setTimeout(r, 0));
+  assert(!local.perfis.has("p-bbb"), "apagar remove do local na hora");
+  assert(lerTombstones().indexOf("p-bbb") >= 0, "remoto offline → TOMBSTONE fica na fila (LGPD não se perde)");
+
+  remoto.setFalhar(false);
+  await sinc.apagarPerfil("p-aaa");
+  await new Promise((r) => setTimeout(r, 0));
+  assert(!remoto.perfis.has("p-aaa") && lerTombstones().indexOf("p-aaa") < 0, "remoto ok → apaga lá e o tombstone sai da fila");
+}
+
+console.log("\n=== sincronizarInicial (06-03) — união com preferência local ===");
+{
+  armazem.limpar();
+  const local = repoMem("local");
+  const remoto = repoMem("remoto");
+
+  // remoto tem: p-aaa (versão VELHA, nome remoto) + p-bbb (só remoto, com save)
+  await remoto.repo.salvarPerfil({ ...PERFIL_A, nome: "Aline Remota Velha" });
+  await remoto.repo.salvarPerfil(PERFIL_B);
+  await remoto.repo.salvarSave("p-bbb", estadoInicial);
+  // local tem: p-aaa EDITADA agora + tombstone de p-ccc (apagada offline)
+  await local.repo.salvarPerfil({ ...PERFIL_A, nome: "Aline Editada Local" });
+  await remoto.repo.salvarPerfil(criarPerfil("p-ccc", { nome: "Cacau", idade: 5, nivel: "n1", avatarId: "cacau" }));
+  adicionarTombstone("p-ccc");
+
+  const res = await sincronizarInicial(local.repo, remoto.repo);
+  assert(res.apagadosDrenados === 1 && !remoto.perfis.has("p-ccc"), "tombstone drenado ANTES da puxada (perfil apagado não ressuscita)");
+  assert(lerTombstones().length === 0, "fila de tombstones esvaziada");
+  assert(local.perfis.get("p-aaa")!.nome === "Aline Editada Local", "id existente localmente NÃO é sobrescrito (local vence)");
+  assert(local.perfis.has("p-bbb") && local.saves.has("p-bbb"), "id só remoto é puxado com o save junto");
+  assert(remoto.perfis.get("p-aaa")!.nome === "Aline Editada Local", "push local→remoto leva a edição local (upsert)");
+  assert(res.puxados === 1 && res.empurrados === 2, "contadores do sync corretos");
+  assert(armazem.getItem(CHAVE_TOMBSTONES) === null, "storage de tombstones limpo no fim");
 }
 
 console.log(`\n${"=".repeat(50)}`);

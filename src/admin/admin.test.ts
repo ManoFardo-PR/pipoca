@@ -30,6 +30,13 @@ import {
   TELA_SA_LOGIN,
   TELA_SA_HOME,
 } from "./rotasAdmin.js";
+import { limitesDoPlano, excedeTetoPerfis } from "./tenant/tiposTenant.js";
+import {
+  criarRepositorioTenant,
+  novoTenant,
+  vincularConta,
+  ERRO_FORA_DE_ESCOPO,
+} from "./tenant/repositorioTenant.js";
 
 let passou = 0;
 let falhou = 0;
@@ -162,6 +169,54 @@ console.log("\n=== escopo · escopoAutoriza + areaDisponivel ===");
   );
   assert(areaDisponivel(["ten_a"], "tenants") && !areaDisponivel(["ten_a"], "seguranca"), "escopo parcial vê tenants mas não segurança (fail-closed)");
   assert(!escopoAutoriza(undefined as unknown as string[], "ten_a") && !areaDisponivel(undefined as unknown as string[], "tenants"), "entrada inválida fecha (fail-closed)");
+}
+
+// ─── tenants · seam com escopo (04-03) ───────────────────────────────────────
+console.log("\n=== SA_TENANT · tenants, planos e isolamento por escopo ===");
+{
+  const st = new ArmazemMem();
+  const raiz = criarRepositorioTenant("todos", st);
+
+  const tA = novoTenant("Escola Modelo", AGORA);
+  const tB = novoTenant("Família Silva", AGORA + 1);
+  assert(tA.planoId === "gratis" && tA.ativo === true, "tenant novo nasce no plano mais restritivo e ativo (regra 7)");
+  await raiz.salvarTenant(tA);
+  await raiz.salvarTenant(tB);
+  assert((await raiz.obterLimitesEfetivos(tA.id)).iaPermitida === false, "tenant novo nasce com IA desligada pelo plano");
+
+  assert((await raiz.listarTenants("todos")).length === 2, "operador raiz lista todos os tenants");
+  const restrito = criarRepositorioTenant([tA.id], st);
+  const vistos = await restrito.listarTenants("todos");
+  assert(vistos.length === 1 && vistos[0].id === tA.id, "escopo restrito só vê o próprio tenant (isolamento)");
+  assert((await restrito.obterTenant(tB.id)) === null, "obterTenant fora do escopo devolve null (não revela existência)");
+
+  let recusou = false;
+  try { await restrito.salvarTenant({ ...tB, nome: "invadido" }); } catch (e) { recusou = String(e).includes(ERRO_FORA_DE_ESCOPO); }
+  assert(recusou, "salvarTenant fora do escopo recusa com erro neutro");
+  assert((await raiz.obterTenant(tB.id))?.nome === "Família Silva", "…e NÃO grava nada (dados do outro tenant intactos)");
+
+  let recusouCriar = false;
+  try { await restrito.salvarTenant(novoTenant("Novo da plataforma", AGORA + 2)); } catch { recusouCriar = true; }
+  assert(recusouCriar, "criar tenant novo exige escopo todos (operador raiz)");
+
+  assert((await raiz.listarPlanos()).length === 3, "catálogo tem 3 planos (gratis/familia/escola)");
+  await raiz.salvarTenant({ ...tA, planoId: "escola" });
+  assert((await raiz.obterLimitesEfetivos(tA.id)).maxPerfis === 40, "trocar o plano muda os limites efetivos");
+  assert((await raiz.obterLimitesEfetivos("ten_inexistente")).maxPerfis === 1, "tenant desconhecido cai nos limites do gratis (fail-closed)");
+
+  const familia = limitesDoPlano("familia");
+  assert(excedeTetoPerfis(4, familia) && !excedeTetoPerfis(3, familia), "rebaixar não destrói: só a criação acima do teto é bloqueada");
+
+  await raiz.salvarTenant({ ...tA, planoId: "escola", ativo: false });
+  const suspenso = await raiz.obterTenant(tA.id);
+  assert(!!suspenso && suspenso.ativo === false && suspenso.nome === "Escola Modelo" && suspenso.planoId === "escola", "suspender preserva nome e plano (suspender ≠ apagar)");
+
+  st.setItem("pipoca.admin.tenants.v1", JSON.stringify([{ esquema: "outra.coisa.v9", tenant: tA }, "lixo", { esquema: "pipoca.tenant.v1", tenant: tB }]));
+  assert((await raiz.listarTenants("todos")).length === 1, "envelopes inválidos/corrompidos são ignorados em silêncio");
+
+  const c1 = vincularConta("mae@familia.dev", tA.id, st);
+  const c2 = vincularConta("mae@familia.dev", tB.id, st);
+  assert(c1.id === c2.id && c2.tenants.length === 2, "vincularConta agrega tenants na mesma conta (sem PII de criança)");
 }
 
 console.log(`\n${"=".repeat(50)}`);

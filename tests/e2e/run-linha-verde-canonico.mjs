@@ -221,6 +221,38 @@ try {
   await page.waitForTimeout(150);
   assert((await page.evaluate(() => window.PipocaApp.estado.tela)) === 2, "KIDMODE barra acesso direto ao hub adulto (redireciona a T2)");
 
+  // ── fase05 · Motor B (MVP local): fail-closed da plataforma + intenção do cuidador ──
+  // FLAGS_PADRAO tem ia:false (fail-closed): sem seed, o Motor B nunca sobe.
+  const faseMotorB = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    // cuidador autoriza, plataforma ainda fechada → segue no A
+    App.setState({ modos: Object.assign({}, App.estado.modos, { iaLigada: true }) });
+    const soCuidador = App.estado.motorAtivo;
+    // plataforma libera (SA_SAFE) → a borda remonta na hora, sem reload
+    localStorage.setItem("pipoca.admin.flags.v1", JSON.stringify({ ia: true, fala: true, conteudoCustomizado: true, telemetria: true }));
+    App.setState({ modos: Object.assign({}, App.estado.modos) });
+    const comFlag = App.estado.motorAtivo;
+    if (App.motor && App.motor.aquecer) await App.motor.aquecer([], "n2");
+    const aberturaB = App.motor ? App.motor.abertura("n2").texto : "";
+    // kill-switch derruba mesmo com o cuidador autorizando — e NÃO apaga a intenção
+    localStorage.setItem("pipoca.admin.flags.v1", JSON.stringify({ ia: false, fala: false, conteudoCustomizado: true, telemetria: true }));
+    App.setState({ modos: Object.assign({}, App.estado.modos) });
+    return {
+      soCuidador,
+      comFlag,
+      aberturaB,
+      aposKill: App.estado.motorAtivo,
+      aberturaA: App.motor ? App.motor.abertura("n2").texto : "",
+      intencaoPreservada: App.estado.modos.iaLigada === true,
+    };
+  });
+  assert(faseMotorB.soCuidador === "A", "fase05: cuidador autorizou mas plataforma fechada (fail-closed) → Motor A");
+  assert(faseMotorB.comFlag === "B", "fase05: flag da plataforma + autorização do cuidador → Motor B na hora (sem reload)");
+  assert(faseMotorB.aberturaB.indexOf("✨") === 0, "fase05: abertura aquecida vem da IA simulada (texto ≠ grafo)");
+  assert(faseMotorB.aposKill === "A" && faseMotorB.intencaoPreservada, "fase05: kill-switch volta p/ Motor A SEM apagar a intenção do cuidador");
+  assert(faseMotorB.aberturaA.indexOf("✨") !== 0, "fase05: de volta ao Motor A, o texto é o autoral do grafo");
+  await page.evaluate(() => localStorage.removeItem("pipoca.admin.flags.v1"));
+
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 
   console.log(`\n${"=".repeat(50)}`);

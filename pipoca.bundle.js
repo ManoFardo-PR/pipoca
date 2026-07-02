@@ -510,6 +510,203 @@
     return { motor, ordem };
   }
 
+  // src/ia/guardrails.ts
+  var MAX_CHARS_SAIDA = 700;
+  var RE_TERMOS_BLOQUEADOS = new RegExp("\\b(?:matar|morrer|morte|mortes|sangue|armas?|tiros?|facadas?|" + "terror|pavor|pesadelos?|demonios?|" + "cervejas?|vodka|cigarros?|drogas?|sexo|nudez|apostas?)\\b" + "|\\b(?:assassin|violenc)");
+  var RE_URL = /https?:\/\/|www\./i;
+  var RE_EMAIL = /\S+@\S+\.\S+/;
+  var RE_TELEFONE = /\b\d{4,5}[-\s]\d{4}\b|\d{8,}/;
+  function normalizar(texto) {
+    return texto.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
+  }
+  function categoriaProibida(texto) {
+    if (RE_URL.test(texto))
+      return "link";
+    if (RE_EMAIL.test(texto))
+      return "dado pessoal (e-mail)";
+    if (RE_TELEFONE.test(texto))
+      return "dado pessoal (telefone)";
+    if (RE_TERMOS_BLOQUEADOS.test(normalizar(texto)))
+      return "termo impróprio para crianças";
+    return null;
+  }
+  function criarGuardrails() {
+    return {
+      filtrarEntrada(prompt) {
+        if (!prompt || prompt.trim() === "")
+          return { permitir: false, motivo: "prompt vazio" };
+        const cat = categoriaProibida(prompt);
+        if (cat)
+          return { permitir: false, motivo: cat };
+        return { permitir: true };
+      },
+      filtrarSaida(trecho) {
+        const texto = trecho && typeof trecho.texto === "string" ? trecho.texto : "";
+        if (texto.trim() === "")
+          return { permitir: false, motivo: "texto vazio" };
+        if (texto.length > MAX_CHARS_SAIDA)
+          return { permitir: false, motivo: "texto longo demais para o portão" };
+        const cat = categoriaProibida(texto);
+        if (cat)
+          return { permitir: false, motivo: cat };
+        return { permitir: true };
+      }
+    };
+  }
+  function envolverComGuardrails(provedor, guardrails) {
+    const g = guardrails || criarGuardrails();
+    return {
+      async gerar(prompt, schema, opts) {
+        const entrada = g.filtrarEntrada(prompt);
+        if (!entrada.permitir) {
+          throw new Error("guardrails: entrada bloqueada (" + (entrada.motivo || "regra de segurança") + ")");
+        }
+        const trecho = await provedor.gerar(prompt, schema, opts);
+        const saida = g.filtrarSaida(trecho);
+        if (!saida.permitir) {
+          throw new Error("guardrails: saída bloqueada (" + (saida.motivo || "regra de segurança") + ")");
+        }
+        return saida.trechoReformulado || trecho;
+      }
+    };
+  }
+
+  // src/ia/simulado.ts
+  function fnv(s) {
+    let h = 2166136261;
+    for (let i = 0;i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+  function escolher(opcoes, semente) {
+    return opcoes[fnv(semente) % opcoes.length];
+  }
+  function criarProvedorSimulado(grafo, opts) {
+    const cen = grafo.cenario;
+    const personagem = cen.personagem || "a criança";
+    return {
+      async gerar(prompt, _schema, _opts) {
+        if (opts && opts.falhar) {
+          throw new Error("Provedor simulado em modo falha (teste de degradação).");
+        }
+        const ehFinal = prompt.indexOf('"ehFinal": true') >= 0;
+        const nivelM = /NÍVEL DE LEITURA: (n[1-4])/.exec(prompt);
+        const nivel = nivelM ? nivelM[1] : "n2";
+        const curto = nivel === "n1" || nivel === "n2";
+        const objetoM = /objeto (\S+) "([^"]+)"/.exec(prompt);
+        const abertura = prompt.indexOf("PEDIDO: escreva a ABERTURA") >= 0;
+        let texto;
+        if (abertura) {
+          texto = curto ? `✨ ${personagem} olha em volta. Hoje tem história nova.` : `✨ ${personagem} olha devagar em volta: alguma coisa pequenina está para acontecer, e hoje a história é novinha.`;
+        } else if (objetoM) {
+          const emoji = objetoM[1];
+          const nome = objetoM[2];
+          const verbo = escolher(["chega", "aparece", "acorda"], prompt);
+          texto = curto ? `✨ ${emoji} ${nome} ${verbo} na história. ${personagem} sorri.` : `✨ ${emoji} ${nome} ${verbo} bem no meio da história, e ${personagem} sorri como quem guarda um segredo bom.`;
+        } else if (ehFinal) {
+          texto = curto ? `✨ A história se aninha. ${personagem} respira fundo. Fim por hoje.` : `✨ A história inteira se aninha como um bicho de estimação, e ${personagem} respira fundo: fim por hoje, com gosto de amanhã.`;
+        } else {
+          texto = `✨ A história continua, um passinho de cada vez.`;
+        }
+        return { texto, ehFinal };
+      }
+    };
+  }
+
+  // src/ia/orquestrador.ts
+  function criarOrquestrador(cadeiaFallback, opts) {
+    const cotaMensal = opts && typeof opts.cotaMensal === "number" ? opts.cotaMensal : 1000;
+    const custoMaxMensal = opts && typeof opts.custoMaxMensal === "number" ? opts.custoMaxMensal : 1000;
+    const custoPorChamada = opts && typeof opts.custoPorChamada === "number" ? opts.custoPorChamada : 1;
+    const aoRegistrarUso = opts ? opts.aoRegistrarUso : undefined;
+    let chamadas = 0;
+    let custoAcumulado = 0;
+    function usoAtual() {
+      return { chamadas, custoAcumulado, cotaRestante: Math.max(0, cotaMensal - chamadas) };
+    }
+    function registrar() {
+      chamadas += 1;
+      custoAcumulado += custoPorChamada;
+      if (aoRegistrarUso) {
+        try {
+          aoRegistrarUso(usoAtual());
+        } catch {}
+      }
+    }
+    return {
+      uso: usoAtual,
+      async gerar(prompt, schema, optsGeracao) {
+        if (!cadeiaFallback.length) {
+          throw new Error("Orquestrador sem provedores na cadeia.");
+        }
+        let ultimoErro = null;
+        for (const provedor of cadeiaFallback) {
+          if (cotaMensal - chamadas <= 0) {
+            throw new Error("Cota de IA esgotada — degradando para o motor autoral.");
+          }
+          if (custoAcumulado + custoPorChamada > custoMaxMensal) {
+            throw new Error("Teto de custo de IA atingido — degradando para o motor autoral.");
+          }
+          try {
+            registrar();
+            return await provedor.gerar(prompt, schema, optsGeracao);
+          } catch (e) {
+            ultimoErro = e;
+          }
+        }
+        throw ultimoErro instanceof Error ? ultimoErro : new Error("Todos os provedores falharam.");
+      }
+    };
+  }
+
+  // src/admin/flags.ts
+  var FLAGS_PADRAO = {
+    ia: false,
+    fala: false,
+    conteudoCustomizado: true,
+    telemetria: true
+  };
+  function killSwitchAtivo(flags, recurso) {
+    return flags[recurso] !== true;
+  }
+  function aplicarFlagsAosModos(modos, flags) {
+    if (killSwitchAtivo(flags, "ia"))
+      return { ...modos, iaLigada: false };
+    return { ...modos };
+  }
+  var CHAVE_FLAGS = "pipoca.admin.flags.v1";
+  function storagePadrao() {
+    try {
+      const g = globalThis;
+      return g.localStorage ?? null;
+    } catch {
+      return null;
+    }
+  }
+  function carregarFlags(armazem) {
+    const st = armazem ?? storagePadrao();
+    if (!st)
+      return { ...FLAGS_PADRAO };
+    try {
+      const raw = st.getItem(CHAVE_FLAGS);
+      if (raw === null)
+        return { ...FLAGS_PADRAO };
+      const obj = JSON.parse(raw);
+      if (!obj || typeof obj !== "object" || Array.isArray(obj))
+        return { ...FLAGS_PADRAO };
+      const limpo = { ...FLAGS_PADRAO };
+      for (const [k, v] of Object.entries(obj)) {
+        if (typeof v === "boolean")
+          limpo[k] = v;
+      }
+      return limpo;
+    } catch {
+      return { ...FLAGS_PADRAO };
+    }
+  }
+
   // src/core/composicao.ts
   function nivelKey(nivel) {
     const s = String(nivel ?? "").trim().toLowerCase();
@@ -1885,6 +2082,20 @@
       salvarSessaoConta,
       limparSessaoConta
     },
+    ia: {
+      montarPrompt,
+      PROMPT_BASE,
+      criarGuardrails,
+      envolverComGuardrails,
+      criarProvedorSimulado,
+      criarOrquestrador,
+      montarProvedorPadrao(grafo) {
+        const simulado = criarProvedorSimulado(grafo);
+        const guardado = envolverComGuardrails(simulado);
+        return criarOrquestrador([guardado]);
+      }
+    },
+    flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos },
     tts,
     criarRepositorio,
     telemetria: {

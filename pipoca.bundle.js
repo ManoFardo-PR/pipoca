@@ -1780,14 +1780,14 @@
       },
       async sair() {
         const s = lerSessaoBackend();
+        gravarSessaoBackend(null);
+        if (!s || s.tipo === "familia")
+          limparSessaoConta();
         if (s) {
           try {
             await transporte(base + "/auth/v1/logout", { method: "POST", headers: cabecalhos(s.access_token), body: "{}" });
           } catch {}
         }
-        gravarSessaoBackend(null);
-        if (!s || s.tipo === "familia")
-          limparSessaoConta();
       },
       sessaoAtual() {
         const s = lerSessaoBackend();
@@ -1998,99 +1998,6 @@
     return null;
   }
 
-  // src/backend/backend.ts
-  function proxyIndisponivel(motivo) {
-    return {
-      gerar() {
-        return Promise.reject(new Error(motivo));
-      }
-    };
-  }
-  function sessaoAdminLocal() {
-    try {
-      const raw = localStorage.getItem("pipoca.admin.sessao.v1");
-      const s = raw ? JSON.parse(raw) : null;
-      return s && sessaoSuperAdminValida(s, Date.now()) ? s : null;
-    } catch {
-      return null;
-    }
-  }
-  function criarAuthLocal() {
-    const repoAdmin = criarRepositorioAdmin();
-    return {
-      async entrarFamilia(cred) {
-        const r = entrarFamilia(cred.email, cred.senha, Date.now());
-        if (!r.ok || !r.conta || !r.sessao)
-          throw new Error(r.erro || ERRO_LOGIN_NEUTRO);
-        salvarConta(r.conta);
-        salvarSessaoConta(r.sessao);
-        return { uid: r.conta.id, tipo: "familia" };
-      },
-      async entrarSuperAdmin(cred) {
-        const s = await repoAdmin.autenticar(cred.email, cred.senha);
-        if (!s)
-          throw new Error(ERRO_LOGIN_NEUTRO);
-        return { uid: s.adminId, tipo: "superadmin", ...s.escopoTenants !== "todos" && s.escopoTenants[0] ? { tenantId: s.escopoTenants[0] } : {} };
-      },
-      async sair() {
-        if (sessaoAdminLocal()) {
-          await repoAdmin.encerrarSessao();
-          return;
-        }
-        limparSessaoConta();
-      },
-      sessaoAtual() {
-        const admin = sessaoAdminLocal();
-        if (admin)
-          return { uid: admin.adminId, tipo: "superadmin" };
-        const fam = carregarSessaoConta();
-        if (fam && sessaoValida(fam, Date.now()))
-          return { uid: fam.contaId, tipo: "familia" };
-        return null;
-      }
-    };
-  }
-  function criarBackendLocal() {
-    return {
-      auth: criarAuthLocal(),
-      repo: criarRepositorio(),
-      proxyIA: proxyIndisponivel("ProxyIA indisponível no backend local — degradando para o provedor simulado.")
-    };
-  }
-  function criarBackendFirebase() {
-    return {
-      auth: criarAuthFirebase(),
-      repo: new RepositorioFirebase,
-      proxyIA: proxyIndisponivel("ProxyIA Firebase não configurado neste build.")
-    };
-  }
-  function criarBackendSupabase(cfg) {
-    const auth = criarAuthSupabase({ url: cfg.supabaseUrl, anonKey: cfg.supabaseAnonKey });
-    const remoto = new RepositorioSupabase({
-      url: cfg.supabaseUrl,
-      anonKey: cfg.supabaseAnonKey,
-      obterToken: () => auth.obterToken(),
-      tenant: () => escopoTenant(auth.sessaoAtual())
-    });
-    const repo = criarRepositorioSincronizado(criarRepositorio(), remoto);
-    const proxyIA = criarProxyIA({
-      url: cfg.supabaseUrl,
-      anonKey: cfg.supabaseAnonKey,
-      obterToken: () => auth.obterToken(),
-      tenantId: () => escopoTenant(auth.sessaoAtual())
-    });
-    return { auth, repo, proxyIA };
-  }
-  function obterBackend(config) {
-    const cfg = config || configDoAmbiente();
-    if (cfg.provedor === "supabase" && cfg.supabaseUrl && cfg.supabaseAnonKey) {
-      return criarBackendSupabase(cfg);
-    }
-    if (cfg.provedor === "firebase")
-      return criarBackendFirebase();
-    return criarBackendLocal();
-  }
-
   // src/backend/migracao.ts
   async function migrar(de, para) {
     const perfis = await de.carregarPerfis();
@@ -2130,6 +2037,105 @@
     }
     const res = await migrar(local, remoto);
     return { apagadosDrenados, puxados, empurrados: res.perfis };
+  }
+
+  // src/backend/backend.ts
+  function proxyIndisponivel(motivo) {
+    return {
+      gerar() {
+        return Promise.reject(new Error(motivo));
+      }
+    };
+  }
+  function sessaoAdminLocal() {
+    try {
+      const raw = localStorage.getItem("pipoca.admin.sessao.v1");
+      const s = raw ? JSON.parse(raw) : null;
+      return s && sessaoSuperAdminValida(s, Date.now()) ? s : null;
+    } catch {
+      return null;
+    }
+  }
+  function criarAuthLocal() {
+    const repoAdmin = criarRepositorioAdmin();
+    return {
+      async entrarFamilia(cred) {
+        const r = entrarFamilia(cred.email, cred.senha, Date.now());
+        if (!r.ok || !r.conta || !r.sessao)
+          throw new Error(r.erro || ERRO_LOGIN_NEUTRO);
+        salvarConta(r.conta);
+        salvarSessaoConta(r.sessao);
+        return { uid: r.conta.id, tipo: "familia" };
+      },
+      async entrarSuperAdmin(cred) {
+        const s = await repoAdmin.autenticar(cred.email, cred.senha);
+        if (!s)
+          throw new Error(ERRO_LOGIN_NEUTRO);
+        return { uid: s.adminId, tipo: "superadmin", ...s.escopoTenants !== "todos" && s.escopoTenants[0] ? { tenantId: s.escopoTenants[0] } : {} };
+      },
+      async sair() {
+        const fam = carregarSessaoConta();
+        if (fam && sessaoValida(fam, Date.now())) {
+          limparSessaoConta();
+          return;
+        }
+        if (sessaoAdminLocal()) {
+          await repoAdmin.encerrarSessao();
+          return;
+        }
+        limparSessaoConta();
+      },
+      sessaoAtual() {
+        const fam = carregarSessaoConta();
+        if (fam && sessaoValida(fam, Date.now()))
+          return { uid: fam.contaId, tipo: "familia" };
+        const admin = sessaoAdminLocal();
+        if (admin)
+          return { uid: admin.adminId, tipo: "superadmin" };
+        return null;
+      }
+    };
+  }
+  function criarBackendLocal() {
+    return {
+      auth: criarAuthLocal(),
+      repo: criarRepositorio(),
+      proxyIA: proxyIndisponivel("ProxyIA indisponível no backend local — degradando para o provedor simulado.")
+    };
+  }
+  function criarBackendFirebase() {
+    return {
+      auth: criarAuthFirebase(),
+      repo: new RepositorioFirebase,
+      proxyIA: proxyIndisponivel("ProxyIA Firebase não configurado neste build.")
+    };
+  }
+  function criarBackendSupabase(cfg) {
+    const auth = criarAuthSupabase({ url: cfg.supabaseUrl, anonKey: cfg.supabaseAnonKey });
+    const remoto = new RepositorioSupabase({
+      url: cfg.supabaseUrl,
+      anonKey: cfg.supabaseAnonKey,
+      obterToken: () => auth.obterToken(),
+      tenant: () => escopoTenant(auth.sessaoAtual())
+    });
+    const local = criarRepositorio();
+    const repo = criarRepositorioSincronizado(local, remoto);
+    const proxyIA = criarProxyIA({
+      url: cfg.supabaseUrl,
+      anonKey: cfg.supabaseAnonKey,
+      obterToken: () => auth.obterToken(),
+      tenantId: () => escopoTenant(auth.sessaoAtual())
+    });
+    return { auth, repo, proxyIA, sincronizar: () => sincronizarInicial(local, remoto) };
+  }
+  function obterBackend(config) {
+    const cfg = config || configDoAmbiente();
+    if (cfg.provedor === "supabase" && cfg.supabaseUrl && cfg.supabaseAnonKey) {
+      return criarBackendSupabase(cfg);
+    }
+    if (cfg.provedor === "firebase")
+      return criarBackendFirebase();
+    return criarBackendLocal();
   }
 
   // src/core/composicao.ts

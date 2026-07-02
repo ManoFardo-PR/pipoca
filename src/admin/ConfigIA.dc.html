@@ -149,6 +149,13 @@ class Component extends DCLogic {
     const erros = C.ia.validarConfigIA(this.state.config);
     if (erros.length) { this.setState({ erros }); return; }
     C.ia.salvarConfigIA(this.state.tenantId, this.state.config);
+    // fase06 · espelho remoto fire-and-forget: o ProxyIA lê config_ia no
+    // servidor (cota/config de verdade). Sem backend remoto → no-op (false).
+    try {
+      if (C.backend && C.backend.espelharConfigIA) {
+        C.backend.espelharConfigIA(this.state.tenantId, this.state.config).catch(() => {});
+      }
+    } catch (_) {}
     this.setState({ aviso: 'Configuração salva para este tenant.', erros: [] });
   }
 

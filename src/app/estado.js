@@ -160,7 +160,13 @@
   function _repoBase() {
     if (_repoCanonico) return _repoCanonico;
     var Canon = window.PipocaCanonico;
-    if (Canon && Canon.criarRepositorio) {
+    // fase06: com a fachada de backend no bundle, o repo vem dela — no modo
+    // "local" é o mesmo repo local de sempre; no remoto é o SINCRONIZADO
+    // (local = base; o remoto espelha quando há sessão). Fail-soft p/ bundle antigo.
+    if (Canon && Canon.backend) {
+      try { _repoCanonico = Canon.backend.obterBackend().repo; } catch (_) {}
+    }
+    if (!_repoCanonico && Canon && Canon.criarRepositorio) {
       try { _repoCanonico = Canon.criarRepositorio(); } catch (_) {}
     }
     return _repoCanonico;
@@ -262,17 +268,57 @@
     _irPara(2);
   }
 
-  // Sair da conta da família (HH_LOGIN): limpa a sessão de conta e volta ao login (T9).
+  // Sair da conta da família (HH_LOGIN): limpa a sessão e volta ao login (T9).
+  // fase06: o logout passa pelo seam (o remoto avisa o servidor; o local limpa
+  // o espelho da casa) — fallback direto no espelho para bundle antigo.
   function sairDaConta() {
     _encerrarSessaoLeitura();
     var Canon = window.PipocaCanonico;
-    var C = Canon && Canon.conta;
-    if (C) { try { C.limparSessaoConta(); } catch (_) {} }
+    var saiuPeloSeam = false;
+    try {
+      if (Canon && Canon.backend) {
+        Canon.backend.obterBackend().auth.sair().catch(function () {});
+        saiuPeloSeam = true;
+      }
+    } catch (_) {}
+    if (!saiuPeloSeam) {
+      var C = Canon && Canon.conta;
+      if (C) { try { C.limparSessaoConta(); } catch (_) {} }
+    }
     var M = Canon && Canon.modoApp;
     state.modoApp = M ? M.aoVoltarParaCrianca() : "crianca";
     state.showA11y = false;
     state.showOnboarding = false;
     _irPara(9);
+  }
+
+  // fase06 · login da família pelo seam (remoto ou stub local — o MESMO gesto
+  // na tela; o adaptador local grava os espelhos que o boot já lê). Com
+  // backend remoto, dispara a sincronização inicial (fire-and-forget).
+  function entrarNaConta(email, senha) {
+    var Canon = window.PipocaCanonico;
+    var b = null;
+    try { if (Canon && Canon.backend) b = Canon.backend.obterBackend(); } catch (_) { b = null; }
+    if (b) {
+      return b.auth.entrarFamilia({ email: email, senha: senha }).then(function () {
+        if (typeof b.sincronizar === "function") {
+          b.sincronizar()
+            .then(function () { return repo.carregarPerfis(); })
+            .then(function () { notify(); })
+            .catch(function () {});
+        }
+        return { ok: true };
+      }).catch(function (e) {
+        return { ok: false, erro: (e && e.message) || "Não foi possível entrar. Confira os dados e tente de novo." };
+      });
+    }
+    // fallback: stub direto (bundle antigo)
+    var C = Canon && Canon.conta;
+    if (!C) return Promise.resolve({ ok: false, erro: "O app ainda está carregando. Tente de novo." });
+    var r = C.entrarFamilia(email, senha, Date.now());
+    if (!r.ok) return Promise.resolve({ ok: false, erro: r.erro });
+    try { C.salvarConta(r.conta); C.salvarSessaoConta(r.sessao); } catch (_) {}
+    return Promise.resolve({ ok: true });
   }
 
   // ─── Motor/validador CANÔNICOS (src/) via window.PipocaCanonico ────────────
@@ -555,6 +601,7 @@
     verificarPinCuidador: verificarPinCuidador,
     abrirPortao: function () { _irPara(1); },
     aoVoltarParaCrianca: aoVoltarParaCrianca,
+    entrarNaConta: entrarNaConta,
     sairDaConta: sairDaConta,
     // composição autoral v2 (linha verde T2→T7)
     iniciarComposicao: iniciarComposicao,
@@ -575,10 +622,27 @@
   _initComposicao();
   // Rota inicial: sem sessão de conta válida → login da família (T9, HH_LOGIN);
   // com sessão → modo criança (T2). O boot navega por _irPara (anterior à guarda).
+  // O check continua SÍNCRONO no espelho local — o adaptador remoto (fase06)
+  // grava os mesmos espelhos, então nada muda aqui.
   var _telaInicial = 2;
   try {
     var C0 = window.PipocaCanonico && window.PipocaCanonico.conta;
     if (C0 && !C0.sessaoValida(C0.carregarSessaoConta(), Date.now())) _telaInicial = 9;
   } catch (_) {}
   _irPara(_telaInicial);
+  // fase06 · com sessão de família e backend remoto: renova o token e roda a
+  // sincronização inicial na largada (fire-and-forget; sem rede, nada muda).
+  try {
+    var _CanonB = window.PipocaCanonico && window.PipocaCanonico.backend;
+    if (_CanonB && _telaInicial === 2) {
+      var _b0 = _CanonB.obterBackend();
+      var _s0 = _b0.auth.sessaoAtual();
+      if (_s0 && _s0.tipo === "familia" && typeof _b0.sincronizar === "function") {
+        _b0.sincronizar()
+          .then(function () { return repo.carregarPerfis(); })
+          .then(function () { notify(); })
+          .catch(function () {});
+      }
+    }
+  } catch (_) {}
 })();

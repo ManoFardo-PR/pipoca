@@ -56,17 +56,19 @@ class Component extends DCLogic {
   async _entrar() {
     if (this.state.entrando) return;
     const App = window.PipocaApp;
-    const C = window.PipocaCanonico && window.PipocaCanonico.conta;
-    if (!App || !C) { this.setState({ erro: 'App indisponível. Recarregue a página.' }); return; }
-    const r = C.entrarFamilia(this.state.email, this.state.senha, Date.now());
-    if (!r.ok) { this.setState({ erro: r.erro || 'Confira o e-mail e a senha, por favor.' }); return; }
+    if (!App || !App.entrarNaConta) { this.setState({ erro: 'App indisponível. Recarregue a página.' }); return; }
     this.setState({ entrando: true, erro: '' });
+    // fase06 · a tela não conhece o provedor: entrarNaConta fala com o seam
+    // (ServicoAuth remoto ou stub local — mesmo gesto, mesmo erro neutro).
+    const r = await App.entrarNaConta(this.state.email, this.state.senha);
+    if (!r || !r.ok) {
+      this.setState({ entrando: false, erro: (r && r.erro) || 'Confira o e-mail e a senha, por favor.' });
+      return;
+    }
     try {
-      C.salvarConta(r.conta);
-      C.salvarSessaoConta(r.sessao);
       if (App.repo) await App.repo.carregarPerfis(); // exatamente 1x por login (doc 02-01)
     } catch (e) {
-      console.warn('[LoginFamilia] persistir conta/sessão falhou:', e);
+      console.warn('[LoginFamilia] carregar perfis falhou:', e);
     }
     App.setState({ tela: 2 }); // HH_LOGIN → KIDMODE → T2 (doc 02-01, regra 3)
   }

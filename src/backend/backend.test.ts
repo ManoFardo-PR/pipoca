@@ -8,7 +8,7 @@
 
 import { CONFIG_LOCAL, configDoAmbiente, normalizarConfigBackend } from "./config.js";
 import { escopoTenant } from "./tenant.js";
-import { criarBackendLocal, obterBackend } from "./backend.js";
+import { criarBackendLocal, espelharConfigIA, obterBackend } from "./backend.js";
 import { CHAVE_SESSAO_BACKEND, criarAuthSupabase } from "./adaptadores/auth_supabase.js";
 import { RepositorioSupabase } from "./adaptadores/repo_supabase.js";
 import { RepositorioLocalStorage } from "./adaptadores/repo_local.js";
@@ -637,6 +637,36 @@ console.log("\n=== ProxyIA cliente (06-05) — bearer do usuário, servidor deci
     proxySemSessao = true;
   });
   assert(proxySemSessao, "backend supabase SEM sessão → proxy rejeita sem rede (fail-soft)");
+}
+
+// ─── Etapa 6 · espelho remoto da ConfigIA (SA_AI → config_ia) ────────────────
+
+console.log("\n=== espelharConfigIA (06-05) — só operador, só supabase ===");
+{
+  armazem.limpar();
+  const cfgSupa = { provedor: "supabase" as const, supabaseUrl: URL_SUPA, supabaseAnonKey: "anon-k" };
+  assert((await espelharConfigIA("ten_x", { a: 1 }, { provedor: "local" })) === false, "backend local → no-op silencioso (false)");
+  assert((await espelharConfigIA("ten_x", { a: 1 }, cfgSupa)) === false, "sem sessão de operador → NÃO espelha");
+
+  const agora = Date.now();
+  armazem.setItem(
+    CHAVE_SESSAO_BACKEND,
+    JSON.stringify({
+      access_token: "tokOp",
+      refresh_token: "r1",
+      expiraTokenEm: agora + 3_600_000,
+      validaAte: agora + 86_400_000,
+      uid: "op-1",
+      tipo: "superadmin",
+    })
+  );
+  const { t, chamadas } = transporteRotas([
+    { casa: (u) => u.indexOf("/rest/v1/config_ia") >= 0, responder: () => ({ status: 201, json: null }) },
+  ]);
+  const ok = await espelharConfigIA("ten_x", { provedor: "deepseek", cotaMensal: 50 }, cfgSupa, t);
+  assert(ok === true && chamadas[0]!.headers["Authorization"] === "Bearer tokOp", "operador logado → upsert em config_ia com o bearer dele");
+  assert(chamadas[0]!.url.indexOf("on_conflict=tenant_id") >= 0, "upsert idempotente por tenant_id");
+  armazem.limpar();
 }
 
 console.log(`\n${"=".repeat(50)}`);

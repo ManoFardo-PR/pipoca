@@ -226,6 +226,10 @@ export function criarAuthSupabase(op: OpcoesAuthSupabase): AuthSupabase {
 
     async sair(): Promise<void> {
       const s = lerSessaoBackend();
+      // Espelhos limpos PRIMEIRO (um reload imediato não pode ressuscitar a
+      // sessão); o aviso ao servidor é melhor esforço.
+      gravarSessaoBackend(null);
+      if (!s || s.tipo === "familia") limparSessaoConta();
       if (s) {
         try {
           await transporte(base + "/auth/v1/logout", { method: "POST", headers: cabecalhos(s.access_token), body: "{}" });
@@ -233,8 +237,6 @@ export function criarAuthSupabase(op: OpcoesAuthSupabase): AuthSupabase {
           /* melhor esforço — offline não impede o logout local */
         }
       }
-      gravarSessaoBackend(null);
-      if (!s || s.tipo === "familia") limparSessaoConta();
     },
 
     sessaoAtual(): SessaoAuth | null {

@@ -148,6 +148,10 @@ try {
   assert(ia.semInputChave, "não existe input de chave na tela (server-side, fase06)");
   assert(ia.notaServidor, "a tela explica que chaves/teste de conexão são do servidor");
   assert(ia.gatePlano, "plano Grátis do tenant bloqueia o formulário de IA (gate do plano)");
+  assert(
+    await page.evaluate(() => /DeepSeek/i.test(document.body.innerText)),
+    "fase06: DeepSeek aparece como 4º provedor na tela"
+  );
 
   console.log("\n=== SA_SAFE · kill-switch com efeito e persistência ===");
   await page.evaluate(() => window.PipocaAdmin.irParaTela(6));

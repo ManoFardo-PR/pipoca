@@ -672,9 +672,12 @@
     return flags[recurso] !== true;
   }
   function aplicarFlagsAosModos(modos, flags) {
+    const efetivos = { ...modos };
     if (killSwitchAtivo(flags, "ia"))
-      return { ...modos, iaLigada: false };
-    return { ...modos };
+      efetivos.iaLigada = false;
+    if (killSwitchAtivo(flags, "fala") && efetivos.verificacao === "fala")
+      efetivos.verificacao = "cuidador";
+    return efetivos;
   }
   var CHAVE_FLAGS = "pipoca.admin.flags.v1";
   function storagePadrao() {

@@ -40,18 +40,32 @@ O caminho verde roda **inteiro sobre os módulos canônicos** — a convergênci
   `pipoca.admin.credencial.v1` / `pipoca.admin.sessao.v1` / `pipoca.admin.tenants.v1` /
   `pipoca.admin.contas.v1` / `pipoca.admin.conteudo.v1` / `pipoca.admin.ia.v1` / `pipoca.admin.flags.v1`
   — o admin não toca os dados da família (provado no e2e `npm run test:e2e:admin`, 22 asserts).
+- **IA e fala no app da criança (2026-07-02, MVP local)** — Motor B de verdade atrás da fábrica:
+  `MotorIA` (`src/motores/motor_ia.ts`) preserva o contrato SÍNCRONO com cache pré-aquecido
+  (`aquecer`) e Motor A interno memoizado como degradação; falha total do provedor ⇒ saída idêntica
+  ao Motor A. `src/ia/`: prompt base com bloco de segurança infantil, guardrails sempre no caminho,
+  orquestrador de fallback/cotas/custo e provedor SIMULADO local (sem rede/chave; adaptadores
+  Claude/Gemini/OpenAI prontos e testados com transporte fake — chamada real = ProxyIA fase06).
+  O runtime consome os kill-switches do SA_SAFE: `state.modos` guarda a INTENÇÃO do cuidador e os
+  modos efetivos nascem na borda (`aplicarFlagsAosModos`, agora também degradando fala→cuidador),
+  com remontagem ao vivo do motor (`state.motorAtivo`). Modo fala no portão: `ServicoASR`
+  (`src/servicos/asr.ts`, irmão do tts) avalia participação — não perfeição; sem microfone o portão
+  degrada acolhedor para o caminho do cuidador (e2e cobre).
 - **Dívida conhecida (coexistência v1/v2)** — `_initMotor()` em `src/app/estado.js` ainda carrega
-  `quintal_grafo.json` (v1 / Motor A) em paralelo à v2; o Motor A segue instanciado, mas a linha verde
-  usa a composição.
+  `quintal_grafo.json` (v1) em paralelo à v2; o motor narrativo (A ou B desde a fase05) segue
+  instanciado, mas a linha verde usa a composição.
 
 ### Pendências reais (2026-07-02)
 - Persistir a preferência de coleta de PC_PRIV (`coletaTelemetria` hoje é efêmera, some ao recarregar).
 - Caminho Windows hardcoded (`PW_CORE`) em `tests/e2e/run-linha-verde-canonico.mjs`.
 - Runner legado `tests/e2e/run-linha-verde.mjs` desalinhado das telas canônicas (não é portão; candidato a `old/`).
 - Fase 04: enforcement de `maxPerfis`/`retencaoTelemetriaDias` no app da família e credencial/sessão do
-  operador em servidor dependem da fase06; consumo das flags/config de IA pelo runtime da criança chega
-  com a fase05/06.
-- Fases 05–08 não iniciadas.
+  operador em servidor dependem da fase06; as FLAGS já são consumidas pelo runtime da criança (fase05),
+  mas a config de IA por tenant só chega ao runtime com o vínculo tenant↔família (fase06).
+- Fase 05: chamada real aos provedores (chaves/SDK via ProxyIA), seleção de adaptador pela config do
+  tenant no runtime, cotas/custo persistidos e telemetria de custo de verdade dependem da fase06 —
+  até lá o provedor do app é o simulado local.
+- Fases 06–08 não iniciadas.
 
 Aposentados em 2026-07-02 (movidos para `old/`): `app.html` (entry duplicado; o e2e canônico agora aponta
 para `/`) e `src/motores/jogar.ts` (inlinado em `motor.test.ts`).
@@ -64,7 +78,7 @@ para `/`) e `src/motores/jogar.ts` (inlinado em `motor.test.ts`).
 | 02 Controle parental | 🟢 **completa no app** (2026-07-02) | `LoginFamilia` (9) + KIDMODE (guarda em `setState`) + PINGATE (1) + Onboarding (10) + hub `PainelCuidador` (11) + `Perfis` (12) + `Limites` (13) + `Regras & IA` (14) + `Privacidade` (15), todas sobre `PipocaCanonico.*` |
 | 03 Telemetria/painel | 🟢 **completa no app** (2026-07-02) | captura ligada em `src/app/estado.js` (portão/recompensa/sessão/desfecho, respeitando PC_PRIV) + tela `PainelEvolucao` (8) sobre `PipocaCanonico.agregados` |
 | 04 Super admin | 🟢 **completa no app (MVP local)** (2026-07-02) | entry `admin.html` + `src/admin/*` (auth/guard/tenants/conteúdo/IA/flags) + 6 telas SA_* + e2e próprio (`test:e2e:admin`, 22 asserts); auth/persistência reais e chaves de IA = fase06 |
-| 05 IA e fala | 🔴 / 🟡 stub | fallback Motor B na fábrica; tipos `ProvedorIA`/`ServicoASR` |
+| 05 IA e fala | 🟢 **completa no app (MVP local)** (2026-07-02) | Motor B (`MotorIA`) atrás da fábrica + `src/ia/*` (prompt/guardrails/orquestrador/simulado; adaptadores testados com transporte fake) + ASR no portão (T5) e "Pela voz" nas Regras; kill-switches consumidos pelo runtime; chamada real de IA = fase06 |
 | 06 Backend | 🟡 migração pronta | `migrar(de,para)` em `src/backend/migracao.ts` (testado); adaptadores BaaS aguardam 06-01 |
 | 07 QA/A11y/CI | 🔴 não iniciado | `motor.test`/`persistencia.test`; `check_plans.mjs` sem CI |
 | 08 Conteúdo | 🔴 não iniciado | só `quintal_grafo.json`; SVGs dos 4 cenários sem grafo |
@@ -192,13 +206,35 @@ do plano, `ConfigIaTenant` SEM campo de chave (gate triplo plano∧config∧flag
 (`aplicarFlagsAosModos` ignora `Modos.iaLigada` com IA global desligada). Telas SA_LOGIN/HOME/TENANT/
 CONTENT/AI/SAFE sóbrias sobre `window.PipocaAdmin`/`PipocaAdminCanonico`. e2e dedicado
 `npm run test:e2e:admin` (porta 5138, 22 asserts) prova isolamento do app da criança, guard, defaults
-restritivos e persistência do kill-switch. **Pendências (fase05/06):** auth/sessão do operador em servidor
+restritivos e persistência do kill-switch. **Pendências (fase06):** auth/sessão do operador em servidor
 (`ServicoAuth`, 06-02), RLS/vínculo tenant↔família (06-04 — enforcement de `maxPerfis`/retenção no app),
-chaves + teste de conexão de IA server-side, consumo das flags/config pelo runtime da criança (05-04).
+chaves + teste de conexão de IA server-side, consumo da CONFIG de IA por tenant pelo runtime (as flags já
+são consumidas pelo runtime da criança desde a fase05).
 
-## Marco 5 — Fase 05 · IA e fala (eixo `AIPROV`)
+## Marco 5 — Fase 05 · IA e fala (eixo `AIPROV`) — ✅ CONCLUÍDO (2026-07-02, MVP local)
 Motor B (`MotorIA` implements `MotorNarrativa`), `ProvedorIA` + adaptadores Claude/Gemini/OpenAI, guardrails,
 ASR. Troca A↔B **só na fábrica**; `iaLigada` (já existe) autoriza. Telas não mudam.
+
+**Feito (2026-07-02):** `MotorIA` em `src/motores/motor_ia.ts` — contrato SÍNCRONO preservado com cache
+pré-aquecido (`aquecer`: abertura → objetos na ordem canônica com história acumulada → desfechos nos 2
+modos) e Motor A interno MEMOIZADO no miss (a mesma chamada nunca muda de texto; falha total do provedor ⇒
+saída idêntica ao Motor A, verificada por igualdade de string nas fixtures); `ehFinal` imposto por tipo,
+`objetoId` ecoado pelo motor. `src/ia/`: prompt base (05-02) puro com bloco de segurança infantil e um
+nível por chamada; guardrails (05-08) sempre no caminho via decorator (blocklist por palavra inteira,
+links/e-mail/telefone, tamanho; motivos sem PII); `ProvedorIA` (05-04) com schema do Trecho e validação
+que descarta `objetoId`; adaptadores (05-05/06/07) como montador+parser sobre transporte injetável — sem
+SDK, sem chave no cliente, refusal tratado ANTES do conteúdo, Claude sem temperature/top_p/budget_tokens;
+orquestrador (05-10) primário→fallback com cotas/custo locais em memória e telemetria de uso sem PII;
+provedor SIMULADO local determinístico no runtime. Borda: bridge expõe `ia`/`flags`/`asr`; `estado.js`
+computa modos EFETIVOS na borda (a intenção do cuidador em `state.modos` fica intacta), remonta o motor ao
+vivo por efetivo-vs-ativo (`state.motorAtivo`) e aquece fire-and-forget. ASR (05-09): `ServicoASR`
+(`src/servicos/asr.ts`, irmão do tts, injetável, global lido lazy, nunca rejeita); modo fala na T5
+(participação conta — baixa confiança inclusive; indisponível/silêncio → fallback acolhedor com os botões
+do cuidador) e "Pela voz" nas Regras; `aplicarFlagsAosModos` estendida (kill-switch de fala degrada
+`verificacao` para "cuidador"). Portões: 355 asserts bun · e2e canônico 34 · e2e admin 22.
+**Pendências (fase06):** ProxyIA server-side (chaves/SDK/chamada real aos provedores), seleção de
+adaptador pela `ConfigIaTenant` no runtime (vínculo tenant↔família), cotas/custo persistidos no backend,
+telemetria de custo de verdade.
 
 ## Marco 6 — Fase 06 · Backend trocável (Supabase | Firebase)
 `ServicoAuth`, adaptadores de `RepositorioPersistencia` (completar `RepositorioSupabase`), RLS/Security Rules,

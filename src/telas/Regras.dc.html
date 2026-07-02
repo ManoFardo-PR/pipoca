@@ -131,19 +131,25 @@ class Component extends DCLogic {
     const sel = 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;';
     const off = 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;';
 
+    // fase05 · o ASR chegou: "Pela voz" abre quando o aparelho tem
+    // reconhecimento E o kill-switch da plataforma (SA_SAFE) não derrubou a fala.
+    const falaDisponivel = !!(C && C.asr && C.asr.asrDisponivel()
+      && C.flags && !C.flags.killSwitchAtivo(C.flags.carregarFlags(), 'fala'));
     const verificacoes = [
       { id: 'cuidador', label: 'Lemos juntos', desc: 'o cuidador confirma a leitura' },
       { id: 'auto',     label: 'Sozinho',      desc: 'a própria criança confirma' },
-      { id: 'fala',     label: 'Pela voz · Em breve', desc: 'reconhecimento de fala (chega com a fase de IA)' },
+      falaDisponivel
+        ? { id: 'fala', label: 'Pela voz', desc: 'a criança lê em voz alta — participar já conta' }
+        : { id: 'fala', label: 'Pela voz · Indisponível', desc: 'sem reconhecimento de fala neste aparelho (ou desligado pela plataforma)' },
     ].map((v) => ({
       label: v.label,
       desc: v.desc,
       onTap: () => {
-        if (v.id === 'fala') return; // ainda sem ASR (doc 02-07)
+        if (v.id === 'fala' && !falaDisponivel) return;
         if (C && C.modos) this._setModos(C.modos.definirVerificacao(m, v.id));
       },
       style: cardBase + (m.verificacao === v.id ? sel : off)
-        + (v.id === 'fala' ? 'opacity:.55;cursor:not-allowed;' : ''),
+        + (v.id === 'fala' && !falaDisponivel ? 'opacity:.55;cursor:not-allowed;' : ''),
     }));
 
     const desfechos = [

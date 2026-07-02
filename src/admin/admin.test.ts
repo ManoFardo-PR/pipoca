@@ -359,6 +359,16 @@ console.log("\n=== SA_SAFE · flags, kill-switch e efeito nos Modos ===");
   const aplicado = aplicarFlagsAosModos(modosComIa, ligada);
   assert(aplicado.iaLigada === true && aplicado.desfecho === modosPadrao.desfecho, "IA global ligada respeita o cuidador (demais campos intactos)");
 
+  // fase05 · kill-switch de FALA degrada a verificação (o portão nunca fica sem caminho)
+  const modosComFala = { ...modosPadrao, verificacao: "fala" as const, iaLigada: true };
+  const falaMorta = aplicarFlagsAosModos(modosComFala, ligada); // `ligada` tem ia:true, fala ainda false
+  assert(falaMorta.verificacao === "cuidador", "fala global desligada degrada verificacao fala→cuidador");
+  assert(falaMorta.iaLigada === true, "…sem mexer na IA autorizada pelo cuidador");
+  const tudoLigado = definirFlag(ligada, "fala", true);
+  assert(aplicarFlagsAosModos(modosComFala, tudoLigado).verificacao === "fala", "fala global ligada respeita a escolha do cuidador");
+  assert(aplicarFlagsAosModos({ ...modosPadrao, verificacao: "auto" as const }, FLAGS_PADRAO).verificacao === "auto", "kill-switch de fala não toca verificações que não são fala");
+  assert(modosComFala.verificacao === "fala", "aplicarFlagsAosModos é puro (não muta a intenção original)");
+
   st.setItem("pipoca.admin.flags.v1", "{corrompido");
   assert(carregarFlags(st).ia === false, "storage corrompido volta aos defaults seguros");
   salvarFlags(morta, st);

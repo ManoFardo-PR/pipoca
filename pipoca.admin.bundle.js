@@ -562,6 +562,169 @@
     }
   }
 
+  // src/ia/prompt.ts
+  var descricaoNivel = {
+    n1: "pré-leitor: frases mínimas, palavras curtas e concretas, ritmo de cantiga",
+    n2: "leitor inicial: frases curtas e diretas, vocabulário do dia a dia",
+    n3: "leitor em prática: frases um pouco mais longas, com uma imagem poética simples",
+    n4: "leitor fluente: frases mais ricas, ainda curtas o bastante para o portão de leitura"
+  };
+  var PROMPT_BASE = [
+    "Você é o narrador do Pipoca, um app de leitura para crianças de 3 a 12 anos.",
+    "Sua voz é calma, acolhedora e encantada com as coisas pequenas do mundo.",
+    "",
+    "REGRAS DE SEGURANÇA (obrigatórias, sem exceção):",
+    "- Conteúdo sempre adequado a crianças de 3 a 12 anos.",
+    "- Proibido: violência gráfica, medo extremo, temas adultos, marcas comerciais, links, endereços, telefones ou qualquer dado pessoal.",
+    "- Tom acolhedor, nunca condescendente nem clínico; nunca envergonhe a criança.",
+    "- Se o pedido levar a conteúdo inseguro, recuse e reformule para algo seguro e gentil.",
+    "",
+    "FORMATO DA RESPOSTA:",
+    'Responda SOMENTE com um JSON no formato Trecho: { "texto": string, "ehFinal": boolean }.',
+    "Sem markdown, sem comentários, sem nada fora do JSON."
+  ].join(`
+`);
+  function acharObjeto(grafo, id) {
+    return grafo.cenario.objetos.find((o) => o.id === id);
+  }
+  function nomeLegivel(grafo, id) {
+    const o = acharObjeto(grafo, id);
+    return o ? `${o.emoji} ${o.nome}` : id;
+  }
+  function montarPrompt(ctx) {
+    const { tipo, historia, objetoId, nivel, modoDesfecho, grafo } = ctx;
+    const cen = grafo.cenario;
+    const linhas = [];
+    const personagem = cen.personagem || "uma criança curiosa";
+    const paleta = cen.paleta ? `paleta "${cen.paleta}"` : "tom neutro acolhedor";
+    linhas.push(`CENÁRIO: "${cen.nome}" — personagem: ${personagem}; ${paleta}.`);
+    const bruta = grafo.niveis ? grafo.niveis[nivel] : "";
+    const desc = bruta && bruta !== nivel ? bruta : descricaoNivel[nivel];
+    linhas.push(`NÍVEL DE LEITURA: ${nivel} — ${desc}.`);
+    linhas.push("Escreva o texto SOMENTE neste nível (um único fragmento, nunca os quatro).");
+    linhas.push("O texto precisa ser curto o bastante para a criança ler no portão antes do próximo objeto.");
+    if (historia.length === 0) {
+      linhas.push("HISTÓRIA ATÉ AGORA: nenhuma — este é o comecinho.");
+    } else {
+      linhas.push("HISTÓRIA ATÉ AGORA (objetos na ordem): " + historia.map((id) => nomeLegivel(grafo, id)).join(" → ") + ".");
+    }
+    if (tipo === "abertura") {
+      linhas.push("PEDIDO: escreva a ABERTURA da história, apresentando o cenário e o personagem.");
+      linhas.push('Marque "ehFinal": false.');
+    } else if (tipo === "objeto") {
+      const obj = objetoId ? acharObjeto(grafo, objetoId) : undefined;
+      if (obj) {
+        linhas.push(`PEDIDO: a criança acabou de colocar o objeto ${obj.emoji} "${obj.nome}" na história` + (historia.length === 0 ? " (é o primeiro objeto)" : "") + `. Escreva o trecho que esse objeto desperta, coerente com o papel dele no fim ("${obj.papel_no_fim}").`);
+      } else {
+        linhas.push(`PEDIDO: a criança colocou um objeto novo ("${objetoId || "?"}"). Escreva um trecho gentil que o acolha na história.`);
+      }
+      linhas.push('Marque "ehFinal": false.');
+    } else {
+      const ultimo = historia[historia.length - 1];
+      const temRamo = !!ultimo && cen.desfechos.aberto.some((d) => d.se_terminou_com === ultimo);
+      if (modoDesfecho === "aberto" && temRamo && ultimo) {
+        linhas.push(`PEDIDO: escreva o DESFECHO ABERTO da história, amarrado ao último objeto (${nomeLegivel(grafo, ultimo)}).`);
+      } else if (modoDesfecho === "aberto") {
+        linhas.push("PEDIDO: escreva um DESFECHO convergente e acolhedor — o último objeto não tem ramo próprio, e a história se fecha com o mesmo carinho.");
+      } else {
+        linhas.push("PEDIDO: escreva o DESFECHO CONVERGENTE da história, fechando o dia com aconchego.");
+      }
+      linhas.push('Marque "ehFinal": true.');
+    }
+    linhas.push('Responda SOMENTE com o JSON do Trecho: { "texto": string, "ehFinal": boolean }.');
+    return linhas.join(`
+`);
+  }
+
+  // src/ia/provedor.ts
+  var TRECHO_JSON_SCHEMA = {
+    type: "object",
+    properties: {
+      texto: { type: "string" },
+      ehFinal: { type: "boolean" }
+    },
+    required: ["texto", "ehFinal"],
+    additionalProperties: false
+  };
+
+  // src/motores/motor_ia.ts
+  function chaveDe(tipo, nivel, modo, historia, objetoId) {
+    return tipo + "|" + nivel + "|" + modo + "|" + historia.join(",") + "|" + (objetoId || "");
+  }
+
+  class MotorIA {
+    provedor;
+    grafo;
+    modoDesfecho;
+    motorA;
+    cache = new Map;
+    constructor(provedor, grafo, modoDesfecho) {
+      this.provedor = provedor;
+      this.grafo = grafo;
+      this.modoDesfecho = modoDesfecho;
+      this.motorA = new MotorGrafoAutoral(grafo);
+    }
+    abertura(nivel) {
+      return this.servir(chaveDe("abertura", nivel, "", []), () => this.motorA.abertura(nivel));
+    }
+    aoAdicionarObjeto(historia, objetoId, nivel) {
+      return this.servir(chaveDe("objeto", nivel, "", historia, objetoId), () => this.motorA.aoAdicionarObjeto(historia, objetoId, nivel));
+    }
+    desfecho(historia, modo, nivel) {
+      return this.servir(chaveDe("desfecho", nivel, modo, historia), () => this.motorA.desfecho(historia, modo, nivel));
+    }
+    async aquecer(historia, nivel) {
+      const alvos = [];
+      if (historia.length === 0) {
+        alvos.push({ tipo: "abertura", historia: [], modo: this.modoDesfecho });
+      }
+      const ordem = this.grafo.cenario.ordem_canonica || [];
+      const acumulada = historia.slice();
+      for (const id of ordem) {
+        if (acumulada.indexOf(id) >= 0)
+          continue;
+        alvos.push({ tipo: "objeto", historia: acumulada.slice(), objetoId: id, modo: this.modoDesfecho });
+        acumulada.push(id);
+      }
+      alvos.push({ tipo: "desfecho", historia: acumulada.slice(), modo: "convergente" });
+      alvos.push({ tipo: "desfecho", historia: acumulada.slice(), modo: "aberto" });
+      for (const alvo of alvos) {
+        await this.gerarEArmazenar(alvo, nivel);
+      }
+    }
+    servir(chave, deMotorA) {
+      const pronto = this.cache.get(chave);
+      if (pronto)
+        return { ...pronto };
+      const doA = deMotorA();
+      this.cache.set(chave, doA);
+      return { ...doA };
+    }
+    async gerarEArmazenar(alvo, nivel) {
+      const chave = chaveDe(alvo.tipo, nivel, alvo.tipo === "desfecho" ? alvo.modo : "", alvo.historia, alvo.objetoId);
+      if (this.cache.has(chave))
+        return;
+      try {
+        const prompt = montarPrompt({
+          tipo: alvo.tipo,
+          historia: alvo.historia,
+          objetoId: alvo.objetoId,
+          nivel,
+          modoDesfecho: alvo.modo,
+          grafo: this.grafo
+        });
+        const gerado = await this.provedor.gerar(prompt, TRECHO_JSON_SCHEMA, { system: PROMPT_BASE });
+        if (!gerado || typeof gerado.texto !== "string" || gerado.texto.trim() === "")
+          return;
+        const trecho = { texto: gerado.texto, ehFinal: alvo.tipo === "desfecho" };
+        if (alvo.tipo === "objeto" && alvo.objetoId)
+          trecho.objetoId = alvo.objetoId;
+        if (!this.cache.has(chave))
+          this.cache.set(chave, trecho);
+      } catch {}
+    }
+  }
+
   // src/motores/validador_ordem.ts
   var RE_TEM = /^tem:(\w+)$/;
   function topoSort(cenario) {
@@ -651,25 +814,32 @@
   }
 
   // src/motores/fabrica.ts
-  function criarMotor(cenario, modos) {
+  function criarMotor(cenario, modos, deps) {
     const ordem = criarValidadorOrdem(cenario);
     if (modos.iaLigada) {
+      const provedor = deps ? deps.provedor : undefined;
+      if (provedor) {
+        const motor2 = new MotorIA(provedor, montarGrafoAutoral(cenario), modos.desfecho);
+        return { motor: motor2, ordem };
+      }
       return criarMotorComFallback(cenario, ordem);
     }
     const motor = criarMotorA(cenario);
     return { motor, ordem };
   }
-  function criarMotorA(cenario) {
-    const grafo = {
+  function montarGrafoAutoral(cenario) {
+    return {
       esquema: "pipoca.grafo-autoral.v1",
       niveis: { n1: "n1", n2: "n2", n3: "n3", n4: "n4" },
       regra_de_ouro: "Todo fragmento novo precisa ser lido no portão antes de soltar o próximo objeto.",
       cenario
     };
-    return new MotorGrafoAutoral(grafo);
+  }
+  function criarMotorA(cenario) {
+    return new MotorGrafoAutoral(montarGrafoAutoral(cenario));
   }
   function criarMotorComFallback(cenario, ordem) {
-    console.warn("[fabrica] iaLigada=true mas Motor B não está disponível (fase05). " + "Usando Motor A como fallback seguro.");
+    console.warn("[fabrica] iaLigada=true mas nenhum provedor de IA foi injetado. " + "Usando Motor A como fallback seguro.");
     const motor = criarMotorA(cenario);
     return { motor, ordem };
   }
@@ -853,9 +1023,12 @@
     return flags[recurso] !== true;
   }
   function aplicarFlagsAosModos(modos, flags) {
+    const efetivos = { ...modos };
     if (killSwitchAtivo(flags, "ia"))
-      return { ...modos, iaLigada: false };
-    return { ...modos };
+      efetivos.iaLigada = false;
+    if (killSwitchAtivo(flags, "fala") && efetivos.verificacao === "fala")
+      efetivos.verificacao = "cuidador";
+    return efetivos;
   }
   var CHAVE_FLAGS = "pipoca.admin.flags.v1";
   function storagePadrao4() {

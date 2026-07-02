@@ -38,12 +38,17 @@ export function killSwitchAtivo(flags: FeatureFlags, recurso: string): boolean {
 
 /**
  * Efeito das flags sobre os Modos da sessão (regra 1 do doc):
- * IA global desligada → `iaLigada` vira false, ignorando a autorização do
- * cuidador; IA global ligada → respeita `Modos.iaLigada`. Demais campos intactos.
+ * — IA global desligada → `iaLigada` vira false, ignorando a autorização do
+ *   cuidador; ligada → respeita `Modos.iaLigada`.
+ * — Fala global desligada (fase05) → `verificacao: "fala"` degrada para
+ *   "cuidador" (o portão nunca fica sem caminho); outras verificações intactas.
+ * Sempre devolve cópia; a intenção original do cuidador nunca é mutada.
  */
 export function aplicarFlagsAosModos(modos: Modos, flags: FeatureFlags): Modos {
-  if (killSwitchAtivo(flags, "ia")) return { ...modos, iaLigada: false };
-  return { ...modos };
+  const efetivos = { ...modos };
+  if (killSwitchAtivo(flags, "ia")) efetivos.iaLigada = false;
+  if (killSwitchAtivo(flags, "fala") && efetivos.verificacao === "fala") efetivos.verificacao = "cuidador";
+  return efetivos;
 }
 
 // ─── Persistência local (MVP) ────────────────────────────────────────────────

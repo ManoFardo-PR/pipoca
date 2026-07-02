@@ -253,6 +253,35 @@ try {
   assert(faseMotorB.aberturaA.indexOf("✨") !== 0, "fase05: de volta ao Motor A, o texto é o autoral do grafo");
   await page.evaluate(() => localStorage.removeItem("pipoca.admin.flags.v1"));
 
+  // ── fase05 · modo fala (ASR): sem reconhecimento no aparelho o portão NÃO quebra ──
+  // Removemos a Web Speech API para forçar o caminho real de indisponibilidade.
+  await page.evaluate(() => {
+    try { delete window.SpeechRecognition; } catch (_) {}
+    try { delete window.webkitSpeechRecognition; } catch (_) {}
+    window.SpeechRecognition = undefined;
+    window.webkitSpeechRecognition = undefined;
+    localStorage.setItem("pipoca.admin.flags.v1", JSON.stringify({ ia: false, fala: true, conteudoCustomizado: true, telemetria: true }));
+    const App = window.PipocaApp;
+    App.setState({ modos: Object.assign({}, App.estado.modos, { iaLigada: false, verificacao: "fala" }) });
+    // T5 isolada com um trecho de leitura; comp nulo faz o commit só creditar e avançar.
+    App.setState({ tela: 5, gateTrecho: "A luzinha piscou no quintal.", gateStage: "reading", gatePendente: null, comp: null });
+  });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 5, { timeout: 4000 });
+  assert(
+    (await page.evaluate(() => window.PipocaApp.estado.modos.verificacao)) === "fala",
+    "fase05: cuidador escolhe verificação pela voz (intenção gravada)"
+  );
+  await page.locator("button", { hasText: "Continuar a história" }).first().click();
+  await page.waitForFunction(() => /Ler em voz alta/i.test(document.body.innerText), { timeout: 4000 });
+  assert(true, "fase05: modo fala monta o botão de leitura em voz alta (T5)");
+  await page.locator("button", { hasText: "Ler em voz alta" }).first().click();
+  await page.waitForFunction(() => /Vamos confirmar de outro jeito/i.test(document.body.innerText), { timeout: 8000 });
+  assert(true, "fase05: sem reconhecimento, aparece o fallback acolhedor (sem culpar a criança)");
+  await page.locator("button", { hasText: "Leu sozinho" }).first().click();
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 6, { timeout: 4000 });
+  assert(true, "fase05: o portão avança pelo caminho do cuidador — sem microfone NÃO quebra");
+  await page.evaluate(() => localStorage.removeItem("pipoca.admin.flags.v1"));
+
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 
   console.log(`\n${"=".repeat(50)}`);

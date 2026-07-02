@@ -1,0 +1,146 @@
+<!-- Privacidade.dc.html — Privacidade e dados / LGPD (PC_PRIV) · doc fase02-02-09
+     ─────────────────────────────────────────────────────────────
+     Atrás do PINGATE. Por perfil: exportar (JSON dos schemas congelados, via
+     download local) e apagar tudo (confirmação calma em 2 toques — perfil +
+     save + telemetria, sem resíduos). Toggle de coleta do progresso de leitura.
+     Seam: PipocaCanonico.lgpd (exportarDados/apagarDados) + window.PipocaApp.repo.
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-pv-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-pv-btn:active { transform:scale(.97); }
+  </style>
+</helmet>
+
+<div style="position:absolute;inset:0;overflow-y:auto;background:radial-gradient(120% 120% at 50% 0%, var(--pip-areia,#efe6d4) 0%, #ded2be 70%, #d3c5ad 100%);padding:32px 20px;">
+  <div style="max-width:560px;margin:0 auto;">
+
+    <!-- Cabeçalho -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div>
+        <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
+        <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Privacidade</div>
+      </div>
+      <button class="pip-pv-btn" onClick="{{ voltar }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
+    </div>
+    <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 22px;">Os dados ficam neste aparelho: só nome, idade e o progresso da leitura. Você pode levar ou apagar tudo quando quiser.</p>
+
+    <!-- Coleta do progresso -->
+    <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
+        <div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:17px;color:#3a2c20;">Guardar o progresso de leitura</div>
+          <div style="font-family:'Nunito';font-size:13px;color:#7a6a54;margin-top:4px;">Alimenta o painel de evolução. Desligado, nada novo é registrado.</div>
+        </div>
+        <button class="pip-pv-btn" onClick="{{ alternarColeta }}" role="switch" aria-checked="{{ coletaLigada }}" aria-label="Guardar o progresso de leitura" style="{{ trilhoStyle }}">
+          <div style="width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);"></div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Dados por perfil -->
+    <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px;">
+      <sc-for list="{{ cartoes }}" as="c" hint-placeholder-count="2">
+        <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:16px 18px;">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <span style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:#3a2c20;flex:1;min-width:0;">{{ c.nome }}</span>
+            <button class="pip-pv-btn" onClick="{{ c.exportar }}" style="border:none;border-radius:12px;background:#3f6f9e;color:#fff;padding:9px 14px;font-family:'Nunito';font-weight:700;font-size:13px;cursor:pointer;">{{ c.exportarLabel }}</button>
+            <button class="pip-pv-btn" onClick="{{ c.apagar }}" style="border:2px solid #e3d4ba;border-radius:12px;background:transparent;padding:8px 12px;font-family:'Nunito';font-weight:700;font-size:13px;color:#9a5a3a;cursor:pointer;">{{ c.apagarLabel }}</button>
+          </div>
+          <sc-if value="{{ c.confirmando }}" hint-placeholder-val="{{ false }}">
+            <div role="status" style="margin-top:12px;font-family:'Nunito';font-size:13px;color:#9a5a3a;">Isso apaga o perfil, o pote e todo o progresso de {{ c.nome }} — sem volta. Toque em "Apagar mesmo" para confirmar.</div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ vazio }}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;padding:20px;margin-top:16px;font-family:'Nunito';font-size:14px;color:#7a6a54;">Nenhum perfil por aqui ainda — nada guardado. 🌱</div>
+    </sc-if>
+
+    <sc-if value="{{ temAviso }}" hint-placeholder-val="{{ false }}">
+      <div role="status" aria-live="polite" style="margin-top:16px;font-family:'Nunito';font-size:14px;color:#5a6b53;">{{ aviso }}</div>
+    </sc-if>
+
+    <div style="height:24px;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { perfis: [], confirmandoId: null, exportandoId: null, aviso: '' };
+
+  async _recarregar() {
+    const App = window.PipocaApp;
+    try {
+      const perfis = App && App.repo ? await App.repo.carregarPerfis() : [];
+      this.setState({ perfis: perfis || [] });
+    } catch (_) { this.setState({ perfis: [] }); }
+  }
+
+  componentDidMount() { this._recarregar(); }
+
+  // Download local do JSON (imperativo — nunca via interpolação).
+  _baixar(nomeArquivo, dados) {
+    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nomeArquivo;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async _exportar(p) {
+    const App = window.PipocaApp;
+    const C = window.PipocaCanonico;
+    if (!App || !App.repo || !C || !C.lgpd) return;
+    this.setState({ exportandoId: p.id, aviso: '' });
+    try {
+      const dados = await C.lgpd.exportarDados(p.id, App.repo, Date.now());
+      this._baixar('pipoca-' + (p.nome || 'perfil').toLowerCase() + '.json', dados);
+      this.setState({ exportandoId: null, aviso: 'Prontinho: os dados de ' + p.nome + ' foram baixados.' });
+    } catch (e) {
+      console.warn('[Privacidade] exportar falhou:', e);
+      this.setState({ exportandoId: null, aviso: 'Não consegui exportar agora. Tente de novo.' });
+    }
+  }
+
+  async _apagar(p) {
+    if (this.state.confirmandoId !== p.id) { this.setState({ confirmandoId: p.id, aviso: '' }); return; }
+    const App = window.PipocaApp;
+    const C = window.PipocaCanonico;
+    if (!App || !App.repo || !C || !C.lgpd) return;
+    try {
+      await C.lgpd.apagarDados(p.id, App.repo);
+      if (App.estado.perfil && App.estado.perfil.id === p.id) App.setState({ perfil: null });
+      this.setState({ confirmandoId: null, aviso: 'Os dados de ' + p.nome + ' foram apagados.' });
+      this._recarregar();
+    } catch (e) { console.warn('[Privacidade] apagar falhou:', e); }
+  }
+
+  renderVals() {
+    const s = this.state;
+    const App = window.PipocaApp;
+    const coleta = !!(App && App.estado.coletaTelemetria !== false);
+    return {
+      coletaLigada: coleta,
+      alternarColeta: () => { if (App) App.setState({ coletaTelemetria: !coleta }); this.setState({}); },
+      trilhoStyle: 'width:54px;height:30px;border-radius:999px;border:none;cursor:pointer;padding:3px;display:flex;align-items:center;flex-shrink:0;'
+        + (coleta ? 'background:#7a9a5b;justify-content:flex-end;' : 'background:#cbb692;justify-content:flex-start;'),
+      cartoes: s.perfis.map((p) => ({
+        nome: p.nome,
+        exportar: () => this._exportar(p),
+        exportarLabel: s.exportandoId === p.id ? 'Exportando…' : 'Exportar JSON',
+        apagar: () => this._apagar(p),
+        apagarLabel: s.confirmandoId === p.id ? 'Apagar mesmo' : 'Apagar tudo',
+        confirmando: s.confirmandoId === p.id,
+      })),
+      vazio: !s.perfis.length,
+      aviso: s.aviso || '',
+      temAviso: !!s.aviso,
+      voltar: () => { if (App) App.setState({ tela: 11 }); },
+    };
+  }
+}
+</script>

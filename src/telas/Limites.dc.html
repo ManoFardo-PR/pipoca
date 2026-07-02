@@ -1,0 +1,126 @@
+<!-- Limites.dc.html — Bloco de foco e tempo de tela (PC_LIM) · doc fase02-02-06
+     ─────────────────────────────────────────────────────────────
+     Atrás do PINGATE. Bloco Pomodoro (10|15|20|25 min) + tempo de tela diário
+     opcional. Sem castigo: mudar o bloco reinicia o timer com calma; a história
+     em curso nunca é interrompida.
+     Seam: window.PipocaApp.estado.limites/sessao + PipocaCanonico.limites.
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-lm-campo { width:100%;padding:12px 14px;border-radius:14px;border:2px solid #e3d4ba;background:#fffdf7;font-family:'Nunito';font-size:15px;color:#3a2c20;outline:none; }
+    .pip-lm-campo:focus { border-color:#c9a86f; }
+    .pip-lm-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-lm-btn:active { transform:scale(.97); }
+  </style>
+</helmet>
+
+<div style="position:absolute;inset:0;overflow-y:auto;background:radial-gradient(120% 120% at 50% 0%, var(--pip-areia,#efe6d4) 0%, #ded2be 70%, #d3c5ad 100%);padding:32px 20px;">
+  <div style="max-width:560px;margin:0 auto;">
+
+    <!-- Cabeçalho -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div>
+        <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
+        <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Limites</div>
+      </div>
+      <button class="pip-lm-btn" onClick="{{ voltar }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
+    </div>
+    <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 22px;">Blocos curtos e visíveis. O fim do bloco é um encerramento calmo — a história em curso nunca é cortada.</p>
+
+    <!-- Bloco de foco -->
+    <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">Bloco de foco</div>
+      <p style="color:#7a6a54;font-family:'Nunito';font-size:13px;margin:6px 0 12px;">Quanto tempo dura cada momento de leitura.</p>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+        <sc-for list="{{ blocos }}" as="b" hint-placeholder-count="4">
+          <button class="pip-lm-btn" onClick="{{ b.onTap }}" style="{{ b.style }}">{{ b.label }}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{ avisoSessao }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="margin-top:12px;font-family:'Nunito';font-size:13px;color:#5a6b53;">O bloco de agora foi reiniciado com o novo tempo. 🌿</div>
+      </sc-if>
+    </div>
+
+    <!-- Tempo de tela diário -->
+    <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;margin-top:16px;">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">Tempo de tela por dia</div>
+      <p style="color:#7a6a54;font-family:'Nunito';font-size:13px;margin:6px 0 12px;">Opcional. Deixe em branco para não ter limite diário.</p>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <input class="pip-lm-campo" style="max-width:140px;" value="{{ tempoTela }}" onInput="{{ setTempoTela }}" type="number" min="5" step="5" placeholder="minutos" aria-label="Tempo de tela diário em minutos" />
+        <button class="pip-lm-btn" onClick="{{ aplicarTempo }}" style="min-height:44px;border:none;border-radius:14px;background:#3f6f9e;color:#fff;padding:0 18px;font-family:'Nunito';font-weight:700;font-size:14px;cursor:pointer;">Aplicar</button>
+        <button class="pip-lm-btn" onClick="{{ semLimite }}" style="min-height:44px;border:2px solid #e3d4ba;border-radius:14px;background:transparent;padding:0 14px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6a54;cursor:pointer;">Sem limite</button>
+      </div>
+      <div role="status" aria-live="polite" style="margin-top:12px;font-family:'Nunito';font-size:13px;color:#7a6a54;">{{ tempoAtualTexto }}</div>
+    </div>
+
+    <div style="height:24px;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { tempoTela: '', avisoSessao: false };
+
+  componentDidMount() {
+    const App = window.PipocaApp;
+    const lim = (App && App.estado.limites) || {};
+    this.setState({ tempoTela: lim.tempoDeTelaMin != null ? String(lim.tempoDeTelaMin) : '' });
+  }
+
+  _limites() {
+    const App = window.PipocaApp;
+    return (App && App.estado.limites) || { blocoMin: 15, tempoDeTelaMin: null };
+  }
+
+  _definirBloco(b) {
+    const App = window.PipocaApp;
+    const C = window.PipocaCanonico;
+    if (!App || !C || !C.limites) return;
+    const lim = C.limites.normalizarLimites(Object.assign({}, this._limites(), { blocoMin: b }));
+    const patch = { limites: lim };
+    let reiniciou = false;
+    if (App.estado.sessao) {
+      patch.sessao = C.limites.definirBlocoFoco(App.estado.sessao, lim.blocoMin, Date.now());
+      reiniciou = true;
+    }
+    App.setState(patch);
+    this.setState({ avisoSessao: reiniciou });
+  }
+
+  _aplicarTempo(valor) {
+    const App = window.PipocaApp;
+    const C = window.PipocaCanonico;
+    if (!App || !C || !C.limites) return;
+    const t = C.limites.normalizarTempoDeTela(valor === '' ? null : parseInt(valor, 10));
+    App.setState({ limites: C.limites.normalizarLimites(Object.assign({}, this._limites(), { tempoDeTelaMin: t })) });
+    this.setState({ tempoTela: t != null ? String(t) : '' });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const App = window.PipocaApp;
+    const lim = this._limites();
+    const blocos = [10, 15, 20, 25].map((b) => ({
+      label: b + ' min',
+      onTap: () => this._definirBloco(b),
+      style: 'min-height:48px;border-radius:14px;border:2px solid;font-family:Baloo 2;font-weight:800;font-size:15px;cursor:pointer;'
+        + (lim.blocoMin === b
+          ? 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;'
+          : 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;'),
+    }));
+    return {
+      blocos,
+      avisoSessao: s.avisoSessao,
+      tempoTela: s.tempoTela,
+      setTempoTela: (e) => this.setState({ tempoTela: e.target.value, avisoSessao: false }),
+      aplicarTempo: () => this._aplicarTempo(this.state.tempoTela),
+      semLimite: () => this._aplicarTempo(''),
+      tempoAtualTexto: lim.tempoDeTelaMin != null
+        ? 'Hoje: até ' + lim.tempoDeTelaMin + ' minutos por dia.'
+        : 'Hoje: sem limite diário.',
+      voltar: () => { if (App) App.setState({ tela: 11 }); },
+    };
+  }
+}
+</script>

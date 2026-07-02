@@ -51,6 +51,12 @@
     modos: { palco: "Palco", desfecho: "convergente", verificacao: "cuidador", iaLigada: false },
     a11y: { textScale: 1, dyslexia: false, syllable: false, contrast: false, reduceMotion: false },
     sessao: null,
+    // Configurações do cuidador (fase02): limites (PC_LIM), cardápio e cenários (PC_RULES),
+    // coleta de telemetria (PC_PRIV — flag efêmera; persistir é follow-up).
+    limites: { blocoMin: 15, tempoDeTelaMin: null },
+    cardapio: null,          // null → telas normalizam para CARDAPIO_PADRAO (cardapio.ts)
+    cenariosLiberados: null, // null → CENARIOS_PADRAO
+    coletaTelemetria: true,
     showA11y: false,
     showOnboarding: false,
     storyMsg: null,

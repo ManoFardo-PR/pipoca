@@ -154,7 +154,9 @@ const add = (nome, falhas, detalhe = '') => checks.push({ nome, ok: falhas.lengt
 
 // 5. Nomes canônicos (schemas, Motor*, congelados no código)
 {
-  const SCHEMAS = new Set(['pipoca.grafo-autoral.v1', 'pipoca.perfil.v1', 'pipoca.save.v1', 'pipoca.telemetria.v1', 'pipoca.tenant.v1'])
+  // pipoca.grafo-autoral.v2 = composição autoral (src/core/composicao.ts · docs/quintal.v2.json),
+  // citado no selo SUPERSEDED de fase00-00-20.
+  const SCHEMAS = new Set(['pipoca.grafo-autoral.v1', 'pipoca.grafo-autoral.v2', 'pipoca.perfil.v1', 'pipoca.save.v1', 'pipoca.telemetria.v1', 'pipoca.tenant.v1'])
   const MOTORS = new Set(['MotorNarrativa', 'MotorGrafoAutoral', 'MotorIA'])
   const f = []
   for (const d of Object.values(docs)) {

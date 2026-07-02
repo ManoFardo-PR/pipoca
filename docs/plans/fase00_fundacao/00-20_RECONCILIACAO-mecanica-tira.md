@@ -2,6 +2,14 @@
 
 > 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — Ops da tira em `src/core/historia.ts`; texto graph-driven via motor. Nota: ✅ Marco 1 — a tira no `index.html` usa o `ValidadorOrdem`/motor canônicos (seam). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
+> 🔄 **SUPERSEDED · 2026-07-01** — A decisão "manter o quebra-cabeça de tira" foi
+> revertida. A mecânica canônica da linha verde é a COMPOSIÇÃO AUTORAL v2
+> (`src/core/composicao.ts` · `docs/quintal.v2.json` · esquema `pipoca.grafo-autoral.v2`):
+> R1 ordena 3 com pontas travadas; R2–R4 inserem no miolo; banco = novas + sobras;
+> a história cresce a cada leitura. Este doc permanece como registro histórico do
+> Motor A/ValidadorOrdem (ainda existentes em `src/`), mas NÃO descreve o fluxo vivo.
+> Ver: docs/pipoca-fluxo-v2.mermaid · TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-20`
 - nó(s) da arquitetura: —

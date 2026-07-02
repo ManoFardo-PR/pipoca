@@ -1,6 +1,6 @@
 # Pipoca · Planos de implementação faseados
 
-Plano executável que leva o **Pipoca** do protótipo atual ([Pipoca.dc.html](../../Pipoca.dc.html)) à
+Plano executável que leva o **Pipoca** do protótipo original ([Pipoca.dc.html](../../old/Pipoca.dc.html), hoje em `old/`) à
 arquitetura-alvo [v2.0](../arquitetura_pipoca_versao_2_0.mermaid), em **6 fases (00–05)**. Cada **sub-passo** é
 um arquivo `.md` autocontido em `faseFF/`, escrito com nomes, variáveis, regras de negócio e os contratos de
 interação entre os arquivos.
@@ -30,9 +30,12 @@ interação entre os arquivos.
 > via seam + adaptador — ver [[_contratos/lei-do-contrato]] (lei do backend).
 
 ## A correção central
-O protótipo faz um **quebra-cabeça de ordenar cards**; o motor faz **adicionar objeto → ler → destravar**.
-Decisão: **manter o quebra-cabeça** e fazer o grafo/motor se adaptarem a ele. Doc canônico:
-[[fase00-00-20]] (`fase00_fundacao/00-20_RECONCILIACAO-mecanica-tira.md`).
+A decisão original ("**manter o quebra-cabeça** de ordenar cards e fazer o grafo/motor se adaptarem a ele")
+foi **superada em 2026-07-01**: a mecânica canônica da linha verde é a **composição autoral v2**
+(`src/core/composicao.ts` · `docs/quintal.v2.json` · esquema `pipoca.grafo-autoral.v2`) — R1 ordena 3 com
+pontas travadas, R2–R4 inserem no miolo, banco = novas + sobras, e a história cresce a cada leitura no portão.
+Fluxo vivo: [`pipoca-fluxo-v2.mermaid`](../pipoca-fluxo-v2.mermaid). Registro histórico da decisão revertida:
+selo SUPERSEDED em [[fase00-00-20]] (`fase00_fundacao/00-20_RECONCILIACAO-mecanica-tira.md`).
 
 ## Diagnóstico de integridade
 ```

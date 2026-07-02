@@ -1,5 +1,7 @@
 # fase05 · 05-02 · Prompt base (Motor B)
 
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO** — `PROMPT_BASE` + `montarPrompt(ctx)` puros em `src/ia/prompt.ts` (caminho consolidado: os arquivos `src/motores/ia/promptBase.ts`/`niveisPrompt.ts` citados abaixo viraram um módulo só; `descricaoNivel` vive nele). Bloco de segurança infantil, um nível por chamada, ehFinal por tipo, edge-cases (comecinho, aberto sem ramo, tom neutro) cobertos em `src/ia/ia.test.ts`.
+
 ## Identidade
 - id: `fase05-05-02`
 - nó(s) da arquitetura: AIMODEL

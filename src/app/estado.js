@@ -122,7 +122,9 @@
   }
 
   // Sucesso no PINGATE → modo cuidador (única saída do modo criança — modoApp.ts).
+  // A sessão de leitura da criança encerra com calma na borda (TELE).
   function _entrarCuidador() {
+    _encerrarSessaoLeitura();
     var M = window.PipocaCanonico && window.PipocaCanonico.modoApp;
     state.modoApp = M ? M.aoPassarPortao() : "cuidador";
   }
@@ -254,6 +256,7 @@
 
   // Sair da conta da família (HH_LOGIN): limpa a sessão de conta e volta ao login (T9).
   function sairDaConta() {
+    _encerrarSessaoLeitura();
     var Canon = window.PipocaCanonico;
     var C = Canon && Canon.conta;
     if (C) { try { C.limparSessaoConta(); } catch (_) {} }
@@ -313,11 +316,73 @@
     return Canon && Canon.composicao ? Canon.composicao : null;
   }
 
+  // ─── Telemetria (TELE · fase03-03-01) — captura na borda, fire-and-forget ──
+  // Acumuladores da sessão de leitura (zerados a cada iniciarComposicao).
+  var _acum = { palavras: 0, historias: 0 };
+  var _jaEmitidos = new Set(); // objeto_destravado idempotente (re-render/voltar)
+  var _historiaEmitida = false; // historia_concluida 1x por história
+
+  function _tele() {
+    var Canon = window.PipocaCanonico;
+    return Canon && Canon.telemetria ? Canon.telemetria : null;
+  }
+
+  // Só captura com perfil ativo, coleta ligada (PC_PRIV) e repo canônico presente.
+  function _podeCaptar() {
+    return !!(state.perfil && state.coletaTelemetria !== false && _tele() && _repoBase());
+  }
+
+  // Mesma tokenização da T5 (leitura.ts); fallback split simples sem bundle.
+  function _contarPalavras(trecho) {
+    var t = String(trecho || "").trim();
+    if (!t) return 0;
+    var Canon = window.PipocaCanonico;
+    if (Canon && Canon.leitura && Canon.leitura.tokenizarTrecho) {
+      try { return Canon.leitura.tokenizarTrecho(t).length; } catch (_) {}
+    }
+    return t.split(/\s+/).length;
+  }
+
+  // Fim do bloco de leitura (convergência da história, portão do cuidador ou
+  // logout): captura sessao_encerrada com o resumo acumulado e fecha a Sessao.
+  function _encerrarSessaoLeitura() {
+    if (!state.sessao) return;
+    if (_podeCaptar()) {
+      _tele().capturarSessaoEncerrada(
+        state,
+        { palavras: _acum.palavras, historias: _acum.historias },
+        Date.now(),
+        _repoBase()
+      );
+    }
+    state.sessao = null;
+    _acum = { palavras: 0, historias: 0 };
+  }
+
   // Inicia (ou reinicia) uma sessão de composição no cenário v2 (rodada 1).
   function iniciarComposicao() {
     var C = _comp();
     if (!C || !_cenarioV2) return null;
     var comp = C.iniciar(_cenarioV2, state.modos);
+
+    // TELE · borda da sessão: zera acumuladores, garante a Sessao (SESS) e captura.
+    _acum = { palavras: 0, historias: 0 };
+    _jaEmitidos = new Set();
+    _historiaEmitida = false;
+    var Canon = window.PipocaCanonico;
+    if (!state.sessao && state.perfil && Canon && Canon.sessao) {
+      var bloco = (state.limites && state.limites.blocoMin) || 15;
+      state.sessao = Canon.sessao.iniciarSessao(state.perfil.id, bloco, Date.now());
+    }
+    if (_podeCaptar()) {
+      _tele().capturarSessaoIniciada(state, Date.now(), _repoBase());
+      // Retenção (fase03-03-03): poda eventos além de 90 dias, fire-and-forget.
+      var base = _repoBase();
+      if (base && base.podarTelemetria) {
+        try { base.podarTelemetria(state.perfil.id, Date.now()).catch(function () {}); } catch (_) {}
+      }
+    }
+
     setState({ comp: comp });
     return comp;
   }
@@ -356,6 +421,23 @@
     var C = _comp();
     if (!C || !state.comp) return;
     setState({ comp: C.abrirProximaRodada(state.comp) });
+
+    // TELE · desfecho: última rodada lida → história concluída + fim do bloco.
+    if (!_historiaEmitida && C.convergiu(state.comp)) {
+      _historiaEmitida = true;
+      _acum.historias += 1;
+      // Espelha a conclusão no HistoriaState (fase00-00-09: aberta=false) —
+      // a linha da composição vira a lista de objetos da história.
+      state.historia = {
+        cenarioId: state.comp.cenarioId || (state.historia && state.historia.cenarioId) || "quintal_anoitecer",
+        objetos: (state.comp.linha || []).slice(),
+        aberta: false,
+      };
+      if (_podeCaptar()) {
+        _tele().capturarHistoriaConcluida(state, _acum.palavras, Date.now(), _repoBase());
+      }
+      _encerrarSessaoLeitura();
+    }
   }
 
   function composicaoConvergiu() {
@@ -397,6 +479,17 @@
   function aplicarComposicao(pendente) {
     if (!state.comp || !pendente) return;
     setState({ comp: _aplicarMove(state.comp, pendente) });
+
+    // TELE · portão: leitura confirmada (+ objeto que entrou na cena nesta rodada).
+    // gateTrecho/gateObjId ainda estão no estado (a T5 só os limpa depois).
+    var palavras = _contarPalavras(state.gateTrecho);
+    if (_podeCaptar()) {
+      _tele().capturarLeituraConfirmada(state, palavras, state.gateObjId || undefined, Date.now(), _repoBase());
+      if (state.gateObjId) {
+        _tele().capturarObjetoDestravado(state, state.gateObjId, Date.now(), _repoBase(), _jaEmitidos);
+      }
+    }
+    _acum.palavras += palavras;
   }
 
   // ─── API pública ──────────────────────────────────────────────────────────

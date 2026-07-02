@@ -10,7 +10,8 @@
     "typecheck": "bun x tsc --noEmit",
     "test": "bun run src/motores/motor.test.ts && bun run src/core/persistencia/persistencia.test.ts && bun run src/core/parciais.test.ts && bun run src/admin/admin.test.ts",
     "test:e2e": "node tests/e2e/run-linha-verde.mjs",
-    "test:e2e:canonico": "node tests/e2e/run-linha-verde-canonico.mjs"
+    "test:e2e:canonico": "node tests/e2e/run-linha-verde-canonico.mjs",
+    "test:e2e:admin": "node tests/e2e/run-admin.mjs"
   },
   "engines": {
     "node": ">=18"

@@ -1,0 +1,72 @@
+<!-- AdminShell.dc.html — Shell da plataforma do operador (fase04)
+     ─────────────────────────────────────────────────────────────
+     Espelho enxuto do Shell do app: assina window.PipocaRoteador +
+     window.PipocaAdmin e monta a tela SA_* ativa por componente-irmão.
+     Numeração interna: 1 login · 2 hub · 3 tenants · 4 conteúdo · 5 IA · 6 segurança.
+     O guard vive em estadoAdmin.js (setState); aqui só se renderiza.
+-->
+<x-dc>
+<helmet>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+  </style>
+</helmet>
+
+<div style="position:fixed;inset:0;overflow:hidden;font-family:var(--pip-fonte-texto,'Nunito');color:#2c241a;background:linear-gradient(180deg,#f4f1ea 0%, #eae4d7 100%);">
+
+  <!-- Marca sóbria da plataforma -->
+  <div style="position:absolute;top:0;left:0;right:0;height:52px;display:flex;align-items:center;gap:10px;padding:0 20px;background:rgba(44,36,26,.92);z-index:30;">
+    <div style="width:22px;height:22px;border-radius:7px;background:linear-gradient(150deg,#e8965a,#d5713f);display:flex;align-items:center;justify-content:center;">
+      <div style="width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a);"></div>
+    </div>
+    <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:15px;color:#f4f1ea;">Pipoca · Plataforma</div>
+    <div style="margin-left:auto;font-family:'Nunito';font-size:12px;color:rgba(244,241,234,.7);">área do operador — não é a tela da criança</div>
+  </div>
+
+  <!-- Slot das telas SA_* -->
+  <div style="position:absolute;inset:0;padding-top:52px;">
+    <sc-if value="{{ ehSA1 }}" hint-placeholder-val="{{ true }}"><dc-import name="SaLogin"></dc-import></sc-if>
+    <sc-if value="{{ ehSA2 }}" hint-placeholder-val="{{ false }}"><dc-import name="SaHome"></dc-import></sc-if>
+    <sc-if value="{{ ehSA3 }}" hint-placeholder-val="{{ false }}"><dc-import name="SaTenant"></dc-import></sc-if>
+    <sc-if value="{{ ehSA4 }}" hint-placeholder-val="{{ false }}"><dc-import name="Conteudo"></dc-import></sc-if>
+    <sc-if value="{{ ehSA5 }}" hint-placeholder-val="{{ false }}"><dc-import name="ConfigIA"></dc-import></sc-if>
+    <sc-if value="{{ ehSA6 }}" hint-placeholder-val="{{ false }}"><dc-import name="Seguranca"></dc-import></sc-if>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  // estadoAdmin.js posiciona o roteador antes da hidratação; ler o valor atual
+  // evita flash (mesmo gesto do Shell do app).
+  state = { tela: (window.PipocaRoteador && window.PipocaRoteador.telaAtual && window.PipocaRoteador.telaAtual()) || 1 };
+
+  componentDidMount() {
+    const R = window.PipocaRoteador;
+    if (R) {
+      this.setState({ tela: R.telaAtual() });
+      this._unsubR = R.onTelaChange((n) => this.setState({ tela: n }));
+    }
+    const A = window.PipocaAdmin;
+    if (A && A.subscribe) this._unsubA = A.subscribe(() => this.setState({}));
+  }
+
+  componentWillUnmount() {
+    if (this._unsubR) this._unsubR();
+    if (this._unsubA) this._unsubA();
+  }
+
+  renderVals() {
+    const t = this.state.tela;
+    return {
+      ehSA1: t === 1,
+      ehSA2: t === 2,
+      ehSA3: t === 3,
+      ehSA4: t === 4,
+      ehSA5: t === 5,
+      ehSA6: t === 6,
+    };
+  }
+}
+</script>

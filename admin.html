@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pipoca · Plataforma</title>
+  <link rel="stylesheet" href="./src/tokens.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="./support.js"></script>
+  <script src="./src/core/roteador.js"></script>
+  <!-- Fase 04: núcleos administrativos canônicos (src/admin) via bundle próprio.
+       Gerado por `npm run build:admin`. O app da criança NÃO carrega este bundle
+       (e este entry não carrega nada do app da criança). -->
+  <script src="./pipoca.admin.bundle.js"></script>
+  <!-- Cérebro do admin: window.PipocaAdmin (sessão + navegação com guard fail-closed). -->
+  <script src="./src/admin/estadoAdmin.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+  </style>
+</head>
+<body>
+<x-dc>
+<!-- Entry fino da PLATAFORMA (operador da casa Pipoca — nunca a criança).
+     As telas SA_* vivem em src/admin/telas|componentes e sobem por
+     componente-irmão via <dc-import name="AdminShell">. -->
+<dc-import name="AdminShell"></dc-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

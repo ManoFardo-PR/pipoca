@@ -5,6 +5,7 @@
   "scripts": {
     "build": "cd dc-runtime && bun run build",
     "build:app": "bun build src/app/bridge.ts --target=browser --format=iife --outfile=pipoca.bundle.js",
+    "build:admin": "bun build src/admin/bridge_admin.ts --target=browser --format=iife --outfile=pipoca.admin.bundle.js",
     "serve": "node server.js",
     "typecheck": "bun x tsc --noEmit",
     "test": "bun run src/motores/motor.test.ts && bun run src/core/persistencia/persistencia.test.ts && bun run src/core/parciais.test.ts && bun run src/admin/admin.test.ts",

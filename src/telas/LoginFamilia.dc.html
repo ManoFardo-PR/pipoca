@@ -1,0 +1,95 @@
+<!-- LoginFamilia.dc.html — Login da família (HH_LOGIN) · doc fase02-02-01
+     ─────────────────────────────────────────────────────────────
+     Uma conta por casa. Rota inicial quando não há sessão de conta válida
+     (estado.js decide no boot). Login ok → KIDMODE → T2 (o cuidador só alcança
+     superfícies adultas atravessando o PINGATE). Pode aparecer no tablet da
+     criança: texto sóbrio e curto, sem linguagem adulta sensível.
+
+     Núcleo: PipocaCanonico.conta (entrarFamilia é stub MVP — valida formato e
+     cria conta+sessão locais; auth real é fase06). NUNCA guarda a senha.
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-lf-campo { width:100%;padding:13px 15px;border-radius:14px;border:2px solid #e3d4ba;background:#fffdf7;font-family:'Nunito';font-size:16px;color:#3a2c20;outline:none; }
+    .pip-lf-campo:focus { border-color:#c9a86f; }
+    .pip-lf-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-lf-btn:active { transform:scale(.97); }
+  </style>
+</helmet>
+
+<div style="position:absolute;inset:0;overflow-y:auto;background:radial-gradient(120% 120% at 50% 0%, var(--pip-areia,#efe6d4) 0%, #ded2be 70%, #d3c5ad 100%);padding:32px 20px;display:flex;align-items:center;justify-content:center;">
+  <div style="width:100%;max-width:420px;">
+
+    <!-- Cabeçalho sóbrio -->
+    <div style="text-align:center;margin-bottom:18px;">
+      <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
+      <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Entrar da família</div>
+      <p style="color:#7a6a54;font-family:'Nunito';font-size:14px;line-height:1.5;margin:8px 0 0;">Uma conta por casa. No primeiro uso, ela é criada aqui mesmo.</p>
+    </div>
+
+    <!-- Cartão do formulário -->
+    <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
+
+      <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;">E-mail</label>
+      <input class="pip-lf-campo" style="margin-top:7px;" value="{{ email }}" onInput="{{ setEmail }}" type="email" autocomplete="email" placeholder="nome@exemplo.com" aria-label="E-mail da família" />
+
+      <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Senha</label>
+      <input class="pip-lf-campo" style="margin-top:7px;" value="{{ senha }}" onInput="{{ setSenha }}" onKeyDown="{{ aoTeclar }}" type="password" autocomplete="current-password" placeholder="Sua senha" aria-label="Senha" />
+
+      <!-- Erro acolhedor (sem X vermelho) -->
+      <sc-if value="{{ temErro }}" hint-placeholder-val="{{ false }}">
+        <div role="status" aria-live="polite" style="margin-top:16px;color:#9a5a3a;font-family:'Nunito';font-size:14px;">{{ erro }}</div>
+      </sc-if>
+
+      <button class="pip-lf-btn" onClick="{{ entrar }}" style="{{ entrarStyle }}">{{ entrarLabel }}</button>
+    </div>
+
+    <div style="height:24px;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { email: '', senha: '', erro: '', entrando: false };
+
+  async _entrar() {
+    if (this.state.entrando) return;
+    const App = window.PipocaApp;
+    const C = window.PipocaCanonico && window.PipocaCanonico.conta;
+    if (!App || !C) { this.setState({ erro: 'App indisponível. Recarregue a página.' }); return; }
+    const r = C.entrarFamilia(this.state.email, this.state.senha, Date.now());
+    if (!r.ok) { this.setState({ erro: r.erro || 'Confira o e-mail e a senha, por favor.' }); return; }
+    this.setState({ entrando: true, erro: '' });
+    try {
+      C.salvarConta(r.conta);
+      C.salvarSessaoConta(r.sessao);
+      if (App.repo) await App.repo.carregarPerfis(); // exatamente 1x por login (doc 02-01)
+    } catch (e) {
+      console.warn('[LoginFamilia] persistir conta/sessão falhou:', e);
+    }
+    App.setState({ tela: 2 }); // HH_LOGIN → KIDMODE → T2 (doc 02-01, regra 3)
+  }
+
+  renderVals() {
+    const s = this.state;
+    const pode = !!(s.email || '').trim() && !!(s.senha || '').trim() && !s.entrando;
+    return {
+      email: s.email,
+      senha: s.senha,
+      setEmail: (e) => this.setState({ email: e.target.value }),
+      setSenha: (e) => this.setState({ senha: e.target.value }),
+      aoTeclar: (e) => { if (e && e.key === 'Enter') this._entrar(); },
+      erro: s.erro || '',
+      temErro: !!s.erro,
+      entrar: () => this._entrar(),
+      entrarLabel: s.entrando ? 'Entrando…' : 'Entrar',
+      entrarStyle: 'margin-top:22px;width:100%;min-height:52px;border:none;border-radius:16px;'
+        + 'font-family:Baloo 2;font-weight:800;font-size:17px;color:#fff;cursor:' + (pode ? 'pointer' : 'not-allowed') + ';'
+        + (pode
+          ? 'background:linear-gradient(150deg,#e8965a,#d5713f);box-shadow:0 10px 24px -8px rgba(181,86,40,.55);'
+          : 'background:#cbb692;opacity:.7;'),
+    };
+  }
+}
+</script>

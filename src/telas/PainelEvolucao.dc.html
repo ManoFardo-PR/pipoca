@@ -1,0 +1,236 @@
+<!-- PainelEvolucao.dc.html — Painel de evolução da leitura (PC_DASH) · doc fase03-03-02
+     ─────────────────────────────────────────────────────────────
+     Tela 8 do brief, atrás do PINGATE. READ-ONLY: nunca grava telemetria.
+     Frase calorosa + cartões grandes (minutos/palavras/histórias/engajamento)
+     + seletor de período (semana|mes|tudo) + gráficos.
+     Convenções: SVG entra por ref + _inject (nunca por interpolação); gráficos
+     estáticos (respeitam reduceMotion por construção); estado vazio encorajador;
+     engajamento com rótulo caloroso, nunca porcentagem.
+     Seam: window.PipocaApp.repo.carregarTelemetria + PipocaCanonico.agregados.
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-pe-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-pe-btn:active { transform:scale(.97); }
+  </style>
+</helmet>
+
+<div style="position:absolute;inset:0;overflow-y:auto;background:radial-gradient(120% 120% at 50% 0%, var(--pip-areia,#efe6d4) 0%, #ded2be 70%, #d3c5ad 100%);padding:32px 20px;">
+  <div style="max-width:560px;margin:0 auto;">
+
+    <!-- Cabeçalho -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div>
+        <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
+        <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Evolução da leitura</div>
+      </div>
+      <button class="pip-pe-btn" onClick="{{ voltar }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
+    </div>
+
+    <!-- Perfis (quando há mais de um) -->
+    <sc-if value="{{ temVariosPerfis }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;">
+        <sc-for list="{{ chipsPerfis }}" as="cp" hint-placeholder-count="2">
+          <button class="pip-pe-btn" onClick="{{ cp.onTap }}" style="{{ cp.style }}">{{ cp.nome }}</button>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- Frase calorosa -->
+    <p style="color:#5a4a38;font-family:'Nunito';font-weight:700;font-size:16px;line-height:1.5;margin:0 0 16px;">{{ frase }}</p>
+
+    <!-- Seletor de período -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <sc-for list="{{ periodos }}" as="p" hint-placeholder-count="3">
+        <button class="pip-pe-btn" onClick="{{ p.onTap }}" style="{{ p.style }}">{{ p.label }}</button>
+      </sc-for>
+    </div>
+
+    <!-- Cartões grandes -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <sc-for list="{{ cartoes }}" as="c" hint-placeholder-count="4">
+        <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:16px 18px;">
+          <div style="font-family:'Nunito';font-weight:700;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:#9a8a72;">{{ c.rot }}</div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:4px;">{{ c.valor }}</div>
+          <div style="font-family:'Nunito';font-size:12px;color:#7a6a54;margin-top:2px;">{{ c.sub }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- Estado vazio encorajador -->
+    <sc-if value="{{ vazio }}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;padding:22px;margin-top:16px;font-family:'Nunito';font-size:14px;color:#7a6a54;line-height:1.6;">A jornada de leitura aparece aqui assim que a primeira história for lida. Tudo bem começar devagar — o ritmo é da criança. 🌱</div>
+    </sc-if>
+
+    <!-- Gráficos (SVG via ref + _inject; estáticos) -->
+    <sc-if value="{{ temGraficos }}" hint-placeholder-val="{{ false }}">
+      <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:18px;margin-top:16px;">
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3a2c20;margin-bottom:8px;">Minutos por dia</div>
+        <div ref="{{ refMinutos }}" style="width:100%;"></div>
+      </div>
+      <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:18px;margin-top:12px;">
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3a2c20;margin-bottom:8px;">Palavras por dia</div>
+        <div ref="{{ refPalavras }}" style="width:100%;"></div>
+      </div>
+      <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:18px;margin-top:12px;">
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3a2c20;margin-bottom:8px;">Histórias por semana</div>
+        <div ref="{{ refHistorias }}" style="width:100%;"></div>
+      </div>
+      <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:18px;margin-top:12px;">
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3a2c20;margin-bottom:8px;">Presença da leitura, dia a dia</div>
+        <div ref="{{ refEngajamento }}" style="width:100%;"></div>
+      </div>
+    </sc-if>
+
+    <div style="height:24px;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { perfis: [], perfilId: null, eventos: [], periodo: 'semana', carregando: true };
+
+  async componentDidMount() {
+    const App = window.PipocaApp;
+    try {
+      const perfis = App && App.repo ? await App.repo.carregarPerfis() : [];
+      const ativo = App && App.estado.perfil ? App.estado.perfil.id : null;
+      const perfilId = ativo || (perfis[0] ? perfis[0].id : null);
+      this.setState({ perfis: perfis || [], perfilId });
+      if (perfilId) await this._carregar(perfilId);
+      else this.setState({ carregando: false });
+    } catch (_) { this.setState({ carregando: false }); }
+  }
+
+  async _carregar(perfilId) {
+    const App = window.PipocaApp;
+    try {
+      const eventos = App && App.repo ? await App.repo.carregarTelemetria(perfilId) : [];
+      this.setState({ perfilId, eventos: eventos || [], carregando: false });
+    } catch (_) { this.setState({ perfilId, eventos: [], carregando: false }); }
+  }
+
+  _inject(el, html) { if (el && el._k !== html) { el.innerHTML = html; el._k = html; } }
+
+  // Injeta o gráfico ou, sem pontos no período, uma nota calma (nunca caixa vazia).
+  _grafico(el, svg) {
+    this._inject(el, svg || "<div style='font-family:Nunito;font-size:12px;color:#9a8a72;'>Sem registros neste período — tudo bem.</div>");
+  }
+
+  // Barras estáticas (viewBox 400×110). Sem animação: calmo por construção.
+  _svgBarras(pontos, cor) {
+    const n = pontos.length;
+    if (!n) return '';
+    const W = 400, H = 96, PAD = 2, ROD = 14;
+    const max = Math.max(1, ...pontos.map((p) => p.valor));
+    const bw = Math.max(3, (W - PAD * 2 - (n - 1) * 3) / n);
+    let barras = '';
+    for (let i = 0; i < n; i++) {
+      const v = pontos[i].valor;
+      const h = v > 0 ? Math.max(3, (v / max) * (H - 6)) : 2;
+      const x = (PAD + i * (bw + 3)).toFixed(1);
+      const y = (H - h).toFixed(1);
+      barras += "<rect x='" + x + "' y='" + y + "' width='" + bw.toFixed(1) + "' height='" + h.toFixed(1)
+        + "' rx='2' fill='" + (v > 0 ? cor : '#e3d4ba') + "'/>";
+    }
+    const rot1 = (pontos[0].rotulo || '').slice(5);
+    const rot2 = (pontos[n - 1].rotulo || '').slice(5);
+    return "<svg viewBox='0 0 " + W + " " + (H + ROD) + "' width='100%' xmlns='http://www.w3.org/2000/svg' role='img'>"
+      + barras
+      + "<text x='" + PAD + "' y='" + (H + ROD - 3) + "' font-family='Nunito' font-size='10' fill='#9a8a72'>" + rot1 + "</text>"
+      + "<text x='" + (W - PAD) + "' y='" + (H + ROD - 3) + "' text-anchor='end' font-family='Nunito' font-size='10' fill='#9a8a72'>" + rot2 + "</text>"
+      + "</svg>";
+  }
+
+  // Área suave 0..1 (engajamento) — sparkline estática.
+  _svgArea(pontos, cor) {
+    const n = pontos.length;
+    if (!n) return '';
+    const W = 400, H = 72;
+    const passo = n > 1 ? (W - 4) / (n - 1) : 0;
+    let linha = '';
+    for (let i = 0; i < n; i++) {
+      const x = (2 + i * passo).toFixed(1);
+      const y = (H - 4 - Math.max(0, Math.min(1, pontos[i].valor)) * (H - 10)).toFixed(1);
+      linha += (i ? ' L' : 'M') + x + ' ' + y;
+    }
+    return "<svg viewBox='0 0 " + W + " " + H + "' width='100%' xmlns='http://www.w3.org/2000/svg' role='img'>"
+      + "<path d='" + linha + " L" + (W - 2) + " " + (H - 2) + " L2 " + (H - 2) + " Z' fill='" + cor + "' opacity='.25'/>"
+      + "<path d='" + linha + "' fill='none' stroke='" + cor + "' stroke-width='2.5' stroke-linecap='round'/>"
+      + "</svg>";
+  }
+
+  // Rótulo caloroso do engajamento (nunca nota/percentual).
+  _rotuloEngajamento(media, diasAtivos) {
+    if (!diasAtivos) return 'começando';
+    if (media >= 0.67) return 'brilhando ✨';
+    if (media >= 0.34) return 'criando o hábito';
+    return 'no seu ritmo';
+  }
+
+  renderVals() {
+    const s = this.state;
+    const App = window.PipocaApp;
+    const Ag = window.PipocaCanonico && window.PipocaCanonico.agregados;
+    const agora = Date.now();
+
+    const resumo = Ag ? Ag.resumir(s.eventos, s.periodo, agora)
+      : { minutos: 0, palavras: 0, historias: 0, diasAtivos: 0, sequenciaDias: 0 };
+    const series = Ag ? Ag.gerarSeries(s.eventos, s.periodo, agora)
+      : { minutosPorDia: [], palavrasPorDia: [], historiasPorSemana: [], engajamentoPorDia: [] };
+
+    const eng = series.engajamentoPorDia;
+    const engMedia = eng.length ? eng.reduce((a, p) => a + p.valor, 0) / eng.length : 0;
+
+    const perfil = s.perfis.find((p) => p.id === s.perfilId) || null;
+    const nome = perfil ? perfil.nome : 'a criança';
+    const periodoTxt = s.periodo === 'semana' ? 'Nesta semana' : (s.periodo === 'mes' ? 'Neste mês' : 'Até aqui');
+    const temDados = resumo.minutos > 0 || resumo.palavras > 0 || resumo.historias > 0;
+    const frase = !s.perfilId
+      ? 'Crie um perfil para acompanhar a leitura por aqui.'
+      : (temDados
+        ? periodoTxt + ', ' + nome + ' leu ' + resumo.historias + (resumo.historias === 1 ? ' história' : ' histórias')
+          + ' e ' + resumo.palavras + ' palavras 🌱'
+        : periodoTxt + ' ainda não teve leitura — tudo bem, o ritmo varia. 🌙');
+
+    const chipBase = 'min-height:38px;border-radius:999px;border:2px solid;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;padding:6px 16px;';
+    const chipSel = 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;';
+    const chipOff = 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;';
+
+    return {
+      frase,
+      temVariosPerfis: s.perfis.length > 1,
+      chipsPerfis: s.perfis.map((p) => ({
+        nome: p.nome,
+        onTap: () => this._carregar(p.id),
+        style: chipBase + (p.id === s.perfilId ? chipSel : chipOff),
+      })),
+      periodos: [
+        { id: 'semana', label: 'Semana' },
+        { id: 'mes', label: 'Mês' },
+        { id: 'tudo', label: 'Tudo' },
+      ].map((p) => ({
+        label: p.label,
+        onTap: () => this.setState({ periodo: p.id }),
+        style: chipBase + (s.periodo === p.id ? chipSel : chipOff),
+      })),
+      cartoes: [
+        { rot: 'Minutos', valor: String(resumo.minutos), sub: 'de leitura no período' },
+        { rot: 'Palavras', valor: String(resumo.palavras), sub: 'lidas no portão' },
+        { rot: 'Histórias', valor: String(resumo.historias), sub: 'concluídas até o fim' },
+        { rot: 'Engajamento', valor: this._rotuloEngajamento(engMedia, resumo.diasAtivos),
+          sub: resumo.diasAtivos + (resumo.diasAtivos === 1 ? ' dia ativo' : ' dias ativos')
+            + (resumo.sequenciaDias > 1 ? ' · ' + resumo.sequenciaDias + ' seguidos' : '') },
+      ],
+      vazio: !s.carregando && !temDados,
+      temGraficos: temDados,
+      refMinutos: (el) => this._grafico(el, this._svgBarras(series.minutosPorDia, '#7a9a5b')),
+      refPalavras: (el) => this._grafico(el, this._svgBarras(series.palavrasPorDia, '#3f6f9e')),
+      refHistorias: (el) => this._grafico(el, this._svgBarras(series.historiasPorSemana, '#d98a4e')),
+      refEngajamento: (el) => this._grafico(el, this._svgArea(series.engajamentoPorDia, '#9c7cb0')),
+      voltar: () => { if (App) App.setState({ tela: 11 }); },
+    };
+  }
+}
+</script>

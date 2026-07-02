@@ -156,7 +156,16 @@ class Component extends DCLogic {
       erro: s.erro || '',
       temErro: !!s.erro,
       tudoPronto: () => this._tudoPronto(),
-      voltar: () => { const App = window.PipocaApp; if (App && App.aoVoltarParaCrianca) App.aoVoltarParaCrianca(); },
+      // Com perfis já criados (veio do hub), "↩" volta ao painel; no 1º uso, à criança.
+      voltar: () => {
+        const App = window.PipocaApp; if (!App) return;
+        if (App.repo) {
+          App.repo.carregarPerfis().then((arr) => {
+            if ((arr || []).length && App.estado.modoApp === 'cuidador') App.setState({ tela: 11 });
+            else App.aoVoltarParaCrianca();
+          }).catch(() => App.aoVoltarParaCrianca());
+        } else App.aoVoltarParaCrianca();
+      },
       prontoLabel: s.salvando ? 'Salvando…' : 'Tudo pronto ✓',
       prontoStyle: 'margin-top:22px;width:100%;min-height:52px;border:none;border-radius:16px;'
         + 'font-family:Baloo 2;font-weight:800;font-size:17px;color:#fff;cursor:' + (podeSalvar ? 'pointer' : 'not-allowed') + ';'

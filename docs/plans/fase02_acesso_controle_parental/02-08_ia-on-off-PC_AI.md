@@ -1,6 +1,6 @@
 # fase02 · 02-08 · IA ligada/desligada para a criança (PC_AI)
 
-> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `autorizarIA` em `src/core/modos.ts` (flip de `iaLigada`, testado) + tela `src/telas/IaToggle.dc.html`; a fábrica respeita a flag (teste em `parciais.test.ts`). Acoplamento ao hub PC_HOME na convergência. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `autorizarIA` em `src/core/modos.ts` (flip de `iaLigada`, testado) + tela `src/telas/IaToggle.dc.html`; a fábrica respeita a flag (teste em `parciais.test.ts`). Acoplado em 2026-07-02: embutido na tela `Regras` (tela 14) com a ação `autorizarIA` injetada por prop. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase02-02-08`

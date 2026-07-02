@@ -1,9 +1,10 @@
 /**
  * Runner e2e da LINHA VERDE CANÔNICA (TRILHA Marco M-A).
  * --------------------------------------------------------
- * Diferente de run-linha-verde.mjs (que aponta para o monólito index.html em "/"),
- * este aponta para "/app.html" — o app montado a partir das TELAS CANÔNICAS
- * (Shell + src/telas/*.dc.html), que sobem por componente-irmão (fetch on-demand).
+ * Aponta para "/" (index.html): entry fino que carrega pipoca.bundle.js +
+ * src/app/estado.js e compõe Shell + TELAS CANÔNICAS (src/telas/*.dc.html)
+ * por componente-irmão (fetch on-demand). O antigo entry duplicado app.html
+ * foi aposentado (old/app.html).
  *
  * Verifica: (1) boot + seam canônico (motor da fábrica, não stub); (2) narrativa
  * cresce (abertura + trechos + desfecho); (3) cada tela T2–T7 MONTA de verdade
@@ -72,13 +73,13 @@ try {
   const http404 = [];
   page.on("response", (r) => { if (r.status() >= 400) http404.push(r.status() + " " + r.url()); });
 
-  await page.goto(BASE + "/app.html", { waitUntil: "domcontentloaded" });
+  await page.goto(BASE + "/", { waitUntil: "domcontentloaded" });
   await page.waitForFunction(
     () => !!window.PipocaCanonico && !!window.PipocaApp && !!window.PipocaApp.motor && !!window.PipocaApp.ordem && !!window.PipocaApp.repo,
     { timeout: 15000 }
   );
 
-  console.log("\n=== Boot do app canônico (/app.html) + seam ===");
+  console.log("\n=== Boot do app canônico (/) + seam ===");
   const r = await page.evaluate(() => {
     const motor = window.PipocaApp.motor, ordem = window.PipocaApp.ordem;
     return {

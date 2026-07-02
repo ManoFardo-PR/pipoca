@@ -6,13 +6,27 @@
  */
 
 import { MotorGrafoAutoral } from "./motor_a.js";
-import { jogar } from "./jogar.js";
+import type { MotorNarrativa, ModoDesfecho, Nivel } from "./contrato.js";
 import { validarGrafo } from "../core/grafo/validarGrafo.js";
 import { criarValidadorOrdem } from "./validador_ordem.js";
 import grafoRaw from "../dados/quintal_grafo.json" with { type: "json" };
 
 const grafo = validarGrafo(grafoRaw);
 const motor = new MotorGrafoAutoral(grafo);
+
+// Helper das fixtures: monta a narrativa completa (abertura → objetos → desfecho).
+// Era src/motores/jogar.ts (hoje em old/) — inlinado por ser exclusivo destes testes.
+function jogar(m: MotorNarrativa, objetos: string[], modo: ModoDesfecho, nivel: Nivel): string {
+  const historia: string[] = [];
+  const linhas: string[] = [m.abertura(nivel).texto];
+  for (const id of objetos) {
+    const t = m.aoAdicionarObjeto(historia, id, nivel);
+    historia.push(id);
+    linhas.push(t.texto);
+  }
+  linhas.push(m.desfecho(historia, modo, nivel).texto);
+  return linhas.map((l) => "— " + l).join("\n");
+}
 
 let passou = 0;
 let falhou = 0;

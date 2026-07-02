@@ -1,6 +1,6 @@
 # fase03 · 03-02 · Painel de evolução da leitura
 
-> 🟡 **STATUS · 2026-06-29 · PARCIAL** — Núcleo `src/core/agregadosTelemetria.ts` (`resumir`/`gerarSeries`/`calcularEngajamento`, puras, `agora` injetado, clamp de outlier, engajamento 0..1) + `carregarTelemetria` promovido ao seam `RepositorioPersistencia` (origem read-only do painel); no bridge (`PipocaCanonico.agregados`) e testado (`parciais.test.ts`). Falta a tela `PainelEvolucao.dc.html` + link no `PainelCuidador` (app). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO** — Núcleo `src/core/agregadosTelemetria.ts` (`resumir`/`gerarSeries`/`calcularEngajamento`, puras, `agora` injetado, clamp de outlier, engajamento 0..1) + `carregarTelemetria` promovido ao seam `RepositorioPersistencia` (origem read-only do painel); no bridge (`PipocaCanonico.agregados`) e testado (`parciais.test.ts`). Tela `src/telas/PainelEvolucao.dc.html` (tela 8): frase calorosa, cartões, períodos semana|mês|tudo, gráficos SVG estáticos por `ref`+`_inject`, estado vazio encorajador; link "Evolução da leitura" no `PainelCuidador` (tela 11). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase03-03-02`

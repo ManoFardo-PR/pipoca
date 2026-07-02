@@ -1,6 +1,6 @@
 # fase00 · 00-21 · Demo e testes do motor
 
-> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/motores/jogar.ts` + `src/motores/motor.test.ts` (fixtures A convergente / B aberto + degradação + rejeições). **36/36 passam** (`bun`). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/motores/jogar.ts` + `src/motores/motor.test.ts` (fixtures A convergente / B aberto + degradação + rejeições). **36/36 passam** (`bun`). Nota 2026-07-02: `jogar()` foi inlinado no próprio `motor.test.ts` (era o único consumidor); o arquivo original está em `old/jogar.ts`. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase00-00-21`

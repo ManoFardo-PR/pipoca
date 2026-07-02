@@ -1,7 +1,7 @@
 # Pipoca · Trilha de implementação (roteiro mestre)
 
 > Roteiro **vivo** da sequência a partir do estado atual. Cada doc de sub-passo já implementado/parcial
-> carrega um selo `STATUS` que aponta para cá. Atualizado: **2026-07-01**.
+> carrega um selo `STATUS` que aponta para cá. Atualizado: **2026-07-02**.
 > Visão por fase: [README.md](README.md) · vocabulário: [`_contratos/`](_contratos/) · checker: `node docs/plans/check_plans.mjs`.
 
 ## O estado atual (2026-07-01)
@@ -20,27 +20,36 @@ O caminho verde roda **inteiro sobre os módulos canônicos** — a convergênci
 - **Monólito aposentado** — `index.html` é entry fino (~70 linhas): carrega `pipoca.bundle.js` +
   `src/app/estado.js` e compõe `Shell.dc.html` + telas canônicas de `src/telas/` via `<dc-import>`;
   o cérebro do app é `window.PipocaApp` (`src/app/estado.js`).
-- **Fluxo do cuidador montado no app** — T2 → T1 (`PortaoParental`, PIN via `acesso.ts`) → `Onboarding`
-  (T10, quando não há perfis) → T2. Perfis persistem em localStorage chave `pipoca.perfis.v1` via
-  `PipocaApp.repo`.
+- **Fluxo do cuidador completo no app (2026-07-02)** — boot sem sessão de conta válida → `LoginFamilia`
+  (tela 9, HH_LOGIN stub MVP) → T2. T2 → T1 (`PortaoParental`, PIN via `acesso.ts`) → `Onboarding` (T10,
+  1º uso sem perfis) ou hub `PainelCuidador` (T11), que abre `Perfis` (12), `Limites` (13), `Regras & IA`
+  (14, com `IaToggle` embutido), `Privacidade` (15) e `PainelEvolucao` (8). KIDMODE ligado: guarda em
+  `setState` sobre as superfícies adultas [8, 10–15]. Perfis persistem pelo repo canônico
+  (`criarRepositorio`, chave `pipoca.perfil.v1`), com migração única da chave legada `pipoca.perfis.v1`.
+- **Telemetria ligada ao fluxo vivo (2026-07-02)** — `src/app/estado.js` captura na borda (fire-and-forget,
+  respeitando a coleta de PC_PRIV): sessão iniciada ao começar a composição; leitura confirmada + objeto
+  destravado na confirmação do portão (T5); história concluída + sessão encerrada na convergência e nas
+  bordas de saída. O painel (T8) lê pelo seam e agrega com `PipocaCanonico.agregados`.
 - **Dívida conhecida (coexistência v1/v2)** — `_initMotor()` em `src/app/estado.js` ainda carrega
   `quintal_grafo.json` (v1 / Motor A) em paralelo à v2; o Motor A segue instanciado, mas a linha verde
   usa a composição.
 
-### Pendências reais (2026-07-01)
-- Captura de telemetria exportada no bridge (`capturar*`) mas não chamada por nenhuma tela.
-- Telas do cuidador faltantes: `LoginFamilia`, `Perfis`, `Limites`, `Regras`, `Privacidade`,
-  `PainelEvolucao` — núcleos prontos e testados no bridge.
+### Pendências reais (2026-07-02)
+- Persistir a preferência de coleta de PC_PRIV (`coletaTelemetria` hoje é efêmera, some ao recarregar).
 - Caminho Windows hardcoded (`PW_CORE`) em `tests/e2e/run-linha-verde-canonico.mjs`.
+- Runner legado `tests/e2e/run-linha-verde.mjs` desalinhado das telas canônicas (não é portão; candidato a `old/`).
 - Fases 04–08 não iniciadas.
+
+Aposentados em 2026-07-02 (movidos para `old/`): `app.html` (entry duplicado; o e2e canônico agora aponta
+para `/`) e `src/motores/jogar.ts` (inlinado em `motor.test.ts`).
 
 ## Mapa de status (resumo)
 | Fase | Status | Onde |
 |------|--------|------|
 | 00 Fundação | 🟢 módulos prontos (desvios corrigidos) | `Economia` conformada, `spendPct` corrigido, `ValidadorOrdem` incremental |
 | 01 MVP linha verde | 🟢 **vivo na composição v2** | telas canônicas de `src/telas/` sobre `PipocaCanonico.composicao`; entry fino `index.html` + `Shell.dc.html` via `<dc-import>` |
-| 02 Controle parental | 🟢 núcleos completos · fluxo parcial no app | PINGATE (T1) e Onboarding (T10) ligados (T2→T1→T10→T2); núcleos HH_LOGIN/KIDMODE/PC_PROF/LIM/RULES/PRIV/AI no bridge; faltam as demais telas |
-| 03 Telemetria/painel | 🟢 núcleos completos · telas no app | `telemetria.ts`+`captura.ts`+`telemetria_repo.ts`+`agregadosTelemetria.ts` (testados); falta tela `PainelEvolucao` e captura ligada ao fluxo (app) |
+| 02 Controle parental | 🟢 **completa no app** (2026-07-02) | `LoginFamilia` (9) + KIDMODE (guarda em `setState`) + PINGATE (1) + Onboarding (10) + hub `PainelCuidador` (11) + `Perfis` (12) + `Limites` (13) + `Regras & IA` (14) + `Privacidade` (15), todas sobre `PipocaCanonico.*` |
+| 03 Telemetria/painel | 🟢 **completa no app** (2026-07-02) | captura ligada em `src/app/estado.js` (portão/recompensa/sessão/desfecho, respeitando PC_PRIV) + tela `PainelEvolucao` (8) sobre `PipocaCanonico.agregados` |
 | 04 Super admin | 🔴 não iniciado | — |
 | 05 IA e fala | 🔴 / 🟡 stub | fallback Motor B na fábrica; tipos `ProvedorIA`/`ServicoASR` |
 | 06 Backend | 🟡 migração pronta | `migrar(de,para)` em `src/backend/migracao.ts` (testado); adaptadores BaaS aguardam 06-01 |
@@ -104,7 +113,7 @@ via `<dc-import>`; o cérebro do app é `window.PipocaApp` (`src/app/estado.js`)
 
 ---
 
-## Marco 2 — Fase 02 · Acesso e controle parental · 🟡 **em progresso**
+## Marco 2 — Fase 02 · Acesso e controle parental · ✅ **CONCLUÍDO (2026-07-02)**
 Ordem por dependência: **HH_LOGIN → KIDMODE → PINGATE → PC_HOME → PC_PROF → PC_LIM → PC_RULES → PC_AI → PC_PRIV**.
 Reusa `Perfil`/`Modos`/`Sessao` e `RepositorioPersistencia` já prontos.
 
@@ -125,11 +134,15 @@ testes) é consumido via `window.PipocaCanonico`.
 - **PC_RULES (02-07)** núcleo — `modos.definirVerificacao/definirDesfecho` + `src/core/cardapio.ts`; bridge `.modos`/`.cardapio`.
 - **PC_PRIV (02-09)** núcleo — `src/core/lgpd.ts` (`exportarDados`/`apagarDados`); bridge `PipocaCanonico.lgpd`.
 
-**Todos os núcleos da Fase 02 prontos e testados no bridge.** A fazer (a cargo do app/telas): `LoginFamilia`, wiring do
-KIDMODE no roteador, `Onboarding`, `Perfis`, `Limites`, `Regras`, `Privacidade` — cada uma consome o respectivo
-`PipocaCanonico.*`. Nota infra: a porta 5000 é outro dev server (vite); o e2e do Pipoca usa 5137.
+**Feito (2026-07-02) — telas ligadas no app:** `LoginFamilia.dc.html` (tela 9; boot por `sessaoValida`,
+logout via `sairDaConta()`), wiring do KIDMODE em `src/app/estado.js` (`state.modoApp` + guarda em `setState`),
+`Onboarding` mantida na T10 (1º uso), hub `PainelCuidador.dc.html` (tela 11, destino pós-PIN com perfis),
+`Perfis.dc.html` (12, CRUD + em uso), `Limites.dc.html` (13), `Regras.dc.html` (14, com `IaToggle` embutido)
+e `Privacidade.dc.html` (15, exportar/apagar + toggle de coleta) — cada uma consome o respectivo
+`PipocaCanonico.*` pelo seam. Coberto pelo e2e canônico (25/25 contra `/`).
+Nota infra: a porta 5000 é outro dev server (vite); o e2e do Pipoca usa 5137.
 
-## Marco 3 — Fase 03 · Telemetria + Painel do cuidador (Tela 8)
+## Marco 3 — Fase 03 · Telemetria + Painel do cuidador (Tela 8) · ✅ **CONCLUÍDO (2026-07-02)**
 Pontos de captura em sessão/leitura/recompensa emitindo `EventoTelemetria` (`ts` injetado fora do motor);
 payloads `pipoca.telemetria.v1`; agregados; tela `PC_DASH`. Aproveita `registrarTelemetria` já no seam.
 
@@ -143,11 +156,13 @@ Núcleo de agregados do painel pronto e testado no bridge (`tsc` limpo; parciais
   `RepositorioPersistencia` (LocalStorage async + stub Supabase) — o painel lê eventos **pelo seam**, nunca do
   localStorage direto.
 
-**A fazer (a cargo do app/telas):** tela `PainelEvolucao.dc.html` (frase calorosa → cartões grandes → gráficos
-via `ref`+`_inject`, `reduceMotion` estático) consumindo `PipocaCanonico.agregados` + `criarRepositorio().carregarTelemetria`;
-link "Evolução da leitura" no `PainelCuidador`; **ligar a captura aos fluxos reais** (portão→`capturarLeituraConfirmada`,
-recompensa→`capturarObjetoDestravado`, borda de sessão→`capturarSessao*`, desfecho→`capturarHistoriaConcluida`),
-todos com `Date.now()` injetado na borda.
+**Feito (2026-07-02):** tela `PainelEvolucao.dc.html` (tela 8: frase calorosa → cartões grandes → gráficos
+SVG estáticos via `ref`+`_inject`, estado vazio encorajador, períodos semana|mês|tudo) consumindo
+`PipocaCanonico.agregados` + `repo.carregarTelemetria`; link "Evolução da leitura" no `PainelCuidador` (11);
+captura ligada aos fluxos reais em `src/app/estado.js` (portão→`capturarLeituraConfirmada`+`capturarObjetoDestravado`,
+início da composição→`capturarSessaoIniciada` + poda de retenção, convergência→`capturarHistoriaConcluida`+
+`capturarSessaoEncerrada`, saídas do modo criança→`capturarSessaoEncerrada`), todos com `Date.now()` injetado
+na borda e respeitando `coletaTelemetria` (PC_PRIV). Validado com runner Playwright (11 eventos, distribuição exata).
 
 ## Marco 4 — Fase 04 · Super admin / multi-tenant
 `src/admin/*` (login SA, home, tenants, conteúdo, IA, segurança); schema `pipoca.tenant.v1`. Mantém o seam:

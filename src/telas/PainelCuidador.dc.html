@@ -1,0 +1,86 @@
+<!-- PainelCuidador.dc.html — Hub do cuidador (PC_HOME) · doc fase02-02-04
+     ─────────────────────────────────────────────────────────────
+     Atrás do PINGATE (modo cuidador). Menu para as superfícies adultas:
+     Perfis (T12), Limites (T13), Regras & IA (T14), Privacidade (T15) e
+     Evolução da leitura (T8). "Novo perfil" reaproveita o Onboarding (T10).
+     Seam: window.PipocaApp (setState/aoVoltarParaCrianca/sairDaConta/repo).
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-pc-item { cursor:pointer;transition:transform .12s ease; }
+    .pip-pc-item:active { transform:scale(.98); }
+  </style>
+</helmet>
+
+<div style="position:absolute;inset:0;overflow-y:auto;background:radial-gradient(120% 120% at 50% 0%, var(--pip-areia,#efe6d4) 0%, #ded2be 70%, #d3c5ad 100%);padding:32px 20px;">
+  <div style="max-width:560px;margin:0 auto;">
+
+    <!-- Cabeçalho -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div>
+        <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
+        <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Painel da casa</div>
+      </div>
+      <button class="pip-pc-item" onClick="{{ paraCrianca }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Para a criança</button>
+    </div>
+    <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 22px;">{{ subtitulo }}</p>
+
+    <!-- Menu -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <sc-for list="{{ itens }}" as="it" hint-placeholder-count="5">
+        <button class="pip-pc-item" onClick="{{ it.go }}" style="display:flex;align-items:center;gap:16px;width:100%;text-align:left;background:var(--pip-creme,#fffaf0);border:none;border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:18px 20px;cursor:pointer;">
+          <span style="font-size:26px;flex-shrink:0;">{{ it.emoji }}</span>
+          <span style="display:flex;flex-direction:column;gap:2px;">
+            <span style="font-family:'Baloo 2';font-weight:800;font-size:17px;color:#3a2c20;">{{ it.rot }}</span>
+            <span style="font-family:'Nunito';font-size:13px;color:#7a6a54;">{{ it.desc }}</span>
+          </span>
+          <span style="margin-left:auto;color:#c0ac8c;font-size:18px;">›</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <!-- Ações da conta -->
+    <div style="display:flex;gap:12px;margin-top:22px;">
+      <button class="pip-pc-item" onClick="{{ novoPerfil }}" style="flex:1;min-height:48px;border:none;border-radius:16px;font-family:'Baloo 2';font-weight:800;font-size:15px;color:#fff;cursor:pointer;background:linear-gradient(150deg,#e8965a,#d5713f);box-shadow:0 10px 24px -8px rgba(181,86,40,.55);">➕ Novo perfil</button>
+      <button class="pip-pc-item" onClick="{{ sair }}" style="min-height:48px;border:2px solid #e3d4ba;border-radius:16px;background:transparent;padding:0 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#7a6a54;cursor:pointer;">Sair da conta</button>
+    </div>
+
+    <div style="height:24px;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { perfis: [] };
+
+  async componentDidMount() {
+    const App = window.PipocaApp;
+    try {
+      const perfis = App && App.repo ? await App.repo.carregarPerfis() : [];
+      this.setState({ perfis: perfis || [] });
+    } catch (_) { this.setState({ perfis: [] }); }
+  }
+
+  renderVals() {
+    const App = window.PipocaApp;
+    const ir = (n) => () => { if (App) App.setState({ tela: n }); };
+    const nomes = this.state.perfis.map((p) => p.nome).join(', ');
+    return {
+      subtitulo: nomes
+        ? 'Quem lê nesta casa: ' + nomes + '.'
+        : 'Ajustes da leitura, com calma. A criança não vê esta parte.',
+      itens: [
+        { emoji: '👧', rot: 'Perfis',               desc: 'quem lê nesta casa',                    go: ir(12) },
+        { emoji: '⏱️', rot: 'Limites',              desc: 'bloco de foco e tempo de tela',         go: ir(13) },
+        { emoji: '📖', rot: 'Regras & IA',          desc: 'verificação, desfecho e cardápio',      go: ir(14) },
+        { emoji: '🔒', rot: 'Privacidade',          desc: 'exportar ou apagar os dados',           go: ir(15) },
+        { emoji: '🌱', rot: 'Evolução da leitura',  desc: 'minutos, palavras e histórias',         go: ir(8) },
+      ],
+      novoPerfil: ir(10),
+      paraCrianca: () => { if (App && App.aoVoltarParaCrianca) App.aoVoltarParaCrianca(); },
+      sair: () => { if (App && App.sairDaConta) App.sairDaConta(); },
+    };
+  }
+}
+</script>

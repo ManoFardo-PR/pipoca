@@ -72,7 +72,7 @@ try {
   const http404 = [];
   page.on("response", (r) => { if (r.status() >= 400) http404.push(r.status() + " " + r.url()); });
 
-  await page.goto(BASE + "/app.html", { waitUntil: "domcontentloaded" });
+  await page.goto(BASE + "/", { waitUntil: "domcontentloaded" });
   await page.waitForFunction(
     () => !!window.PipocaCanonico && !!window.PipocaApp && !!window.PipocaApp.motor && !!window.PipocaApp.ordem && !!window.PipocaApp.repo,
     { timeout: 15000 }

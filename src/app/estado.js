@@ -10,9 +10,10 @@
  *   setState(patch)            — merge raso + notifica assinantes; muda de tela conduz o roteador
  *   subscribe(fn)     -> unsub — reage a mudanças (Shell usa para overlays/a11y)
  *   motor/ordem/cenario getters — fábrica canônica (PipocaCanonico)
- *   repo.carregarPerfis()/salvarPerfil(perfil) — persistência localStorage
+ *   repo                       — RepositorioPersistencia canônico (perfis/save/telemetria)
  *   verificarPinCuidador(pin) -> { ok, bloqueado, dica } — portão parental (acesso.ts)
- *   aoVoltarParaCrianca()      — volta ao modo criança (T2)
+ *   abrirPortao()              — abre o PINGATE (T1)
+ *   aoVoltarParaCrianca()      — volta ao modo criança (T2; modoApp volta a "crianca")
  *
  * Toda regra de narrativa/validação/acesso vive em src/ (via window.PipocaCanonico);
  * aqui só a ponte de estado e navegação.
@@ -20,7 +21,11 @@
 (function () {
   "use strict";
 
-  var PERFIS_KEY = "pipoca.perfis.v1";
+  var PERFIS_KEY_LEGADO = "pipoca.perfis.v1"; // chave antiga (array plano); o repo canônico usa envelopes
+
+  // Superfícies adultas (KIDMODE · modoApp.ts): Onboarding (10), hub e telas do
+  // cuidador (11–15) e o painel de evolução (8). A numeração pertence ao app.
+  var SUPERFICIES_ADULTAS = [8, 10, 11, 12, 13, 14, 15];
 
   var FALLBACK_CENARIO = {
     id: "quintal_anoitecer",
@@ -39,6 +44,7 @@
   // ─── Estado completo do app ──────────────────────────────────────────────
   var state = {
     tela: 2,
+    modoApp: "crianca", // KIDMODE: só o PINGATE muda para "cuidador"
     perfil: null,
     historia: { cenarioId: "quintal_anoitecer", objetos: [], aberta: true },
     economia: { vagalumes: 0, poupado: 0 },
@@ -81,16 +87,22 @@
     return function () { _subs = _subs.filter(function (f) { return f !== fn; }); };
   }
 
-  // Merge raso. Quando `tela` muda, conduz o roteador global (fonte única de
-  // navegação do Shell) — assim as telas só precisam chamar setState({ tela }).
+  // Merge raso. Quando `tela` muda, aplica a guarda KIDMODE (modoApp.ts) e conduz
+  // o roteador global (fonte única de navegação do Shell) — assim as telas só
+  // precisam chamar setState({ tela }). No modo criança, pedir uma superfície
+  // adulta redireciona à T2 (sem mensagem assustadora).
   function setState(patch) {
     if (patch) {
       for (var k in patch) {
         if (Object.prototype.hasOwnProperty.call(patch, k)) state[k] = patch[k];
       }
       if ("tela" in patch) {
+        var M = window.PipocaCanonico && window.PipocaCanonico.modoApp;
+        if (M && typeof state.tela === "number") {
+          state.tela = M.aplicarGuarda(state.modoApp, state.tela, SUPERFICIES_ADULTAS);
+        }
         var R = window.PipocaRoteador;
-        if (R) R.irParaTela(patch.tela);
+        if (R) R.irParaTela(state.tela);
       }
     }
     notify();
@@ -103,40 +115,108 @@
     notify();
   }
 
-  // Após PIN aceito: sem perfis → onboarding (T10); com perfis → modo criança (T2).
-  function _irParaPosPin() {
-    if ((_perfis || []).length === 0) _irPara(10);
-    else _irPara(2);
+  // Sucesso no PINGATE → modo cuidador (única saída do modo criança — modoApp.ts).
+  function _entrarCuidador() {
+    var M = window.PipocaCanonico && window.PipocaCanonico.modoApp;
+    state.modoApp = M ? M.aoPassarPortao() : "cuidador";
   }
 
-  // ─── Persistência de perfis (localStorage) ────────────────────────────────
-  function _lerPerfis() {
+  // Após PIN aceito: sem perfis → onboarding (T10); com perfis → hub do cuidador (T11).
+  function _irParaPosPin() {
+    _entrarCuidador();
+    if ((_perfis || []).length === 0) _irPara(10);
+    else _irPara(11);
+  }
+
+  // ─── Persistência (seam RepositorioPersistencia via bundle) ───────────────
+  // O repo canônico (persistencia/index.ts) valida envelopes e cobre perfis,
+  // save e telemetria. Sem bundle, cai num fallback mínimo só de perfis
+  // (chave legada), para o app não morrer.
+  function _lerPerfisLegado() {
     try {
-      var raw = localStorage.getItem(PERFIS_KEY);
+      var raw = localStorage.getItem(PERFIS_KEY_LEGADO);
       var arr = raw ? JSON.parse(raw) : [];
       return Array.isArray(arr) ? arr : [];
     } catch (_) { return []; }
   }
 
-  var repo = {
-    carregarPerfis: function () {
-      _perfis = _lerPerfis();
-      return Promise.resolve(_perfis.slice());
-    },
+  var _repoCanonico = null;
+  function _repoBase() {
+    if (_repoCanonico) return _repoCanonico;
+    var Canon = window.PipocaCanonico;
+    if (Canon && Canon.criarRepositorio) {
+      try { _repoCanonico = Canon.criarRepositorio(); } catch (_) {}
+    }
+    return _repoCanonico;
+  }
+
+  // Migração única: perfis da chave legada (array plano) entram no repo canônico
+  // quando ele ainda está vazio. A chave antiga NÃO é apagada (fallback de leitura).
+  function _migrarPerfisLegado() {
+    var base = _repoBase();
+    if (!base) return Promise.resolve();
+    return base.carregarPerfis().then(function (arr) {
+      if ((arr || []).length > 0) return;
+      var legados = _lerPerfisLegado();
+      if (!legados.length) return;
+      return Promise.all(legados.map(function (p) {
+        return base.salvarPerfil(p).catch(function () {});
+      })).then(function () {});
+    }).catch(function () {});
+  }
+
+  var _fallbackRepo = {
+    carregarPerfis: function () { return Promise.resolve(_lerPerfisLegado()); },
     salvarPerfil: function (perfil) {
-      var arr = _lerPerfis();
+      var arr = _lerPerfisLegado();
       var i = -1;
       for (var j = 0; j < arr.length; j++) {
         var p = arr[j];
-        if (p && perfil && ((perfil.id != null && p.id === perfil.id) ||
-                            (perfil.avatarId != null && p.avatarId === perfil.avatarId))) {
-          i = j; break;
-        }
+        if (p && perfil && perfil.id != null && p.id === perfil.id) { i = j; break; }
       }
       if (i >= 0) arr[i] = perfil; else arr.push(perfil);
-      try { localStorage.setItem(PERFIS_KEY, JSON.stringify(arr)); } catch (_) {}
-      _perfis = arr;
+      try { localStorage.setItem(PERFIS_KEY_LEGADO, JSON.stringify(arr)); } catch (_) {}
       return Promise.resolve();
+    },
+    apagarPerfil: function () { return Promise.resolve(); },
+    carregarSave: function () { return Promise.resolve(null); },
+    salvarSave: function () { return Promise.resolve(); },
+    registrarTelemetria: function () { return Promise.resolve(); },
+    carregarTelemetria: function () { return Promise.resolve([]); },
+  };
+
+  // Fachada estável para as telas: mantém o cache _perfis em dia a cada operação.
+  var repo = {
+    carregarPerfis: function () {
+      var base = _repoBase() || _fallbackRepo;
+      return base.carregarPerfis().then(function (arr) {
+        _perfis = arr || [];
+        return _perfis.slice();
+      });
+    },
+    salvarPerfil: function (perfil) {
+      var base = _repoBase() || _fallbackRepo;
+      return base.salvarPerfil(perfil).then(function () {
+        return repo.carregarPerfis();
+      }).then(function () {});
+    },
+    apagarPerfil: function (perfilId) {
+      var base = _repoBase() || _fallbackRepo;
+      return base.apagarPerfil(perfilId).then(function () {
+        return repo.carregarPerfis();
+      }).then(function () {});
+    },
+    carregarSave: function (perfilId) {
+      return (_repoBase() || _fallbackRepo).carregarSave(perfilId);
+    },
+    salvarSave: function (perfilId, estado) {
+      return (_repoBase() || _fallbackRepo).salvarSave(perfilId, estado);
+    },
+    registrarTelemetria: function (evento) {
+      return (_repoBase() || _fallbackRepo).registrarTelemetria(evento);
+    },
+    carregarTelemetria: function (perfilId) {
+      return (_repoBase() || _fallbackRepo).carregarTelemetria(perfilId);
     },
   };
 
@@ -159,6 +239,8 @@
   }
 
   function aoVoltarParaCrianca() {
+    var M = window.PipocaCanonico && window.PipocaCanonico.modoApp;
+    state.modoApp = M ? M.aoVoltarParaCrianca() : "crianca";
     state.showA11y = false;
     state.showOnboarding = false;
     _irPara(2);
@@ -310,6 +392,7 @@
     get cenarioV2() { return _cenarioV2; },
     repo: repo,
     verificarPinCuidador: verificarPinCuidador,
+    abrirPortao: function () { _irPara(1); },
     aoVoltarParaCrianca: aoVoltarParaCrianca,
     // composição autoral v2 (linha verde T2→T7)
     iniciarComposicao: iniciarComposicao,
@@ -325,7 +408,7 @@
   };
 
   // ─── Inicialização (na borda) ─────────────────────────────────────────────
-  repo.carregarPerfis();   // popula cache _perfis (localStorage é síncrono)
+  _migrarPerfisLegado().then(function () { return repo.carregarPerfis(); }); // popula cache _perfis
   _initMotor();
   _initComposicao();
   var R0 = window.PipocaRoteador;

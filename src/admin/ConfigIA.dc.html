@@ -48,8 +48,8 @@
 
         <div style="{{ formStyle }}">
           <div style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#2c241a;">Provedor</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;">
-            <sc-for list="{{ provedores }}" as="p" hint-placeholder-count="3">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;">
+            <sc-for list="{{ provedores }}" as="p" hint-placeholder-count="4">
               <button class="pip-ia-btn" onClick="{{ p.escolher }}" style="{{ p.style }}">{{ p.nome }}</button>
             </sc-for>
           </div>
@@ -73,8 +73,8 @@
           </div>
 
           <div style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#2c241a;margin-top:14px;">Fallback (se o provedor falhar)</div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;">
-            <sc-for list="{{ fallbacks }}" as="f" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px;">
+            <sc-for list="{{ fallbacks }}" as="f" hint-placeholder-count="5">
               <button class="pip-ia-btn" onClick="{{ f.escolher }}" style="{{ f.style }}">{{ f.nome }}</button>
             </sc-for>
           </div>
@@ -164,8 +164,8 @@ class Component extends DCLogic {
     const sel = 'background:#4a5a3f;border-color:#4a5a3f;color:#fff;';
     const off = 'background:#fffdf8;border-color:#d8cfbd;color:#2c241a;';
 
-    const nomesProv = { claude: 'Claude', gemini: 'Gemini', openai: 'OpenAI' };
-    const provedores = ['claude', 'gemini', 'openai'].map((p) => ({
+    const nomesProv = { claude: 'Claude', gemini: 'Gemini', openai: 'OpenAI', deepseek: 'DeepSeek' };
+    const provedores = ['claude', 'gemini', 'openai', 'deepseek'].map((p) => ({
       nome: nomesProv[p],
       escolher: () => this._patch({ provedor: p, modelo: (C.ia.MODELOS_POR_PROVEDOR[p] || [])[0] || null }),
       style: optBase + (cfg.provedor === p ? sel : off),
@@ -175,7 +175,7 @@ class Component extends DCLogic {
       escolher: () => this._patch({ modelo: m }),
       style: optBase + (cfg.modelo === m ? sel : off),
     }));
-    const fallbacks = [null, 'claude', 'gemini', 'openai'].map((f) => ({
+    const fallbacks = [null, 'claude', 'gemini', 'openai', 'deepseek'].map((f) => ({
       nome: f === null ? 'Nenhum' : nomesProv[f],
       escolher: () => this._patch({ fallback: f }),
       style: optBase + (cfg.fallback === f ? sel : off),

@@ -20,6 +20,7 @@ import { asr, avaliarParticipacao, criarServicoASR, type ReconhecimentoLike } fr
 import { criarAdaptadorClaude } from "./adaptadores/claude.js";
 import { criarAdaptadorGemini } from "./adaptadores/gemini.js";
 import { criarAdaptadorOpenAI } from "./adaptadores/openai.js";
+import { criarAdaptadorDeepSeek } from "./adaptadores/deepseek.js";
 import { selecionarAdaptador } from "./adaptadores/selecionar.js";
 import { MODELOS_POR_PROVEDOR, type ConfigIaTenant } from "../admin/ia_config.js";
 import { validarGrafo } from "../core/grafo/validarGrafo.js";
@@ -410,6 +411,57 @@ console.log("\n=== ServicoASR (05-09) — serviço com reconhecimento injetado =
   // bun não tem SpeechRecognition: o singleton degrada exatamente como o doc pede.
   const singleton = await asr.ouvir({ duracaoMaxMs: 50 });
   assert(singleton.participou === false && singleton.confianca === 0, "singleton sem Web Speech → não-participação imediata");
+}
+
+// ─── Fase06 · Adaptador DeepSeek (extensão do eixo AIPROV) ───────────────────
+
+console.log("\n=== adaptador DeepSeek (fase06) — JSON mode, não json_schema ===");
+{
+  const ok = { choices: [{ message: { content: TRECHO_OK } }] };
+  const { t, capturas } = transporteFake(ok);
+  const ds = criarAdaptadorDeepSeek({ modelo: "deepseek-chat", transporte: t });
+  const trecho = await ds.gerar("conte a abertura", TRECHO_JSON_SCHEMA, { system: PROMPT_BASE });
+  assert(trecho.texto.indexOf("luzinha") >= 0 && trecho.ehFinal === false, "resposta ok vira Trecho válido");
+  assert(capturas[0]!.url.indexOf("api.deepseek.com/chat/completions") >= 0, "urlBase própria do DeepSeek");
+  const rf = capturas[0]!.corpo["response_format"] as { type?: string };
+  assert(!!rf && rf.type === "json_object" && !("json_schema" in rf), "JSON mode (json_object) — DeepSeek não aceita json_schema");
+  const systemMsg = (capturas[0]!.corpo["messages"] as Array<{ role: string; content: string }>)[0]!;
+  assert(systemMsg.role === "system" && /json/i.test(systemMsg.content), 'JSON mode exige "json" na conversa (schema descrito no system)');
+  assert(!("temperature" in capturas[0]!.corpo) && !("top_p" in capturas[0]!.corpo), "sem temperature/top_p no corpo");
+
+  let eRef = false;
+  const { t: tRef } = transporteFake({ choices: [{ message: { refusal: "não posso", content: TRECHO_OK } }] });
+  try {
+    await criarAdaptadorDeepSeek({ modelo: "deepseek-chat", transporte: tRef }).gerar("x", TRECHO_JSON_SCHEMA);
+  } catch (e) {
+    eRef = e instanceof ErroRecusaProvedor;
+  }
+  assert(eRef, "refusal → erro tipado ANTES do conteúdo");
+
+  let eFiltro = false;
+  const { t: tFil } = transporteFake({ choices: [{ message: { content: TRECHO_OK }, finish_reason: "content_filter" }] });
+  try {
+    await criarAdaptadorDeepSeek({ modelo: "deepseek-chat", transporte: tFil }).gerar("x", TRECHO_JSON_SCHEMA);
+  } catch (e) {
+    eFiltro = e instanceof ErroRecusaProvedor;
+  }
+  assert(eFiltro, "content_filter → recusa tipada");
+
+  let eParse = false;
+  const { t: tRuim } = transporteFake({ choices: [{ message: { content: "isto não é um objeto" } }] });
+  try {
+    await criarAdaptadorDeepSeek({ modelo: "deepseek-chat", transporte: tRuim }).gerar("x", TRECHO_JSON_SCHEMA);
+  } catch {
+    eParse = true;
+  }
+  assert(eParse, "JSON mode não garante o shape → parse defensivo rejeita");
+
+  const cfgDs: ConfigIaTenant = { provedor: "deepseek", modelo: null, cotaMensal: 10, custoMaxMensal: 10, fallback: null };
+  const { t: tSel, capturas: cSel } = transporteFake(ok);
+  const trechoSel = await selecionarAdaptador(cfgDs, { transporte: tSel }).gerar("conte a abertura do quintal", TRECHO_JSON_SCHEMA);
+  assert(trechoSel.ehFinal === false, "selecionarAdaptador roteia deepseek (branch explícito)");
+  assert(cSel[0]!.url.indexOf("api.deepseek.com") >= 0 && cSel[0]!.url.indexOf("api.openai.com") < 0, "deepseek NUNCA cai no fallthrough da OpenAI");
+  assert(cSel[0]!.corpo["model"] === MODELOS_POR_PROVEDOR.deepseek[0], "sem modelo na config → primeiro do catálogo (deepseek-chat)");
 }
 
 console.log(`\n${"=".repeat(50)}`);

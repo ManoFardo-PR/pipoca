@@ -12,12 +12,15 @@ import type { StorageLike, TenantId } from "./auth/tiposAdmin.js";
 import type { LimitesPlano } from "./tenant/tiposTenant.js";
 import { killSwitchAtivo, type FeatureFlags } from "./flags.js";
 
-export type ProvedorIaId = "claude" | "gemini" | "openai";
+export type ProvedorIaId = "claude" | "gemini" | "openai" | "deepseek";
 
 export const MODELOS_POR_PROVEDOR: Record<ProvedorIaId, string[]> = {
   claude: ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5"],
   gemini: ["gemini-flash"],
   openai: ["gpt-mini"],
+  // fase06: DeepSeek (API OpenAI-compatível; só JSON mode — sem json_schema).
+  // O reasoner fica fora do catálogo do MVP (não aceita response_format).
+  deepseek: ["deepseek-chat"],
 };
 
 export interface ConfigIaTenant {
@@ -36,7 +39,7 @@ export const CONFIG_IA_PADRAO: ConfigIaTenant = {
   fallback: null,
 };
 
-const PROVEDORES: ProvedorIaId[] = ["claude", "gemini", "openai"];
+const PROVEDORES: ProvedorIaId[] = ["claude", "gemini", "openai", "deepseek"];
 
 /** Erros de forma/coerência (lista vazia = válida). */
 export function validarConfigIA(c: unknown): string[] {

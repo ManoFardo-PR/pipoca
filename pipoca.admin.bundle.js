@@ -1073,7 +1073,8 @@
   var MODELOS_POR_PROVEDOR = {
     claude: ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5"],
     gemini: ["gemini-flash"],
-    openai: ["gpt-mini"]
+    openai: ["gpt-mini"],
+    deepseek: ["deepseek-chat"]
   };
   var CONFIG_IA_PADRAO = {
     provedor: null,
@@ -1082,7 +1083,7 @@
     custoMaxMensal: 0,
     fallback: null
   };
-  var PROVEDORES = ["claude", "gemini", "openai"];
+  var PROVEDORES = ["claude", "gemini", "openai", "deepseek"];
   function validarConfigIA(c) {
     const erros = [];
     if (!c || typeof c !== "object")

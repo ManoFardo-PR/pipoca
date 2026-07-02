@@ -312,6 +312,24 @@
     required: ["texto", "ehFinal"],
     additionalProperties: false
   };
+  function validarTrechoGerado(bruto) {
+    if (!bruto || typeof bruto !== "object") {
+      throw new Error("Saída do provedor não é um objeto Trecho.");
+    }
+    const r = bruto;
+    const texto = r["texto"];
+    const ehFinal = r["ehFinal"];
+    if (typeof texto !== "string" || texto.trim() === "") {
+      throw new Error("Trecho gerado sem texto.");
+    }
+    if (typeof ehFinal !== "boolean") {
+      throw new Error("Trecho gerado sem ehFinal booleano.");
+    }
+    return { texto, ehFinal };
+  }
+  function transportePadrao() {
+    return (url, init) => fetch(url, init);
+  }
 
   // src/motores/motor_ia.ts
   function chaveDe(tipo, nivel, modo, historia, objetoId) {
@@ -710,143 +728,6 @@
     }
   }
 
-  // src/core/composicao.ts
-  function nivelKey(nivel) {
-    const s = String(nivel ?? "").trim().toLowerCase();
-    if (s === "n1" || s === "n2" || s === "n3" || s === "n4")
-      return s;
-    const d = s.replace(/[^0-9]/g, "");
-    if (d === "1" || d === "2" || d === "3" || d === "4")
-      return "n" + d;
-    return "n2";
-  }
-  function totalRodadas(cenario) {
-    return cenario.rodadas && cenario.rodadas.length || 0;
-  }
-  function reveladosAte(cenario, rodada) {
-    const out = [];
-    for (const r of cenario.rodadas) {
-      if (r.n <= rodada) {
-        for (const id of r.revela)
-          if (out.indexOf(id) === -1)
-            out.push(id);
-      }
-    }
-    return out;
-  }
-  function estaNaUltimaRodada(estado) {
-    return estado.rodada >= totalRodadas(estado.cenario);
-  }
-  function contaComTempera(cenario, objId, linha, nivel) {
-    const obj = cenario.objetos[objId];
-    if (!obj)
-      return "";
-    const temperas = obj.tempera || [];
-    for (const t of temperas) {
-      const cond = String(t.se || "");
-      if (cond.indexOf("tem:") === 0) {
-        const alvo = cond.slice(4);
-        if (alvo !== objId && linha.indexOf(alvo) !== -1) {
-          const txt = t.entao && t.entao[nivel];
-          if (txt)
-            return txt;
-        }
-      }
-    }
-    return obj.conta[nivel] || "";
-  }
-  function textoDesfecho(estado, nivel) {
-    const d = estado.cenario.moldura.desfecho;
-    if (estado.modos && estado.modos.desfecho === "aberto" && d.aberto && d.aberto.length) {
-      const ultimo = estado.linha[estado.linha.length - 1];
-      const match = d.aberto.find((a) => a.se_terminou_com === ultimo);
-      if (match && match.fragmento[nivel])
-        return match.fragmento[nivel];
-    }
-    return d.convergente[nivel] || "";
-  }
-  function iniciar(cenario, modos) {
-    const estado = {
-      cenarioId: cenario.id,
-      rodada: 1,
-      banco: [],
-      linha: [],
-      pontasTravadas: false,
-      historiaTexto: "",
-      convergiu: false,
-      cenario,
-      modos: modos || {}
-    };
-    estado.banco = bancoDaRodada(estado);
-    return estado;
-  }
-  function bancoDaRodada(estado) {
-    const revelados = reveladosAte(estado.cenario, estado.rodada);
-    return revelados.filter((id) => estado.linha.indexOf(id) === -1);
-  }
-  function podeInserir(estado, objetoId, slotIndex) {
-    if (estado.rodada < 2)
-      return false;
-    if (estado.banco.indexOf(objetoId) === -1)
-      return false;
-    if (estado.linha.indexOf(objetoId) !== -1)
-      return false;
-    return slotIndex > 0 && slotIndex < estado.linha.length;
-  }
-  function inserir(estado, objetoId, slotIndex) {
-    if (!podeInserir(estado, objetoId, slotIndex))
-      return estado;
-    const linha = estado.linha.slice();
-    linha.splice(slotIndex, 0, objetoId);
-    const novo = { ...estado, linha };
-    novo.banco = bancoDaRodada(novo);
-    return novo;
-  }
-  function ordenarR1(estado, ordemIds) {
-    const rodada1 = estado.cenario.rodadas.find((r) => r.n === 1);
-    const limite = rodada1 && rodada1.escolhe || 3;
-    const banco = bancoDaRodada({ ...estado, linha: [] });
-    const linha = [];
-    for (const id of ordemIds || []) {
-      if (banco.indexOf(id) !== -1 && linha.indexOf(id) === -1 && linha.length < limite) {
-        linha.push(id);
-      }
-    }
-    const novo = { ...estado, linha, pontasTravadas: true };
-    novo.banco = bancoDaRodada(novo);
-    return novo;
-  }
-  function montar(estado, nivel) {
-    const nk = nivelKey(nivel);
-    const partes = [];
-    const abertura = estado.cenario.moldura.abertura[nk];
-    if (abertura)
-      partes.push(abertura);
-    for (const id of estado.linha) {
-      const conta = contaComTempera(estado.cenario, id, estado.linha, nk);
-      if (conta)
-        partes.push(conta);
-    }
-    if (estaNaUltimaRodada(estado)) {
-      const fim = textoDesfecho(estado, nk);
-      if (fim)
-        partes.push(fim);
-    }
-    return partes.join(" ");
-  }
-  function abrirProximaRodada(estado) {
-    if (estado.rodada >= totalRodadas(estado.cenario)) {
-      return { ...estado, convergiu: true };
-    }
-    const rodada = estado.rodada + 1;
-    const novo = { ...estado, rodada, historiaTexto: "" };
-    novo.banco = bancoDaRodada(novo);
-    return novo;
-  }
-  function convergiu(estado) {
-    return !!estado.convergiu;
-  }
-
   // src/core/estado.ts
   var estadoInicial = {
     tela: 1,
@@ -895,6 +776,137 @@
   }
   function patchEstado(estado, patch) {
     return { ...estado, ...patch };
+  }
+
+  // src/core/perfil.ts
+  var AVATARES = ["pingo", "fubá", "cacau", "lua", "tuca"];
+  var NOME_PADRAO = "Pipoquinha";
+  var NIVEL_PADRAO = "n1";
+  var AVATAR_PADRAO = "pingo";
+  var IDADE_MIN = 3;
+  var IDADE_MAX = 12;
+  var NIVEIS_VALIDOS = ["n1", "n2", "n3", "n4"];
+  function clampIdade(idade) {
+    return Math.max(IDADE_MIN, Math.min(IDADE_MAX, Math.round(idade)));
+  }
+  function normalizarNome(nome) {
+    const trimmed = nome.trim();
+    return trimmed.length > 0 ? trimmed : NOME_PADRAO;
+  }
+  function normalizarNivel(nivel) {
+    if (NIVEIS_VALIDOS.includes(nivel))
+      return nivel;
+    return NIVEL_PADRAO;
+  }
+  function normalizarAvatar(avatarId) {
+    if (AVATARES.includes(avatarId))
+      return avatarId;
+    return AVATAR_PADRAO;
+  }
+  function criarPerfil(id, params) {
+    return {
+      id,
+      nome: normalizarNome(params.nome ?? ""),
+      idade: clampIdade(params.idade ?? 7),
+      nivel: normalizarNivel(params.nivel ?? NIVEL_PADRAO),
+      avatarId: normalizarAvatar(params.avatarId ?? AVATAR_PADRAO)
+    };
+  }
+  function validarPerfil(p) {
+    const erros = [];
+    if (typeof p !== "object" || p === null) {
+      return ["perfil deve ser um objeto"];
+    }
+    const r = p;
+    if (typeof r["id"] !== "string" || r["id"].trim() === "") {
+      erros.push("id ausente ou vazio");
+    }
+    if (typeof r["nome"] !== "string") {
+      erros.push("nome deve ser string");
+    }
+    if (typeof r["idade"] !== "number" || r["idade"] < IDADE_MIN || r["idade"] > IDADE_MAX) {
+      erros.push(`idade deve ser número entre ${IDADE_MIN} e ${IDADE_MAX}`);
+    }
+    if (!NIVEIS_VALIDOS.includes(r["nivel"])) {
+      erros.push("nivel inválido");
+    }
+    if (typeof r["avatarId"] !== "string") {
+      erros.push("avatarId deve ser string");
+    }
+    return erros;
+  }
+
+  class RepositorioPerfil {
+    _perfis = new Map;
+    listar() {
+      return [...this._perfis.values()];
+    }
+    buscar(id) {
+      return this._perfis.get(id) ?? null;
+    }
+    salvar(p) {
+      this._perfis.set(p.id, { ...p });
+    }
+    remover(id) {
+      return this._perfis.delete(id);
+    }
+    carregar(perfis) {
+      this._perfis.clear();
+      for (const p of perfis)
+        this._perfis.set(p.id, { ...p });
+    }
+  }
+
+  // src/core/modos.ts
+  var modosPadrao = {
+    palco: "Palco",
+    desfecho: "convergente",
+    verificacao: "cuidador",
+    iaLigada: false
+  };
+  var PALCOS_VALIDOS = ["Palco", "Ateliê"];
+  var VERIFICACOES_VALIDAS = ["cuidador", "auto", "fala"];
+  var DESFECHOS_VALIDOS = ["convergente", "aberto"];
+  function normalizarModos(raw) {
+    if (typeof raw !== "object" || raw === null)
+      return { ...modosPadrao };
+    const r = raw;
+    return {
+      palco: PALCOS_VALIDOS.includes(r["palco"]) ? r["palco"] : modosPadrao.palco,
+      desfecho: DESFECHOS_VALIDOS.includes(r["desfecho"]) ? r["desfecho"] : modosPadrao.desfecho,
+      verificacao: VERIFICACOES_VALIDAS.includes(r["verificacao"]) ? r["verificacao"] : modosPadrao.verificacao,
+      iaLigada: typeof r["iaLigada"] === "boolean" ? r["iaLigada"] : false
+    };
+  }
+  function alternarPalco(modos) {
+    return {
+      ...modos,
+      palco: modos.palco === "Palco" ? "Ateliê" : "Palco"
+    };
+  }
+  function autorizarIA(modos, on) {
+    return { ...modos, iaLigada: !!on };
+  }
+  function definirVerificacao(modos, verificacao) {
+    return { ...modos, verificacao };
+  }
+  function definirDesfecho(modos, desfecho) {
+    return { ...modos, desfecho };
+  }
+  function validarModos(m) {
+    const erros = [];
+    if (typeof m !== "object" || m === null)
+      return ["modos deve ser objeto"];
+    const r = m;
+    if (!PALCOS_VALIDOS.includes(r["palco"]))
+      erros.push("palco inválido");
+    if (!DESFECHOS_VALIDOS.includes(r["desfecho"]))
+      erros.push("desfecho inválido");
+    if (!VERIFICACOES_VALIDAS.includes(r["verificacao"]))
+      erros.push("verificacao inválida");
+    if (typeof r["iaLigada"] !== "boolean")
+      erros.push("iaLigada deve ser boolean");
+    return erros;
   }
 
   // src/core/economia.ts
@@ -1038,137 +1050,6 @@
     return erros;
   }
 
-  // src/core/modos.ts
-  var modosPadrao = {
-    palco: "Palco",
-    desfecho: "convergente",
-    verificacao: "cuidador",
-    iaLigada: false
-  };
-  var PALCOS_VALIDOS = ["Palco", "Ateliê"];
-  var VERIFICACOES_VALIDAS = ["cuidador", "auto", "fala"];
-  var DESFECHOS_VALIDOS = ["convergente", "aberto"];
-  function normalizarModos(raw) {
-    if (typeof raw !== "object" || raw === null)
-      return { ...modosPadrao };
-    const r = raw;
-    return {
-      palco: PALCOS_VALIDOS.includes(r["palco"]) ? r["palco"] : modosPadrao.palco,
-      desfecho: DESFECHOS_VALIDOS.includes(r["desfecho"]) ? r["desfecho"] : modosPadrao.desfecho,
-      verificacao: VERIFICACOES_VALIDAS.includes(r["verificacao"]) ? r["verificacao"] : modosPadrao.verificacao,
-      iaLigada: typeof r["iaLigada"] === "boolean" ? r["iaLigada"] : false
-    };
-  }
-  function alternarPalco(modos) {
-    return {
-      ...modos,
-      palco: modos.palco === "Palco" ? "Ateliê" : "Palco"
-    };
-  }
-  function autorizarIA(modos, on) {
-    return { ...modos, iaLigada: !!on };
-  }
-  function definirVerificacao(modos, verificacao) {
-    return { ...modos, verificacao };
-  }
-  function definirDesfecho(modos, desfecho) {
-    return { ...modos, desfecho };
-  }
-  function validarModos(m) {
-    const erros = [];
-    if (typeof m !== "object" || m === null)
-      return ["modos deve ser objeto"];
-    const r = m;
-    if (!PALCOS_VALIDOS.includes(r["palco"]))
-      erros.push("palco inválido");
-    if (!DESFECHOS_VALIDOS.includes(r["desfecho"]))
-      erros.push("desfecho inválido");
-    if (!VERIFICACOES_VALIDAS.includes(r["verificacao"]))
-      erros.push("verificacao inválida");
-    if (typeof r["iaLigada"] !== "boolean")
-      erros.push("iaLigada deve ser boolean");
-    return erros;
-  }
-
-  // src/core/perfil.ts
-  var AVATARES = ["pingo", "fubá", "cacau", "lua", "tuca"];
-  var NOME_PADRAO = "Pipoquinha";
-  var NIVEL_PADRAO = "n1";
-  var AVATAR_PADRAO = "pingo";
-  var IDADE_MIN = 3;
-  var IDADE_MAX = 12;
-  var NIVEIS_VALIDOS = ["n1", "n2", "n3", "n4"];
-  function clampIdade(idade) {
-    return Math.max(IDADE_MIN, Math.min(IDADE_MAX, Math.round(idade)));
-  }
-  function normalizarNome(nome) {
-    const trimmed = nome.trim();
-    return trimmed.length > 0 ? trimmed : NOME_PADRAO;
-  }
-  function normalizarNivel(nivel) {
-    if (NIVEIS_VALIDOS.includes(nivel))
-      return nivel;
-    return NIVEL_PADRAO;
-  }
-  function normalizarAvatar(avatarId) {
-    if (AVATARES.includes(avatarId))
-      return avatarId;
-    return AVATAR_PADRAO;
-  }
-  function criarPerfil(id, params) {
-    return {
-      id,
-      nome: normalizarNome(params.nome ?? ""),
-      idade: clampIdade(params.idade ?? 7),
-      nivel: normalizarNivel(params.nivel ?? NIVEL_PADRAO),
-      avatarId: normalizarAvatar(params.avatarId ?? AVATAR_PADRAO)
-    };
-  }
-  function validarPerfil(p) {
-    const erros = [];
-    if (typeof p !== "object" || p === null) {
-      return ["perfil deve ser um objeto"];
-    }
-    const r = p;
-    if (typeof r["id"] !== "string" || r["id"].trim() === "") {
-      erros.push("id ausente ou vazio");
-    }
-    if (typeof r["nome"] !== "string") {
-      erros.push("nome deve ser string");
-    }
-    if (typeof r["idade"] !== "number" || r["idade"] < IDADE_MIN || r["idade"] > IDADE_MAX) {
-      erros.push(`idade deve ser número entre ${IDADE_MIN} e ${IDADE_MAX}`);
-    }
-    if (!NIVEIS_VALIDOS.includes(r["nivel"])) {
-      erros.push("nivel inválido");
-    }
-    if (typeof r["avatarId"] !== "string") {
-      erros.push("avatarId deve ser string");
-    }
-    return erros;
-  }
-
-  class RepositorioPerfil {
-    _perfis = new Map;
-    listar() {
-      return [...this._perfis.values()];
-    }
-    buscar(id) {
-      return this._perfis.get(id) ?? null;
-    }
-    salvar(p) {
-      this._perfis.set(p.id, { ...p });
-    }
-    remover(id) {
-      return this._perfis.delete(id);
-    }
-    carregar(perfis) {
-      this._perfis.clear();
-      for (const p of perfis)
-        this._perfis.set(p.id, { ...p });
-    }
-  }
-
   // src/core/sessao.ts
   var BLOCOS_VALIDOS = [10, 15, 20, 25];
   function iniciarSessao(perfilId, blocoMin, agora = Date.now()) {
@@ -1287,6 +1168,1105 @@
   }
   function criarEnvelopeSave(perfilId, estado) {
     return { esquema: ESQUEMA_SAVE, perfilId, estado };
+  }
+
+  // src/core/telemetria.ts
+  var ESQUEMA_TELEMETRIA = "pipoca.telemetria.v1";
+  var TIPOS_VALIDOS = [
+    "leitura_confirmada",
+    "sessao_iniciada",
+    "sessao_encerrada",
+    "historia_concluida",
+    "objeto_destravado"
+  ];
+  function criarEvento(tipo, perfilId, dados, agora) {
+    if (typeof agora !== "number" || !Number.isFinite(agora)) {
+      throw new Error("criarEvento: `agora` (ts) deve ser número finito injetado pela borda");
+    }
+    return { esquema: ESQUEMA_TELEMETRIA, tipo, perfilId, ts: agora, dados };
+  }
+  function validarEvento(e) {
+    if (typeof e !== "object" || e === null)
+      return false;
+    const r = e;
+    if (r["esquema"] !== ESQUEMA_TELEMETRIA)
+      return false;
+    if (!TIPOS_VALIDOS.includes(r["tipo"]))
+      return false;
+    if (typeof r["perfilId"] !== "string" || r["perfilId"].length === 0)
+      return false;
+    if (typeof r["ts"] !== "number" || !Number.isFinite(r["ts"]))
+      return false;
+    if (typeof r["dados"] !== "object" || r["dados"] === null)
+      return false;
+    return true;
+  }
+
+  // src/servicos/telemetria_repo.ts
+  var RETENCAO_DIAS_PADRAO = 90;
+  var MS_POR_DIA = 86400000;
+  function dentroDaRetencao(evento, agora, retencaoDias = RETENCAO_DIAS_PADRAO) {
+    const limite = agora - retencaoDias * MS_POR_DIA;
+    return evento.ts >= limite;
+  }
+  function podarPorRetencao(eventos, agora, retencaoDias = RETENCAO_DIAS_PADRAO) {
+    return eventos.filter((e) => dentroDaRetencao(e, agora, retencaoDias));
+  }
+
+  // src/core/persistencia/chaves.ts
+  var CHAVE_PERFIS = "pipoca.perfil.v1";
+  function chaveSave(perfilId) {
+    return `pipoca.save.v1:${perfilId}`;
+  }
+  function chaveTelemetria(perfilId) {
+    return `pipoca.telemetria.v1:${perfilId}`;
+  }
+  function lerArrayEnvelopes(chave, esquemaEsperado) {
+    try {
+      const raw = localStorage.getItem(chave);
+      if (raw === null)
+        return [];
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed))
+        return [];
+      return parsed.filter((item) => typeof item === "object" && item !== null && item["esquema"] === esquemaEsperado);
+    } catch {
+      return [];
+    }
+  }
+  function gravarItem(chave, valor) {
+    try {
+      localStorage.setItem(chave, JSON.stringify(valor));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // src/core/persistencia/RepositorioLocalStorage.ts
+  class RepositorioLocalStorage {
+    async carregarPerfis() {
+      const raw = lerArrayEnvelopes(CHAVE_PERFIS, "pipoca.perfil.v1");
+      const validos = [];
+      for (const envelope of raw) {
+        const perfil = validarEnvelopePerfil(envelope);
+        if (perfil !== null)
+          validos.push(perfil);
+      }
+      return validos;
+    }
+    async salvarPerfil(p) {
+      const raw = lerArrayEnvelopes(CHAVE_PERFIS, "pipoca.perfil.v1");
+      const semEste = raw.filter((e) => e.perfil?.id !== p.id);
+      const novoEnvelope = {
+        esquema: "pipoca.perfil.v1",
+        perfil: { ...p }
+      };
+      gravarItem(CHAVE_PERFIS, [...semEste, novoEnvelope]);
+    }
+    async carregarSave(perfilId) {
+      try {
+        const raw = localStorage.getItem(chaveSave(perfilId));
+        if (raw === null)
+          return null;
+        const parsed = JSON.parse(raw);
+        return validarEnvelopeSave(parsed);
+      } catch {
+        return null;
+      }
+    }
+    async salvarSave(perfilId, estado) {
+      const envelope = {
+        esquema: "pipoca.save.v1",
+        perfilId,
+        estado
+      };
+      gravarItem(chaveSave(perfilId), envelope);
+    }
+    async registrarTelemetria(evento) {
+      const chave = chaveTelemetria(evento.perfilId);
+      let lista = [];
+      try {
+        const raw = localStorage.getItem(chave);
+        if (raw !== null) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed))
+            lista = parsed;
+        }
+      } catch {}
+      const envelope = {
+        esquema: "pipoca.telemetria.v1",
+        evento
+      };
+      gravarItem(chave, [...lista, envelope]);
+    }
+    async carregarTelemetria(perfilId) {
+      const envelopes = lerArrayEnvelopes(chaveTelemetria(perfilId), "pipoca.telemetria.v1");
+      return envelopes.map((e) => e.evento).filter((ev) => validarEvento(ev));
+    }
+    async podarTelemetria(perfilId, agora, retencaoDias = RETENCAO_DIAS_PADRAO) {
+      const eventos = await this.carregarTelemetria(perfilId);
+      const mantidos = podarPorRetencao(eventos, agora, retencaoDias);
+      const removidos = eventos.length - mantidos.length;
+      if (removidos > 0) {
+        const envelopes = mantidos.map((evento) => ({
+          esquema: "pipoca.telemetria.v1",
+          evento
+        }));
+        gravarItem(chaveTelemetria(perfilId), envelopes);
+      }
+      return removidos;
+    }
+    async apagarPerfil(perfilId) {
+      try {
+        localStorage.removeItem(chaveSave(perfilId));
+      } catch {}
+      try {
+        localStorage.removeItem(chaveTelemetria(perfilId));
+      } catch {}
+      const envelopes = lerArrayEnvelopes(CHAVE_PERFIS, "pipoca.perfil.v1");
+      const filtrado = envelopes.filter((e) => e.perfil?.id !== perfilId);
+      gravarItem(CHAVE_PERFIS, filtrado);
+    }
+  }
+
+  // src/core/persistencia/index.ts
+  function criarRepositorio() {
+    return new RepositorioLocalStorage;
+  }
+
+  // src/core/contaFamilia.ts
+  var DURACAO_SESSAO_MS = 30 * 86400000;
+  function idDoEmail(email) {
+    const e = email.trim().toLowerCase();
+    let h = 2166136261;
+    for (let i = 0;i < e.length; i++) {
+      h ^= e.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return "fam_" + (h >>> 0).toString(16);
+  }
+  function criarSessao(contaId, agora, duracaoMs = DURACAO_SESSAO_MS) {
+    return { contaId, autenticadaEm: agora, expiraEm: agora + duracaoMs };
+  }
+  function sessaoValida(sessao, agora) {
+    return !!sessao && typeof sessao.expiraEm === "number" && sessao.expiraEm > agora;
+  }
+  function entrarFamilia(email, senha, agora, duracaoMs = DURACAO_SESSAO_MS) {
+    const e = (email || "").trim();
+    const s = (senha || "").trim();
+    if (!e || !s)
+      return { ok: false, erro: "Preencha e-mail e senha para entrar." };
+    if (!/.+@.+\..+/.test(e))
+      return { ok: false, erro: "O e-mail parece incompleto. Confira, por favor." };
+    const conta = { id: idDoEmail(e), email: e.toLowerCase(), criadaEm: agora };
+    return { ok: true, conta, sessao: criarSessao(conta.id, agora, duracaoMs) };
+  }
+
+  // src/servicos/conta_repo.ts
+  var CHAVE_CONTA = "pipoca.conta.v1";
+  var CHAVE_SESSAO = "pipoca.sessao-conta.v1";
+  function carregarConta() {
+    try {
+      const raw = localStorage.getItem(CHAVE_CONTA);
+      if (!raw)
+        return null;
+      const p = JSON.parse(raw);
+      if (p && typeof p["id"] === "string" && typeof p["email"] === "string" && typeof p["criadaEm"] === "number") {
+        return { id: p["id"], email: p["email"], criadaEm: p["criadaEm"] };
+      }
+    } catch {}
+    return null;
+  }
+  function salvarConta(conta) {
+    try {
+      localStorage.setItem(CHAVE_CONTA, JSON.stringify(conta));
+    } catch {}
+  }
+  function carregarSessaoConta() {
+    try {
+      const raw = localStorage.getItem(CHAVE_SESSAO);
+      if (!raw)
+        return null;
+      const p = JSON.parse(raw);
+      if (p && typeof p["contaId"] === "string" && typeof p["autenticadaEm"] === "number" && typeof p["expiraEm"] === "number") {
+        return {
+          contaId: p["contaId"],
+          autenticadaEm: p["autenticadaEm"],
+          expiraEm: p["expiraEm"]
+        };
+      }
+    } catch {}
+    return null;
+  }
+  function salvarSessaoConta(sessao) {
+    try {
+      localStorage.setItem(CHAVE_SESSAO, JSON.stringify(sessao));
+    } catch {}
+  }
+  function limparSessaoConta() {
+    try {
+      localStorage.removeItem(CHAVE_SESSAO);
+    } catch {}
+  }
+
+  // src/admin/auth/sessaoSuperAdmin.ts
+  var DURACAO_SESSAO_ADMIN_MS = 12 * 3600000;
+  function criarSessaoSuperAdmin(adminId, escopo, agora, token, duracaoMs = DURACAO_SESSAO_ADMIN_MS) {
+    return {
+      adminId,
+      papel: "super_admin",
+      escopoTenants: escopo,
+      emitidaEm: agora,
+      expiraEm: agora + duracaoMs,
+      token
+    };
+  }
+  function sessaoSuperAdminValida(s, agora) {
+    return !!s && s.papel === "super_admin" && typeof s.expiraEm === "number" && s.expiraEm > agora && typeof s.token === "string" && s.token.length > 0;
+  }
+
+  // src/admin/auth/autenticacaoSuperAdmin.ts
+  var MAX_TENTATIVAS_ADMIN = 5;
+  var ATRASO_BASE_MS = 5000;
+  var ATRASO_TETO_MS = 60000;
+  function calcularAtrasoMs(tentativas) {
+    if (!Number.isFinite(tentativas) || tentativas < MAX_TENTATIVAS_ADMIN)
+      return 0;
+    return Math.min((tentativas - (MAX_TENTATIVAS_ADMIN - 1)) * ATRASO_BASE_MS, ATRASO_TETO_MS);
+  }
+  function hashSenha(senha, sal) {
+    const s = String(sal) + String(senha);
+    let h = 2166136261;
+    for (let i = 0;i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return (h >>> 0).toString(16);
+  }
+  function adminIdDoEmail(email) {
+    const e = String(email).trim().toLowerCase();
+    let h = 2166136261;
+    for (let i = 0;i < e.length; i++) {
+      h ^= e.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return "adm_" + (h >>> 0).toString(16);
+  }
+  var FORMATO_EMAIL = /.+@.+\..+/;
+  function avaliarLogin(registro, email, senha, agora, gerarSal, gerarToken) {
+    const e = String(email || "").trim().toLowerCase();
+    const s = String(senha || "");
+    if (!e || !s.trim() || !FORMATO_EMAIL.test(e)) {
+      return { sessao: null, registro, aguardeMs: 0 };
+    }
+    if (!registro) {
+      const sal = gerarSal();
+      const novo = {
+        credencial: { email: e, senhaHash: hashSenha(s, sal), sal },
+        tentativas: 0,
+        bloqueioAte: 0
+      };
+      return {
+        sessao: criarSessaoSuperAdmin(adminIdDoEmail(e), "todos", agora, gerarToken()),
+        registro: novo,
+        aguardeMs: 0
+      };
+    }
+    if (registro.bloqueioAte > 0 && agora < registro.bloqueioAte) {
+      return { sessao: null, registro, aguardeMs: registro.bloqueioAte - agora };
+    }
+    const confere = e === registro.credencial.email && hashSenha(s, registro.credencial.sal) === registro.credencial.senhaHash;
+    if (confere) {
+      return {
+        sessao: criarSessaoSuperAdmin(adminIdDoEmail(e), "todos", agora, gerarToken()),
+        registro: { ...registro, tentativas: 0, bloqueioAte: 0 },
+        aguardeMs: 0
+      };
+    }
+    const tentativas = registro.tentativas + 1;
+    const atraso = calcularAtrasoMs(tentativas);
+    return {
+      sessao: null,
+      registro: { ...registro, tentativas, bloqueioAte: atraso > 0 ? agora + atraso : 0 },
+      aguardeMs: atraso
+    };
+  }
+  var CHAVE_CREDENCIAL = "pipoca.admin.credencial.v1";
+  var CHAVE_SESSAO2 = "pipoca.admin.sessao.v1";
+  function storagePadrao2() {
+    try {
+      const g = globalThis;
+      return g.localStorage ?? null;
+    } catch {
+      return null;
+    }
+  }
+  function lerJson(armazem, chave) {
+    try {
+      const raw = armazem.getItem(chave);
+      if (raw === null)
+        return null;
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+  function gravarJson(armazem, chave, valor) {
+    try {
+      armazem.setItem(chave, JSON.stringify(valor));
+    } catch {}
+  }
+  function criarRepositorioAdmin(armazem) {
+    const st = armazem ?? storagePadrao2();
+    const aleatorio = () => Math.random().toString(36).slice(2) + (Date.now() % 16777215).toString(36);
+    return {
+      async autenticar(email, senha) {
+        if (!st)
+          return null;
+        const registro = lerJson(st, CHAVE_CREDENCIAL);
+        const r = avaliarLogin(registro, email, senha, Date.now(), aleatorio, () => aleatorio() + aleatorio());
+        if (r.registro && r.registro !== registro)
+          gravarJson(st, CHAVE_CREDENCIAL, r.registro);
+        if (r.sessao)
+          gravarJson(st, CHAVE_SESSAO2, r.sessao);
+        return r.sessao;
+      },
+      async carregarSessao() {
+        if (!st)
+          return null;
+        const s = lerJson(st, CHAVE_SESSAO2);
+        if (!s || typeof s !== "object" || s.papel !== "super_admin")
+          return null;
+        return s;
+      },
+      async encerrarSessao() {
+        if (!st)
+          return;
+        try {
+          st.removeItem(CHAVE_SESSAO2);
+        } catch {}
+      }
+    };
+  }
+
+  // src/backend/auth.ts
+  var ERRO_LOGIN_NEUTRO = "Não foi possível entrar. Confira os dados e tente de novo.";
+
+  // src/backend/config.ts
+  var CONFIG_LOCAL = { provedor: "local" };
+  function normalizarConfigBackend(raw) {
+    if (!raw || typeof raw !== "object")
+      return { ...CONFIG_LOCAL };
+    const r = raw;
+    const provedor = r["provedor"];
+    if (provedor === "supabase") {
+      const url = r["supabaseUrl"];
+      const anon = r["supabaseAnonKey"];
+      if (typeof url === "string" && url.length > 0 && typeof anon === "string" && anon.length > 0) {
+        return { provedor: "supabase", supabaseUrl: url.replace(/\/+$/, ""), supabaseAnonKey: anon };
+      }
+      return { ...CONFIG_LOCAL };
+    }
+    if (provedor === "firebase") {
+      const opcoes = r["opcoes"];
+      return { provedor: "firebase", opcoes: opcoes && typeof opcoes === "object" ? opcoes : {} };
+    }
+    return { ...CONFIG_LOCAL };
+  }
+  function configDoAmbiente() {
+    try {
+      const g = globalThis;
+      return normalizarConfigBackend(g.PIPOCA_CONFIG);
+    } catch {
+      return { ...CONFIG_LOCAL };
+    }
+  }
+
+  // src/backend/adaptadores/auth_firebase.ts
+  var NAO_CONFIGURADO = "Backend Firebase não configurado neste build (paridade documentada — fase06).";
+  function criarAuthFirebase() {
+    return {
+      entrarFamilia(_cred) {
+        return Promise.reject(new Error(NAO_CONFIGURADO));
+      },
+      entrarSuperAdmin(_cred) {
+        return Promise.reject(new Error(NAO_CONFIGURADO));
+      },
+      sair() {
+        return Promise.resolve();
+      },
+      sessaoAtual() {
+        return null;
+      }
+    };
+  }
+
+  // src/backend/adaptadores/repo_firebase.ts
+  var NAO_CONFIGURADO2 = "RepositorioFirebase não configurado neste build (paridade documentada — fase06).";
+
+  class RepositorioFirebase {
+    carregarPerfis() {
+      return Promise.reject(new Error(NAO_CONFIGURADO2));
+    }
+    salvarPerfil(_p) {
+      return Promise.reject(new Error(NAO_CONFIGURADO2));
+    }
+    carregarSave(_perfilId) {
+      return Promise.reject(new Error(NAO_CONFIGURADO2));
+    }
+    salvarSave(_perfilId, _estado) {
+      return Promise.reject(new Error(NAO_CONFIGURADO2));
+    }
+    registrarTelemetria(_evento) {
+      return Promise.reject(new Error(NAO_CONFIGURADO2));
+    }
+    carregarTelemetria(_perfilId) {
+      return Promise.reject(new Error(NAO_CONFIGURADO2));
+    }
+    apagarPerfil(_perfilId) {
+      return Promise.reject(new Error(NAO_CONFIGURADO2));
+    }
+  }
+
+  // src/backend/adaptadores/auth_supabase.ts
+  var CHAVE_SESSAO_BACKEND = "pipoca.backend.sessao.v1";
+  var ERRO_CONFIRMACAO = "Quase lá! Confirme o e-mail que enviamos e tente entrar de novo.";
+  function storage() {
+    try {
+      const g = globalThis;
+      return g.localStorage || null;
+    } catch {
+      return null;
+    }
+  }
+  function lerSessaoBackend() {
+    const st = storage();
+    if (!st)
+      return null;
+    try {
+      const raw = st.getItem(CHAVE_SESSAO_BACKEND);
+      const s = raw ? JSON.parse(raw) : null;
+      if (s && typeof s.access_token === "string" && typeof s.refresh_token === "string" && typeof s.uid === "string" && typeof s.validaAte === "number" && (s.tipo === "familia" || s.tipo === "superadmin")) {
+        return s;
+      }
+    } catch {}
+    return null;
+  }
+  function gravarSessaoBackend(s) {
+    const st = storage();
+    if (!st)
+      return;
+    try {
+      if (s)
+        st.setItem(CHAVE_SESSAO_BACKEND, JSON.stringify(s));
+      else
+        st.removeItem(CHAVE_SESSAO_BACKEND);
+    } catch {}
+  }
+  function criarAuthSupabase(op) {
+    const transporte = op.transporte || transportePadrao();
+    const agora = op.agora || (() => Date.now());
+    const base = op.url.replace(/\/+$/, "");
+    function cabecalhos(bearer) {
+      const h = { "content-type": "application/json", apikey: op.anonKey };
+      if (bearer)
+        h["Authorization"] = "Bearer " + bearer;
+      return h;
+    }
+    async function chamarToken(rota, corpo) {
+      const resp = await transporte(base + rota, {
+        method: "POST",
+        headers: cabecalhos(),
+        body: JSON.stringify(corpo)
+      });
+      if (resp.status !== 200)
+        return null;
+      return await resp.json();
+    }
+    function assentarSessao(r, tipo, tenantId) {
+      const uid = r.user && r.user.id || "";
+      const email = r.user && r.user.email || undefined;
+      const t = agora();
+      const sess = {
+        access_token: r.access_token,
+        refresh_token: r.refresh_token || "",
+        expiraTokenEm: t + Math.max(30, (r.expires_in || 3600) - 60) * 1000,
+        validaAte: t + DURACAO_SESSAO_MS,
+        uid,
+        tipo,
+        ...email ? { email } : {},
+        ...tenantId ? { tenantId } : {}
+      };
+      gravarSessaoBackend(sess);
+      if (tipo === "familia") {
+        salvarConta({ id: uid, email: email || "", criadaEm: t });
+        salvarSessaoConta(criarSessao(uid, t));
+      }
+      return { uid, tipo, ...tenantId ? { tenantId } : {} };
+    }
+    async function linhaDeOperador(uid, bearer) {
+      try {
+        const resp = await transporte(base + "/rest/v1/operadores?select=uid,escopo&uid=eq." + encodeURIComponent(uid), {
+          method: "GET",
+          headers: cabecalhos(bearer)
+        });
+        if (resp.status !== 200)
+          return null;
+        const linhas = await resp.json();
+        return Array.isArray(linhas) && linhas[0] ? linhas[0] : null;
+      } catch {
+        return null;
+      }
+    }
+    async function renovar() {
+      const atual = lerSessaoBackend();
+      if (!atual || !atual.refresh_token)
+        return null;
+      const r = await chamarToken("/auth/v1/token?grant_type=refresh_token", { refresh_token: atual.refresh_token });
+      if (!r || !r.access_token) {
+        gravarSessaoBackend(null);
+        if (atual.tipo === "familia")
+          limparSessaoConta();
+        return null;
+      }
+      const t = agora();
+      const nova = {
+        ...atual,
+        access_token: r.access_token,
+        refresh_token: r.refresh_token || atual.refresh_token,
+        expiraTokenEm: t + Math.max(30, (r.expires_in || 3600) - 60) * 1000,
+        validaAte: t + DURACAO_SESSAO_MS
+      };
+      gravarSessaoBackend(nova);
+      return nova;
+    }
+    return {
+      async entrarFamilia(cred) {
+        const email = (cred.email || "").trim().toLowerCase();
+        const senha = cred.senha || "";
+        if (!email || !senha)
+          throw new Error(ERRO_LOGIN_NEUTRO);
+        let r = await chamarToken("/auth/v1/token?grant_type=password", { email, password: senha });
+        if (!r || !r.access_token) {
+          const s = await chamarToken("/auth/v1/signup", { email, password: senha });
+          if (s && s.access_token)
+            r = s;
+          else if (s && s.user && !s.access_token)
+            throw new Error(ERRO_CONFIRMACAO);
+          else
+            throw new Error(ERRO_LOGIN_NEUTRO);
+        }
+        return assentarSessao(r, "familia");
+      },
+      async entrarSuperAdmin(cred) {
+        const email = (cred.email || "").trim().toLowerCase();
+        const senha = cred.senha || "";
+        if (!email || !senha)
+          throw new Error(ERRO_LOGIN_NEUTRO);
+        const r = await chamarToken("/auth/v1/token?grant_type=password", { email, password: senha });
+        if (!r || !r.access_token || !r.user || !r.user.id)
+          throw new Error(ERRO_LOGIN_NEUTRO);
+        const linha = await linhaDeOperador(r.user.id, r.access_token);
+        if (!linha) {
+          try {
+            await transporte(base + "/auth/v1/logout", { method: "POST", headers: cabecalhos(r.access_token), body: "{}" });
+          } catch {}
+          throw new Error(ERRO_LOGIN_NEUTRO);
+        }
+        const escopo = linha.escopo;
+        const tenantId = Array.isArray(escopo) && typeof escopo[0] === "string" ? escopo[0] : undefined;
+        return assentarSessao(r, "superadmin", tenantId);
+      },
+      async sair() {
+        const s = lerSessaoBackend();
+        if (s) {
+          try {
+            await transporte(base + "/auth/v1/logout", { method: "POST", headers: cabecalhos(s.access_token), body: "{}" });
+          } catch {}
+        }
+        gravarSessaoBackend(null);
+        if (!s || s.tipo === "familia")
+          limparSessaoConta();
+      },
+      sessaoAtual() {
+        const s = lerSessaoBackend();
+        if (!s || s.validaAte <= agora())
+          return null;
+        return { uid: s.uid, tipo: s.tipo, ...s.tenantId ? { tenantId: s.tenantId } : {} };
+      },
+      async obterToken() {
+        const s = lerSessaoBackend();
+        if (!s || s.validaAte <= agora())
+          return null;
+        if (s.expiraTokenEm > agora())
+          return s.access_token;
+        const nova = await renovar();
+        return nova ? nova.access_token : null;
+      },
+      async renovarSessao() {
+        await renovar();
+      }
+    };
+  }
+
+  // src/backend/adaptadores/repo_supabase.ts
+  class RepositorioSupabase {
+    op;
+    transporte;
+    base;
+    constructor(op) {
+      this.op = op;
+      this.transporte = op.transporte || transportePadrao();
+      this.base = op.url.replace(/\/+$/, "") + "/rest/v1";
+    }
+    async req(caminho, metodo, corpo, prefer) {
+      const token = await this.op.obterToken();
+      if (!token)
+        throw new Error("Sem sessão para o repositório remoto.");
+      const headers = {
+        apikey: this.op.anonKey,
+        Authorization: "Bearer " + token,
+        "content-type": "application/json"
+      };
+      if (prefer)
+        headers["Prefer"] = prefer;
+      const resp = await this.transporte(this.base + caminho, {
+        method: metodo,
+        headers,
+        ...corpo !== undefined ? { body: JSON.stringify(corpo) } : {}
+      });
+      if (resp.status < 200 || resp.status >= 300) {
+        throw new Error("Supabase: HTTP " + resp.status + " em " + metodo + " " + caminho);
+      }
+      try {
+        return await resp.json();
+      } catch {
+        return null;
+      }
+    }
+    async carregarPerfis() {
+      const linhas = await this.req("/perfis?select=dados", "GET");
+      const validos = [];
+      for (const l of Array.isArray(linhas) ? linhas : []) {
+        const p = validarEnvelopePerfil(l ? l.dados : null);
+        if (p !== null)
+          validos.push(p);
+      }
+      return validos;
+    }
+    async salvarPerfil(p) {
+      const tenant = this.op.tenant ? this.op.tenant() : null;
+      await this.req("/perfis?on_conflict=id", "POST", [{ id: p.id, ...tenant ? { tenant_id: tenant } : {}, dados: { esquema: "pipoca.perfil.v1", perfil: { ...p } } }], "resolution=merge-duplicates,return=minimal");
+    }
+    async carregarSave(perfilId) {
+      const linhas = await this.req("/saves?select=dados&perfil_id=eq." + encodeURIComponent(perfilId), "GET");
+      const l = Array.isArray(linhas) ? linhas[0] : null;
+      return l ? validarEnvelopeSave(l.dados) : null;
+    }
+    async salvarSave(perfilId, estado) {
+      await this.req("/saves?on_conflict=perfil_id", "POST", [{ perfil_id: perfilId, dados: { esquema: "pipoca.save.v1", perfilId, estado } }], "resolution=merge-duplicates,return=minimal");
+    }
+    async registrarTelemetria(evento) {
+      await this.req("/telemetria", "POST", [{ perfil_id: evento.perfilId, evento }], "return=minimal");
+    }
+    async carregarTelemetria(perfilId) {
+      const linhas = await this.req("/telemetria?select=evento&perfil_id=eq." + encodeURIComponent(perfilId) + "&order=criado_em.asc", "GET");
+      const out = [];
+      for (const l of Array.isArray(linhas) ? linhas : []) {
+        if (l && validarEvento(l.evento))
+          out.push(l.evento);
+      }
+      return out;
+    }
+    async apagarPerfil(perfilId) {
+      const id = encodeURIComponent(perfilId);
+      await this.req("/telemetria?perfil_id=eq." + id, "DELETE", undefined, "return=minimal");
+      await this.req("/saves?perfil_id=eq." + id, "DELETE", undefined, "return=minimal");
+      await this.req("/perfis?id=eq." + id, "DELETE", undefined, "return=minimal");
+    }
+  }
+
+  // src/backend/adaptadores/repo_sincronizado.ts
+  var CHAVE_TOMBSTONES = "pipoca.sync.apagados.v1";
+  function storage2() {
+    try {
+      const g = globalThis;
+      return g.localStorage || null;
+    } catch {
+      return null;
+    }
+  }
+  function lerTombstones() {
+    const st = storage2();
+    if (!st)
+      return [];
+    try {
+      const raw = st.getItem(CHAVE_TOMBSTONES);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
+    } catch {
+      return [];
+    }
+  }
+  function gravarTombstones(ids) {
+    const st = storage2();
+    if (!st)
+      return;
+    try {
+      if (ids.length)
+        st.setItem(CHAVE_TOMBSTONES, JSON.stringify(ids));
+      else
+        st.removeItem(CHAVE_TOMBSTONES);
+    } catch {}
+  }
+  function adicionarTombstone(id) {
+    const atuais = lerTombstones();
+    if (atuais.indexOf(id) < 0)
+      gravarTombstones([...atuais, id]);
+  }
+  function removerTombstone(id) {
+    gravarTombstones(lerTombstones().filter((x) => x !== id));
+  }
+  function criarRepositorioSincronizado(local, remoto) {
+    return {
+      carregarPerfis: () => local.carregarPerfis(),
+      carregarSave: (perfilId) => local.carregarSave(perfilId),
+      carregarTelemetria: (perfilId) => local.carregarTelemetria(perfilId),
+      async salvarPerfil(p) {
+        await local.salvarPerfil(p);
+        remoto.salvarPerfil(p).catch(() => {});
+      },
+      async salvarSave(perfilId, estado) {
+        await local.salvarSave(perfilId, estado);
+        remoto.salvarSave(perfilId, estado).catch(() => {});
+      },
+      async registrarTelemetria(evento) {
+        await local.registrarTelemetria(evento);
+        remoto.registrarTelemetria(evento).catch(() => {});
+      },
+      async apagarPerfil(perfilId) {
+        await local.apagarPerfil(perfilId);
+        adicionarTombstone(perfilId);
+        remoto.apagarPerfil(perfilId).then(() => removerTombstone(perfilId)).catch(() => {});
+      }
+    };
+  }
+
+  // src/backend/proxy_ia.ts
+  function criarProxyIA(op) {
+    const transporte = op.transporte || transportePadrao();
+    const base = op.url.replace(/\/+$/, "");
+    return {
+      async gerar(req) {
+        const token = await op.obterToken();
+        if (!token)
+          throw new Error("ProxyIA: sem sessão para gerar.");
+        const tenant = op.tenantId ? op.tenantId() : null;
+        const resp = await transporte(base + "/functions/v1/proxy-ia", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            apikey: op.anonKey,
+            Authorization: "Bearer " + token
+          },
+          body: JSON.stringify({ ...req, ...tenant ? { tenantId: tenant } : {} })
+        });
+        if (resp.status !== 200) {
+          throw new Error("ProxyIA: HTTP " + resp.status + " — degradando para o provedor local.");
+        }
+        return validarTrechoGerado(await resp.json());
+      }
+    };
+  }
+  function provedorViaProxy(proxy) {
+    return {
+      gerar(prompt, schema, opts) {
+        return proxy.gerar({ prompt, schema, ...opts ? { opts } : {} });
+      }
+    };
+  }
+
+  // src/backend/tenant.ts
+  function escopoTenant(sessao) {
+    if (!sessao || !sessao.uid)
+      return null;
+    if (sessao.tenantId)
+      return sessao.tenantId;
+    if (sessao.tipo === "familia")
+      return "familia:" + sessao.uid;
+    return null;
+  }
+
+  // src/backend/backend.ts
+  function proxyIndisponivel(motivo) {
+    return {
+      gerar() {
+        return Promise.reject(new Error(motivo));
+      }
+    };
+  }
+  function sessaoAdminLocal() {
+    try {
+      const raw = localStorage.getItem("pipoca.admin.sessao.v1");
+      const s = raw ? JSON.parse(raw) : null;
+      return s && sessaoSuperAdminValida(s, Date.now()) ? s : null;
+    } catch {
+      return null;
+    }
+  }
+  function criarAuthLocal() {
+    const repoAdmin = criarRepositorioAdmin();
+    return {
+      async entrarFamilia(cred) {
+        const r = entrarFamilia(cred.email, cred.senha, Date.now());
+        if (!r.ok || !r.conta || !r.sessao)
+          throw new Error(r.erro || ERRO_LOGIN_NEUTRO);
+        salvarConta(r.conta);
+        salvarSessaoConta(r.sessao);
+        return { uid: r.conta.id, tipo: "familia" };
+      },
+      async entrarSuperAdmin(cred) {
+        const s = await repoAdmin.autenticar(cred.email, cred.senha);
+        if (!s)
+          throw new Error(ERRO_LOGIN_NEUTRO);
+        return { uid: s.adminId, tipo: "superadmin", ...s.escopoTenants !== "todos" && s.escopoTenants[0] ? { tenantId: s.escopoTenants[0] } : {} };
+      },
+      async sair() {
+        if (sessaoAdminLocal()) {
+          await repoAdmin.encerrarSessao();
+          return;
+        }
+        limparSessaoConta();
+      },
+      sessaoAtual() {
+        const admin = sessaoAdminLocal();
+        if (admin)
+          return { uid: admin.adminId, tipo: "superadmin" };
+        const fam = carregarSessaoConta();
+        if (fam && sessaoValida(fam, Date.now()))
+          return { uid: fam.contaId, tipo: "familia" };
+        return null;
+      }
+    };
+  }
+  function criarBackendLocal() {
+    return {
+      auth: criarAuthLocal(),
+      repo: criarRepositorio(),
+      proxyIA: proxyIndisponivel("ProxyIA indisponível no backend local — degradando para o provedor simulado.")
+    };
+  }
+  function criarBackendFirebase() {
+    return {
+      auth: criarAuthFirebase(),
+      repo: new RepositorioFirebase,
+      proxyIA: proxyIndisponivel("ProxyIA Firebase não configurado neste build.")
+    };
+  }
+  function criarBackendSupabase(cfg) {
+    const auth = criarAuthSupabase({ url: cfg.supabaseUrl, anonKey: cfg.supabaseAnonKey });
+    const remoto = new RepositorioSupabase({
+      url: cfg.supabaseUrl,
+      anonKey: cfg.supabaseAnonKey,
+      obterToken: () => auth.obterToken(),
+      tenant: () => escopoTenant(auth.sessaoAtual())
+    });
+    const repo = criarRepositorioSincronizado(criarRepositorio(), remoto);
+    const proxyIA = criarProxyIA({
+      url: cfg.supabaseUrl,
+      anonKey: cfg.supabaseAnonKey,
+      obterToken: () => auth.obterToken(),
+      tenantId: () => escopoTenant(auth.sessaoAtual())
+    });
+    return { auth, repo, proxyIA };
+  }
+  function obterBackend(config) {
+    const cfg = config || configDoAmbiente();
+    if (cfg.provedor === "supabase" && cfg.supabaseUrl && cfg.supabaseAnonKey) {
+      return criarBackendSupabase(cfg);
+    }
+    if (cfg.provedor === "firebase")
+      return criarBackendFirebase();
+    return criarBackendLocal();
+  }
+
+  // src/backend/migracao.ts
+  async function migrar(de, para) {
+    const perfis = await de.carregarPerfis();
+    let saves = 0;
+    for (const p of perfis) {
+      await para.salvarPerfil(p);
+      const save = await de.carregarSave(p.id);
+      if (save) {
+        await para.salvarSave(p.id, save);
+        saves++;
+      }
+    }
+    return { perfis: perfis.length, saves };
+  }
+
+  // src/backend/sync.ts
+  async function sincronizarInicial(local, remoto) {
+    let apagadosDrenados = 0;
+    for (const id of lerTombstones()) {
+      try {
+        await remoto.apagarPerfil(id);
+        removerTombstone(id);
+        apagadosDrenados++;
+      } catch {}
+    }
+    const [locais, remotos] = await Promise.all([local.carregarPerfis(), remoto.carregarPerfis()]);
+    const idsLocais = new Set(locais.map((p) => p.id));
+    let puxados = 0;
+    for (const p of remotos) {
+      if (idsLocais.has(p.id))
+        continue;
+      await local.salvarPerfil(p);
+      const save = await remoto.carregarSave(p.id);
+      if (save)
+        await local.salvarSave(p.id, save);
+      puxados++;
+    }
+    const res = await migrar(local, remoto);
+    return { apagadosDrenados, puxados, empurrados: res.perfis };
+  }
+
+  // src/core/composicao.ts
+  function nivelKey(nivel) {
+    const s = String(nivel ?? "").trim().toLowerCase();
+    if (s === "n1" || s === "n2" || s === "n3" || s === "n4")
+      return s;
+    const d = s.replace(/[^0-9]/g, "");
+    if (d === "1" || d === "2" || d === "3" || d === "4")
+      return "n" + d;
+    return "n2";
+  }
+  function totalRodadas(cenario) {
+    return cenario.rodadas && cenario.rodadas.length || 0;
+  }
+  function reveladosAte(cenario, rodada) {
+    const out = [];
+    for (const r of cenario.rodadas) {
+      if (r.n <= rodada) {
+        for (const id of r.revela)
+          if (out.indexOf(id) === -1)
+            out.push(id);
+      }
+    }
+    return out;
+  }
+  function estaNaUltimaRodada(estado) {
+    return estado.rodada >= totalRodadas(estado.cenario);
+  }
+  function contaComTempera(cenario, objId, linha, nivel) {
+    const obj = cenario.objetos[objId];
+    if (!obj)
+      return "";
+    const temperas = obj.tempera || [];
+    for (const t of temperas) {
+      const cond = String(t.se || "");
+      if (cond.indexOf("tem:") === 0) {
+        const alvo = cond.slice(4);
+        if (alvo !== objId && linha.indexOf(alvo) !== -1) {
+          const txt = t.entao && t.entao[nivel];
+          if (txt)
+            return txt;
+        }
+      }
+    }
+    return obj.conta[nivel] || "";
+  }
+  function textoDesfecho(estado, nivel) {
+    const d = estado.cenario.moldura.desfecho;
+    if (estado.modos && estado.modos.desfecho === "aberto" && d.aberto && d.aberto.length) {
+      const ultimo = estado.linha[estado.linha.length - 1];
+      const match = d.aberto.find((a) => a.se_terminou_com === ultimo);
+      if (match && match.fragmento[nivel])
+        return match.fragmento[nivel];
+    }
+    return d.convergente[nivel] || "";
+  }
+  function iniciar(cenario, modos) {
+    const estado = {
+      cenarioId: cenario.id,
+      rodada: 1,
+      banco: [],
+      linha: [],
+      pontasTravadas: false,
+      historiaTexto: "",
+      convergiu: false,
+      cenario,
+      modos: modos || {}
+    };
+    estado.banco = bancoDaRodada(estado);
+    return estado;
+  }
+  function bancoDaRodada(estado) {
+    const revelados = reveladosAte(estado.cenario, estado.rodada);
+    return revelados.filter((id) => estado.linha.indexOf(id) === -1);
+  }
+  function podeInserir(estado, objetoId, slotIndex) {
+    if (estado.rodada < 2)
+      return false;
+    if (estado.banco.indexOf(objetoId) === -1)
+      return false;
+    if (estado.linha.indexOf(objetoId) !== -1)
+      return false;
+    return slotIndex > 0 && slotIndex < estado.linha.length;
+  }
+  function inserir(estado, objetoId, slotIndex) {
+    if (!podeInserir(estado, objetoId, slotIndex))
+      return estado;
+    const linha = estado.linha.slice();
+    linha.splice(slotIndex, 0, objetoId);
+    const novo = { ...estado, linha };
+    novo.banco = bancoDaRodada(novo);
+    return novo;
+  }
+  function ordenarR1(estado, ordemIds) {
+    const rodada1 = estado.cenario.rodadas.find((r) => r.n === 1);
+    const limite = rodada1 && rodada1.escolhe || 3;
+    const banco = bancoDaRodada({ ...estado, linha: [] });
+    const linha = [];
+    for (const id of ordemIds || []) {
+      if (banco.indexOf(id) !== -1 && linha.indexOf(id) === -1 && linha.length < limite) {
+        linha.push(id);
+      }
+    }
+    const novo = { ...estado, linha, pontasTravadas: true };
+    novo.banco = bancoDaRodada(novo);
+    return novo;
+  }
+  function montar(estado, nivel) {
+    const nk = nivelKey(nivel);
+    const partes = [];
+    const abertura = estado.cenario.moldura.abertura[nk];
+    if (abertura)
+      partes.push(abertura);
+    for (const id of estado.linha) {
+      const conta = contaComTempera(estado.cenario, id, estado.linha, nk);
+      if (conta)
+        partes.push(conta);
+    }
+    if (estaNaUltimaRodada(estado)) {
+      const fim = textoDesfecho(estado, nk);
+      if (fim)
+        partes.push(fim);
+    }
+    return partes.join(" ");
+  }
+  function abrirProximaRodada(estado) {
+    if (estado.rodada >= totalRodadas(estado.cenario)) {
+      return { ...estado, convergiu: true };
+    }
+    const rodada = estado.rodada + 1;
+    const novo = { ...estado, rodada, historiaTexto: "" };
+    novo.banco = bancoDaRodada(novo);
+    return novo;
+  }
+  function convergiu(estado) {
+    return !!estado.convergiu;
   }
 
   // src/core/lgpd.ts
@@ -1578,199 +2558,6 @@
   }
   var asr = criarServicoASR();
 
-  // src/core/telemetria.ts
-  var ESQUEMA_TELEMETRIA = "pipoca.telemetria.v1";
-  var TIPOS_VALIDOS = [
-    "leitura_confirmada",
-    "sessao_iniciada",
-    "sessao_encerrada",
-    "historia_concluida",
-    "objeto_destravado"
-  ];
-  function criarEvento(tipo, perfilId, dados, agora) {
-    if (typeof agora !== "number" || !Number.isFinite(agora)) {
-      throw new Error("criarEvento: `agora` (ts) deve ser número finito injetado pela borda");
-    }
-    return { esquema: ESQUEMA_TELEMETRIA, tipo, perfilId, ts: agora, dados };
-  }
-  function validarEvento(e) {
-    if (typeof e !== "object" || e === null)
-      return false;
-    const r = e;
-    if (r["esquema"] !== ESQUEMA_TELEMETRIA)
-      return false;
-    if (!TIPOS_VALIDOS.includes(r["tipo"]))
-      return false;
-    if (typeof r["perfilId"] !== "string" || r["perfilId"].length === 0)
-      return false;
-    if (typeof r["ts"] !== "number" || !Number.isFinite(r["ts"]))
-      return false;
-    if (typeof r["dados"] !== "object" || r["dados"] === null)
-      return false;
-    return true;
-  }
-
-  // src/servicos/telemetria_repo.ts
-  var RETENCAO_DIAS_PADRAO = 90;
-  var MS_POR_DIA = 86400000;
-  function dentroDaRetencao(evento, agora, retencaoDias = RETENCAO_DIAS_PADRAO) {
-    const limite = agora - retencaoDias * MS_POR_DIA;
-    return evento.ts >= limite;
-  }
-  function podarPorRetencao(eventos, agora, retencaoDias = RETENCAO_DIAS_PADRAO) {
-    return eventos.filter((e) => dentroDaRetencao(e, agora, retencaoDias));
-  }
-
-  // src/core/persistencia/chaves.ts
-  var CHAVE_PERFIS = "pipoca.perfil.v1";
-  function chaveSave(perfilId) {
-    return `pipoca.save.v1:${perfilId}`;
-  }
-  function chaveTelemetria(perfilId) {
-    return `pipoca.telemetria.v1:${perfilId}`;
-  }
-  function lerArrayEnvelopes(chave, esquemaEsperado) {
-    try {
-      const raw = localStorage.getItem(chave);
-      if (raw === null)
-        return [];
-      const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed))
-        return [];
-      return parsed.filter((item) => typeof item === "object" && item !== null && item["esquema"] === esquemaEsperado);
-    } catch {
-      return [];
-    }
-  }
-  function gravarItem(chave, valor) {
-    try {
-      localStorage.setItem(chave, JSON.stringify(valor));
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  // src/core/persistencia/RepositorioLocalStorage.ts
-  class RepositorioLocalStorage {
-    async carregarPerfis() {
-      const raw = lerArrayEnvelopes(CHAVE_PERFIS, "pipoca.perfil.v1");
-      const validos = [];
-      for (const envelope of raw) {
-        const perfil = validarEnvelopePerfil(envelope);
-        if (perfil !== null)
-          validos.push(perfil);
-      }
-      return validos;
-    }
-    async salvarPerfil(p) {
-      const raw = lerArrayEnvelopes(CHAVE_PERFIS, "pipoca.perfil.v1");
-      const semEste = raw.filter((e) => e.perfil?.id !== p.id);
-      const novoEnvelope = {
-        esquema: "pipoca.perfil.v1",
-        perfil: { ...p }
-      };
-      gravarItem(CHAVE_PERFIS, [...semEste, novoEnvelope]);
-    }
-    async carregarSave(perfilId) {
-      try {
-        const raw = localStorage.getItem(chaveSave(perfilId));
-        if (raw === null)
-          return null;
-        const parsed = JSON.parse(raw);
-        return validarEnvelopeSave(parsed);
-      } catch {
-        return null;
-      }
-    }
-    async salvarSave(perfilId, estado) {
-      const envelope = {
-        esquema: "pipoca.save.v1",
-        perfilId,
-        estado
-      };
-      gravarItem(chaveSave(perfilId), envelope);
-    }
-    async registrarTelemetria(evento) {
-      const chave = chaveTelemetria(evento.perfilId);
-      let lista = [];
-      try {
-        const raw = localStorage.getItem(chave);
-        if (raw !== null) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed))
-            lista = parsed;
-        }
-      } catch {}
-      const envelope = {
-        esquema: "pipoca.telemetria.v1",
-        evento
-      };
-      gravarItem(chave, [...lista, envelope]);
-    }
-    async carregarTelemetria(perfilId) {
-      const envelopes = lerArrayEnvelopes(chaveTelemetria(perfilId), "pipoca.telemetria.v1");
-      return envelopes.map((e) => e.evento).filter((ev) => validarEvento(ev));
-    }
-    async podarTelemetria(perfilId, agora, retencaoDias = RETENCAO_DIAS_PADRAO) {
-      const eventos = await this.carregarTelemetria(perfilId);
-      const mantidos = podarPorRetencao(eventos, agora, retencaoDias);
-      const removidos = eventos.length - mantidos.length;
-      if (removidos > 0) {
-        const envelopes = mantidos.map((evento) => ({
-          esquema: "pipoca.telemetria.v1",
-          evento
-        }));
-        gravarItem(chaveTelemetria(perfilId), envelopes);
-      }
-      return removidos;
-    }
-    async apagarPerfil(perfilId) {
-      try {
-        localStorage.removeItem(chaveSave(perfilId));
-      } catch {}
-      try {
-        localStorage.removeItem(chaveTelemetria(perfilId));
-      } catch {}
-      const envelopes = lerArrayEnvelopes(CHAVE_PERFIS, "pipoca.perfil.v1");
-      const filtrado = envelopes.filter((e) => e.perfil?.id !== perfilId);
-      gravarItem(CHAVE_PERFIS, filtrado);
-    }
-  }
-
-  // src/core/persistencia/RepositorioSupabase.ts
-  class RepositorioSupabase {
-    carregarPerfis() {
-      return Promise.reject(new Error("RepositorioSupabase: não implementado — ponto de migração fase06. " + "Use criarRepositorio() (local) no MVP."));
-    }
-    salvarPerfil(_p) {
-      return Promise.reject(new Error("RepositorioSupabase: não implementado — ponto de migração fase06."));
-    }
-    carregarSave(_perfilId) {
-      return Promise.reject(new Error("RepositorioSupabase: não implementado — ponto de migração fase06."));
-    }
-    salvarSave(_perfilId, _estado) {
-      return Promise.reject(new Error("RepositorioSupabase: não implementado — ponto de migração fase06."));
-    }
-    registrarTelemetria(_evento) {
-      return Promise.reject(new Error("RepositorioSupabase: não implementado — ponto de migração fase06."));
-    }
-    carregarTelemetria(_perfilId) {
-      return Promise.reject(new Error("RepositorioSupabase: não implementado — ponto de migração fase06."));
-    }
-    apagarPerfil(_perfilId) {
-      return Promise.reject(new Error("RepositorioSupabase: não implementado — ponto de migração fase06."));
-    }
-  }
-
-  // src/core/persistencia/index.ts
-  function criarRepositorio(opts) {
-    if (opts?.remoto) {
-      return new RepositorioSupabase;
-    }
-    return new RepositorioLocalStorage;
-  }
-
   // src/core/captura.ts
   function despachar(repo, evento) {
     try {
@@ -2045,81 +2832,6 @@
     return carregarAcesso().pinHash !== null;
   }
 
-  // src/core/contaFamilia.ts
-  var DURACAO_SESSAO_MS = 30 * 86400000;
-  function idDoEmail(email) {
-    const e = email.trim().toLowerCase();
-    let h = 2166136261;
-    for (let i = 0;i < e.length; i++) {
-      h ^= e.charCodeAt(i);
-      h = Math.imul(h, 16777619);
-    }
-    return "fam_" + (h >>> 0).toString(16);
-  }
-  function criarSessao(contaId, agora, duracaoMs = DURACAO_SESSAO_MS) {
-    return { contaId, autenticadaEm: agora, expiraEm: agora + duracaoMs };
-  }
-  function sessaoValida(sessao, agora) {
-    return !!sessao && typeof sessao.expiraEm === "number" && sessao.expiraEm > agora;
-  }
-  function entrarFamilia(email, senha, agora, duracaoMs = DURACAO_SESSAO_MS) {
-    const e = (email || "").trim();
-    const s = (senha || "").trim();
-    if (!e || !s)
-      return { ok: false, erro: "Preencha e-mail e senha para entrar." };
-    if (!/.+@.+\..+/.test(e))
-      return { ok: false, erro: "O e-mail parece incompleto. Confira, por favor." };
-    const conta = { id: idDoEmail(e), email: e.toLowerCase(), criadaEm: agora };
-    return { ok: true, conta, sessao: criarSessao(conta.id, agora, duracaoMs) };
-  }
-
-  // src/servicos/conta_repo.ts
-  var CHAVE_CONTA = "pipoca.conta.v1";
-  var CHAVE_SESSAO = "pipoca.sessao-conta.v1";
-  function carregarConta() {
-    try {
-      const raw = localStorage.getItem(CHAVE_CONTA);
-      if (!raw)
-        return null;
-      const p = JSON.parse(raw);
-      if (p && typeof p["id"] === "string" && typeof p["email"] === "string" && typeof p["criadaEm"] === "number") {
-        return { id: p["id"], email: p["email"], criadaEm: p["criadaEm"] };
-      }
-    } catch {}
-    return null;
-  }
-  function salvarConta(conta) {
-    try {
-      localStorage.setItem(CHAVE_CONTA, JSON.stringify(conta));
-    } catch {}
-  }
-  function carregarSessaoConta() {
-    try {
-      const raw = localStorage.getItem(CHAVE_SESSAO);
-      if (!raw)
-        return null;
-      const p = JSON.parse(raw);
-      if (p && typeof p["contaId"] === "string" && typeof p["autenticadaEm"] === "number" && typeof p["expiraEm"] === "number") {
-        return {
-          contaId: p["contaId"],
-          autenticadaEm: p["autenticadaEm"],
-          expiraEm: p["expiraEm"]
-        };
-      }
-    } catch {}
-    return null;
-  }
-  function salvarSessaoConta(sessao) {
-    try {
-      localStorage.setItem(CHAVE_SESSAO, JSON.stringify(sessao));
-    } catch {}
-  }
-  function limparSessaoConta() {
-    try {
-      localStorage.removeItem(CHAVE_SESSAO);
-    } catch {}
-  }
-
   // src/app/bridge.ts
   var PipocaCanonico = {
     validarGrafo,
@@ -2185,11 +2897,22 @@
       criarProvedorSimulado,
       criarOrquestrador,
       montarProvedorPadrao(grafo) {
+        const cadeia = [];
+        try {
+          const cfg = configDoAmbiente();
+          if (cfg.provedor !== "local") {
+            const b = obterBackend(cfg);
+            if (b.auth.sessaoAtual()) {
+              cadeia.push(envolverComGuardrails(provedorViaProxy(b.proxyIA)));
+            }
+          }
+        } catch {}
         const simulado = criarProvedorSimulado(grafo);
-        const guardado = envolverComGuardrails(simulado);
-        return criarOrquestrador([guardado]);
+        cadeia.push(envolverComGuardrails(simulado));
+        return criarOrquestrador(cadeia);
       }
     },
+    backend: { obterBackend, configDoAmbiente, normalizarConfigBackend, escopoTenant, sincronizarInicial },
     flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos },
     tts,
     asr: { asr, criarServicoASR, asrDisponivel, avaliarParticipacao },

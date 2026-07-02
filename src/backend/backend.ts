@@ -30,6 +30,7 @@ import { RepositorioFirebase } from "./adaptadores/repo_firebase.js";
 import { criarAuthSupabase } from "./adaptadores/auth_supabase.js";
 import { RepositorioSupabase } from "./adaptadores/repo_supabase.js";
 import { criarRepositorioSincronizado } from "./adaptadores/repo_sincronizado.js";
+import { criarProxyIA } from "./proxy_ia.js";
 import { escopoTenant } from "./tenant.js";
 
 /** Contrato do doc 06-05 (ipsis litteris) — o cliente concreto chega na etapa do proxy. */
@@ -130,11 +131,13 @@ function criarBackendSupabase(cfg: ConfigBackend): Backend {
     tenant: () => escopoTenant(auth.sessaoAtual()),
   });
   const repo = criarRepositorioSincronizado(criarRepositorio(), remoto);
-  return {
-    auth,
-    repo,
-    proxyIA: proxyIndisponivel("ProxyIA ainda não configurado neste build — degradando para o provedor simulado."),
-  };
+  const proxyIA = criarProxyIA({
+    url: cfg.supabaseUrl as string,
+    anonKey: cfg.supabaseAnonKey as string,
+    obterToken: () => auth.obterToken(),
+    tenantId: () => escopoTenant(auth.sessaoAtual()),
+  });
+  return { auth, repo, proxyIA };
 }
 
 /**

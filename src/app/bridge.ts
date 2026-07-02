@@ -20,9 +20,16 @@ import { criarProvedorSimulado } from "../ia/simulado.js";
 import { criarOrquestrador } from "../ia/orquestrador.js";
 // fase05: consumo das flags da plataforma pelo runtime da criança (previsto na
 // TRILHA). Módulo puro + storage versionado — NADA do runtime admin vem junto.
-// Os adaptadores reais (claude/gemini/openai) ficam FORA do bundle da criança:
-// o provedor do MVP é o simulado; a seleção por config chega com a fase06.
+// Os adaptadores reais (claude/gemini/openai/deepseek) ficam FORA do bundle da
+// criança: aqui a IA chega pelo ProxyIA (server-side) ou pelo simulado.
 import { aplicarFlagsAosModos, carregarFlags, killSwitchAtivo } from "../admin/flags.js";
+// fase06: backend trocável (config pública + fachada + sync). O runtime fala
+// SÓ com a fachada — lei do backend.
+import { obterBackend } from "../backend/backend.js";
+import { configDoAmbiente, normalizarConfigBackend } from "../backend/config.js";
+import { escopoTenant } from "../backend/tenant.js";
+import { sincronizarInicial } from "../backend/sync.js";
+import { provedorViaProxy } from "../backend/proxy_ia.js";
 
 import {
   iniciar as compIniciar,
@@ -187,13 +194,32 @@ const PipocaCanonico = {
     envolverComGuardrails,
     criarProvedorSimulado,
     criarOrquestrador,
-    /** Composição padrão do MVP: simulado → guardrails → orquestrador. */
+    /**
+     * Composição padrão: [ProxyIA (se backend remoto + sessão), simulado],
+     * tudo atrás de guardrails, orquestrado com fallback — qualquer falha do
+     * proxy (sem chave, cota, offline) degrada para o simulado → Motor A.
+     */
     montarProvedorPadrao(grafo: GrafoAutoral): ProvedorIA {
+      const cadeia: ProvedorIA[] = [];
+      try {
+        const cfg = configDoAmbiente();
+        if (cfg.provedor !== "local") {
+          const b = obterBackend(cfg);
+          if (b.auth.sessaoAtual()) {
+            cadeia.push(envolverComGuardrails(provedorViaProxy(b.proxyIA)) as ProvedorIA);
+          }
+        }
+      } catch {
+        /* fail-soft: sem proxy na cadeia */
+      }
       const simulado = criarProvedorSimulado(grafo);
-      const guardado = envolverComGuardrails(simulado) as ProvedorIA;
-      return criarOrquestrador([guardado]);
+      cadeia.push(envolverComGuardrails(simulado) as ProvedorIA);
+      return criarOrquestrador(cadeia);
     },
   },
+
+  // --- backend trocável (fase06 · lei do backend) ---
+  backend: { obterBackend, configDoAmbiente, normalizarConfigBackend, escopoTenant, sincronizarInicial },
 
   // --- flags da plataforma (kill-switches do SA_SAFE, fase04→05) ---
   flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos },

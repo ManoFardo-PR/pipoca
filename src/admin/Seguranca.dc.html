@@ -1,0 +1,105 @@
+<!-- Seguranca.dc.html — Segurança e feature flags (SA_SAFE) · doc fase04-04-06
+     ─────────────────────────────────────────────────────────────
+     Flags globais com defaults seguros (IA/fala desligadas) e kill-switch por
+     recurso. Demonstração viva do efeito: aplicarFlagsAosModos mostra o que
+     acontece com a autorização de IA do cuidador sob as flags atuais.
+     Seam: PipocaAdminCanonico.flags (+ modos.modosPadrao para a demonstração).
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-sg-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-sg-btn:active { transform:scale(.98); }
+  </style>
+</helmet>
+
+<div style="position:absolute;inset:0;overflow-y:auto;padding:32px 20px;">
+  <div style="max-width:640px;margin:0 auto;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div>
+        <div style="font-family:'Baloo 2';font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#8a7a62;">Segurança e feature flags</div>
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:24px;color:#2c241a;line-height:1.1;margin-top:2px;">A palavra final da plataforma</div>
+      </div>
+      <button class="pip-sg-btn" onClick="{{ voltar }}" style="border:1px solid #d8cfbd;border-radius:999px;background:transparent;padding:9px 16px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6c56;cursor:pointer;">↩ Painel</button>
+    </div>
+    <p style="color:#7a6c56;font-family:'Nunito';font-size:14px;line-height:1.5;margin:0 0 18px;">Defaults seguros para crianças: IA e fala nascem desligadas. O kill-switch derruba um recurso na plataforma inteira, na hora.</p>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <sc-for list="{{ flags }}" as="f" hint-placeholder-count="4">
+        <div style="display:flex;align-items:center;gap:12px;background:#fffdf8;border:1px solid #e4dcc9;border-radius:14px;padding:14px 16px;box-shadow:0 10px 28px -18px rgba(44,36,26,.35);">
+          <span style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;">
+            <span style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#2c241a;">{{ f.rotulo }}</span>
+            <span style="font-family:'Nunito';font-size:12px;color:#7a6c56;">{{ f.estadoRotulo }}</span>
+          </span>
+          <button class="pip-sg-btn" onClick="{{ f.alternar }}" role="switch" aria-checked="{{ f.ligada }}" aria-label="Alternar {{ f.rotulo }}" style="{{ f.trilhoStyle }}">
+            <div style="width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);"></div>
+          </button>
+          <button class="pip-sg-btn" onClick="{{ f.matar }}" style="border:1px solid #c9a08a;border-radius:10px;background:transparent;padding:8px 12px;font-family:'Nunito';font-weight:700;font-size:12px;color:#8a4a3a;cursor:pointer;">Kill-switch</button>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- Demonstração viva do efeito sobre os Modos -->
+    <div style="background:#fffdf8;border:1px solid #e4dcc9;border-radius:14px;padding:16px;margin-top:16px;font-family:'Nunito';font-size:13px;line-height:1.7;color:#5a4c3a;">
+      Com as flags de agora: se um cuidador autorizar a IA para a criança, ela ficaria <b>{{ efeitoIa }}</b> — a flag global tem a palavra final.
+    </div>
+
+    <button class="pip-sg-btn" onClick="{{ restaurarPadroes }}" style="margin-top:14px;border:1px solid #d8cfbd;border-radius:12px;background:transparent;padding:10px 16px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6c56;cursor:pointer;">Restaurar defaults seguros</button>
+
+    <div style="height:24px;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { flags: null };
+
+  componentDidMount() {
+    const A = window.PipocaAdmin;
+    const C = window.PipocaAdminCanonico;
+    if (!A || !C) return;
+    if (!C.auth.sessaoSuperAdminValida(A.estado.sessao, Date.now())) { A.irParaTela(1); return; }
+    this.setState({ flags: C.flags.carregarFlags() });
+  }
+
+  _salvar(flags) {
+    const C = window.PipocaAdminCanonico;
+    C.flags.salvarFlags(flags);
+    this.setState({ flags });
+  }
+
+  renderVals() {
+    const A = window.PipocaAdmin;
+    const C = window.PipocaAdminCanonico;
+    const flags = this.state.flags || (C ? C.flags.carregarFlags() : {});
+    const rotulos = {
+      ia: 'IA (Motor de histórias geradas)',
+      fala: 'Fala (reconhecimento de voz)',
+      conteudoCustomizado: 'Conteúdo customizado de tenants',
+      telemetria: 'Telemetria de progresso',
+    };
+    const lista = Object.keys(flags).map((nome) => {
+      const ligada = flags[nome] === true;
+      return {
+        rotulo: rotulos[nome] || nome,
+        ligada,
+        estadoRotulo: ligada ? 'Ligada na plataforma' : 'Desligada na plataforma (fail-closed)',
+        alternar: () => this._salvar(C.flags.definirFlag(flags, nome, !ligada)),
+        matar: () => this._salvar(C.flags.killSwitch(flags, nome)),
+        trilhoStyle: 'width:50px;height:28px;border-radius:999px;border:none;cursor:pointer;padding:3px;display:flex;align-items:center;flex-shrink:0;'
+          + (ligada ? 'background:#4a5a3f;justify-content:flex-end;' : 'background:#b8ab90;justify-content:flex-start;'),
+      };
+    });
+    const efeito = C
+      ? C.flags.aplicarFlagsAosModos(Object.assign({}, C.modos.modosPadrao, { iaLigada: true }), flags).iaLigada
+      : false;
+    return {
+      flags: lista,
+      efeitoIa: efeito ? 'LIGADA' : 'DESLIGADA',
+      restaurarPadroes: () => this._salvar(Object.assign({}, C.flags.FLAGS_PADRAO)),
+      voltar: () => { if (A) A.irParaTela(2); },
+    };
+  }
+}
+</script>

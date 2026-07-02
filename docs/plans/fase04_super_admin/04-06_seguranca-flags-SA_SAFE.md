@@ -1,5 +1,7 @@
 # fase04 · 04-06 · Segurança global e feature flags (SA_SAFE)
 
+> 🟡 **STATUS · 2026-07-02 · PARCIAL (núcleo + tela; consumo pelo runtime da criança = fase05/06)** — `src/admin/flags.ts`: mapa de flags com defaults seguros (IA e fala desligadas), `definirFlag`/`killSwitch` puros, leitura fail-closed e `aplicarFlagsAosModos` (IA global desligada IGNORA `Modos.iaLigada` — testado e demonstrado na tela/e2e). Tela `src/admin/Seguranca.dc.html` com kill-switch por recurso e persistência local. O fluxo vivo da criança passa a consultar as flags quando o motor de IA/backend chegarem (fase05/06 — hoje IA já degrada para Motor A na fábrica). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase04-04-06`
 - nó(s) da arquitetura: SA_SAFE

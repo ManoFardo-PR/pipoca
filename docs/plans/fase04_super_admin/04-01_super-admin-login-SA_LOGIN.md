@@ -1,5 +1,7 @@
 # fase04 · 04-01 · Login do Super Admin
 
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO (MVP local)** — Núcleo `src/admin/auth/*` (`avaliarLogin` puro: 1º uso semeia a credencial local com hash+sal, erro neutro, atraso progressivo a partir de 5 falhas; sessão de 12h com token opaco; seam `RepositorioAdmin`) + guard `src/admin/rotasAdmin.ts` fail-closed; tela `src/admin/telas/SaLogin.dc.html` no entry próprio `admin.html` (bundle `npm run build:admin` — o app da criança não carrega nada do admin). `EstadoApp` intocado. Auth real com servidor = fase06 (`ServicoAuth`). Testado (`admin.test.ts`) + e2e `npm run test:e2e:admin`. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 > Doc de planejamento autocontido. Segue o gabarito de [[_contratos/glossario]] e o [_TEMPLATE](../_TEMPLATE.md).
 > Idioma: PT-BR. Nomes canônicos vêm de [[_contratos/tipos-core]], [[_contratos/schemas-json]] e [[_contratos/eventos-acoes]].
 

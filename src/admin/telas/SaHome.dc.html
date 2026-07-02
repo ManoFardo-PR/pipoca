@@ -1,0 +1,80 @@
+<!-- SaHome.dc.html — Hub do super admin (SA_HOME) · doc fase04-04-02
+     ─────────────────────────────────────────────────────────────
+     Hub PURO: só roteia (nenhuma escrita de dados). 4 cartões para as áreas
+     (tenants, conteúdo, IA, segurança), fail-closed por escopo — cartão fora
+     do escopo aparece atenuado e não navega. Logout limpo volta ao SA_LOGIN.
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-sh-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-sh-btn:active { transform:scale(.98); }
+  </style>
+</helmet>
+
+<div style="position:absolute;inset:0;overflow-y:auto;padding:32px 20px;">
+  <div style="max-width:640px;margin:0 auto;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div>
+        <div style="font-family:'Baloo 2';font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#8a7a62;">Painel da plataforma</div>
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:24px;color:#2c241a;line-height:1.1;margin-top:2px;">Operação</div>
+      </div>
+      <button class="pip-sh-btn" onClick="{{ encerrarSessaoSuperAdmin }}" style="border:1px solid #d8cfbd;border-radius:999px;background:transparent;padding:9px 16px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6c56;cursor:pointer;">Sair</button>
+    </div>
+    <p style="color:#7a6c56;font-family:'Nunito';font-size:14px;line-height:1.5;margin:0 0 20px;">Operador: <span style="font-family:monospace;font-size:13px;">{{ operadorId }}</span> · escopo: {{ escopoRotulo }}</p>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <sc-for list="{{ areas }}" as="a" hint-placeholder-count="4">
+        <dc-import name="CartaoArea" titulo="{{ a.titulo }}" descricao="{{ a.descricao }}" emoji="{{ a.emoji }}" disponivel="{{ a.disponivel }}" onAbrir="{{ a.abrir }}"></dc-import>
+      </sc-for>
+    </div>
+
+    <div style="height:24px;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {};
+
+  componentDidMount() {
+    // Cinto e suspensório: além do guard do setState, a tela confere a sessão.
+    const A = window.PipocaAdmin;
+    const C = window.PipocaAdminCanonico;
+    if (!A || !C) return;
+    if (!C.auth.sessaoSuperAdminValida(A.estado.sessao, Date.now())) A.irParaTela(1);
+    if (A.subscribe) this._unsub = A.subscribe(() => this.setState({}));
+  }
+  componentWillUnmount() { if (this._unsub) this._unsub(); }
+
+  renderVals() {
+    const A = window.PipocaAdmin;
+    const C = window.PipocaAdminCanonico;
+    const sess = A ? A.estado.sessao : null;
+    const escopo = sess ? sess.escopoTenants : null;
+    const defs = [
+      { id: 'tenants',   titulo: 'Contas, tenants e planos',   descricao: 'quem usa a plataforma e com quais limites', emoji: '🏫', rota: 'SA_TENANT' },
+      { id: 'conteudo',  titulo: 'Biblioteca de conteúdo',     descricao: 'grafos autorais: validar, versionar, publicar', emoji: '📚', rota: 'SA_CONTENT' },
+      { id: 'ia',        titulo: 'Configuração de IA',         descricao: 'provedores, cotas e fallback por tenant', emoji: '🤖', rota: 'SA_AI' },
+      { id: 'seguranca', titulo: 'Segurança e feature flags',  descricao: 'kill-switches e defaults seguros', emoji: '🛡️', rota: 'SA_SAFE' },
+    ];
+    const areas = defs.map((d) => {
+      const disponivel = !!(sess && C && C.auth.areaDisponivel(escopo, d.id));
+      return {
+        titulo: d.titulo,
+        descricao: d.descricao,
+        emoji: d.emoji,
+        disponivel,
+        abrir: () => { if (disponivel && A && C) A.irParaTela(C.rotas.ROTAS_ADMIN[d.rota]); },
+      };
+    });
+    return {
+      areas,
+      operadorId: (sess && sess.adminId) || '—',
+      escopoRotulo: escopo === 'todos' ? 'toda a plataforma' : (Array.isArray(escopo) ? escopo.length + ' tenant(s)' : '—'),
+      encerrarSessaoSuperAdmin: () => { if (A) A.sairSuperAdmin(); },
+    };
+  }
+}
+</script>

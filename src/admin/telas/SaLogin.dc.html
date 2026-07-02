@@ -1,0 +1,86 @@
+<!-- SaLogin.dc.html — Login do super admin (SA_LOGIN) · doc fase04-04-01
+     ─────────────────────────────────────────────────────────────
+     Trilha SEPARADA da família: autentica o OPERADOR da plataforma. Erro
+     NEUTRO (não distingue e-mail de senha); atraso progressivo após muitas
+     tentativas (núcleo). 1º acesso define a credencial local (MVP — auth
+     real com servidor é fase06). Consome window.PipocaAdmin.entrarSuperAdmin.
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-sa-campo { width:100%;padding:12px 14px;border-radius:12px;border:2px solid #d8cfbd;background:#fffdf8;font-family:'Nunito';font-size:15px;color:#2c241a;outline:none; }
+    .pip-sa-campo:focus { border-color:#b09a72; }
+    .pip-sa-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-sa-btn:active { transform:scale(.98); }
+  </style>
+</helmet>
+
+<div style="position:absolute;inset:0;overflow-y:auto;display:flex;align-items:center;justify-content:center;padding:32px 20px;">
+  <div style="width:100%;max-width:400px;">
+
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-family:'Baloo 2';font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#8a7a62;">Operador da plataforma</div>
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:24px;color:#2c241a;line-height:1.1;margin-top:2px;">Entrar</div>
+    </div>
+
+    <div style="background:#fffdf8;border:1px solid #e4dcc9;border-radius:16px;box-shadow:0 14px 40px -22px rgba(44,36,26,.4);padding:22px;">
+
+      <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#2c241a;">E-mail</label>
+      <input class="pip-sa-campo" style="margin-top:6px;" value="{{ email }}" onInput="{{ aoDigitarEmail }}" type="email" autocomplete="username" placeholder="operador@plataforma" aria-label="E-mail do operador" />
+
+      <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#2c241a;margin-top:14px;">Senha</label>
+      <input class="pip-sa-campo" style="margin-top:6px;" value="{{ senha }}" onInput="{{ aoDigitarSenha }}" onKeyDown="{{ aoTeclar }}" type="password" autocomplete="current-password" placeholder="Senha" aria-label="Senha do operador" />
+
+      <sc-if value="{{ temErro }}" hint-placeholder-val="{{ false }}">
+        <div role="status" aria-live="polite" style="margin-top:14px;font-family:'Nunito';font-size:13px;color:#8a4a3a;">{{ erro }}</div>
+      </sc-if>
+
+      <button class="pip-sa-btn" onClick="{{ submeterLoginSuperAdmin }}" style="{{ entrarStyle }}">{{ entrarLabel }}</button>
+
+      <div style="margin-top:14px;font-family:'Nunito';font-size:12px;line-height:1.5;color:#8a7a62;">
+        Primeiro acesso define a credencial do operador neste aparelho (MVP local — autenticação real com servidor chega na fase 06).
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { email: '', senha: '', erro: '', carregando: false };
+
+  async _submeter() {
+    if (this.state.carregando) return;
+    const A = window.PipocaAdmin;
+    if (!A) { this.setState({ erro: 'Plataforma indisponível. Recarregue a página.' }); return; }
+    const email = (this.state.email || '').trim();
+    const senha = this.state.senha || '';
+    if (!email || !senha.trim()) { this.setState({ erro: 'Preencha e-mail e senha para entrar.' }); return; }
+    this.setState({ carregando: true, erro: '' });
+    const r = await A.entrarSuperAdmin(email, senha);
+    if (!r.ok) this.setState({ carregando: false, erro: r.erro || 'Não foi possível entrar.' });
+    // ok → estadoAdmin já navegou ao hub (tela 2)
+  }
+
+  renderVals() {
+    const s = this.state;
+    const pode = !!(s.email || '').trim() && !!(s.senha || '').trim() && !s.carregando;
+    return {
+      email: s.email,
+      senha: s.senha,
+      aoDigitarEmail: (e) => this.setState({ email: e.target.value }),
+      aoDigitarSenha: (e) => this.setState({ senha: e.target.value }),
+      aoTeclar: (e) => { if (e && e.key === 'Enter') this._submeter(); },
+      erro: s.erro || '',
+      temErro: !!s.erro,
+      submeterLoginSuperAdmin: () => this._submeter(),
+      entrarLabel: s.carregando ? 'Entrando…' : 'Entrar',
+      entrarStyle: 'margin-top:18px;width:100%;min-height:46px;border:none;border-radius:12px;'
+        + 'font-family:Baloo 2;font-weight:800;font-size:15px;color:#fff;cursor:' + (pode ? 'pointer' : 'not-allowed') + ';'
+        + (pode
+          ? 'background:linear-gradient(150deg,#4a5a3f,#39472f);box-shadow:0 8px 20px -8px rgba(44,50,36,.6);'
+          : 'background:#b8ab90;opacity:.75;'),
+    };
+  }
+}
+</script>

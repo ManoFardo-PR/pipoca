@@ -1,5 +1,7 @@
 # fase04 · 04-03 · Contas / tenants / planos
 
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO (MVP local)** — Núcleo `src/admin/tenant/*`: seam `RepositorioTenant` com o escopo da sessão preso na instância (toda operação filtra; fora do escopo → null/erro neutro sem gravar), catálogo fixo de planos (gratis/familia/escola), tenant novo nasce restritivo com IA desligada pelo plano, rebaixamento não-destrutivo (`excedeTetoPerfis`), suspender ≠ apagar; envelopes `pipoca.tenant.v1` locais (forma final e RLS são da fase06-04). Tela `src/admin/telas/SaTenant.dc.html`. Consumo de `maxPerfis`/retenção pelo controle parental liga na fase06 (vínculo tenant↔família é do backend). Testado + e2e admin. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 > Doc de planejamento autocontido. Segue o gabarito de [[_contratos/glossario]] e o [_TEMPLATE](../_TEMPLATE.md).
 > Idioma: PT-BR. Nomes canônicos vêm de [[_contratos/tipos-core]], [[_contratos/schemas-json]] e [[_contratos/eventos-acoes]].
 

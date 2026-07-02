@@ -1,5 +1,7 @@
 # fase04 · 04-04 · Biblioteca de conteúdo (grafos autorais)
 
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO (MVP local)** — `src/admin/validar_grafo.ts`: validação dupla (`validarGrafoAutoral` — schema `pipoca.grafo-autoral.v1` via núcleo + ciclo de dependências via `ValidadorOrdem` + simulação do Motor A nos 4 níveis com desfechos convergente e aberto; desfecho aberto sem ramo → aviso "degrada") + biblioteca rascunho → versão → publicação com teto `cenariosCustomizados` do plano (catálogo da plataforma sem teto). Tela `src/admin/Conteudo.dc.html` (exemplo do Quintal carregável). Testado + e2e admin. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase04-04-04`
 - nó(s) da arquitetura: SA_CONTENT

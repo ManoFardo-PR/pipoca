@@ -1,0 +1,212 @@
+<!-- ConfigIA.dc.html — Configuração de IA por tenant (SA_AI) · doc fase04-04-05
+     ─────────────────────────────────────────────────────────────
+     Provedor/modelo/cotas/fallback POR TENANT, com gate do plano
+     (iaPermitida) e da flag global (SA_SAFE). CHAVES NUNCA AQUI: o bloco
+     explica que chave e teste de conexão são server-side (fase06) — não
+     existe input de chave nesta tela, de propósito.
+     Seam: PipocaAdminCanonico.ia + PipocaAdmin.repoTenant + flags.
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-ia-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-ia-btn:active { transform:scale(.98); }
+    .pip-ia-campo { width:120px;padding:10px 12px;border-radius:12px;border:2px solid #d8cfbd;background:#fffdf8;font-family:'Nunito';font-size:14px;color:#2c241a;outline:none; }
+    .pip-ia-campo:focus { border-color:#b09a72; }
+  </style>
+</helmet>
+
+<div style="position:absolute;inset:0;overflow-y:auto;padding:32px 20px;">
+  <div style="max-width:640px;margin:0 auto;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div>
+        <div style="font-family:'Baloo 2';font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#8a7a62;">Configuração de IA</div>
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:24px;color:#2c241a;line-height:1.1;margin-top:2px;">Provedores por tenant</div>
+      </div>
+      <button class="pip-ia-btn" onClick="{{ voltar }}" style="border:1px solid #d8cfbd;border-radius:999px;background:transparent;padding:9px 16px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6c56;cursor:pointer;">↩ Painel</button>
+    </div>
+    <p style="color:#7a6c56;font-family:'Nunito';font-size:14px;line-height:1.5;margin:0 0 18px;">Sem configuração válida, o tenant fica SEM IA (default seguro). A criança só encontra IA se o plano permite, a config vale e a flag global está ligada.</p>
+
+    <!-- Seletor de tenant -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+      <sc-for list="{{ chipsTenants }}" as="ct" hint-placeholder-count="1">
+        <button class="pip-ia-btn" onClick="{{ ct.escolher }}" style="{{ ct.style }}">{{ ct.nome }}</button>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ semTenants }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#fffdf8;border:1px dashed #d8cfbd;border-radius:14px;padding:16px;font-family:'Nunito';font-size:13px;color:#7a6c56;">Nenhum tenant no escopo — crie um em "Contas, tenants e planos".</div>
+    </sc-if>
+
+    <sc-if value="{{ temTenant }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#fffdf8;border:1px solid #e4dcc9;border-radius:14px;padding:18px;box-shadow:0 10px 28px -18px rgba(44,36,26,.35);">
+
+        <sc-if value="{{ bloqueadoPeloPlano }}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="font-family:'Nunito';font-size:13px;color:#8a4a3a;margin-bottom:12px;">O plano deste tenant não permite IA — ajuste o plano em "Contas, tenants e planos" antes de configurar.</div>
+        </sc-if>
+
+        <div style="{{ formStyle }}">
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#2c241a;">Provedor</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;">
+            <sc-for list="{{ provedores }}" as="p" hint-placeholder-count="3">
+              <button class="pip-ia-btn" onClick="{{ p.escolher }}" style="{{ p.style }}">{{ p.nome }}</button>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ temModelos }}" hint-placeholder-val="{{ false }}">
+            <div style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#2c241a;margin-top:14px;">Modelo</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+              <sc-for list="{{ modelos }}" as="m" hint-placeholder-count="3">
+                <button class="pip-ia-btn" onClick="{{ m.escolher }}" style="{{ m.style }}">{{ m.nome }}</button>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;">
+            <label style="display:flex;flex-direction:column;gap:6px;font-family:'Baloo 2';font-weight:800;font-size:14px;color:#2c241a;">Cota mensal
+              <input class="pip-ia-campo" value="{{ cotaMensal }}" onInput="{{ setCota }}" type="number" min="0" aria-label="Cota mensal de chamadas" />
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;font-family:'Baloo 2';font-weight:800;font-size:14px;color:#2c241a;">Custo máx./mês
+              <input class="pip-ia-campo" value="{{ custoMax }}" onInput="{{ setCusto }}" type="number" min="0" aria-label="Custo máximo mensal" />
+            </label>
+          </div>
+
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#2c241a;margin-top:14px;">Fallback (se o provedor falhar)</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;">
+            <sc-for list="{{ fallbacks }}" as="f" hint-placeholder-count="4">
+              <button class="pip-ia-btn" onClick="{{ f.escolher }}" style="{{ f.style }}">{{ f.nome }}</button>
+            </sc-for>
+          </div>
+
+          <!-- Chaves: server-side por decisão de arquitetura (nunca input aqui) -->
+          <div style="margin-top:16px;border-top:1px dashed #e4dcc9;padding-top:12px;font-family:'Nunito';font-size:12px;line-height:1.6;color:#8a7a62;">
+            🔑 Chave do provedor: fica no servidor, nunca neste painel (fase 06). O teste de conexão também acontece lá.
+          </div>
+
+          <sc-if value="{{ temErros }}" hint-placeholder-val="{{ false }}">
+            <div role="status" aria-live="polite" style="margin-top:12px;font-family:'Nunito';font-size:13px;color:#8a4a3a;">
+              <sc-for list="{{ erros }}" as="e" hint-placeholder-count="0"><div>— {{ e }}</div></sc-for>
+            </div>
+          </sc-if>
+
+          <div style="display:flex;align-items:center;gap:12px;margin-top:14px;">
+            <button class="pip-ia-btn" onClick="{{ salvar }}" style="min-height:44px;border:none;border-radius:12px;padding:0 20px;font-family:'Baloo 2';font-weight:800;font-size:14px;color:#fff;cursor:pointer;background:linear-gradient(150deg,#4a5a3f,#39472f);">Salvar configuração</button>
+            <span style="font-family:'Nunito';font-size:13px;color:#5a4c3a;">IA efetiva para a criança: <b>{{ iaEfetivaRotulo }}</b></span>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ temAviso }}" hint-placeholder-val="{{ false }}">
+      <div role="status" aria-live="polite" style="margin-top:14px;font-family:'Nunito';font-size:13px;color:#5a4c3a;">{{ aviso }}</div>
+    </sc-if>
+
+    <div style="height:24px;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { tenants: [], tenantId: null, limites: null, config: null, erros: [], aviso: '' };
+
+  componentDidMount() {
+    const A = window.PipocaAdmin;
+    const C = window.PipocaAdminCanonico;
+    if (!A || !C) return;
+    if (!C.auth.sessaoSuperAdminValida(A.estado.sessao, Date.now())) { A.irParaTela(1); return; }
+    this._carregarTenants();
+  }
+
+  async _carregarTenants() {
+    const A = window.PipocaAdmin;
+    const repo = A ? A.repoTenant : null;
+    if (!repo) return;
+    try {
+      const sess = A.estado.sessao;
+      const tenants = await repo.listarTenants(sess ? sess.escopoTenants : []);
+      this.setState({ tenants });
+      if (tenants[0]) await this._selecionar(tenants[0].id);
+    } catch (_) { this.setState({ tenants: [] }); }
+  }
+
+  async _selecionar(tenantId) {
+    const A = window.PipocaAdmin;
+    const C = window.PipocaAdminCanonico;
+    const repo = A ? A.repoTenant : null;
+    if (!repo || !C) return;
+    const limites = await repo.obterLimitesEfetivos(tenantId);
+    const config = C.ia.carregarConfigIA(tenantId);
+    this.setState({ tenantId, limites, config, erros: [], aviso: '' });
+  }
+
+  _patch(parcial) {
+    this.setState({ config: Object.assign({}, this.state.config, parcial), erros: [] });
+  }
+
+  _salvar() {
+    const C = window.PipocaAdminCanonico;
+    const erros = C.ia.validarConfigIA(this.state.config);
+    if (erros.length) { this.setState({ erros }); return; }
+    C.ia.salvarConfigIA(this.state.tenantId, this.state.config);
+    this.setState({ aviso: 'Configuração salva para este tenant.', erros: [] });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const A = window.PipocaAdmin;
+    const C = window.PipocaAdminCanonico;
+    const cfg = s.config || (C ? Object.assign({}, C.ia.CONFIG_IA_PADRAO) : {});
+    const bloqueado = !(s.limites && s.limites.iaPermitida);
+    const flags = C ? C.flags.carregarFlags() : {};
+    const chipBase = 'min-height:38px;border-radius:999px;border:2px solid;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;padding:6px 14px;';
+    const optBase = 'min-height:40px;border-radius:10px;border:2px solid;font-family:Nunito;font-weight:700;font-size:12px;cursor:pointer;padding:6px 8px;';
+    const sel = 'background:#4a5a3f;border-color:#4a5a3f;color:#fff;';
+    const off = 'background:#fffdf8;border-color:#d8cfbd;color:#2c241a;';
+
+    const nomesProv = { claude: 'Claude', gemini: 'Gemini', openai: 'OpenAI' };
+    const provedores = ['claude', 'gemini', 'openai'].map((p) => ({
+      nome: nomesProv[p],
+      escolher: () => this._patch({ provedor: p, modelo: (C.ia.MODELOS_POR_PROVEDOR[p] || [])[0] || null }),
+      style: optBase + (cfg.provedor === p ? sel : off),
+    }));
+    const modelos = (cfg.provedor && C ? C.ia.MODELOS_POR_PROVEDOR[cfg.provedor] || [] : []).map((m) => ({
+      nome: m,
+      escolher: () => this._patch({ modelo: m }),
+      style: optBase + (cfg.modelo === m ? sel : off),
+    }));
+    const fallbacks = [null, 'claude', 'gemini', 'openai'].map((f) => ({
+      nome: f === null ? 'Nenhum' : nomesProv[f],
+      escolher: () => this._patch({ fallback: f }),
+      style: optBase + (cfg.fallback === f ? sel : off),
+    }));
+
+    return {
+      chipsTenants: s.tenants.map((t) => ({
+        nome: t.nome,
+        escolher: () => this._selecionar(t.id),
+        style: chipBase + (t.id === s.tenantId ? sel : off),
+      })),
+      semTenants: !s.tenants.length,
+      temTenant: !!s.tenantId,
+      bloqueadoPeloPlano: bloqueado,
+      formStyle: bloqueado ? 'opacity:.45;pointer-events:none;' : '',
+      provedores,
+      temModelos: modelos.length > 0,
+      modelos,
+      fallbacks,
+      cotaMensal: String(cfg.cotaMensal ?? 0),
+      custoMax: String(cfg.custoMaxMensal ?? 0),
+      setCota: (e) => this._patch({ cotaMensal: Math.max(0, parseInt(e.target.value, 10) || 0) }),
+      setCusto: (e) => this._patch({ custoMaxMensal: Math.max(0, parseInt(e.target.value, 10) || 0) }),
+      erros: s.erros,
+      temErros: s.erros.length > 0,
+      salvar: () => this._salvar(),
+      iaEfetivaRotulo: C && s.limites && C.ia.iaEfetivaDisponivel(cfg, s.limites, flags) ? 'DISPONÍVEL' : 'INDISPONÍVEL',
+      aviso: s.aviso || '',
+      temAviso: !!s.aviso,
+      voltar: () => { if (A) A.irParaTela(2); },
+    };
+  }
+}
+</script>

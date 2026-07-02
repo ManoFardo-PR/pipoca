@@ -1,0 +1,202 @@
+<!-- SaTenant.dc.html — Tenants, contas e planos (SA_TENANT) · doc fase04-04-03
+     ─────────────────────────────────────────────────────────────
+     Atrás do guard. Lista/cria tenants, define plano, suspende/ativa
+     (suspender ≠ apagar), mostra os LIMITES EFETIVOS do plano. Sem PII de
+     criança — só metadados. Seam: window.PipocaAdmin.repoTenant (escopo da
+     sessão preso na instância) + PipocaAdminCanonico.tenants.
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-st-campo { width:100%;padding:11px 13px;border-radius:12px;border:2px solid #d8cfbd;background:#fffdf8;font-family:'Nunito';font-size:14px;color:#2c241a;outline:none; }
+    .pip-st-campo:focus { border-color:#b09a72; }
+    .pip-st-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-st-btn:active { transform:scale(.98); }
+  </style>
+</helmet>
+
+<div style="position:absolute;inset:0;overflow-y:auto;padding:32px 20px;">
+  <div style="max-width:640px;margin:0 auto;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div>
+        <div style="font-family:'Baloo 2';font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#8a7a62;">Tenants e planos</div>
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:24px;color:#2c241a;line-height:1.1;margin-top:2px;">Quem usa a plataforma</div>
+      </div>
+      <button class="pip-st-btn" onClick="{{ voltar }}" style="border:1px solid #d8cfbd;border-radius:999px;background:transparent;padding:9px 16px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6c56;cursor:pointer;">↩ Painel</button>
+    </div>
+    <p style="color:#7a6c56;font-family:'Nunito';font-size:14px;line-height:1.5;margin:0 0 18px;">Metadados e limites — nunca dados das crianças. Suspender preserva tudo; rebaixar plano só bloqueia criação acima do teto.</p>
+
+    <!-- Lista -->
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <sc-for list="{{ tenants }}" as="t" hint-placeholder-count="2">
+        <div style="background:#fffdf8;border:1px solid #e4dcc9;border-radius:14px;padding:14px 16px;box-shadow:0 10px 28px -18px rgba(44,36,26,.35);">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <button class="pip-st-btn" onClick="{{ t.selecionar }}" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;background:transparent;border:none;cursor:pointer;text-align:left;padding:0;">
+              <span style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:#2c241a;">{{ t.nome }}</span>
+              <span style="font-family:'Nunito';font-size:12px;color:#7a6c56;">{{ t.planoNome }} · {{ t.statusRotulo }} · <span style="font-family:monospace;">{{ t.id }}</span></span>
+            </button>
+            <button class="pip-st-btn" onClick="{{ t.alternarAtivo }}" style="border:1px solid #d8cfbd;border-radius:10px;background:transparent;padding:8px 12px;font-family:'Nunito';font-weight:700;font-size:12px;color:#7a6c56;cursor:pointer;">{{ t.acaoAtivoLabel }}</button>
+          </div>
+
+          <!-- Detalhe do tenant selecionado: plano + limites efetivos -->
+          <sc-if value="{{ t.selecionado }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:12px;border-top:1px dashed #e4dcc9;padding-top:12px;">
+              <div style="font-family:'Baloo 2';font-weight:700;font-size:13px;color:#2c241a;">Plano</div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;">
+                <sc-for list="{{ t.planos }}" as="p" hint-placeholder-count="3">
+                  <button class="pip-st-btn" onClick="{{ p.escolher }}" style="{{ p.style }}">{{ p.nome }}</button>
+                </sc-for>
+              </div>
+              <div style="margin-top:10px;font-family:'Nunito';font-size:13px;color:#5a4c3a;line-height:1.6;">{{ t.limitesTexto }}</div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ vazio }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#fffdf8;border:1px dashed #d8cfbd;border-radius:14px;padding:18px;font-family:'Nunito';font-size:14px;color:#7a6c56;">Nenhum tenant no seu escopo ainda. Crie o primeiro abaixo.</div>
+    </sc-if>
+
+    <!-- Criar tenant (exige escopo de plataforma inteira) -->
+    <div style="background:#fffdf8;border:1px solid #e4dcc9;border-radius:14px;padding:18px;margin-top:16px;box-shadow:0 10px 28px -18px rgba(44,36,26,.35);">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#2c241a;">Criar tenant</div>
+      <p style="color:#7a6c56;font-family:'Nunito';font-size:12px;margin:4px 0 10px;">Nasce no plano mais restritivo, com IA desligada — liga-se deliberadamente depois.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <input class="pip-st-campo" style="flex:2;min-width:160px;" value="{{ nomeNovo }}" onInput="{{ setNomeNovo }}" placeholder="Nome (escola/família)" aria-label="Nome do tenant" />
+        <input class="pip-st-campo" style="flex:2;min-width:160px;" value="{{ emailNovo }}" onInput="{{ setEmailNovo }}" type="email" placeholder="E-mail de contato (opcional)" aria-label="E-mail de contato" />
+        <button class="pip-st-btn" onClick="{{ criarTenant }}" style="{{ criarStyle }}">Criar</button>
+      </div>
+      <sc-if value="{{ temErro }}" hint-placeholder-val="{{ false }}">
+        <div role="status" aria-live="polite" style="margin-top:10px;font-family:'Nunito';font-size:13px;color:#8a4a3a;">{{ erro }}</div>
+      </sc-if>
+    </div>
+
+    <div style="height:24px;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { tenants: [], planos: [], selecionadoId: null, limites: null, nomeNovo: '', emailNovo: '', erro: '' };
+
+  componentDidMount() {
+    const A = window.PipocaAdmin;
+    const C = window.PipocaAdminCanonico;
+    if (!A || !C) return;
+    if (!C.auth.sessaoSuperAdminValida(A.estado.sessao, Date.now())) { A.irParaTela(1); return; }
+    this._recarregar();
+  }
+
+  async _recarregar() {
+    const A = window.PipocaAdmin;
+    const repo = A ? A.repoTenant : null;
+    if (!repo) { this.setState({ tenants: [], planos: [] }); return; }
+    try {
+      const sess = A.estado.sessao;
+      const tenants = await repo.listarTenants(sess ? sess.escopoTenants : []);
+      const planos = await repo.listarPlanos();
+      this.setState({ tenants, planos });
+      if (this.state.selecionadoId) await this._selecionar(this.state.selecionadoId, true);
+    } catch (_) { this.setState({ tenants: [], planos: [] }); }
+  }
+
+  async _selecionar(id, forcar) {
+    if (!forcar && this.state.selecionadoId === id) { this.setState({ selecionadoId: null, limites: null }); return; }
+    const A = window.PipocaAdmin;
+    const repo = A ? A.repoTenant : null;
+    if (!repo) return;
+    const limites = await repo.obterLimitesEfetivos(id);
+    this.setState({ selecionadoId: id, limites });
+  }
+
+  async _criar() {
+    const A = window.PipocaAdmin;
+    const C = window.PipocaAdminCanonico;
+    const repo = A ? A.repoTenant : null;
+    const nome = (this.state.nomeNovo || '').trim();
+    if (!nome) { this.setState({ erro: 'Dê um nome ao tenant para criar.' }); return; }
+    if (!repo || !C) { this.setState({ erro: 'Plataforma indisponível. Recarregue a página.' }); return; }
+    try {
+      const t = C.tenants.novoTenant(nome, Date.now());
+      await repo.salvarTenant(t);
+      const email = (this.state.emailNovo || '').trim();
+      if (email) C.tenants.vincularConta(email, t.id);
+      this.setState({ nomeNovo: '', emailNovo: '', erro: '' });
+      this._recarregar();
+    } catch (e) {
+      this.setState({ erro: (e && e.message) || 'Não foi possível concluir a ação.' }); // neutro
+    }
+  }
+
+  async _definirPlano(id, planoId) {
+    const A = window.PipocaAdmin;
+    const repo = A ? A.repoTenant : null;
+    if (!repo) return;
+    try {
+      const t = await repo.obterTenant(id);
+      if (!t) return;
+      await repo.salvarTenant({ ...t, planoId });
+      await this._recarregar();
+    } catch (e) { this.setState({ erro: (e && e.message) || 'Não foi possível concluir a ação.' }); }
+  }
+
+  async _alternarAtivo(id) {
+    const A = window.PipocaAdmin;
+    const repo = A ? A.repoTenant : null;
+    if (!repo) return;
+    try {
+      const t = await repo.obterTenant(id);
+      if (!t) return;
+      await repo.salvarTenant({ ...t, ativo: !t.ativo }); // suspender ≠ apagar
+      await this._recarregar();
+    } catch (e) { this.setState({ erro: (e && e.message) || 'Não foi possível concluir a ação.' }); }
+  }
+
+  renderVals() {
+    const s = this.state;
+    const A = window.PipocaAdmin;
+    const nomePlano = {}; s.planos.forEach((p) => { nomePlano[p.id] = p.nome; });
+    const lim = s.limites;
+    const limitesTexto = lim
+      ? 'Limites efetivos: até ' + lim.maxPerfis + ' perfil(is) · IA ' + (lim.iaPermitida ? 'permitida' : 'não permitida')
+        + ' · ' + lim.cenariosCustomizados + ' cenário(s) customizado(s) · telemetria por ' + lim.retencaoTelemetriaDias + ' dias'
+      : '';
+    const tenants = s.tenants.map((t) => ({
+      id: t.id,
+      nome: t.nome,
+      planoNome: nomePlano[t.planoId] || t.planoId,
+      statusRotulo: t.ativo ? 'Ativo' : 'Suspenso',
+      selecionado: s.selecionadoId === t.id,
+      selecionar: () => this._selecionar(t.id),
+      alternarAtivo: () => this._alternarAtivo(t.id),
+      acaoAtivoLabel: t.ativo ? 'Suspender' : 'Reativar',
+      limitesTexto,
+      planos: s.planos.map((p) => ({
+        nome: p.nome,
+        escolher: () => this._definirPlano(t.id, p.id),
+        style: 'min-height:38px;border-radius:10px;border:2px solid;font-family:Nunito;font-weight:700;font-size:12px;cursor:pointer;'
+          + (t.planoId === p.id
+            ? 'background:#4a5a3f;border-color:#4a5a3f;color:#fff;'
+            : 'background:#fffdf8;border-color:#d8cfbd;color:#2c241a;'),
+      })),
+    }));
+    const podeCriar = !!(s.nomeNovo || '').trim();
+    return {
+      tenants,
+      vazio: !s.tenants.length,
+      nomeNovo: s.nomeNovo,
+      emailNovo: s.emailNovo,
+      setNomeNovo: (e) => this.setState({ nomeNovo: e.target.value }),
+      setEmailNovo: (e) => this.setState({ emailNovo: e.target.value }),
+      criarTenant: () => this._criar(),
+      criarStyle: 'min-height:44px;border:none;border-radius:12px;padding:0 20px;font-family:Baloo 2;font-weight:800;font-size:14px;color:#fff;cursor:' + (podeCriar ? 'pointer' : 'not-allowed') + ';'
+        + (podeCriar ? 'background:linear-gradient(150deg,#4a5a3f,#39472f);' : 'background:#b8ab90;opacity:.75;'),
+      erro: s.erro || '',
+      temErro: !!s.erro,
+      voltar: () => { if (A) A.irParaTela(2); },
+    };
+  }
+}
+</script>

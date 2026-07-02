@@ -23,9 +23,10 @@ const mimeTypes = {
 
 // Convergência (TRILHA M-A): o dc-runtime monta componentes-irmãos buscando
 // `./<Nome>.dc.html` relativo à URL da página (support.js: COMPONENT_DIR ".").
-// As telas/itens canônicos vivem em src/telas e src/componentes, não na raiz —
+// As telas/itens canônicos vivem em src/telas e src/componentes (app da criança)
+// e em src/admin/telas|componentes|. (plataforma do operador, admin.html) —
 // então resolvemos GET /<Nome>.dc.html procurando nessas pastas (e na raiz).
-const DC_DIRS = ["src/telas", "src/componentes", "."];
+const DC_DIRS = ["src/telas", "src/componentes", "src/admin/telas", "src/admin/componentes", "src/admin", "."];
 
 function resolverCaminho(urlPath) {
   // Componente .dc.html na raiz da URL (sem subpasta) → procurar nas pastas canônicas.

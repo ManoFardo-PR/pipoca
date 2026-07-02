@@ -1,5 +1,7 @@
 # fase05 · 05-07 · Adaptador OpenAI (OPENAI)
 
+> 🟡 **STATUS · 2026-07-02 · PARCIAL (pronto, sem chamada real)** — `src/ia/adaptadores/openai.ts`: structured outputs estritos (`response_format` json_schema) restritos ao Trecho, campo `refusal` tratado ANTES do conteúdo, mesma interface intercambiável. Chamada real com chave server-side = fase06 (ProxyIA).
+
 ## Identidade
 - id: `fase05-05-07`
 - nó(s) da arquitetura: OPENAI

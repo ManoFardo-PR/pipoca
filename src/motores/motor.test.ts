@@ -6,7 +6,9 @@
  */
 
 import { MotorGrafoAutoral } from "./motor_a.js";
+import { MotorIA } from "./motor_ia.js";
 import type { MotorNarrativa, ModoDesfecho, Nivel } from "./contrato.js";
+import { criarProvedorSimulado } from "../ia/simulado.js";
 import { validarGrafo } from "../core/grafo/validarGrafo.js";
 import { criarValidadorOrdem } from "./validador_ordem.js";
 import grafoRaw from "../dados/quintal_grafo.json" with { type: "json" };
@@ -213,6 +215,48 @@ console.log("\n=== validarGrafo — rejeições ===");
     });
   } catch { rejeitou = true; }
   assert(rejeitou, "rejeita Fragmento4 incompleto (falta n4)");
+}
+
+console.log("\n=== Motor B (MotorIA · 05-01/05-03) — cache aquecido + degradação ===");
+{
+  // Falha total do provedor → saída IDÊNTICA ao Motor A (critério do 05-01).
+  const provedorFalho = criarProvedorSimulado(grafo, { falhar: true });
+  const mFalho = new MotorIA(provedorFalho, grafo, "convergente");
+  await mFalho.aquecer([], "n3");
+  assertEqual(
+    jogar(mFalho, ["vagalume", "frasco", "vento"], "convergente", "n3"),
+    jogar(motor, ["vagalume", "frasco", "vento"], "convergente", "n3"),
+    "provedor falho: fixture A idêntica ao Motor A"
+  );
+  assertEqual(
+    jogar(mFalho, ["vagalume", "gato", "coruja"], "aberto", "n3"),
+    jogar(motor, ["vagalume", "gato", "coruja"], "aberto", "n3"),
+    "provedor falho: fixture B idêntica ao Motor A"
+  );
+
+  // Miss memoizado: a resposta de uma chamada nunca troca de texto depois.
+  const mMemo = new MotorIA(criarProvedorSimulado(grafo), grafo, "convergente");
+  const antes = mMemo.abertura("n2").texto;
+  await mMemo.aquecer([], "n2");
+  assertEqual(mMemo.abertura("n2").texto, antes, "miss memoizado: abertura não muda após o aquecimento");
+
+  // Aquecido: os trechos vêm da IA (simulado ✨) e o contrato se mantém.
+  const mIA = new MotorIA(criarProvedorSimulado(grafo), grafo, "convergente");
+  await mIA.aquecer([], "n3");
+  const ab = mIA.abertura("n3");
+  assert(ab.texto.indexOf("✨") === 0 && ab.ehFinal === false, "abertura aquecida vem da IA, ehFinal=false");
+  const obj = mIA.aoAdicionarObjeto([], "vagalume", "n3");
+  assert(
+    obj.texto.indexOf("✨") === 0 && obj.objetoId === "vagalume" && obj.ehFinal === false,
+    "objeto aquecido: IA + objetoId ecoado pelo motor + ehFinal=false"
+  );
+  const ordemCompleta = grafo.cenario.ordem_canonica || [];
+  const fim = mIA.desfecho(ordemCompleta, "convergente", "n3");
+  assert(fim.texto.indexOf("✨") === 0 && fim.ehFinal === true, "desfecho aquecido (história completa): IA + ehFinal=true");
+  assert(
+    jogar(mIA, ordemCompleta, "convergente", "n3") !== jogar(motor, ordemCompleta, "convergente", "n3"),
+    "história aquecida difere do Motor A (Motor B ativo de verdade)"
+  );
 }
 
 console.log(`\n${"=".repeat(50)}`);

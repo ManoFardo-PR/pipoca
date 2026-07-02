@@ -32,6 +32,8 @@ import { exportarDados, apagarDados } from "./lgpd.js";
 import { definirBlocoFoco, normalizarLimites } from "./limites.js";
 import { CARDAPIO_PADRAO, normalizarCardapio, normalizarCenariosLiberados } from "./cardapio.js";
 import { criarMotor } from "../motores/fabrica.js";
+import { MotorIA } from "../motores/motor_ia.js";
+import { criarProvedorSimulado } from "../ia/simulado.js";
 import { validarGrafo } from "./grafo/validarGrafo.js";
 import { estadoInicial } from "./estado.js";
 import { criarPerfil } from "./perfil.js";
@@ -166,7 +168,14 @@ console.log("\n=== Modos (02-08) — autorizarIA + fábrica respeita a flag ==="
   const a = criarMotor(grafo.cenario, modosPadrao);
   const b = criarMotor(grafo.cenario, ligado);
   assert(typeof a.motor.abertura === "function" && typeof a.ordem.validar === "function", "fábrica (iaLigada=false) devolve motor+ordem");
-  assert(typeof b.motor.abertura === "function", "fábrica (iaLigada=true) devolve motor (fallback Motor A no MVP)");
+  assert(typeof b.motor.abertura === "function", "fábrica (iaLigada=true, sem provedor) devolve motor (fallback Motor A)");
+  assert(!(b.motor instanceof MotorIA), "sem provedor injetado, o fallback NÃO é Motor B");
+
+  // fase05: com provedor injetado pela borda, a troca acontece SÓ na fábrica.
+  const c = criarMotor(grafo.cenario, ligado, { provedor: criarProvedorSimulado(grafo) });
+  assert(c.motor instanceof MotorIA, "fábrica (iaLigada=true + provedor) instancia o Motor B");
+  const d = criarMotor(grafo.cenario, modosPadrao, { provedor: criarProvedorSimulado(grafo) });
+  assert(!(d.motor instanceof MotorIA), "iaLigada=false ignora o provedor (autorização do cuidador manda)");
 }
 
 console.log("\n=== Migração (06-03) — migrar(de, para) ===");

@@ -1,5 +1,7 @@
 # fase05 · 05-01 · Motor B · geração IA ao vivo
 
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO (MVP local)** — `MotorIA implements MotorNarrativa` em `src/motores/motor_ia.ts` (caminho do 05-03; o `MotorIA.ts`/`index.ts` citados abaixo não existem — convenção snake_case do repo). Contrato síncrono preservado via cache pré-aquecido (`aquecer`) com Motor A interno como degradação memoizada: falha total do provedor ⇒ saída idêntica ao Motor A (fixtures verificam por igualdade de string). `ehFinal` imposto por tipo; `objetoId` ecoado pelo motor. Troca A↔B só na fábrica; nenhuma tela importa a classe. Provedor do MVP = simulado local; adaptadores reais ligam na fase06.
+
 ## Identidade
 - id: `fase05-05-01`
 - nó(s) da arquitetura: MB

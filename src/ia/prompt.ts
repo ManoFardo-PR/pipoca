@@ -74,7 +74,10 @@ export function montarPrompt(ctx: MontarPromptContext): string {
   linhas.push(`CENÁRIO: "${cen.nome}" — personagem: ${personagem}; ${paleta}.`);
 
   // Um nível por vez (regra 2) + regra de ouro (regra 3: texto curto p/ o portão).
-  const desc = (grafo.niveis && grafo.niveis[nivel]) || descricaoNivel[nivel];
+  // O wrapper da fábrica usa niveis-identidade ("n1"→"n1"): nesse caso a
+  // descrição vem do espelho local (descricaoNivel).
+  const bruta = grafo.niveis ? grafo.niveis[nivel] : "";
+  const desc = bruta && bruta !== nivel ? bruta : descricaoNivel[nivel];
   linhas.push(`NÍVEL DE LEITURA: ${nivel} — ${desc}.`);
   linhas.push("Escreva o texto SOMENTE neste nível (um único fragmento, nunca os quatro).");
   linhas.push("O texto precisa ser curto o bastante para a criança ler no portão antes do próximo objeto.");

@@ -1,6 +1,6 @@
 # fase03 · 03-01 · Telemetria de progresso
 
-> 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/telemetria.ts` (tipo canônico com `esquema` + `criarEvento`/`validarEvento`, `ts` injetado) + `src/core/captura.ts` (5 pontos, fire-and-forget, idempotente por objeto); testes em `src/core/parciais.test.ts`. Ligação aos fluxos reais (portão/recompensa/sessão) na convergência. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO** — `src/core/telemetria.ts` (tipo canônico com `esquema` + `criarEvento`/`validarEvento`, `ts` injetado) + `src/core/captura.ts` (5 pontos, fire-and-forget, idempotente por objeto); testes em `src/core/parciais.test.ts`. Ligado ao fluxo vivo em `src/app/estado.js`: sessão iniciada ao começar a composição; leitura confirmada + objeto destravado na confirmação do portão (T5); história concluída + sessão encerrada na convergência e nas bordas de saída — respeitando a coleta de PC_PRIV. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase03-03-01`

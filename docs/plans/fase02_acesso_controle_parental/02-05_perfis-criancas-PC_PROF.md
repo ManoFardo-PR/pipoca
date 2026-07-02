@@ -1,6 +1,6 @@
 # fase02 · 02-05 · Perfis das crianças (PC_PROF)
 
-> 🟡 **STATUS · 2026-06-29 · PARCIAL** — CRUD coberto pelo seam: `criarPerfil` (`core/perfil.ts`) + `criarRepositorio` (`carregarPerfis`/`salvarPerfil`/`apagarPerfil` — este adicionado ao contrato `RepositorioPersistencia` para a remoção LGPD). Falta a tela `Perfis` (app). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO** — CRUD coberto pelo seam: `criarPerfil` (`core/perfil.ts`) + `criarRepositorio` (`carregarPerfis`/`salvarPerfil`/`apagarPerfil` — este adicionado ao contrato `RepositorioPersistencia` para a remoção LGPD). Tela `src/telas/Perfis.dc.html` (tela 12): listar, criar/editar, remover com confirmação calma e escolher o perfil em uso; `estado.js` migrou para o repo canônico (chave legada preservada como fallback de leitura). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase02-02-05`

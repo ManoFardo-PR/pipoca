@@ -1,6 +1,6 @@
 # fase02 · 02-04 · Onboarding do cuidador (PC_HOME)
 
-> 🟡 **STATUS · 2026-06-29 · PARCIAL** — Núcleo `src/core/onboarding.ts` (`montarEstadoOnboarding` monta PERF/MODES/SESS e aterrissa em T2; `perfilDoOnboarding`), no bridge (`PipocaCanonico.onboarding`) e testado (`parciais.test.ts`). A tela persiste via `criarRepositorio` (salvarPerfil/salvarSave) e cria o PIN via `acesso`. Falta a tela `Onboarding` + subpainéis (app). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO** — Núcleo `src/core/onboarding.ts` (`montarEstadoOnboarding` monta PERF/MODES/SESS e aterrissa em T2; `perfilDoOnboarding`), no bridge (`PipocaCanonico.onboarding`) e testado (`parciais.test.ts`). No app: `src/telas/Onboarding.dc.html` (tela 10, 1º uso sem perfis) + hub `src/telas/PainelCuidador.dc.html` (tela 11, pós-PIN com perfis) com os subpainéis Perfis/Limites/Regras & IA/Privacidade/Evolução. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase02-02-04`

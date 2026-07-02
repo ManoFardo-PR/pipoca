@@ -1,6 +1,6 @@
 # fase02 · 02-09 · Privacidade e dados (LGPD)
 
-> 🟡 **STATUS · 2026-06-29 · PARCIAL** — Núcleo `src/core/lgpd.ts` (`exportarDados` → JSON dos schemas congelados; `apagarDados` → remove perfil+save+telemetria via seam `apagarPerfil`), no bridge (`PipocaCanonico.lgpd`) e testado (`parciais.test.ts`). Falta a tela `Privacidade` + registro de consentimento (app). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO** — Núcleo `src/core/lgpd.ts` (`exportarDados` → JSON dos schemas congelados; `apagarDados` → remove perfil+save+telemetria via seam `apagarPerfil`), no bridge (`PipocaCanonico.lgpd`) e testado (`parciais.test.ts`). Tela `src/telas/Privacidade.dc.html` (tela 15): exportar por perfil (download local) + apagar tudo com confirmação calma em 2 toques + toggle de coleta (`state.coletaTelemetria`, respeitado pela captura). Persistir a preferência de coleta é follow-up. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase02-02-09`

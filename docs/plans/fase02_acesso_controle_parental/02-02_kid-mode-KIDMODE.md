@@ -1,6 +1,6 @@
 # fase02 · 02-02 · Modo criança
 
-> 🟡 **STATUS · 2026-06-29 · PARCIAL** — Núcleo `src/core/modoApp.ts` (`ModoApp`, guarda `aplicarGuarda`/`podeNavegar`, transições `aoPassarPortao`→cuidador / `aoVoltarParaCrianca`→criança), exposto no bridge (`PipocaCanonico.modoApp`) e testado (`parciais.test.ts`). Falta o wiring no roteador/T2 (telas — a cargo do app). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO** — Núcleo `src/core/modoApp.ts` (`ModoApp`, guarda `aplicarGuarda`/`podeNavegar`, transições `aoPassarPortao`→cuidador / `aoVoltarParaCrianca`→criança), exposto no bridge (`PipocaCanonico.modoApp`) e testado (`parciais.test.ts`). Wiring feito no app: `state.modoApp` + guarda em `setState` sobre as superfícies adultas (telas 8 e 10–15) em `src/app/estado.js`; o PINGATE é a única saída do modo criança (coberto pelo e2e canônico). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase02-02-02`

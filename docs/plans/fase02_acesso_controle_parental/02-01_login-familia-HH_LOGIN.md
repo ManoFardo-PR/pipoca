@@ -1,6 +1,6 @@
 # fase02 · 02-01 · Login da família
 
-> 🟡 **STATUS · 2026-06-29 · PARCIAL** — Núcleo `src/core/contaFamilia.ts` (`ContaFamilia`/`SessaoConta`, `entrarFamilia` stub MVP, `criarSessao`/`sessaoValida`) + store `src/servicos/conta_repo.ts` (sessão persistida em chave local versionada), exposto no bridge (`PipocaCanonico.conta`) e testado (`parciais.test.ts`). Autenticação real é fase06 (`ServicoAuth`). Falta a tela `LoginFamilia` + a rota inicial sessão-válida→KIDMODE (app). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO** — Núcleo `src/core/contaFamilia.ts` (`ContaFamilia`/`SessaoConta`, `entrarFamilia` stub MVP, `criarSessao`/`sessaoValida`) + store `src/servicos/conta_repo.ts`, exposto no bridge (`PipocaCanonico.conta`) e testado (`parciais.test.ts`). Tela `src/telas/LoginFamilia.dc.html` (tela 9) ligada: boot sem sessão válida → login; login ok → KIDMODE → T2; `sairDaConta()` no seam. Autenticação real é fase06 (`ServicoAuth`). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase02-02-01`

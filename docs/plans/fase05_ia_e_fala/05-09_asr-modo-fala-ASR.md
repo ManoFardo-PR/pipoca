@@ -1,5 +1,7 @@
 # fase05 · 05-09 · ASR · modo Fala (ASR)
 
+> 🟡 **STATUS · 2026-07-02 · PARCIAL (núcleo pronto; tela na sequência)** — `src/servicos/asr.ts`: `ServicoASR`/`ResultadoFala` no padrão injetável do irmão tts.ts; participação (não perfeição — baixa confiança conta); indisponível/sem permissão/erro/timeout resolvem não-participação gentil (nunca rejeita, portão não quebra); global lido lazy; sem áudio armazenado. Integração na verificação da T5 + opção "Pela voz" nas Regras fecham este doc na etapa seguinte.
+
 ## Identidade
 - id: `fase05-05-09`
 - nó(s) da arquitetura: ASR

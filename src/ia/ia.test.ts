@@ -16,6 +16,7 @@ import {
 } from "./provedor.js";
 import { criarProvedorSimulado } from "./simulado.js";
 import { criarOrquestrador } from "./orquestrador.js";
+import { asr, avaliarParticipacao, criarServicoASR, type ReconhecimentoLike } from "../servicos/asr.js";
 import { criarAdaptadorClaude } from "./adaptadores/claude.js";
 import { criarAdaptadorGemini } from "./adaptadores/gemini.js";
 import { criarAdaptadorOpenAI } from "./adaptadores/openai.js";
@@ -346,6 +347,69 @@ console.log("\n=== orquestrador (05-10) — cadeia, cotas e custo ===");
   let cadeiaVazia = false;
   try { await criarOrquestrador([]).gerar("x", TRECHO_JSON_SCHEMA); } catch { cadeiaVazia = true; }
   assert(cadeiaVazia, "cadeia vazia → erro claro");
+}
+
+// ─── Etapa 6 · ServicoASR (05-09) — participação, não perfeição ──────────────
+
+console.log("\n=== ServicoASR (05-09) — núcleo puro ===");
+{
+  const baixa = avaliarParticipacao("a bola azul", 0.2);
+  assert(baixa.participou === true && baixa.confianca === 0.2, "baixa confiança AINDA conta como participação");
+  assert(avaliarParticipacao("", 0.9).participou === false, "sem fala detectada → não participou (sem culpa)");
+  assert(avaliarParticipacao("   ", 0.9).participou === false, "só espaços → não participou");
+  const semConf = avaliarParticipacao("oi", undefined);
+  assert(semConf.participou === true && semConf.confianca === 0.3, "confiança ausente → default conservador, participação vale");
+}
+
+console.log("\n=== ServicoASR (05-09) — serviço com reconhecimento injetado ===");
+{
+  function recFake(modo: "resultado" | "erro" | "fimSemResultado" | "mudo", transcript = "a bola", confidence = 0.4) {
+    return (): ReconhecimentoLike => {
+      const rec: ReconhecimentoLike = {
+        lang: "",
+        onresult: null,
+        onerror: null,
+        onend: null,
+        start() {
+          setTimeout(() => {
+            if (modo === "erro" && rec.onerror) rec.onerror({ error: "not-allowed" });
+            else if (modo === "resultado" && rec.onresult) rec.onresult({ results: [[{ transcript, confidence }]] });
+            else if (modo === "fimSemResultado" && rec.onend) rec.onend();
+            // "mudo": nunca responde — o timeout do serviço resolve
+          }, 5);
+        },
+        stop() {},
+        abort() {},
+      };
+      return rec;
+    };
+  }
+
+  const ok = await criarServicoASR({ criarReconhecimento: recFake("resultado") }).ouvir();
+  assert(ok.participou === true && ok.confianca === 0.4, "fala detectada → participou");
+
+  const negado = await criarServicoASR({ criarReconhecimento: recFake("erro") }).ouvir();
+  assert(negado.participou === false && negado.confianca === 0, "sem permissão/erro → resolve não-participação (nunca rejeita)");
+
+  const semResultado = await criarServicoASR({ criarReconhecimento: recFake("fimSemResultado") }).ouvir();
+  assert(semResultado.participou === false, "terminou sem resultado → não-participação gentil");
+
+  const calado = await criarServicoASR({ criarReconhecimento: recFake("mudo") }).ouvir({ duracaoMaxMs: 30 });
+  assert(calado.participou === false, "timeout de escuta → resolve não-participação (portão não trava)");
+
+  const semApi = await criarServicoASR({ criarReconhecimento: () => null }).ouvir();
+  assert(semApi.participou === false, "sem microfone/API → resolve na hora, sem quebrar o portão");
+
+  const fabricaQuebrada = await criarServicoASR({
+    criarReconhecimento: () => {
+      throw new Error("boom");
+    },
+  }).ouvir();
+  assert(fabricaQuebrada.participou === false, "fábrica que explode → resolve não-participação (nunca rejeita)");
+
+  // bun não tem SpeechRecognition: o singleton degrada exatamente como o doc pede.
+  const singleton = await asr.ouvir({ duracaoMaxMs: 50 });
+  assert(singleton.participou === false && singleton.confianca === 0, "singleton sem Web Speech → não-participação imediata");
 }
 
 console.log(`\n${"=".repeat(50)}`);

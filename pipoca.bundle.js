@@ -1483,6 +1483,98 @@
   }
   var tts = new ServicoTTSWebSpeech;
 
+  // src/servicos/asr.ts
+  function avaliarParticipacao(transcricao, confianca) {
+    const falou = typeof transcricao === "string" && transcricao.trim().length > 0;
+    if (!falou)
+      return { participou: false, confianca: 0 };
+    const c = typeof confianca === "number" && confianca >= 0 && confianca <= 1 ? confianca : 0.3;
+    return { participou: true, confianca: c };
+  }
+  function asrDisponivel() {
+    try {
+      const g = globalThis;
+      return !!(g["SpeechRecognition"] || g["webkitSpeechRecognition"]);
+    } catch {
+      return false;
+    }
+  }
+  function reconhecimentoDoNavegador() {
+    try {
+      const g = globalThis;
+      const Ctor = g["SpeechRecognition"] || g["webkitSpeechRecognition"];
+      return Ctor ? new Ctor : null;
+    } catch {
+      return null;
+    }
+  }
+  function criarServicoASR(deps) {
+    const fabricaRec = deps && deps.criarReconhecimento || reconhecimentoDoNavegador;
+    const duracaoPadrao = deps && deps.duracaoMaxMs || 6000;
+    return {
+      ouvir(opts) {
+        return new Promise((resolve) => {
+          let terminado = false;
+          let timer = null;
+          const fim = (r) => {
+            if (terminado)
+              return;
+            terminado = true;
+            if (timer)
+              clearTimeout(timer);
+            resolve(r);
+          };
+          let rec = null;
+          try {
+            rec = fabricaRec();
+          } catch {
+            rec = null;
+          }
+          if (!rec) {
+            fim({ participou: false, confianca: 0 });
+            return;
+          }
+          try {
+            rec.lang = opts && opts.lang || "pt-BR";
+            if ("interimResults" in rec)
+              rec.interimResults = false;
+            if ("maxAlternatives" in rec)
+              rec.maxAlternatives = 1;
+            rec.onresult = (ev) => {
+              try {
+                const r = ev;
+                const alt = r && r.results && r.results[0] ? r.results[0][0] : undefined;
+                const transcricao = alt && typeof alt.transcript === "string" ? alt.transcript : "";
+                fim(avaliarParticipacao(transcricao, alt ? alt.confidence : undefined));
+              } catch {
+                fim({ participou: false, confianca: 0 });
+              }
+              try {
+                if (rec && rec.stop)
+                  rec.stop();
+              } catch {}
+            };
+            rec.onerror = () => fim({ participou: false, confianca: 0 });
+            rec.onend = () => fim({ participou: false, confianca: 0 });
+            const teto = opts && opts.duracaoMaxMs || duracaoPadrao;
+            timer = setTimeout(() => {
+              try {
+                const parar = rec && (rec.abort || rec.stop);
+                if (rec && parar)
+                  parar.call(rec);
+              } catch {}
+              fim({ participou: false, confianca: 0 });
+            }, teto);
+            rec.start();
+          } catch {
+            fim({ participou: false, confianca: 0 });
+          }
+        });
+      }
+    };
+  }
+  var asr = criarServicoASR();
+
   // src/core/telemetria.ts
   var ESQUEMA_TELEMETRIA = "pipoca.telemetria.v1";
   var TIPOS_VALIDOS = [
@@ -2097,6 +2189,7 @@
     },
     flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos },
     tts,
+    asr: { asr, criarServicoASR, asrDisponivel, avaliarParticipacao },
     criarRepositorio,
     telemetria: {
       criarEvento,

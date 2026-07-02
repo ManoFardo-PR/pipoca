@@ -87,6 +87,7 @@ import { iniciarSessao, tick, encerrarSessao, formatarRestante } from "../core/s
 import { estiloLeitura, paletaContraste, transicao, animacaoCena } from "../core/a11y.js";
 import { tokenizarTrecho, ehPalavraDificil, silabar } from "../core/leitura.js";
 import { tts } from "../servicos/tts.js";
+import { asr, asrDisponivel, avaliarParticipacao, criarServicoASR } from "../servicos/asr.js";
 import { criarRepositorio } from "../core/persistencia/index.js";
 import { criarEvento } from "../core/telemetria.js";
 import {
@@ -199,6 +200,7 @@ const PipocaCanonico = {
 
   // --- serviços / seams ---
   tts,
+  asr: { asr, criarServicoASR, asrDisponivel, avaliarParticipacao },
   criarRepositorio,
 
   // --- telemetria (TELE) ---

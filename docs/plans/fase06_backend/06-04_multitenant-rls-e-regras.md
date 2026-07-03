@@ -1,5 +1,7 @@
 # fase06 · 06-04 · Multi-tenant: RLS e regras
 
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO (MVP no Supabase real)** — `escopoTenant(sessao)` puro em `src/backend/tenant.ts` (família → tenant sintético por uid; aplicado pelo repo remoto na coluna tenant_id) + `adaptadores/rls_supabase.sql` APLICADO ao projeto real: dono com DEFAULT `auth.uid()` no banco (o cliente nunca envia — spoofing fechado), gate de operador via função SECURITY DEFINER com EXECUTE endurecido pós-advisors, tabela de uso de IA deny-all (só a função com service role) e TRIGGER de teto de perfis por plano (limites respeitados no dado que existe). RLS verificado AO VIVO: anon lê 0 linhas e a escrita é negada. `rules_firebase.txt` = template de paridade (PARIDADE.md). Pendências: vínculo explícito conta↔tenant e telas do admin sobre PostgREST. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase06-06-04`
 - nó(s) da arquitetura: —

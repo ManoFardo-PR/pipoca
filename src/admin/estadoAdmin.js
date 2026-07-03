@@ -49,6 +49,25 @@
     return _repoAdmin;
   }
 
+  // fase06 · backend remoto (auth do operador de verdade). Config "local"
+  // (ou bundle sem fachada) → null, e TODO o caminho local segue byte-idêntico.
+  function _backendRemoto() {
+    var C = _canon();
+    if (!C || !C.backend) return null;
+    try {
+      var cfg = C.backend.configDoAmbiente();
+      if (cfg.provedor === "local") return null;
+      return C.backend.obterBackend(cfg);
+    } catch (_) { return null; }
+  }
+
+  // SessaoAuth (remota) → SessaoSuperAdmin que o guard/telas já entendem.
+  function _sessaoDeAuth(s) {
+    var C = _canon();
+    var escopo = s && s.tenantId ? [s.tenantId] : "todos";
+    return C.auth.criarSessaoSuperAdmin(s.uid, escopo, Date.now(), "remoto:" + s.uid);
+  }
+
   // Merge raso + GUARD fail-closed: telaAdmin protegida sem sessão válida → login.
   function setState(patch) {
     if (patch) {
@@ -71,8 +90,19 @@
 
   function irParaTela(n) { setState({ telaAdmin: n }); }
 
-  // Login do operador (1º uso semeia a credencial — aviso de MVP na tela).
+  // Login do operador. fase06: com backend remoto, a credencial é do servidor
+  // (GoTrue + tabela operadores); no local, o 1º uso semeia a credencial (MVP).
   function entrarSuperAdmin(email, senha) {
+    var remoto = _backendRemoto();
+    if (remoto) {
+      return remoto.auth.entrarSuperAdmin({ email: email, senha: senha }).then(function (s) {
+        state.sessao = _sessaoDeAuth(s);
+        setState({ telaAdmin: 2, erro: null });
+        return { ok: true };
+      }).catch(function () {
+        return { ok: false, erro: "Não foi possível entrar. Confira os dados e tente de novo." }; // neutro
+      });
+    }
     var repo = repoAdmin();
     if (!repo) return Promise.resolve({ ok: false, erro: "Plataforma indisponível. Recarregue a página." });
     return repo.autenticar(email, senha).then(function (sessao) {
@@ -86,6 +116,8 @@
   }
 
   function sairSuperAdmin() {
+    var remoto = _backendRemoto();
+    if (remoto) { try { remoto.auth.sair().catch(function () {}); } catch (_) {} }
     var repo = repoAdmin();
     var fim = repo ? repo.encerrarSessao() : Promise.resolve();
     return fim.then(function () {
@@ -113,8 +145,20 @@
   };
 
   // Boot: sessão persistida e válida → hub; senão login.
+  // fase06: com backend remoto, a sessão do operador vem do espelho do
+  // ServicoAuth (síncrono); no local, do repoAdmin como sempre.
   var C0 = _canon();
-  if (C0) {
+  var _remoto0 = _backendRemoto();
+  if (_remoto0 && C0) {
+    var _s0 = null;
+    try { _s0 = _remoto0.auth.sessaoAtual(); } catch (_) {}
+    if (_s0 && _s0.tipo === "superadmin") {
+      state.sessao = _sessaoDeAuth(_s0);
+      setState({ telaAdmin: 2 });
+    } else {
+      setState({ telaAdmin: TELA_LOGIN });
+    }
+  } else if (C0) {
     repoAdmin().carregarSessao().then(function (s) {
       if (s && C0.auth.sessaoSuperAdminValida(s, Date.now())) {
         state.sessao = s;

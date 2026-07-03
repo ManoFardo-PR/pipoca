@@ -46,6 +46,7 @@ import {
 } from "./validar_grafo.js";
 import {
   CONFIG_IA_PADRAO,
+  MODELOS_POR_PROVEDOR,
   validarConfigIA,
   iaEfetivaDisponivel,
   carregarConfigIA,
@@ -339,6 +340,12 @@ console.log("\n=== SA_AI · config por tenant, gate triplo, sem chaves ===");
   salvarConfigIA("ten_b", { ...valida, provedor: "gemini", modelo: "gemini-flash", fallback: null }, st);
   assert(carregarConfigIA("ten_a", st).provedor === "claude" && carregarConfigIA("ten_b", st).provedor === "gemini", "configs por tenant não se misturam");
   assert(carregarConfigIA("ten_novo", st).provedor === null, "tenant sem config carrega o padrão sem IA");
+
+  // fase06 · DeepSeek entra no catálogo (4 provedores)
+  assert(Object.keys(MODELOS_POR_PROVEDOR).length === 4 && MODELOS_POR_PROVEDOR.deepseek[0] === "deepseek-chat", "catálogo tem 4 provedores; deepseek-chat é o modelo do MVP");
+  const comDeepseek: ConfigIaTenant = { provedor: "deepseek", modelo: "deepseek-chat", cotaMensal: 50, custoMaxMensal: 5, fallback: "claude" };
+  assert(validarConfigIA(comDeepseek).length === 0, "config com deepseek é válida");
+  assert(validarConfigIA({ ...valida, fallback: "deepseek" }).length === 0, "deepseek também vale como fallback");
 }
 
 // ─── flags globais (04-06) ───────────────────────────────────────────────────

@@ -14,6 +14,7 @@ import type { ProvedorIA, Transporte } from "../provedor.js";
 import { criarAdaptadorClaude } from "./claude.js";
 import { criarAdaptadorGemini } from "./gemini.js";
 import { criarAdaptadorOpenAI } from "./openai.js";
+import { criarAdaptadorDeepSeek } from "./deepseek.js";
 
 export interface DepsSelecao {
   transporte?: Transporte;
@@ -29,10 +30,14 @@ export function selecionarAdaptador(config: ConfigIaTenant, deps?: DepsSelecao):
   if (!modelo) throw new Error("Config de IA sem modelo para o provedor.");
 
   const transporte = deps ? deps.transporte : undefined;
+  // Branches EXPLÍCITOS por provedor (fallthrough silencioso rotearia um
+  // provedor novo para a URL errada sem erro de compilação).
   let bruto: ProvedorIA;
   if (provedor === "claude") bruto = criarAdaptadorClaude({ modelo, transporte });
   else if (provedor === "gemini") bruto = criarAdaptadorGemini({ modelo, transporte });
-  else bruto = criarAdaptadorOpenAI({ modelo, transporte });
+  else if (provedor === "openai") bruto = criarAdaptadorOpenAI({ modelo, transporte });
+  else if (provedor === "deepseek") bruto = criarAdaptadorDeepSeek({ modelo, transporte });
+  else throw new Error("Provedor de IA sem adaptador: " + String(provedor));
 
   // GUARD sempre no caminho: AIPROV → GUARD → adaptador.
   return envolverComGuardrails(bruto, deps ? deps.guardrails : undefined) as ProvedorIA;

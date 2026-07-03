@@ -66,6 +66,11 @@ try {
     "C:/Users/mfard/AppData/Local/ms-playwright/chromium-1223/chrome-win64/chrome.exe";
   browser = await chromium.launch({ headless: true, executablePath: EXEC });
   const page = await browser.newPage();
+  // fase06 · o e2e roda SEMPRE offline: força o backend "local" ANTES de
+  // qualquer script da página (o pipoca.config.js commitado respeita via ||).
+  await page.addInitScript(() => {
+    window.PIPOCA_CONFIG = { provedor: "local" };
+  });
   const erros = [];
   page.on("pageerror", (e) => erros.push(String(e)));
   const consoleErr = [];
@@ -80,6 +85,10 @@ try {
   );
 
   console.log("\n=== Boot do app canônico (/) + seam ===");
+  assert(
+    (await page.evaluate(() => window.PIPOCA_CONFIG && window.PIPOCA_CONFIG.provedor)) === "local",
+    "fase06: backend local forçado no e2e (config injetada vence o pipoca.config.js)"
+  );
   const r = await page.evaluate(() => {
     const motor = window.PipocaApp.motor, ordem = window.PipocaApp.ordem;
     return {
@@ -281,6 +290,22 @@ try {
   await page.waitForFunction(() => window.PipocaApp.estado.tela === 6, { timeout: 4000 });
   assert(true, "fase05: o portão avança pelo caminho do cuidador — sem microfone NÃO quebra");
   await page.evaluate(() => localStorage.removeItem("pipoca.admin.flags.v1"));
+
+  // ── fase06 · login pelo seam: local funciona; backend inacessível degrada NEUTRO ──
+  const fase06Login = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const okLocal = await App.entrarNaConta("casa06@pipoca.dev", "segredo-e2e");
+    // backend remoto MORTO (porta fechada): erro neutro, sem quebrar o app
+    window.PIPOCA_CONFIG = { provedor: "supabase", supabaseUrl: "http://127.0.0.1:9", supabaseAnonKey: "x" };
+    const okRemotoMorto = await App.entrarNaConta("casa06@pipoca.dev", "segredo-e2e");
+    window.PIPOCA_CONFIG = { provedor: "local" };
+    return {
+      local: !!(okLocal && okLocal.ok === true),
+      remotoMorto: !!(okRemotoMorto && okRemotoMorto.ok === false && typeof okRemotoMorto.erro === "string"),
+    };
+  });
+  assert(fase06Login.local, "fase06: login da família pelo seam (backend local) funciona");
+  assert(fase06Login.remotoMorto, "fase06: backend inacessível → erro NEUTRO, app não quebra (fail-soft)");
 
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 

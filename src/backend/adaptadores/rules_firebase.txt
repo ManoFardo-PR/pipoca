@@ -1,0 +1,55 @@
+// Pipoca — Security Rules do Firebase (TEMPLATE de paridade) · doc fase06-06-04
+// -------------------------------------------------------------------------------
+// Paridade com src/backend/adaptadores/rls_supabase.sql — a mesma regra que o
+// RLS impõe no Postgres, expressa como Security Rules do Firestore. Este build
+// usa o adaptador Supabase; o Firebase é stub honesto (ver PARIDADE.md). Ao
+// ativar o Firebase: colar estas rules no console + implementar os adaptadores
+// auth_firebase/repo_firebase (mesma interface — lei do backend).
+//
+// Espelho do modelo: coleções perfis/saves/telemetria com campo `dono` = uid;
+// operadores/tenants/config_ia gated por existência em /operadores/{uid};
+// uso_ia SÓ para a Cloud Function (Admin SDK ignora rules — deny-all aqui).
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function ehOperador() {
+      return exists(/databases/$(database)/documents/operadores/$(request.auth.uid));
+    }
+    function donoValido() {
+      return request.auth != null && request.resource.data.dono == request.auth.uid;
+    }
+
+    // ── família: cada doc pertence ao dono ──────────────────────────────────
+    match /perfis/{perfilId} {
+      allow read, delete: if request.auth != null && resource.data.dono == request.auth.uid;
+      allow create, update: if donoValido();
+    }
+    match /saves/{perfilId} {
+      allow read, delete: if request.auth != null && resource.data.dono == request.auth.uid;
+      allow create, update: if donoValido();
+    }
+    match /telemetria/{eventoId} {
+      allow read, delete: if request.auth != null && resource.data.dono == request.auth.uid;
+      allow create: if donoValido();
+    }
+
+    // ── plataforma (operador) ───────────────────────────────────────────────
+    match /operadores/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false; // seed só via Admin SDK (paridade: service role)
+    }
+    match /tenants/{tenantId} {
+      allow read, write: if ehOperador();
+    }
+    match /config_ia/{tenantId} {
+      allow read, write: if ehOperador();
+    }
+
+    // ── uso_ia: deny-all do cliente (só a Cloud Function via Admin SDK) ─────
+    match /uso_ia/{docId} {
+      allow read, write: if false;
+    }
+  }
+}

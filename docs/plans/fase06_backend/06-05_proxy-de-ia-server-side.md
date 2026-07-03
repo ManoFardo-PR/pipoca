@@ -1,5 +1,7 @@
 # fase06 · 06-05 · Proxy de IA server-side
 
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO (deployado; chaves via secrets)** — Edge Function `functions/proxy-ia/` DEPLOYADA no projeto real com verify_jwt (sem bearer → 401, verificado ao vivo). As chaves dos 4 provedores (Anthropic, OpenAI, Gemini e DeepSeek) vivem SÓ nos secrets da função — nenhuma no bundle (critério verificado por teste). O SERVIDOR decide provedor/modelo pela config de IA do tenant e checa cota/custo persistidos ANTES da chamada; guardrails server-side na entrada e na saída (espelho do canônico da fase05 — defesa em profundidade); fallback da config; erros limpos (401/400/403/422/502/503). Cliente `src/backend/proxy_ia.ts` + `provedorViaProxy` entram na cadeia do orquestrador: qualquer falha degrada para o provedor simulado → Motor A (a criança nunca vê erro). Sem secrets configurados o proxy responde 503 e o app segue como antes (passo manual na PARIDADE.md). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase06-06-05`
 - nó(s) da arquitetura: —

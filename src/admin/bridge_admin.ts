@@ -73,6 +73,10 @@ import {
   salvarFlags,
 } from "./flags.js";
 import { modosPadrao } from "../core/modos.js";
+// fase06: fachada do backend trocável (auth remota do operador + espelho da
+// config de IA que o ProxyIA lê server-side). Config "local" → tudo local.
+import { espelharConfigIA, obterBackend } from "../backend/backend.js";
+import { configDoAmbiente, normalizarConfigBackend } from "../backend/config.js";
 
 const PipocaAdminCanonico = {
   auth: {
@@ -134,6 +138,8 @@ const PipocaAdminCanonico = {
     salvarFlags,
   },
   modos: { modosPadrao },
+  // fase06 · backend trocável (lei do backend: telas/estado só falam com a fachada)
+  backend: { obterBackend, configDoAmbiente, normalizarConfigBackend, espelharConfigIA },
 };
 
 declare global {

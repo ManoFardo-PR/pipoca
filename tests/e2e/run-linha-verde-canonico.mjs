@@ -465,6 +465,46 @@ try {
   assert(t8Pote, "T8 mostra o cartão do pote com o saldo da criança do chip");
   await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
 
+  // ── UX por perfil (etapa 6) · engrenagem → "Sou o adulto" → PIN → painel →
+  // voltar RETOMA a leitura onde estava (telaCriancaAnterior), composição intacta.
+  console.log("\n=== UX por perfil · engrenagem → cuidador → retomada da leitura ===");
+  await page.evaluate(() => {
+    const App = window.PipocaApp;
+    App.iniciarComposicao();
+    App.setState({ tela: 5, gateTrecho: "A luzinha piscou de novo.", gateStage: "reading", gatePendente: null });
+  });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 5, { timeout: 4000 });
+  const compAntes = await page.evaluate(() =>
+    JSON.stringify(window.PipocaApp.estado.comp && window.PipocaApp.estado.comp.linha)
+  );
+  // ⚙ abre o modal "Do meu jeito"; o rodapé leva ao portão
+  await page.evaluate(() => { window.PipocaApp.setState({ showA11y: true }); });
+  await page.waitForFunction(() => /Sou o adulto/i.test(document.body.innerText), { timeout: 4000 });
+  await page.locator("button", { hasText: "Sou o adulto" }).first().click();
+  await page.waitForFunction(
+    () => window.PipocaApp.estado.tela === 1 && !window.PipocaApp.estado.showA11y,
+    { timeout: 4000 }
+  );
+  assert(true, "⚙ → 'Sou o adulto' fecha o modal e abre o PINGATE");
+  // PIN certo → hub do cuidador; "Para a criança" → volta pra T5, não pra T2
+  await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 });
+  await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 5, { timeout: 4000 });
+  const volta = await page.evaluate(() => ({
+    modo: window.PipocaApp.estado.modoApp,
+    comp: JSON.stringify(window.PipocaApp.estado.comp && window.PipocaApp.estado.comp.linha),
+  }));
+  assert(volta.modo === "crianca", "voltar do painel RETOMA a T5 no modo criança (não cai na T2)");
+  assert(volta.comp === compAntes && volta.comp !== "null", "a composição da leitura segue intacta na volta");
+  // Cancelar o PIN também devolve à mesma tela (aoVoltarParaCrianca é a mesma porta).
+  await page.evaluate(() => { window.PipocaApp.abrirPortao(); });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 1, { timeout: 4000 });
+  await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 5, { timeout: 4000 });
+  assert(true, "cancelar o PIN devolve à mesma tela da leitura (retomada sem perdas)");
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 2 }); });
+
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 
   console.log(`\n${"=".repeat(50)}`);

@@ -60,12 +60,28 @@ O caminho verde roda **inteiro sobre os módulos canônicos** — a convergênci
   leitura sempre local, escrita espelhada fire-and-forget, tombstones para apagar offline e
   sincronização inicial no login (união com preferência local). Sem rede/config, o app é exatamente o
   de antes. Passos operacionais restantes em fase06_backend/PARIDADE.md.
+- **UX por perfil (2026-07-03)** — o save por perfil deixou de ser letra morta: `src/app/estado.js`
+  projeta um EstadoApp mínimo (`_projetarSave`, nunca o state cru) com debounce (perfilId capturado
+  no agendamento) e flush nas bordas; `selecionarPerfil` é o ÚNICO caminho que hidrata (troca real
+  zera os slices — cada criança começa do zero; mesmo id retoma a composição). O `pipoca.save.v1`
+  ganhou slices ADITIVO-OPCIONAIS saneados (limites, cardapio, cenariosLiberados, coletaTelemetria —
+  `schemas.ts` sanea, nunca rejeita por eles; regra de versão emendada: aditivo-opcional ok,
+  renomear/mudar tipo/remover = v2). Telas do cuidador (Limites/Regras & IA/Privacidade) configuram
+  POR CRIANÇA via chips (`lerPrefsPerfil`/`gravarPrefsPerfil`; IaToggle keyado de verdade — a coleta
+  de PC_PRIV agora persiste por perfil). T7 consome o cardápio configurado (com scroll) e T3 obedece
+  `cenariosLiberados`. Dashboards: cartão do pote no T8, saldos por criança no T11, T3 como casinha
+  (saudação + guardado à vista). Engrenagem: o modal "Do meu jeito" ganhou "🔒 Sou o adulto"
+  (→ PINGATE) e `aoVoltarParaCrianca` retoma a tela onde a criança estava (`_telaCriancaAnterior`,
+  invalidação central na troca de perfil). Pelo repo sincronizado (fase06), cada gravação de save
+  espelha no Supabase quando há sessão.
 - **Dívida conhecida (coexistência v1/v2)** — `_initMotor()` em `src/app/estado.js` ainda carrega
   `quintal_grafo.json` (v1) em paralelo à v2; o motor narrativo (A ou B desde a fase05) segue
   instanciado, mas a linha verde usa a composição.
 
-### Pendências reais (2026-07-02)
-- Persistir a preferência de coleta de PC_PRIV (`coletaTelemetria` hoje é efêmera, some ao recarregar).
+### Pendências reais (2026-07-03)
+- Reabrir a Sessao de leitura ao voltar do portão: `_entrarCuidador` encerra com calma (correto) e a
+  retomada via `_telaCriancaAnterior` devolve a criança à tela onde estava, mas uma nova Sessao só
+  nasce na próxima composição — aceito no MVP, follow-up.
 - Caminho Windows hardcoded (`PW_CORE`) em `tests/e2e/run-linha-verde-canonico.mjs`.
 - Runner legado `tests/e2e/run-linha-verde.mjs` desalinhado das telas canônicas (não é portão; candidato a `old/`).
 - Fase 06 (operacional, fora do código): desligar "Confirm email" no dashboard, configurar os secrets

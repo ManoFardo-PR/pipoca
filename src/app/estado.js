@@ -119,10 +119,16 @@
         _montarMotor(_grafo);
       }
       // UX por perfil · perfil trocado por fora do fluxo (e2e, remoção em T12):
-      // invalida a gravação pendente do perfil anterior (nunca contamina o novo).
-      if ("perfil" in patch && _savePerfilId && (!state.perfil || state.perfil.id !== _savePerfilId)) {
-        if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null; }
-        _savePerfilId = null;
+      // invalida a gravação pendente do perfil anterior (nunca contamina o novo)
+      // e o ponto de retomada do portão (não devolve a criança B à tela da A).
+      if ("perfil" in patch) {
+        if (_savePerfilId && (!state.perfil || state.perfil.id !== _savePerfilId)) {
+          if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null; }
+          _savePerfilId = null;
+        }
+        if (_telaCriancaAnterior && (!state.perfil || state.perfil.id !== _telaCriancaAnterior.perfilId)) {
+          _telaCriancaAnterior = null;
+        }
       }
       // UX por perfil · qualquer toque num slice persistível agenda a gravação
       // do save do perfil ativo (debounce; as bordas drenam com flush).
@@ -435,12 +441,31 @@
     return { ok: false, bloqueado: r.bloqueado, dica: r.dica };
   }
 
+  // UX por perfil · ponto de retomada do portão: onde a criança estava (T2–T7)
+  // quando o cuidador abriu o PINGATE. Invalidação central no setState (troca
+  // de perfil) e em sairDaConta.
+  var _telaCriancaAnterior = null;
+
+  function abrirPortao() {
+    var t = state.tela;
+    var ehInfantil = typeof t === "number" && t >= 2 && t <= 7;
+    _telaCriancaAnterior = ehInfantil
+      ? { tela: t, perfilId: state.perfil ? state.perfil.id : null }
+      : null;
+    _irPara(1);
+  }
+
   function aoVoltarParaCrianca() {
     var M = window.PipocaCanonico && window.PipocaCanonico.modoApp;
     state.modoApp = M ? M.aoVoltarParaCrianca() : "crianca";
     state.showA11y = false;
     state.showOnboarding = false;
-    _irPara(2);
+    // Retoma a tela capturada SÓ se a mesma criança segue ativa (fallback T2).
+    var ant = _telaCriancaAnterior;
+    _telaCriancaAnterior = null;
+    var destino = 2;
+    if (ant && ant.perfilId && state.perfil && state.perfil.id === ant.perfilId) destino = ant.tela;
+    _irPara(destino);
   }
 
   // Sair da conta da família (HH_LOGIN): limpa a sessão e volta ao login (T9).
@@ -448,6 +473,7 @@
   // o espelho da casa) — fallback direto no espelho para bundle antigo.
   function sairDaConta() {
     flushSavePendente();
+    _telaCriancaAnterior = null;
     _encerrarSessaoLeitura();
     var Canon = window.PipocaCanonico;
     var saiuPeloSeam = false;
@@ -780,7 +806,7 @@
     lerPrefsPerfil: lerPrefsPerfil,
     gravarPrefsPerfil: gravarPrefsPerfil,
     verificarPinCuidador: verificarPinCuidador,
-    abrirPortao: function () { _irPara(1); },
+    abrirPortao: abrirPortao,
     aoVoltarParaCrianca: aoVoltarParaCrianca,
     entrarNaConta: entrarNaConta,
     sairDaConta: sairDaConta,

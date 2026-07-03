@@ -265,7 +265,8 @@ class Component extends DCLogic {
       spendPct: pct + '%',
       rewardMenu,
       acaoPrimaria: convergiu ? (() => this.brincarDeNovo()) : (() => this.continuar()),
-      primariaLabel: convergiu ? '🌱 Brincar de novo' : '📖 Continuar lendo',
+      // Fim da história: o caminho claro é voltar à casinha (T3) e escolher outra.
+      primariaLabel: convergiu ? '🏠 Escolher outra história' : '📖 Continuar lendo',
       primariaStyle: estiloPrimaria,
       mostrarSecundaria: !convergiu,
       acaoSecundaria: () => this.brincarDeNovo(),

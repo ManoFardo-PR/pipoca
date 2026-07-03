@@ -335,6 +335,64 @@
     }).catch(function () {});
   }
 
+  // ─── Preferências por criança (telas do cuidador com chips) ───────────────
+  // lerPrefsPerfil: perfil ATIVO → slices vivos; não-ativo → save do repo.
+  // Sempre devolve Promise com a mesma forma (defaults zerados por baixo).
+  function lerPrefsPerfil(perfilId) {
+    var zero = _slicesZerados();
+    function montar(fonte) {
+      return {
+        modos: (fonte && fonte.modos) || zero.modos,
+        limites: (fonte && fonte.limites) || null,
+        cardapio: (fonte && fonte.cardapio) || null,
+        cenariosLiberados: (fonte && fonte.cenariosLiberados) || null,
+        coletaTelemetria: !(fonte && fonte.coletaTelemetria === false),
+        economia: (fonte && fonte.economia) || zero.economia,
+      };
+    }
+    if (state.perfil && state.perfil.id === perfilId) {
+      flushSavePendente();
+      return Promise.resolve(montar(state));
+    }
+    return repo.carregarSave(perfilId).then(montar).catch(function () { return montar(null); });
+  }
+
+  // gravarPrefsPerfil: perfil ATIVO → setState (o pipeline do save persiste —
+  // fonte ÚNICA de escrita, sem dupla-gravação); não-ativo → read-modify-write
+  // do save direto, SEM tocar o state vivo (nem a sessão da criança).
+  function gravarPrefsPerfil(perfilId, patchSlices) {
+    if (!perfilId || !patchSlices) return Promise.resolve();
+    var permitidos = {};
+    for (var i = 0; i < SLICES_PERSISTIVEIS.length; i++) {
+      var k = SLICES_PERSISTIVEIS[i];
+      if (k in patchSlices) permitidos[k] = patchSlices[k];
+    }
+    if (state.perfil && state.perfil.id === perfilId) {
+      setState(permitidos);
+      return Promise.resolve();
+    }
+    return repo.carregarSave(perfilId).then(function (save) {
+      var zero = _slicesZerados();
+      var novo = {
+        tela: 2,
+        perfil: (save && save.perfil) || null,
+        sessao: null,
+        historia: (save && save.historia) || zero.historia,
+        economia: (save && save.economia) || zero.economia,
+        modos: (save && save.modos) || zero.modos,
+        a11y: (save && save.a11y) || zero.a11y,
+        limites: (save && save.limites) || null,
+        cardapio: (save && save.cardapio) || null,
+        cenariosLiberados: (save && save.cenariosLiberados) || null,
+        coletaTelemetria: !(save && save.coletaTelemetria === false),
+      };
+      for (var c in permitidos) {
+        if (Object.prototype.hasOwnProperty.call(permitidos, c)) novo[c] = permitidos[c];
+      }
+      return repo.salvarSave(perfilId, novo);
+    }).catch(function () {});
+  }
+
   // Troca (ou retoma) o perfil ativo — o ÚNICO caminho que hidrata do save.
   // Troca real: drena o save do anterior, zera os slices (a composição da
   // criança A não vaza pra B) e hidrata em paralelo (repo local resolve em
@@ -719,6 +777,8 @@
     get cenarioV2() { return _cenarioV2; },
     repo: repo,
     selecionarPerfil: selecionarPerfil,
+    lerPrefsPerfil: lerPrefsPerfil,
+    gravarPrefsPerfil: gravarPrefsPerfil,
     verificarPinCuidador: verificarPinCuidador,
     abrirPortao: function () { _irPara(1); },
     aoVoltarParaCrianca: aoVoltarParaCrianca,

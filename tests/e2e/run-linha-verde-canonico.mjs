@@ -412,6 +412,42 @@ try {
   assert(t3Liberado.emBreve === 3 && t3Liberado.quintal, "T3 obedece cenariosLiberados (quarto liberado vira 'Novo!'; quintal segue em destaque)");
   await page.evaluate(() => { window.PipocaApp.setState({ cenariosLiberados: null, cardapio: null }); });
 
+  // ── UX por perfil (etapa 4) · prefs por chip: gravar no perfil NÃO-ativo vai
+  // pro save dele sem tocar o estado vivo; no ATIVO muda o vivo (fonte única).
+  console.log("\n=== UX por perfil · prefs por criança (chips do cuidador) ===");
+  const uxPrefs = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const vivoAntes = App.estado.modos.verificacao;
+    await App.gravarPrefsPerfil("uxB", {
+      modos: { palco: "Palco", desfecho: "aberto", verificacao: "auto", iaLigada: false },
+    });
+    const vivoDepois = App.estado.modos.verificacao;
+    const prefsB = await App.lerPrefsPerfil("uxB");
+    await App.gravarPrefsPerfil("uxA", {
+      modos: Object.assign({}, App.estado.modos, { verificacao: "auto" }),
+    });
+    return {
+      naoAtivoNaoVaza: vivoDepois === vivoAntes,
+      prefsB: prefsB.modos.verificacao + ":" + prefsB.modos.desfecho,
+      vivoAtivo: App.estado.modos.verificacao,
+    };
+  });
+  assert(uxPrefs.naoAtivoNaoVaza, "gravar prefs de perfil NÃO-ativo não muda o estado vivo");
+  assert(uxPrefs.prefsB === "auto:aberto", "prefs do não-ativo foram pro save dele (lerPrefsPerfil confirma)");
+  assert(uxPrefs.vivoAtivo === "auto", "gravar prefs do perfil ATIVO muda o vivo (telas/motor reagem)");
+
+  // Chips das crianças aparecem na tela do cuidador (T14 Regras & IA).
+  await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 });
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 14 }); });
+  await page.waitForFunction(() => /Quem confirma a leitura/i.test(document.body.innerText), { timeout: 4000 });
+  const uxChips = await page.evaluate(() => ({
+    ana: /Ana/.test(document.body.innerText),
+    bia: /Bia/.test(document.body.innerText),
+  }));
+  assert(uxChips.ana && uxChips.bia, "T14 mostra os chips das crianças (configuração independente)");
+  await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
+
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 
   console.log(`\n${"=".repeat(50)}`);

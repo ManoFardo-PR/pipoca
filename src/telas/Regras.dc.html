@@ -25,7 +25,16 @@
       </div>
       <button class="pip-rg-btn" onClick="{{ voltar }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
     </div>
-    <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 22px;">Como a leitura é confirmada e como a história termina. Tudo aqui vale já na próxima leitura.</p>
+    <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 14px;">Como a leitura é confirmada e como a história termina. Tudo aqui vale já na próxima leitura.</p>
+
+    <!-- Chips por criança (configuração independente · UX por perfil) -->
+    <sc-if value="{{ temVariosPerfis }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;">
+        <sc-for list="{{ chipsPerfis }}" as="cp" hint-placeholder-count="2">
+          <button class="pip-rg-btn" onClick="{{ cp.onTap }}" style="{{ cp.style }}">{{ cp.nome }}</button>
+        </sc-for>
+      </div>
+    </sc-if>
 
     <!-- Verificação -->
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
@@ -88,28 +97,61 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = {};
+  // UX por perfil: modos/cardápio são da criança do CHIP (lerPrefsPerfil);
+  // gravar vai por gravarPrefsPerfil — no chip da criança ativa muda o vivo
+  // (e o motor remonta na borda), nos demais só o save (o vivo não muda).
+  state = { perfis: [], chipId: null, modos: null, cardapio: null };
 
-  componentDidMount() {
-    // Re-renderiza quando o estado global muda (modos/cardapio vêm de lá).
+  async componentDidMount() {
     const App = window.PipocaApp;
-    if (App && App.subscribe) this._unsub = App.subscribe(() => this.setState({}));
+    try {
+      const perfis = App && App.repo ? await App.repo.carregarPerfis() : [];
+      const ativo = App && App.estado.perfil ? App.estado.perfil.id : null;
+      this.setState({ perfis: perfis || [] });
+      const chipId = ativo || (perfis[0] ? perfis[0].id : null);
+      if (chipId) await this._carregarChip(chipId);
+    } catch (_) {}
+    // Mudanças globais (ex.: kill-switch) re-renderizam; o chip ATIVO re-sincroniza.
+    if (App && App.subscribe) {
+      this._unsub = App.subscribe(() => {
+        if (this._ehAtivo()) this.setState({ modos: App.estado.modos, cardapio: App.estado.cardapio });
+        else this.setState({});
+      });
+    }
   }
   componentWillUnmount() { if (this._unsub) this._unsub(); }
 
-  _modos() {
+  // Trocar de chip recarrega o form com as prefs DAQUELA criança.
+  async _carregarChip(chipId) {
     const App = window.PipocaApp;
-    return (App && App.estado.modos) || { palco: 'Palco', desfecho: 'convergente', verificacao: 'cuidador', iaLigada: false };
+    try {
+      if (App && App.lerPrefsPerfil) {
+        const prefs = await App.lerPrefsPerfil(chipId);
+        this.setState({ chipId, modos: prefs.modos, cardapio: prefs.cardapio });
+        return;
+      }
+    } catch (_) {}
+    this.setState({ chipId, modos: (App && App.estado.modos) || null, cardapio: App ? App.estado.cardapio : null });
+  }
+
+  _ehAtivo() {
+    const App = window.PipocaApp;
+    return !!(App && App.estado.perfil && App.estado.perfil.id === this.state.chipId);
+  }
+
+  _modos() {
+    return this.state.modos || { palco: 'Palco', desfecho: 'convergente', verificacao: 'cuidador', iaLigada: false };
   }
   _cardapio() {
-    const App = window.PipocaApp;
     const C = window.PipocaCanonico;
-    const raw = App ? App.estado.cardapio : null;
-    return C && C.cardapio ? C.cardapio.normalizarCardapio(raw) : [];
+    return C && C.cardapio ? C.cardapio.normalizarCardapio(this.state.cardapio) : [];
   }
   _setModos(novos) {
     const App = window.PipocaApp;
-    if (App) App.setState({ modos: novos });
+    if (!App) return;
+    if (App.gravarPrefsPerfil && this.state.chipId) App.gravarPrefsPerfil(this.state.chipId, { modos: novos });
+    else App.setState({ modos: novos });
+    this.setState({ modos: novos });
   }
   _mudarCusto(id, delta) {
     const App = window.PipocaApp;
@@ -118,7 +160,10 @@ class Component extends DCLogic {
     const itens = this._cardapio().map((it) => it.id === id
       ? Object.assign({}, it, { cost: Math.max(0, (it.cost | 0) + delta) })
       : it);
-    App.setState({ cardapio: C.cardapio.normalizarCardapio(itens) });
+    const novo = C.cardapio.normalizarCardapio(itens);
+    if (App.gravarPrefsPerfil && this.state.chipId) App.gravarPrefsPerfil(this.state.chipId, { cardapio: novo });
+    else App.setState({ cardapio: novo });
+    this.setState({ cardapio: novo });
   }
 
   renderVals() {
@@ -162,7 +207,17 @@ class Component extends DCLogic {
       style: cardBase + (m.desfecho === d.id ? sel : off),
     }));
 
+    const chipBase = 'min-height:38px;border-radius:999px;border:2px solid;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;padding:6px 16px;';
+    const chipSel = 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;';
+    const chipOff = 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;';
+
     return {
+      temVariosPerfis: this.state.perfis.length > 1,
+      chipsPerfis: this.state.perfis.map((p) => ({
+        nome: p.nome,
+        onTap: () => this._carregarChip(p.id),
+        style: chipBase + (p.id === this.state.chipId ? chipSel : chipOff),
+      })),
       verificacoes,
       desfechos,
       palcoLabel: m.palco === 'Palco' ? 'Palco' : 'Ateliê',
@@ -175,7 +230,9 @@ class Component extends DCLogic {
         menos: () => this._mudarCusto(it.id, -1),
         mais: () => this._mudarCusto(it.id, +1),
       })),
-      iaPerfilId: (App && App.estado.perfil && App.estado.perfil.id) || '',
+      // UX por perfil: o toggle é keyado de VERDADE pelo chip — autorizar IA
+      // para a criança A não liga para a B.
+      iaPerfilId: this.state.chipId || '',
       iaLigada: !!m.iaLigada,
       // fase05 · provedor do MVP (simulado local): pronto quando o bundle expõe
       // ia/flags e o kill-switch da plataforma (SA_SAFE) não derrubou a IA.

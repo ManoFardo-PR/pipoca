@@ -372,6 +372,46 @@ try {
     "reload: pote e cardápio da criança persistem (save por perfil)"
   );
 
+  // ── UX por perfil (etapa 3) · as telas da criança CONSOMEM a config ──
+  // T7 lista o cardápio configurado (não mais hardcoded); T3 governa a grade
+  // pelos cenários liberados (quintal em destaque segue sempre jogável).
+  console.log("\n=== UX por perfil · telas consomem a config (T7 cardápio, T3 cenários) ===");
+  await page.evaluate(() => {
+    window.PipocaApp.setState({
+      tela: 7,
+      cardapio: [
+        { id: "pipoca", label: "Pipoca no cinema", icon: "🍿", cost: 4 },
+        { id: "gibi", label: "Gibi novo", icon: "📚", cost: 9 },
+      ],
+    });
+  });
+  await page.waitForFunction(
+    () => /Pipoca no cinema/.test(document.body.innerText) && /Gibi novo/.test(document.body.innerText),
+    { timeout: 4000 }
+  );
+  const t7Config = await page.evaluate(() => ({
+    marcador: /agrado|dividir o que você/i.test(document.body.innerText),
+    itemAntigo: /30 min de parque/.test(document.body.innerText),
+  }));
+  assert(t7Config.marcador, "T7 mantém os marcadores do pote (agrado/dividir)");
+  assert(!t7Config.itemAntigo, "T7 lista o cardápio CONFIGURADO, não o hardcoded");
+
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 3, cenariosLiberados: null }); });
+  await page.waitForFunction(
+    () => (document.body.innerText.match(/Em breve/g) || []).length === 4,
+    { timeout: 4000 }
+  );
+  const t3Padrao = await page.evaluate(() => (document.body.innerText.match(/Em breve/g) || []).length);
+  await page.evaluate(() => { window.PipocaApp.setState({ cenariosLiberados: ["quintal_anoitecer", "quarto"] }); });
+  await page.waitForFunction(() => /Novo!/.test(document.body.innerText), { timeout: 4000 });
+  const t3Liberado = await page.evaluate(() => ({
+    emBreve: (document.body.innerText.match(/Em breve/g) || []).length,
+    quintal: /Favorito de hoje/i.test(document.body.innerText),
+  }));
+  assert(t3Padrao === 4, "T3 padrão: 4 cenários da grade em 'Em breve' (só o quintal liberado)");
+  assert(t3Liberado.emBreve === 3 && t3Liberado.quintal, "T3 obedece cenariosLiberados (quarto liberado vira 'Novo!'; quintal segue em destaque)");
+  await page.evaluate(() => { window.PipocaApp.setState({ cenariosLiberados: null, cardapio: null }); });
+
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 
   console.log(`\n${"=".repeat(50)}`);

@@ -160,21 +160,31 @@ class Component extends DCLogic {
 
     const featuredSceneRef = (el) => this._inject(el, this._scene('quintal'));
 
+    // UX por perfil: a grade obedece os cenários liberados pelo cuidador
+    // (save da criança; null → CENARIOS_PADRAO = só o quintal). O quintal em
+    // destaque é SEMPRE jogável — a lista governa só os demais.
+    const Canon = window.PipocaCanonico;
+    const liberados = (Canon && Canon.cardapio)
+      ? Canon.cardapio.normalizarCenariosLiberados(estado.cenariosLiberados)
+      : ['quintal_anoitecer'];
     const gridDados = [
-      { key:'quarto',   name:'O Quarto',   desc:'Histórias antes de dormir',  badge:'Em breve', cenarioId:'', disponivel:false },
-      { key:'floresta', name:'A Floresta',  desc:'Aventura entre árvores',     badge:'Em breve', cenarioId:'', disponivel:false },
-      { key:'espaco',   name:'O Espaço',   desc:'Entre estrelas e planetas',   badge:'Em breve', cenarioId:'', disponivel:false },
-      { key:'fundomar', name:'Fundo do Mar',desc:'Com peixes e corais',        badge:'Em breve', cenarioId:'', disponivel:false },
+      { key:'quarto',   name:'O Quarto',   desc:'Histórias antes de dormir' },
+      { key:'floresta', name:'A Floresta',  desc:'Aventura entre árvores' },
+      { key:'espaco',   name:'O Espaço',   desc:'Entre estrelas e planetas' },
+      { key:'fundomar', name:'Fundo do Mar',desc:'Com peixes e corais' },
     ];
-    const gridCenas = gridDados.map(d => ({
-      name: d.name,
-      desc: d.desc,
-      badge: d.badge,
-      cursor: 'not-allowed',
-      opacidade: '.72',
-      sceneRef: (el) => { this['_scene_' + d.key] = el; this._inject(el, this._scene(d.key)); },
-      pick: () => {},
-    }));
+    const gridCenas = gridDados.map(d => {
+      const disponivel = liberados.indexOf(d.key) >= 0;
+      return {
+        name: d.name,
+        desc: d.desc,
+        badge: disponivel ? 'Novo!' : 'Em breve',
+        cursor: disponivel ? 'pointer' : 'not-allowed',
+        opacidade: disponivel ? '1' : '.72',
+        sceneRef: (el) => { this['_scene_' + d.key] = el; this._inject(el, this._scene(d.key)); },
+        pick: disponivel ? (() => this.escolherCenario(d.key)) : (() => {}),
+      };
+    });
 
     return {
       childName,

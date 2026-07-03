@@ -212,6 +212,64 @@ const comCampoExtra = {
 };
 assert(validarEnvelopeSave(comCampoExtra) !== null, "campos extras ignorados — save aceito");
 
+// --- Slices por criança (aditivo-opcionais, SANEADOS — nunca rejeitam) ---
+console.log("\n=== save: slices por criança (limites/cardapio/cenarios/coleta) ===");
+
+function saveCom(extras: Record<string, unknown>) {
+  return {
+    esquema: "pipoca.save.v1",
+    perfilId: "p1",
+    estado: { ...estadoInicial, ...extras },
+  };
+}
+
+// Save v1 "antigo" (sem os slices novos) carrega e vem saneado para null/default.
+const antigo = validarEnvelopeSave({
+  esquema: "pipoca.save.v1",
+  perfilId: "p1",
+  estado: {
+    tela: 2, perfil: null, sessao: null,
+    historia: estadoInicial.historia, economia: estadoInicial.economia,
+    modos: estadoInicial.modos, a11y: estadoInicial.a11y,
+  },
+});
+assert(antigo !== null, "save v1 antigo (sem slices novos) → aceito");
+assert(antigo?.limites === null && antigo?.cardapio === null, "slices ausentes → null (não configurado)");
+assert(antigo?.cenariosLiberados === null && antigo?.coletaTelemetria === null, "cenarios/coleta ausentes → null");
+
+// Round-trip com slices válidos preserva os valores.
+const itens = [{ id: "parque", label: "30 min de parque", icon: "🛝", cost: 6 }];
+const cheio = validarEnvelopeSave(saveCom({
+  limites: { blocoMin: 20, tempoDeTelaMin: 45 },
+  cardapio: itens,
+  cenariosLiberados: ["quintal_anoitecer", "praia"],
+  coletaTelemetria: false,
+}));
+assert(cheio?.limites?.blocoMin === 20 && cheio?.limites?.tempoDeTelaMin === 45, "limites válidos → preservados");
+assert(cheio?.cardapio?.length === 1 && cheio?.cardapio?.[0]?.id === "parque", "cardápio válido → preservado");
+assert(cheio?.cenariosLiberados?.length === 2, "cenários válidos → preservados");
+assert(cheio?.coletaTelemetria === false, "coletaTelemetria false → preservada");
+
+// Slice malformado NUNCA derruba o save — sanea para null/default.
+const sujo = validarEnvelopeSave(saveCom({
+  limites: "quebrado",
+  cardapio: [{ id: "", label: 42 }, "lixo"],
+  cenariosLiberados: [7, "", null],
+  coletaTelemetria: "sim",
+}));
+assert(sujo !== null, "slices malformados → save AINDA aceito (saneamento)");
+assert(sujo?.limites === null && sujo?.cardapio === null, "limites/cardápio malformados → null");
+assert(sujo?.cenariosLiberados === null && sujo?.coletaTelemetria === null, "cenários/coleta malformados → null");
+
+// Limites parciais saneiam para defaults internos (normalizarLimites).
+const parcial = validarEnvelopeSave(saveCom({ limites: { blocoMin: 999 } }));
+assert(parcial?.limites?.blocoMin === 15 && parcial?.limites?.tempoDeTelaMin === null,
+  "limites parciais/inválidos → normalizados (blocoMin 15, sem teto)");
+
+// Cardápio com mistura: itens válidos sobrevivem, inválidos caem.
+const mistura = validarEnvelopeSave(saveCom({ cardapio: [...itens, { id: "x" }] }));
+assert(mistura?.cardapio?.length === 1, "cardápio misto → só itens válidos sobrevivem");
+
 console.log(`\n${"=".repeat(50)}`);
 console.log(`Total: ${passou + falhou} | ✓ ${passou} passou | ✗ ${falhou} falhou`);
 if (falhou > 0) throw new Error(`${falhou} teste(s) falharam`);

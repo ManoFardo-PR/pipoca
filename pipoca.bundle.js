@@ -754,7 +754,11 @@
       syllable: false,
       contrast: false,
       reduceMotion: false
-    }
+    },
+    limites: null,
+    cardapio: null,
+    cenariosLiberados: null,
+    coletaTelemetria: true
   };
   function perfilAtivo(estado) {
     return estado.perfil;
@@ -1093,6 +1097,53 @@
     return erros;
   }
 
+  // src/core/limites.ts
+  var LIMITES_PADRAO = { blocoMin: 15, tempoDeTelaMin: null };
+  function definirBlocoFoco(sessao, blocoMin, agora) {
+    return iniciarSessao(sessao.perfilId, blocoMin, agora);
+  }
+  function normalizarTempoDeTela(valor) {
+    if (typeof valor !== "number" || !Number.isFinite(valor) || valor <= 0)
+      return null;
+    return Math.round(valor);
+  }
+  function normalizarLimites(raw) {
+    const r = raw && typeof raw === "object" ? raw : {};
+    return {
+      blocoMin: normalizarBlocoMin(r["blocoMin"]),
+      tempoDeTelaMin: normalizarTempoDeTela(r["tempoDeTelaMin"])
+    };
+  }
+
+  // src/core/cardapio.ts
+  var CARDAPIO_PADRAO = [
+    { id: "parque", label: "30 min de parque", icon: "\uD83D\uDEDD", cost: 6 },
+    { id: "jantar", label: "Escolher o jantar", icon: "\uD83C\uDF5D", cost: 4 },
+    { id: "historia", label: "História extra antes de dormir", icon: "\uD83D\uDCD6", cost: 3 },
+    { id: "bike", label: "Passeio de bike", icon: "\uD83D\uDEB2", cost: 8 },
+    { id: "tela", label: "Tempo de tela", icon: "\uD83D\uDCFA", cost: 5 },
+    { id: "amigo", label: "Brincar com um amigo", icon: "\uD83E\uDD1D", cost: 5 }
+  ];
+  function validarItemCardapio(it) {
+    if (!it || typeof it !== "object")
+      return false;
+    const r = it;
+    return typeof r["id"] === "string" && r["id"].length > 0 && typeof r["label"] === "string" && r["label"].length > 0 && typeof r["icon"] === "string" && typeof r["cost"] === "number" && r["cost"] >= 0;
+  }
+  function normalizarCardapio(raw) {
+    if (!Array.isArray(raw))
+      return [...CARDAPIO_PADRAO];
+    const itens = raw.filter(validarItemCardapio);
+    return itens.length > 0 ? itens : [...CARDAPIO_PADRAO];
+  }
+  var CENARIOS_PADRAO = ["quintal_anoitecer"];
+  function normalizarCenariosLiberados(raw) {
+    if (!Array.isArray(raw))
+      return [...CENARIOS_PADRAO];
+    const ids = raw.filter((x) => typeof x === "string" && x.length > 0);
+    return ids.length > 0 ? ids : [...CENARIOS_PADRAO];
+  }
+
   // src/dados/schemas.ts
   var ESQUEMA_PERFIL = "pipoca.perfil.v1";
   var ESQUEMA_SAVE = "pipoca.save.v1";
@@ -1114,6 +1165,28 @@
     if (raw === null || raw === undefined)
       return [];
     return validarPerfil(raw);
+  }
+  function sanearLimites(raw) {
+    if (raw === null || raw === undefined)
+      return null;
+    if (typeof raw !== "object")
+      return null;
+    return normalizarLimites(raw);
+  }
+  function sanearCardapio(raw) {
+    if (!Array.isArray(raw))
+      return null;
+    const itens = raw.filter(validarItemCardapio);
+    return itens.length > 0 ? itens : null;
+  }
+  function sanearCenariosLiberados(raw) {
+    if (!Array.isArray(raw))
+      return null;
+    const ids = raw.filter((x) => typeof x === "string" && x.length > 0);
+    return ids.length > 0 ? ids : null;
+  }
+  function sanearColetaTelemetria(raw) {
+    return typeof raw === "boolean" ? raw : null;
   }
   function validarEnvelopePerfil(raw) {
     if (typeof raw !== "object" || raw === null)
@@ -1158,7 +1231,13 @@
         return null;
       if (validarA11y(e["a11y"]).length > 0)
         return null;
-      return estado;
+      return {
+        ...estado,
+        limites: sanearLimites(e["limites"]),
+        cardapio: sanearCardapio(e["cardapio"]),
+        cenariosLiberados: sanearCenariosLiberados(e["cenariosLiberados"]),
+        coletaTelemetria: sanearColetaTelemetria(e["coletaTelemetria"])
+      };
     } catch {
       return null;
     }
@@ -2289,53 +2368,6 @@
   }
   async function apagarDados(perfilId, repo) {
     await repo.apagarPerfil(perfilId);
-  }
-
-  // src/core/limites.ts
-  var LIMITES_PADRAO = { blocoMin: 15, tempoDeTelaMin: null };
-  function definirBlocoFoco(sessao, blocoMin, agora) {
-    return iniciarSessao(sessao.perfilId, blocoMin, agora);
-  }
-  function normalizarTempoDeTela(valor) {
-    if (typeof valor !== "number" || !Number.isFinite(valor) || valor <= 0)
-      return null;
-    return Math.round(valor);
-  }
-  function normalizarLimites(raw) {
-    const r = raw && typeof raw === "object" ? raw : {};
-    return {
-      blocoMin: normalizarBlocoMin(r["blocoMin"]),
-      tempoDeTelaMin: normalizarTempoDeTela(r["tempoDeTelaMin"])
-    };
-  }
-
-  // src/core/cardapio.ts
-  var CARDAPIO_PADRAO = [
-    { id: "parque", label: "30 min de parque", icon: "\uD83D\uDEDD", cost: 6 },
-    { id: "jantar", label: "Escolher o jantar", icon: "\uD83C\uDF5D", cost: 4 },
-    { id: "historia", label: "História extra antes de dormir", icon: "\uD83D\uDCD6", cost: 3 },
-    { id: "bike", label: "Passeio de bike", icon: "\uD83D\uDEB2", cost: 8 },
-    { id: "tela", label: "Tempo de tela", icon: "\uD83D\uDCFA", cost: 5 },
-    { id: "amigo", label: "Brincar com um amigo", icon: "\uD83E\uDD1D", cost: 5 }
-  ];
-  function validarItemCardapio(it) {
-    if (!it || typeof it !== "object")
-      return false;
-    const r = it;
-    return typeof r["id"] === "string" && r["id"].length > 0 && typeof r["label"] === "string" && r["label"].length > 0 && typeof r["icon"] === "string" && typeof r["cost"] === "number" && r["cost"] >= 0;
-  }
-  function normalizarCardapio(raw) {
-    if (!Array.isArray(raw))
-      return [...CARDAPIO_PADRAO];
-    const itens = raw.filter(validarItemCardapio);
-    return itens.length > 0 ? itens : [...CARDAPIO_PADRAO];
-  }
-  var CENARIOS_PADRAO = ["quintal_anoitecer"];
-  function normalizarCenariosLiberados(raw) {
-    if (!Array.isArray(raw))
-      return [...CENARIOS_PADRAO];
-    const ids = raw.filter((x) => typeof x === "string" && x.length > 0);
-    return ids.length > 0 ? ids : [...CENARIOS_PADRAO];
   }
 
   // src/core/modoApp.ts

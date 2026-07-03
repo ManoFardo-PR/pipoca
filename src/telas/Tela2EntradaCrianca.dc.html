@@ -116,7 +116,9 @@ class Component extends DCLogic {
     }
     const App = window.PipocaApp;
     if (App) {
-      App.setState({ perfil, tela: 3 });
+      // UX por perfil: hidrata o save da criança (pote/config dela) e vai à T3.
+      if (App.selecionarPerfil) App.selecionarPerfil(perfil, 3);
+      else App.setState({ perfil, tela: 3 });
     }
     const R = window.PipocaRoteador;
     if (R) R.irParaTela(3);

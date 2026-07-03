@@ -14,7 +14,7 @@
     <div style="display:flex;align-items:center;gap:12px;">
       <div ref="{{ childAvatarRef }}" style="width:42px;height:42px;border-radius:50%;overflow:hidden;background:#fffaf0;box-shadow:0 2px 6px rgba(74,59,44,.2);"></div>
       <div>
-        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:#3a4f63;line-height:1;">Oi, {{ childName }}!</div>
+        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:#3a4f63;line-height:1;">{{ saudacao }}</div>
         <div style="font-size:12px;color:#9a8a72;margin-top:2px;">Leitor em ascensão ✨</div>
       </div>
     </div>
@@ -23,6 +23,13 @@
         <div style="width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 8px 1px rgba(247,191,96,.7);"></div>
         <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:#b8693c;">{{ vagalumes }}</span>
       </div>
+      <!-- Casinha da criança: o que já foi guardado p/ o sonho fica à vista -->
+      <sc-if value="{{ temPoupado }}" hint-placeholder-val="{{ false }}">
+        <div title="Guardado para o sonho" style="display:flex;align-items:center;gap:6px;background:#e9f0fa;border:1.5px solid #c4d5ec;border-radius:999px;padding:6px 14px;">
+          <span style="font-size:14px;">🎁</span>
+          <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:14px;color:#3f6f9e;">{{ poupado }}</span>
+        </div>
+      </sc-if>
       <button onClick="{{ abrirAjustesA11y }}" title="Do meu jeito" style="width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(160,140,110,.25);background:rgba(255,255,255,.6);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:#7a6a54;">⚙</button>
     </div>
   </div>
@@ -154,31 +161,48 @@ class Component extends DCLogic {
     const estado = App ? App.estado : {};
     const perfil = estado.perfil || null;
     const vagalumes = estado.economia ? estado.economia.vagalumes : 0;
+    const poupado = estado.economia ? (estado.economia.poupado || 0) : 0;
     const childName = perfil ? perfil.nome : 'criança';
+    // Casinha: saudação acolhedora que varia com a hora do aparelho.
+    const hora = new Date().getHours();
+    const saudacao = (hora < 12 ? 'Bom dia, ' : (hora < 18 ? 'Boa tarde, ' : 'Boa noite, ')) + childName + '!';
 
     const childAvatarRef = (el) => { this._childAvatarEl = el; this._updateRefs(); };
 
     const featuredSceneRef = (el) => this._inject(el, this._scene('quintal'));
 
+    // UX por perfil: a grade obedece os cenários liberados pelo cuidador
+    // (save da criança; null → CENARIOS_PADRAO = só o quintal). O quintal em
+    // destaque é SEMPRE jogável — a lista governa só os demais.
+    const Canon = window.PipocaCanonico;
+    const liberados = (Canon && Canon.cardapio)
+      ? Canon.cardapio.normalizarCenariosLiberados(estado.cenariosLiberados)
+      : ['quintal_anoitecer'];
     const gridDados = [
-      { key:'quarto',   name:'O Quarto',   desc:'Histórias antes de dormir',  badge:'Em breve', cenarioId:'', disponivel:false },
-      { key:'floresta', name:'A Floresta',  desc:'Aventura entre árvores',     badge:'Em breve', cenarioId:'', disponivel:false },
-      { key:'espaco',   name:'O Espaço',   desc:'Entre estrelas e planetas',   badge:'Em breve', cenarioId:'', disponivel:false },
-      { key:'fundomar', name:'Fundo do Mar',desc:'Com peixes e corais',        badge:'Em breve', cenarioId:'', disponivel:false },
+      { key:'quarto',   name:'O Quarto',   desc:'Histórias antes de dormir' },
+      { key:'floresta', name:'A Floresta',  desc:'Aventura entre árvores' },
+      { key:'espaco',   name:'O Espaço',   desc:'Entre estrelas e planetas' },
+      { key:'fundomar', name:'Fundo do Mar',desc:'Com peixes e corais' },
     ];
-    const gridCenas = gridDados.map(d => ({
-      name: d.name,
-      desc: d.desc,
-      badge: d.badge,
-      cursor: 'not-allowed',
-      opacidade: '.72',
-      sceneRef: (el) => { this['_scene_' + d.key] = el; this._inject(el, this._scene(d.key)); },
-      pick: () => {},
-    }));
+    const gridCenas = gridDados.map(d => {
+      const disponivel = liberados.indexOf(d.key) >= 0;
+      return {
+        name: d.name,
+        desc: d.desc,
+        badge: disponivel ? 'Novo!' : 'Em breve',
+        cursor: disponivel ? 'pointer' : 'not-allowed',
+        opacidade: disponivel ? '1' : '.72',
+        sceneRef: (el) => { this['_scene_' + d.key] = el; this._inject(el, this._scene(d.key)); },
+        pick: disponivel ? (() => this.escolherCenario(d.key)) : (() => {}),
+      };
+    });
 
     return {
       childName,
+      saudacao,
       vagalumes,
+      poupado,
+      temPoupado: poupado > 0,
       childAvatarRef,
       featuredSceneRef,
       featuredPick: () => this.escolherCenario('quintal_anoitecer'),

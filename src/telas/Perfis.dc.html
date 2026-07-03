@@ -197,7 +197,13 @@ class Component extends DCLogic {
         detalhe: p.idade + ' anos · ' + (nvLabel[p.nivel] || p.nivel),
         disco: 'width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;'
           + 'font-family:Baloo 2;font-weight:800;font-size:19px;color:#fff;background:' + (cores[p.avatarId] || '#3f6f9e') + ';',
-        usar: () => { if (App && !emUso) App.setState({ perfil: p }); },
+        // UX por perfil: troca hidratando o save da criança (sem navegar — o
+        // cuidador continua no painel).
+        usar: () => {
+          if (!App || emUso) return;
+          if (App.selecionarPerfil) App.selecionarPerfil(p);
+          else App.setState({ perfil: p });
+        },
         usarLabel: emUso ? 'Em uso ✓' : 'Usar este',
         usarStyle: 'border:none;border-radius:12px;padding:8px 12px;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;'
           + (emUso ? 'background:#7a9a5b;color:#fff;' : 'background:#3f6f9e;color:#fff;'),

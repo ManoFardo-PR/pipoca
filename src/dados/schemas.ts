@@ -3,20 +3,25 @@
  * -------------------------------------------------------------------
  * Validação leve, sem dependência externa.
  * Save inválido → recai no estadoInicial (nunca quebra o app).
- * Versão imutável: .v1 nunca muda de forma; mudança = .v2.
+ * Versão: .v1 aceita mudança ADITIVO-OPCIONAL (campo novo opcional, com
+ * saneamento — nunca rejeição); renomear, mudar tipo ou remover campo = .v2.
  *
- * validarEnvelopeSave valida TODOS os slices do EstadoApp:
- *   tela, perfil (null | Perfil), sessao (null | Sessao), historia,
- *   economia, modos, a11y.
+ * validarEnvelopeSave valida os slices ORIGINAIS do EstadoApp (inválido →
+ * save rejeitado): tela, perfil (null | Perfil), sessao (null | Sessao),
+ * historia, economia, modos, a11y. Os slices por criança (limites, cardapio,
+ * cenariosLiberados, coletaTelemetria) são SANEADOS: malformado → null
+ * ("não configurado") — config ruim nunca derruba o save da criança.
  */
 
-import type { Perfil, EstadoApp } from "../core/estado.js";
+import type { Perfil, EstadoApp, Limites, ItemCardapio } from "../core/estado.js";
 import { estadoInicial } from "../core/estado.js";
 import { validarPerfil } from "../core/perfil.js";
 import { validarModos } from "../core/modos.js";
 import { validarEconomia } from "../core/economia.js";
 import { validarHistoriaState } from "../core/historia.js";
 import { validarSessao } from "../core/sessao.js";
+import { normalizarLimites } from "../core/limites.js";
+import { validarItemCardapio } from "../core/cardapio.js";
 
 export const ESQUEMA_PERFIL = "pipoca.perfil.v1";
 export const ESQUEMA_SAVE = "pipoca.save.v1";
@@ -60,6 +65,33 @@ function validarA11y(raw: unknown): string[] {
 function validarSlicePerfil(raw: unknown): string[] {
   if (raw === null || raw === undefined) return [];
   return validarPerfil(raw);
+}
+
+// --- Saneadores dos slices por criança (aditivo-opcionais no .v1) ---
+// Contrato: NUNCA rejeitam — malformado vira null ("não configurado"; a borda
+// aplica o padrão de cardapio.ts/limites.ts). Só limites materializa default
+// interno (normalizarLimites sempre devolve um Limites válido).
+
+function sanearLimites(raw: unknown): Limites | null {
+  if (raw === null || raw === undefined) return null;
+  if (typeof raw !== "object") return null;
+  return normalizarLimites(raw);
+}
+
+function sanearCardapio(raw: unknown): ItemCardapio[] | null {
+  if (!Array.isArray(raw)) return null;
+  const itens = raw.filter(validarItemCardapio);
+  return itens.length > 0 ? itens : null;
+}
+
+function sanearCenariosLiberados(raw: unknown): string[] | null {
+  if (!Array.isArray(raw)) return null;
+  const ids = raw.filter((x): x is string => typeof x === "string" && x.length > 0);
+  return ids.length > 0 ? ids : null;
+}
+
+function sanearColetaTelemetria(raw: unknown): boolean | null {
+  return typeof raw === "boolean" ? raw : null;
 }
 
 // --- Validadores públicos ---
@@ -119,7 +151,14 @@ export function validarEnvelopeSave(raw: unknown): EstadoApp | null {
     // --- a11y ---
     if (validarA11y(e["a11y"]).length > 0) return null;
 
-    return estado as EstadoApp;
+    // --- slices por criança (saneados, nunca rejeitam) ---
+    return {
+      ...(estado as EstadoApp),
+      limites: sanearLimites(e["limites"]),
+      cardapio: sanearCardapio(e["cardapio"]),
+      cenariosLiberados: sanearCenariosLiberados(e["cenariosLiberados"]),
+      coletaTelemetria: sanearColetaTelemetria(e["coletaTelemetria"]),
+    };
   } catch {
     return null;
   }

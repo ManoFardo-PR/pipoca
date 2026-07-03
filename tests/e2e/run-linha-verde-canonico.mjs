@@ -307,6 +307,204 @@ try {
   assert(fase06Login.local, "fase06: login da família pelo seam (backend local) funciona");
   assert(fase06Login.remotoMorto, "fase06: backend inacessível → erro NEUTRO, app não quebra (fail-soft)");
 
+  // ── UX por perfil (etapa 2) · save por criança: trocar zera, voltar hidrata,
+  // reload persiste. O flush na borda grava o save ANTES da troca.
+  console.log("\n=== UX por perfil · save por criança (troca + hidratação + reload) ===");
+  const uxSave = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+    const A = { id: "uxA", nome: "Ana", idade: 7, nivel: "n2", avatarId: "lua" };
+    const B = { id: "uxB", nome: "Bia", idade: 8, nivel: "n3", avatarId: "tuca" };
+    await App.repo.salvarPerfil(A);
+    await App.repo.salvarPerfil(B);
+    App.selecionarPerfil(A, 3);
+    await espera(30); // hidratação resolve em microtask (repo local)
+    App.setState({
+      economia: { vagalumes: 7, poupado: 2 },
+      cardapio: [{ id: "pipoca", label: "Pipoca no cinema", icon: "🍿", cost: 4 }],
+    });
+    App.selecionarPerfil(B, 3); // a borda drena o save da Ana ANTES da troca
+    await espera(30);
+    const poteB = App.estado.economia.vagalumes;
+    const cardapioB = App.estado.cardapio;
+    App.selecionarPerfil(A, 3);
+    await espera(30);
+    const saveA = await App.repo.carregarSave("uxA");
+    return {
+      poteB,
+      cardapioB,
+      poteA: App.estado.economia.vagalumes,
+      poupadoA: App.estado.economia.poupado,
+      cardapioA: App.estado.cardapio && App.estado.cardapio[0] && App.estado.cardapio[0].id,
+      saveOk: !!saveA && saveA.economia.vagalumes === 7
+        && !!saveA.cardapio && saveA.cardapio[0].id === "pipoca",
+      projecaoMinima: !!saveA && saveA.tela === 2 && saveA.sessao === null
+        && !("comp" in saveA) && !("gateTrecho" in saveA),
+    };
+  });
+  assert(uxSave.poteB === 0 && uxSave.cardapioB === null, "trocar de criança ZERA pote/config (B não herda da A)");
+  assert(uxSave.poteA === 7 && uxSave.poupadoA === 2, "voltar à criança A hidrata o pote do save dela");
+  assert(uxSave.cardapioA === "pipoca", "cardápio configurado da A volta do save");
+  assert(uxSave.saveOk === true, "flush na borda gravou o save da A no repo (pipoca.save.v1)");
+  assert(uxSave.projecaoMinima === true, "projeção mínima: tela 2, sessao null; comp/gate NÃO vazam pro save");
+
+  // Reload: o save por perfil sobrevive (persistência de verdade).
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(
+    () => !!window.PipocaCanonico && !!window.PipocaApp && !!window.PipocaApp.repo,
+    { timeout: 15000 }
+  );
+  const uxReload = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const perfis = await App.repo.carregarPerfis();
+    const A = perfis.find((p) => p.id === "uxA");
+    if (!A) return { ok: false };
+    App.selecionarPerfil(A, 3);
+    await new Promise((r) => setTimeout(r, 50));
+    return {
+      ok: true,
+      pote: App.estado.economia.vagalumes,
+      cardapio: App.estado.cardapio && App.estado.cardapio[0] && App.estado.cardapio[0].id,
+    };
+  });
+  assert(
+    !!uxReload.ok && uxReload.pote === 7 && uxReload.cardapio === "pipoca",
+    "reload: pote e cardápio da criança persistem (save por perfil)"
+  );
+
+  // ── UX por perfil (etapa 3) · as telas da criança CONSOMEM a config ──
+  // T7 lista o cardápio configurado (não mais hardcoded); T3 governa a grade
+  // pelos cenários liberados (quintal em destaque segue sempre jogável).
+  console.log("\n=== UX por perfil · telas consomem a config (T7 cardápio, T3 cenários) ===");
+  await page.evaluate(() => {
+    window.PipocaApp.setState({
+      tela: 7,
+      cardapio: [
+        { id: "pipoca", label: "Pipoca no cinema", icon: "🍿", cost: 4 },
+        { id: "gibi", label: "Gibi novo", icon: "📚", cost: 9 },
+      ],
+    });
+  });
+  await page.waitForFunction(
+    () => /Pipoca no cinema/.test(document.body.innerText) && /Gibi novo/.test(document.body.innerText),
+    { timeout: 4000 }
+  );
+  const t7Config = await page.evaluate(() => ({
+    marcador: /agrado|dividir o que você/i.test(document.body.innerText),
+    itemAntigo: /30 min de parque/.test(document.body.innerText),
+  }));
+  assert(t7Config.marcador, "T7 mantém os marcadores do pote (agrado/dividir)");
+  assert(!t7Config.itemAntigo, "T7 lista o cardápio CONFIGURADO, não o hardcoded");
+
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 3, cenariosLiberados: null }); });
+  await page.waitForFunction(
+    () => (document.body.innerText.match(/Em breve/g) || []).length === 4,
+    { timeout: 4000 }
+  );
+  const t3Padrao = await page.evaluate(() => (document.body.innerText.match(/Em breve/g) || []).length);
+  await page.evaluate(() => { window.PipocaApp.setState({ cenariosLiberados: ["quintal_anoitecer", "quarto"] }); });
+  await page.waitForFunction(() => /Novo!/.test(document.body.innerText), { timeout: 4000 });
+  const t3Liberado = await page.evaluate(() => ({
+    emBreve: (document.body.innerText.match(/Em breve/g) || []).length,
+    quintal: /Favorito de hoje/i.test(document.body.innerText),
+  }));
+  assert(t3Padrao === 4, "T3 padrão: 4 cenários da grade em 'Em breve' (só o quintal liberado)");
+  assert(t3Liberado.emBreve === 3 && t3Liberado.quintal, "T3 obedece cenariosLiberados (quarto liberado vira 'Novo!'; quintal segue em destaque)");
+  await page.evaluate(() => { window.PipocaApp.setState({ cenariosLiberados: null, cardapio: null }); });
+
+  // ── UX por perfil (etapa 4) · prefs por chip: gravar no perfil NÃO-ativo vai
+  // pro save dele sem tocar o estado vivo; no ATIVO muda o vivo (fonte única).
+  console.log("\n=== UX por perfil · prefs por criança (chips do cuidador) ===");
+  const uxPrefs = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const vivoAntes = App.estado.modos.verificacao;
+    await App.gravarPrefsPerfil("uxB", {
+      modos: { palco: "Palco", desfecho: "aberto", verificacao: "auto", iaLigada: false },
+    });
+    const vivoDepois = App.estado.modos.verificacao;
+    const prefsB = await App.lerPrefsPerfil("uxB");
+    await App.gravarPrefsPerfil("uxA", {
+      modos: Object.assign({}, App.estado.modos, { verificacao: "auto" }),
+    });
+    return {
+      naoAtivoNaoVaza: vivoDepois === vivoAntes,
+      prefsB: prefsB.modos.verificacao + ":" + prefsB.modos.desfecho,
+      vivoAtivo: App.estado.modos.verificacao,
+    };
+  });
+  assert(uxPrefs.naoAtivoNaoVaza, "gravar prefs de perfil NÃO-ativo não muda o estado vivo");
+  assert(uxPrefs.prefsB === "auto:aberto", "prefs do não-ativo foram pro save dele (lerPrefsPerfil confirma)");
+  assert(uxPrefs.vivoAtivo === "auto", "gravar prefs do perfil ATIVO muda o vivo (telas/motor reagem)");
+
+  // Chips das crianças aparecem na tela do cuidador (T14 Regras & IA).
+  await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 });
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 14 }); });
+  await page.waitForFunction(() => /Quem confirma a leitura/i.test(document.body.innerText), { timeout: 4000 });
+  const uxChips = await page.evaluate(() => ({
+    ana: /Ana/.test(document.body.innerText),
+    bia: /Bia/.test(document.body.innerText),
+  }));
+  assert(uxChips.ana && uxChips.bia, "T14 mostra os chips das crianças (configuração independente)");
+  await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
+
+  // ── UX por perfil (etapa 5) · dashboards: saldos por criança no hub (T11) e
+  // cartão do pote no painel de evolução (T8).
+  console.log("\n=== UX por perfil · dashboards (T11 saldos, T8 pote) ===");
+  await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 });
+  await page.waitForFunction(() => /guardados/i.test(document.body.innerText), { timeout: 4000 });
+  const t11Saldos = await page.evaluate(() => ({
+    ana: /Ana/.test(document.body.innerText),
+    saldoAna: /✨\s*7/.test(document.body.innerText),
+  }));
+  assert(t11Saldos.ana && t11Saldos.saldoAna, "T11 resume os potes por criança (Ana com ✨ 7)");
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 8 }); });
+  await page.waitForFunction(() => /Pote de vaga-lumes/i.test(document.body.innerText), { timeout: 4000 });
+  const t8Pote = await page.evaluate(() => /✨\s*7/.test(document.body.innerText));
+  assert(t8Pote, "T8 mostra o cartão do pote com o saldo da criança do chip");
+  await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
+
+  // ── UX por perfil (etapa 6) · engrenagem → "Sou o adulto" → PIN → painel →
+  // voltar RETOMA a leitura onde estava (telaCriancaAnterior), composição intacta.
+  console.log("\n=== UX por perfil · engrenagem → cuidador → retomada da leitura ===");
+  await page.evaluate(() => {
+    const App = window.PipocaApp;
+    App.iniciarComposicao();
+    App.setState({ tela: 5, gateTrecho: "A luzinha piscou de novo.", gateStage: "reading", gatePendente: null });
+  });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 5, { timeout: 4000 });
+  const compAntes = await page.evaluate(() =>
+    JSON.stringify(window.PipocaApp.estado.comp && window.PipocaApp.estado.comp.linha)
+  );
+  // ⚙ abre o modal "Do meu jeito"; o rodapé leva ao portão
+  await page.evaluate(() => { window.PipocaApp.setState({ showA11y: true }); });
+  await page.waitForFunction(() => /Sou o adulto/i.test(document.body.innerText), { timeout: 4000 });
+  await page.locator("button", { hasText: "Sou o adulto" }).first().click();
+  await page.waitForFunction(
+    () => window.PipocaApp.estado.tela === 1 && !window.PipocaApp.estado.showA11y,
+    { timeout: 4000 }
+  );
+  assert(true, "⚙ → 'Sou o adulto' fecha o modal e abre o PINGATE");
+  // PIN certo → hub do cuidador; "Para a criança" → volta pra T5, não pra T2
+  await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 });
+  await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 5, { timeout: 4000 });
+  const volta = await page.evaluate(() => ({
+    modo: window.PipocaApp.estado.modoApp,
+    comp: JSON.stringify(window.PipocaApp.estado.comp && window.PipocaApp.estado.comp.linha),
+  }));
+  assert(volta.modo === "crianca", "voltar do painel RETOMA a T5 no modo criança (não cai na T2)");
+  assert(volta.comp === compAntes && volta.comp !== "null", "a composição da leitura segue intacta na volta");
+  // Cancelar o PIN também devolve à mesma tela (aoVoltarParaCrianca é a mesma porta).
+  await page.evaluate(() => { window.PipocaApp.abrirPortao(); });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 1, { timeout: 4000 });
+  await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 5, { timeout: 4000 });
+  assert(true, "cancelar o PIN devolve à mesma tela da leitura (retomada sem perdas)");
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 2 }); });
+
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 
   console.log(`\n${"=".repeat(50)}`);

@@ -79,7 +79,8 @@
         <div style="font-size:13.5px;color:#8a7a64;margin-top:3px;">Você escolhe. Gastar é só seu — sem pressa, sem cobrança.</div>
       </div>
 
-      <div style="display:flex;flex-direction:column;gap:12px;">
+      <!-- Cardápio configurável pode ter 6+ itens: a lista rola; as ações ficam fixas embaixo. -->
+      <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding-right:4px;">
         <sc-for list="{{ rewardMenu }}" as="rw" hint-placeholder-count="3">
           <div style="{{ rw.cardStyle }}">
             <div style="width:52px;height:52px;flex-shrink:0;border-radius:14px;background:#f3ead8;display:flex;align-items:center;justify-content:center;font-size:26px;">{{ rw.icon }}</div>
@@ -217,18 +218,18 @@ class Component extends DCLogic {
     const save = Math.max(0, total - spend);
     const pct = Math.max(8, Math.min(92, total > 0 ? Math.round(spend / total * 100) : 67));
 
-    const rwMeta = {
-      parque:  { label:'30 min de parque',            icon:'🛝', cost:6 },
-      jantar:  { label:'Escolher o jantar',            icon:'🍝', cost:4 },
-      historia:{ label:'História extra antes de dormir',icon:'📖', cost:3 },
-      bike:    { label:'Passeio de bike',              icon:'🚲', cost:8 },
-      tela:    { label:'Tempo de tela',                icon:'📺', cost:5 },
-      amigo:   { label:'Brincar com um amigo',         icon:'🤝', cost:5 },
-    };
-
-    const selectedRewards = ['parque','jantar','historia'];
-    const rewardMenu = selectedRewards.map(k => {
-      const m = rwMeta[k] || rwMeta.parque;
+    // UX por perfil: o cardápio vem do save da criança (o cuidador edita em
+    // PC_RULES); null/inválido → CARDAPIO_PADRAO (cardapio.ts). Fallback local
+    // mínimo só para bundle antigo.
+    const Canon = window.PipocaCanonico;
+    const itens = (Canon && Canon.cardapio)
+      ? Canon.cardapio.normalizarCardapio(estado.cardapio)
+      : [
+          { id:'parque',  label:'30 min de parque',              icon:'🛝', cost:6 },
+          { id:'jantar',  label:'Escolher o jantar',             icon:'🍝', cost:4 },
+          { id:'historia',label:'História extra antes de dormir',icon:'📖', cost:3 },
+        ];
+    const rewardMenu = itens.map(m => {
       const aff = vagalumes >= m.cost;
       return {
         label: m.label, icon: m.icon, cost: m.cost,
@@ -264,7 +265,8 @@ class Component extends DCLogic {
       spendPct: pct + '%',
       rewardMenu,
       acaoPrimaria: convergiu ? (() => this.brincarDeNovo()) : (() => this.continuar()),
-      primariaLabel: convergiu ? '🌱 Brincar de novo' : '📖 Continuar lendo',
+      // Fim da história: o caminho claro é voltar à casinha (T3) e escolher outra.
+      primariaLabel: convergiu ? '🏠 Escolher outra história' : '📖 Continuar lendo',
       primariaStyle: estiloPrimaria,
       mostrarSecundaria: !convergiu,
       acaoSecundaria: () => this.brincarDeNovo(),

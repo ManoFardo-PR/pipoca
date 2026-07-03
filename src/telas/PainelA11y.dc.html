@@ -61,6 +61,11 @@
     </div>
 
     <button onClick="{{ fecharAjustesA11y }}" style="margin-top:18px;width:100%;border:none;background:linear-gradient(150deg,#e8965a,#d5713f);color:#fff;border-radius:16px;padding:15px;font-family:'Baloo 2',cursive;font-weight:700;font-size:17px;cursor:pointer;box-shadow:0 8px 20px -6px rgba(181,86,40,.5);">Pronto</button>
+
+    <!-- Rodapé do cuidador: leva ao PINGATE (o PIN com lockout é a proteção;
+         ao voltar, a leitura retoma de onde estava — telaCriancaAnterior). -->
+    <div style="height:1px;background:rgba(160,140,110,.18);margin:16px 0 0;"></div>
+    <button onClick="{{ souOAdulto }}" style="margin-top:12px;width:100%;min-height:46px;border:1.5px dashed rgba(160,140,110,.4);background:transparent;border-radius:14px;padding:11px;font-family:'Nunito';font-weight:700;font-size:14px;color:#7a6a54;cursor:pointer;">🔒 Sou o adulto (ajustes do cuidador)</button>
   </div>
 </div>
 
@@ -101,6 +106,14 @@ class Component extends DCLogic {
     if (this.props && typeof this.props.onClose === 'function') this.props.onClose();
   }
 
+  // Fecha o modal e abre o PINGATE (T1). Cancelar o PIN volta pela mesma
+  // porta (aoVoltarParaCrianca) — que agora retoma a tela onde a criança estava.
+  souOAdulto() {
+    this.fecharAjustesA11y();
+    const App = window.PipocaApp;
+    if (App && App.abrirPortao) App.abrirPortao();
+  }
+
   renderVals() {
     const A = this._getA11y();
     const t = (key) => () => this._patchA11y({ [key]: !A[key] });
@@ -108,6 +121,7 @@ class Component extends DCLogic {
 
     return {
       fecharAjustesA11y: () => this.fecharAjustesA11y(),
+      souOAdulto: () => this.souOAdulto(),
       swMotion: this._swStyle(A.reduceMotion), knobMotion: this._knobStyle(A.reduceMotion), toggleMotion: t('reduceMotion'),
       swDys:    this._swStyle(A.dyslexia),     knobDys:    this._knobStyle(A.dyslexia),     toggleDys:    t('dyslexia'),
       swSyl:    this._swStyle(A.syllable),     knobSyl:    this._knobStyle(A.syllable),     toggleSyl:    t('syllable'),

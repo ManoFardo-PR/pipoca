@@ -26,7 +26,16 @@
       </div>
       <button class="pip-lm-btn" onClick="{{ voltar }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
     </div>
-    <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 22px;">Blocos curtos e visíveis. O fim do bloco é um encerramento calmo — a história em curso nunca é cortada.</p>
+    <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 14px;">Blocos curtos e visíveis. O fim do bloco é um encerramento calmo — a história em curso nunca é cortada.</p>
+
+    <!-- Chips por criança (configuração independente · UX por perfil) -->
+    <sc-if value="{{ temVariosPerfis }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;">
+        <sc-for list="{{ chipsPerfis }}" as="cp" hint-placeholder-count="2">
+          <button class="pip-lm-btn" onClick="{{ cp.onTap }}" style="{{ cp.style }}">{{ cp.nome }}</button>
+        </sc-for>
+      </div>
+    </sc-if>
 
     <!-- Bloco de foco -->
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
@@ -60,47 +69,82 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { tempoTela: '', avisoSessao: false };
+  // UX por perfil: o form é LOCAL à criança do chip (lerPrefsPerfil); gravar
+  // vai por gravarPrefsPerfil — no chip da criança ativa é o state vivo, nos
+  // demais é o save direto (o vivo não muda).
+  state = { perfis: [], chipId: null, limites: { blocoMin: 15, tempoDeTelaMin: null }, tempoTela: '', avisoSessao: false };
 
-  componentDidMount() {
+  async componentDidMount() {
     const App = window.PipocaApp;
-    const lim = (App && App.estado.limites) || {};
-    this.setState({ tempoTela: lim.tempoDeTelaMin != null ? String(lim.tempoDeTelaMin) : '' });
+    try {
+      const perfis = App && App.repo ? await App.repo.carregarPerfis() : [];
+      const ativo = App && App.estado.perfil ? App.estado.perfil.id : null;
+      this.setState({ perfis: perfis || [] });
+      const chipId = ativo || (perfis[0] ? perfis[0].id : null);
+      if (chipId) await this._carregarChip(chipId);
+    } catch (_) {}
   }
 
-  _limites() {
+  // Trocar de chip recarrega o form com as prefs DAQUELA criança.
+  async _carregarChip(chipId) {
     const App = window.PipocaApp;
-    return (App && App.estado.limites) || { blocoMin: 15, tempoDeTelaMin: null };
+    const C = window.PipocaCanonico;
+    let lim = { blocoMin: 15, tempoDeTelaMin: null };
+    try {
+      if (App && App.lerPrefsPerfil) {
+        const prefs = await App.lerPrefsPerfil(chipId);
+        lim = (C && C.limites) ? C.limites.normalizarLimites(prefs.limites || {}) : (prefs.limites || lim);
+      } else if (App) {
+        lim = App.estado.limites || lim;
+      }
+    } catch (_) {}
+    this.setState({ chipId, limites: lim, tempoTela: lim.tempoDeTelaMin != null ? String(lim.tempoDeTelaMin) : '', avisoSessao: false });
+  }
+
+  _ehAtivo() {
+    const App = window.PipocaApp;
+    return !!(App && App.estado.perfil && App.estado.perfil.id === this.state.chipId);
+  }
+
+  _gravar(lim) {
+    const App = window.PipocaApp;
+    if (!App) return;
+    if (App.gravarPrefsPerfil && this.state.chipId) App.gravarPrefsPerfil(this.state.chipId, { limites: lim });
+    else App.setState({ limites: lim });
   }
 
   _definirBloco(b) {
     const App = window.PipocaApp;
     const C = window.PipocaCanonico;
-    if (!App || !C || !C.limites) return;
-    const lim = C.limites.normalizarLimites(Object.assign({}, this._limites(), { blocoMin: b }));
-    const patch = { limites: lim };
+    if (!App || !C || !C.limites || !this.state.chipId) return;
+    const lim = C.limites.normalizarLimites(Object.assign({}, this.state.limites, { blocoMin: b }));
+    this._gravar(lim);
+    // Só a sessão da criança ATIVA reinicia (a de outro chip nem existe aqui).
     let reiniciou = false;
-    if (App.estado.sessao) {
-      patch.sessao = C.limites.definirBlocoFoco(App.estado.sessao, lim.blocoMin, Date.now());
+    if (this._ehAtivo() && App.estado.sessao) {
+      App.setState({ sessao: C.limites.definirBlocoFoco(App.estado.sessao, lim.blocoMin, Date.now()) });
       reiniciou = true;
     }
-    App.setState(patch);
-    this.setState({ avisoSessao: reiniciou });
+    this.setState({ limites: lim, avisoSessao: reiniciou });
   }
 
   _aplicarTempo(valor) {
     const App = window.PipocaApp;
     const C = window.PipocaCanonico;
-    if (!App || !C || !C.limites) return;
+    if (!App || !C || !C.limites || !this.state.chipId) return;
     const t = C.limites.normalizarTempoDeTela(valor === '' ? null : parseInt(valor, 10));
-    App.setState({ limites: C.limites.normalizarLimites(Object.assign({}, this._limites(), { tempoDeTelaMin: t })) });
-    this.setState({ tempoTela: t != null ? String(t) : '' });
+    const lim = C.limites.normalizarLimites(Object.assign({}, this.state.limites, { tempoDeTelaMin: t }));
+    this._gravar(lim);
+    this.setState({ limites: lim, tempoTela: t != null ? String(t) : '' });
   }
 
   renderVals() {
     const s = this.state;
     const App = window.PipocaApp;
-    const lim = this._limites();
+    const lim = s.limites || { blocoMin: 15, tempoDeTelaMin: null };
+    const chipBase = 'min-height:38px;border-radius:999px;border:2px solid;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;padding:6px 16px;';
+    const chipSel = 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;';
+    const chipOff = 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;';
     const blocos = [10, 15, 20, 25].map((b) => ({
       label: b + ' min',
       onTap: () => this._definirBloco(b),
@@ -110,6 +154,12 @@ class Component extends DCLogic {
           : 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;'),
     }));
     return {
+      temVariosPerfis: s.perfis.length > 1,
+      chipsPerfis: s.perfis.map((p) => ({
+        nome: p.nome,
+        onTap: () => this._carregarChip(p.id),
+        style: chipBase + (p.id === s.chipId ? chipSel : chipOff),
+      })),
       blocos,
       avisoSessao: s.avisoSessao,
       tempoTela: s.tempoTela,

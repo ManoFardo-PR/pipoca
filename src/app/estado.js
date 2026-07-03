@@ -118,6 +118,23 @@
       if ("modos" in patch && _grafo && _motorAlvo() !== state.motorAtivo) {
         _montarMotor(_grafo);
       }
+      // UX por perfil · perfil trocado por fora do fluxo (e2e, remoção em T12):
+      // invalida a gravação pendente do perfil anterior (nunca contamina o novo)
+      // e o ponto de retomada do portão (não devolve a criança B à tela da A).
+      if ("perfil" in patch) {
+        if (_savePerfilId && (!state.perfil || state.perfil.id !== _savePerfilId)) {
+          if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null; }
+          _savePerfilId = null;
+        }
+        if (_telaCriancaAnterior && (!state.perfil || state.perfil.id !== _telaCriancaAnterior.perfilId)) {
+          _telaCriancaAnterior = null;
+        }
+      }
+      // UX por perfil · qualquer toque num slice persistível agenda a gravação
+      // do save do perfil ativo (debounce; as bordas drenam com flush).
+      for (var i = 0; i < SLICES_PERSISTIVEIS.length; i++) {
+        if (SLICES_PERSISTIVEIS[i] in patch) { _agendarSave(); break; }
+      }
     }
     notify();
   }
@@ -132,6 +149,7 @@
   // Sucesso no PINGATE → modo cuidador (única saída do modo criança — modoApp.ts).
   // A sessão de leitura da criança encerra com calma na borda (TELE).
   function _entrarCuidador() {
+    flushSavePendente(); // T8/T11 leem saves frescos do repo
     _encerrarSessaoLeitura();
     var M = window.PipocaCanonico && window.PipocaCanonico.modoApp;
     state.modoApp = M ? M.aoPassarPortao() : "cuidador";
@@ -242,6 +260,169 @@
     },
   };
 
+  // ─── Save por perfil (UX por perfil) ──────────────────────────────────────
+  // O save NUNCA leva o state cru: _projetarSave monta um EstadoApp mínimo
+  // válido (pipoca.save.v1) — gate/comp/showA11y não vazam pro banco. A escrita
+  // tem debounce e o perfilId é capturado no AGENDAMENTO (o timer da criança A
+  // nunca grava sob o id da B); as bordas drenam com flushSavePendente().
+  // Pelo repo sincronizado (fase06), cada gravação espelha no Supabase.
+  var SLICES_PERSISTIVEIS = ["historia", "economia", "modos", "a11y",
+    "limites", "cardapio", "cenariosLiberados", "coletaTelemetria"];
+  var _saveTimer = null;
+  var _savePerfilId = null;
+
+  // Defaults ZERADOS por criança (decisão do produto: todos começam do zero).
+  function _slicesZerados() {
+    return {
+      historia: { cenarioId: "quintal_anoitecer", objetos: [], aberta: true },
+      economia: { vagalumes: 0, poupado: 0 },
+      modos: { palco: "Palco", desfecho: "convergente", verificacao: "cuidador", iaLigada: false },
+      a11y: { textScale: 1, dyslexia: false, syllable: false, contrast: false, reduceMotion: false },
+      limites: null,
+      cardapio: null,
+      cenariosLiberados: null,
+      coletaTelemetria: true,
+    };
+  }
+
+  function _projetarSave() {
+    return {
+      tela: 2,
+      perfil: state.perfil,
+      sessao: null,
+      historia: state.historia,
+      economia: state.economia,
+      modos: state.modos,
+      a11y: state.a11y,
+      limites: state.limites || null,
+      cardapio: state.cardapio || null,
+      cenariosLiberados: state.cenariosLiberados || null,
+      coletaTelemetria: state.coletaTelemetria !== false,
+    };
+  }
+
+  function _agendarSave() {
+    if (!state.perfil || !state.perfil.id) return;
+    _savePerfilId = state.perfil.id;
+    if (_saveTimer) clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(flushSavePendente, 500);
+  }
+
+  // Grava JÁ o save agendado (troca de perfil, portão, logout). Se o perfil
+  // ativo não é mais o agendado, descarta — nunca projeta o state de um
+  // perfil sob o id de outro.
+  function flushSavePendente() {
+    if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null; }
+    var pid = _savePerfilId;
+    _savePerfilId = null;
+    if (!pid || !state.perfil || state.perfil.id !== pid) return;
+    try { repo.salvarSave(pid, _projetarSave()).catch(function () {}); } catch (_) {}
+  }
+
+  // Carrega o save do perfil e aplica em UM setState (com `modos` dentro —
+  // dispara a borda de remontagem do motor). Guard: se o perfil ativo mudou
+  // enquanto o save carregava, descarta. Sem save, NÃO aplica nada — a troca
+  // já zerou os slices sincronamente (e o onboarding escreve por cima).
+  function _hidratarPerfil(p) {
+    if (!p || !p.id) return;
+    repo.carregarSave(p.id).then(function (save) {
+      if (!save) return;
+      if (!state.perfil || state.perfil.id !== p.id) return;
+      var zero = _slicesZerados();
+      setState({
+        economia: save.economia || zero.economia,
+        modos: save.modos || zero.modos,
+        a11y: save.a11y || zero.a11y,
+        limites: save.limites || null,
+        cardapio: save.cardapio || null,
+        cenariosLiberados: save.cenariosLiberados || null,
+        coletaTelemetria: save.coletaTelemetria !== false,
+      });
+    }).catch(function () {});
+  }
+
+  // ─── Preferências por criança (telas do cuidador com chips) ───────────────
+  // lerPrefsPerfil: perfil ATIVO → slices vivos; não-ativo → save do repo.
+  // Sempre devolve Promise com a mesma forma (defaults zerados por baixo).
+  function lerPrefsPerfil(perfilId) {
+    var zero = _slicesZerados();
+    function montar(fonte) {
+      return {
+        modos: (fonte && fonte.modos) || zero.modos,
+        limites: (fonte && fonte.limites) || null,
+        cardapio: (fonte && fonte.cardapio) || null,
+        cenariosLiberados: (fonte && fonte.cenariosLiberados) || null,
+        coletaTelemetria: !(fonte && fonte.coletaTelemetria === false),
+        economia: (fonte && fonte.economia) || zero.economia,
+      };
+    }
+    if (state.perfil && state.perfil.id === perfilId) {
+      flushSavePendente();
+      return Promise.resolve(montar(state));
+    }
+    return repo.carregarSave(perfilId).then(montar).catch(function () { return montar(null); });
+  }
+
+  // gravarPrefsPerfil: perfil ATIVO → setState (o pipeline do save persiste —
+  // fonte ÚNICA de escrita, sem dupla-gravação); não-ativo → read-modify-write
+  // do save direto, SEM tocar o state vivo (nem a sessão da criança).
+  function gravarPrefsPerfil(perfilId, patchSlices) {
+    if (!perfilId || !patchSlices) return Promise.resolve();
+    var permitidos = {};
+    for (var i = 0; i < SLICES_PERSISTIVEIS.length; i++) {
+      var k = SLICES_PERSISTIVEIS[i];
+      if (k in patchSlices) permitidos[k] = patchSlices[k];
+    }
+    if (state.perfil && state.perfil.id === perfilId) {
+      setState(permitidos);
+      return Promise.resolve();
+    }
+    return repo.carregarSave(perfilId).then(function (save) {
+      var zero = _slicesZerados();
+      var novo = {
+        tela: 2,
+        perfil: (save && save.perfil) || null,
+        sessao: null,
+        historia: (save && save.historia) || zero.historia,
+        economia: (save && save.economia) || zero.economia,
+        modos: (save && save.modos) || zero.modos,
+        a11y: (save && save.a11y) || zero.a11y,
+        limites: (save && save.limites) || null,
+        cardapio: (save && save.cardapio) || null,
+        cenariosLiberados: (save && save.cenariosLiberados) || null,
+        coletaTelemetria: !(save && save.coletaTelemetria === false),
+      };
+      for (var c in permitidos) {
+        if (Object.prototype.hasOwnProperty.call(permitidos, c)) novo[c] = permitidos[c];
+      }
+      return repo.salvarSave(perfilId, novo);
+    }).catch(function () {});
+  }
+
+  // Troca (ou retoma) o perfil ativo — o ÚNICO caminho que hidrata do save.
+  // Troca real: drena o save do anterior, zera os slices (a composição da
+  // criança A não vaza pra B) e hidrata em paralelo (repo local resolve em
+  // microtask). Mesmo id: passthrough — preserva a composição em curso.
+  // `telaDestino` opcional (T2 passa 3; T12 não navega).
+  function selecionarPerfil(p, telaDestino) {
+    if (!p || !p.id) return;
+    flushSavePendente();
+    var nav = typeof telaDestino === "number" ? { tela: telaDestino } : {};
+    if (state.perfil && state.perfil.id === p.id) {
+      nav.perfil = p;
+      setState(nav);
+      return;
+    }
+    _encerrarSessaoLeitura();
+    var patch = _slicesZerados();
+    patch.perfil = p;
+    patch.comp = null;
+    patch.gatePendente = null;
+    for (var k in nav) { if (Object.prototype.hasOwnProperty.call(nav, k)) patch[k] = nav[k]; }
+    setState(patch);
+    _hidratarPerfil(p);
+  }
+
   // ─── Portão parental (PINGATE / acesso.ts via bundle) ─────────────────────
   // Cria o PIN no 1º uso, depois verifica com lockout suave. Em sucesso navega.
   function verificarPinCuidador(pin) {
@@ -260,18 +441,39 @@
     return { ok: false, bloqueado: r.bloqueado, dica: r.dica };
   }
 
+  // UX por perfil · ponto de retomada do portão: onde a criança estava (T2–T7)
+  // quando o cuidador abriu o PINGATE. Invalidação central no setState (troca
+  // de perfil) e em sairDaConta.
+  var _telaCriancaAnterior = null;
+
+  function abrirPortao() {
+    var t = state.tela;
+    var ehInfantil = typeof t === "number" && t >= 2 && t <= 7;
+    _telaCriancaAnterior = ehInfantil
+      ? { tela: t, perfilId: state.perfil ? state.perfil.id : null }
+      : null;
+    _irPara(1);
+  }
+
   function aoVoltarParaCrianca() {
     var M = window.PipocaCanonico && window.PipocaCanonico.modoApp;
     state.modoApp = M ? M.aoVoltarParaCrianca() : "crianca";
     state.showA11y = false;
     state.showOnboarding = false;
-    _irPara(2);
+    // Retoma a tela capturada SÓ se a mesma criança segue ativa (fallback T2).
+    var ant = _telaCriancaAnterior;
+    _telaCriancaAnterior = null;
+    var destino = 2;
+    if (ant && ant.perfilId && state.perfil && state.perfil.id === ant.perfilId) destino = ant.tela;
+    _irPara(destino);
   }
 
   // Sair da conta da família (HH_LOGIN): limpa a sessão e volta ao login (T9).
   // fase06: o logout passa pelo seam (o remoto avisa o servidor; o local limpa
   // o espelho da casa) — fallback direto no espelho para bundle antigo.
   function sairDaConta() {
+    flushSavePendente();
+    _telaCriancaAnterior = null;
     _encerrarSessaoLeitura();
     var Canon = window.PipocaCanonico;
     var saiuPeloSeam = false;
@@ -533,6 +735,8 @@
         _tele().capturarHistoriaConcluida(state, _acum.palavras, Date.now(), _repoBase());
       }
       _encerrarSessaoLeitura();
+      _agendarSave(); // historia mutada direto (fora do setState) — persiste a conclusão
+
     }
   }
 
@@ -598,8 +802,11 @@
     get cenario() { return _cenario; },
     get cenarioV2() { return _cenarioV2; },
     repo: repo,
+    selecionarPerfil: selecionarPerfil,
+    lerPrefsPerfil: lerPrefsPerfil,
+    gravarPrefsPerfil: gravarPrefsPerfil,
     verificarPinCuidador: verificarPinCuidador,
-    abrirPortao: function () { _irPara(1); },
+    abrirPortao: abrirPortao,
     aoVoltarParaCrianca: aoVoltarParaCrianca,
     entrarNaConta: entrarNaConta,
     sairDaConta: sairDaConta,

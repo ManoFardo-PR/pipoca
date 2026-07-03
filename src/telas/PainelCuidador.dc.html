@@ -24,7 +24,20 @@
       </div>
       <button class="pip-pc-item" onClick="{{ paraCrianca }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Para a criança</button>
     </div>
-    <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 22px;">{{ subtitulo }}</p>
+    <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 14px;">{{ subtitulo }}</p>
+
+    <!-- Saldos por criança (resumo · UX por perfil) -->
+    <sc-if value="{{ temSaldos }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px;">
+        <sc-for list="{{ saldos }}" as="sd" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:8px;background:var(--pip-creme,#fffaf0);border-radius:14px;padding:10px 14px;box-shadow:0 8px 20px -14px rgba(60,40,20,.4);">
+            <span style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#3a2c20;">{{ sd.nome }}</span>
+            <span style="font-family:'Nunito';font-weight:700;font-size:13px;color:#b8693c;">✨ {{ sd.vagalumes }}</span>
+            <span style="font-family:'Nunito';font-size:12px;color:#7a6a54;">· {{ sd.poupado }} guardados</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
 
     <!-- Menu -->
     <div style="display:flex;flex-direction:column;gap:12px;">
@@ -52,13 +65,22 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { perfis: [] };
+  state = { perfis: [], saldos: [] };
 
   async componentDidMount() {
     const App = window.PipocaApp;
     try {
       const perfis = App && App.repo ? await App.repo.carregarPerfis() : [];
       this.setState({ perfis: perfis || [] });
+      // UX por perfil: resumo dos potes (SÓ saldos; minutos/palavras ficam no T8).
+      if (App && App.lerPrefsPerfil && (perfis || []).length) {
+        const saldos = await Promise.all(perfis.map((p) =>
+          App.lerPrefsPerfil(p.id)
+            .then((prefs) => ({ nome: p.nome, vagalumes: prefs.economia.vagalumes, poupado: prefs.economia.poupado }))
+            .catch(() => ({ nome: p.nome, vagalumes: 0, poupado: 0 }))
+        ));
+        this.setState({ saldos });
+      }
     } catch (_) { this.setState({ perfis: [] }); }
   }
 
@@ -67,6 +89,8 @@ class Component extends DCLogic {
     const ir = (n) => () => { if (App) App.setState({ tela: n }); };
     const nomes = this.state.perfis.map((p) => p.nome).join(', ');
     return {
+      temSaldos: this.state.saldos.length > 0,
+      saldos: this.state.saldos,
       subtitulo: nomes
         ? 'Quem lê nesta casa: ' + nomes + '.'
         : 'Ajustes da leitura, com calma. A criança não vê esta parte.',

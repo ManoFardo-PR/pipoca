@@ -66,6 +66,13 @@ export interface Modos {
   iaLigada: boolean;
 }
 
+// --- Configurações do cuidador que viajam no save de cada criança ---
+// Slices ADITIVO-OPCIONAIS do pipoca.save.v1 (schemas.ts): ausente/null =
+// "não configurado" → a tela normaliza para o padrão (cardapio.ts/limites.ts).
+import type { Limites } from "./limites.js";
+import type { ItemCardapio } from "./cardapio.js";
+export type { Limites, ItemCardapio };
+
 // --- Estado raiz da app ---
 export interface EstadoApp {
   tela: number;
@@ -75,6 +82,10 @@ export interface EstadoApp {
   economia: Economia;
   modos: Modos;
   a11y: A11yPrefs;
+  limites?: Limites | null;
+  cardapio?: ItemCardapio[] | null;
+  cenariosLiberados?: string[] | null;
+  coletaTelemetria?: boolean | null;
 }
 
 // --- Evento de telemetria (tipo canônico em src/core/telemetria.ts — doc fase03-03-01) ---
@@ -111,6 +122,12 @@ export const estadoInicial: EstadoApp = {
     contrast: false,
     reduceMotion: false,
   },
+  // Slices por criança: null = "não configurado" (a borda aplica o padrão);
+  // coleta segue ligada por padrão (PC_PRIV usa `!== false`).
+  limites: null,
+  cardapio: null,
+  cenariosLiberados: null,
+  coletaTelemetria: true,
 };
 
 // --- Seletores derivados ---

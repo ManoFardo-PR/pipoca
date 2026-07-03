@@ -448,6 +448,23 @@ try {
   assert(uxChips.ana && uxChips.bia, "T14 mostra os chips das crianças (configuração independente)");
   await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
 
+  // ── UX por perfil (etapa 5) · dashboards: saldos por criança no hub (T11) e
+  // cartão do pote no painel de evolução (T8).
+  console.log("\n=== UX por perfil · dashboards (T11 saldos, T8 pote) ===");
+  await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 });
+  await page.waitForFunction(() => /guardados/i.test(document.body.innerText), { timeout: 4000 });
+  const t11Saldos = await page.evaluate(() => ({
+    ana: /Ana/.test(document.body.innerText),
+    saldoAna: /✨\s*7/.test(document.body.innerText),
+  }));
+  assert(t11Saldos.ana && t11Saldos.saldoAna, "T11 resume os potes por criança (Ana com ✨ 7)");
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 8 }); });
+  await page.waitForFunction(() => /Pote de vaga-lumes/i.test(document.body.innerText), { timeout: 4000 });
+  const t8Pote = await page.evaluate(() => /✨\s*7/.test(document.body.innerText));
+  assert(t8Pote, "T8 mostra o cartão do pote com o saldo da criança do chip");
+  await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
+
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 
   console.log(`\n${"=".repeat(50)}`);

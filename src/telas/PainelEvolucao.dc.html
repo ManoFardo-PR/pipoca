@@ -89,7 +89,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { perfis: [], perfilId: null, eventos: [], periodo: 'semana', carregando: true };
+  state = { perfis: [], perfilId: null, eventos: [], economia: { vagalumes: 0, poupado: 0 }, periodo: 'semana', carregando: true };
 
   async componentDidMount() {
     const App = window.PipocaApp;
@@ -105,10 +105,16 @@ class Component extends DCLogic {
 
   async _carregar(perfilId) {
     const App = window.PipocaApp;
+    // UX por perfil: o pote entra no painel — saldo da criança do chip
+    // (lerPrefsPerfil: ativa → vivo; senão → save).
+    let economia = { vagalumes: 0, poupado: 0 };
+    try {
+      if (App && App.lerPrefsPerfil) economia = (await App.lerPrefsPerfil(perfilId)).economia || economia;
+    } catch (_) {}
     try {
       const eventos = App && App.repo ? await App.repo.carregarTelemetria(perfilId) : [];
-      this.setState({ perfilId, eventos: eventos || [], carregando: false });
-    } catch (_) { this.setState({ perfilId, eventos: [], carregando: false }); }
+      this.setState({ perfilId, eventos: eventos || [], economia, carregando: false });
+    } catch (_) { this.setState({ perfilId, eventos: [], economia, carregando: false }); }
   }
 
   _inject(el, html) { if (el && el._k !== html) { el.innerHTML = html; el._k = html; } }
@@ -222,6 +228,9 @@ class Component extends DCLogic {
         { rot: 'Engajamento', valor: this._rotuloEngajamento(engMedia, resumo.diasAtivos),
           sub: resumo.diasAtivos + (resumo.diasAtivos === 1 ? ' dia ativo' : ' dias ativos')
             + (resumo.sequenciaDias > 1 ? ' · ' + resumo.sequenciaDias + ' seguidos' : '') },
+        // UX por perfil: saldo do pote no dashboard (sempre atual, não por período).
+        { rot: 'Pote de vaga-lumes', valor: '✨ ' + s.economia.vagalumes,
+          sub: s.economia.poupado + (s.economia.poupado === 1 ? ' guardado p/ o sonho' : ' guardados p/ o sonho') },
       ],
       vazio: !s.carregando && !temDados,
       temGraficos: temDados,

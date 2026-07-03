@@ -307,6 +307,71 @@ try {
   assert(fase06Login.local, "fase06: login da família pelo seam (backend local) funciona");
   assert(fase06Login.remotoMorto, "fase06: backend inacessível → erro NEUTRO, app não quebra (fail-soft)");
 
+  // ── UX por perfil (etapa 2) · save por criança: trocar zera, voltar hidrata,
+  // reload persiste. O flush na borda grava o save ANTES da troca.
+  console.log("\n=== UX por perfil · save por criança (troca + hidratação + reload) ===");
+  const uxSave = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+    const A = { id: "uxA", nome: "Ana", idade: 7, nivel: "n2", avatarId: "lua" };
+    const B = { id: "uxB", nome: "Bia", idade: 8, nivel: "n3", avatarId: "tuca" };
+    await App.repo.salvarPerfil(A);
+    await App.repo.salvarPerfil(B);
+    App.selecionarPerfil(A, 3);
+    await espera(30); // hidratação resolve em microtask (repo local)
+    App.setState({
+      economia: { vagalumes: 7, poupado: 2 },
+      cardapio: [{ id: "pipoca", label: "Pipoca no cinema", icon: "🍿", cost: 4 }],
+    });
+    App.selecionarPerfil(B, 3); // a borda drena o save da Ana ANTES da troca
+    await espera(30);
+    const poteB = App.estado.economia.vagalumes;
+    const cardapioB = App.estado.cardapio;
+    App.selecionarPerfil(A, 3);
+    await espera(30);
+    const saveA = await App.repo.carregarSave("uxA");
+    return {
+      poteB,
+      cardapioB,
+      poteA: App.estado.economia.vagalumes,
+      poupadoA: App.estado.economia.poupado,
+      cardapioA: App.estado.cardapio && App.estado.cardapio[0] && App.estado.cardapio[0].id,
+      saveOk: !!saveA && saveA.economia.vagalumes === 7
+        && !!saveA.cardapio && saveA.cardapio[0].id === "pipoca",
+      projecaoMinima: !!saveA && saveA.tela === 2 && saveA.sessao === null
+        && !("comp" in saveA) && !("gateTrecho" in saveA),
+    };
+  });
+  assert(uxSave.poteB === 0 && uxSave.cardapioB === null, "trocar de criança ZERA pote/config (B não herda da A)");
+  assert(uxSave.poteA === 7 && uxSave.poupadoA === 2, "voltar à criança A hidrata o pote do save dela");
+  assert(uxSave.cardapioA === "pipoca", "cardápio configurado da A volta do save");
+  assert(uxSave.saveOk === true, "flush na borda gravou o save da A no repo (pipoca.save.v1)");
+  assert(uxSave.projecaoMinima === true, "projeção mínima: tela 2, sessao null; comp/gate NÃO vazam pro save");
+
+  // Reload: o save por perfil sobrevive (persistência de verdade).
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(
+    () => !!window.PipocaCanonico && !!window.PipocaApp && !!window.PipocaApp.repo,
+    { timeout: 15000 }
+  );
+  const uxReload = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const perfis = await App.repo.carregarPerfis();
+    const A = perfis.find((p) => p.id === "uxA");
+    if (!A) return { ok: false };
+    App.selecionarPerfil(A, 3);
+    await new Promise((r) => setTimeout(r, 50));
+    return {
+      ok: true,
+      pote: App.estado.economia.vagalumes,
+      cardapio: App.estado.cardapio && App.estado.cardapio[0] && App.estado.cardapio[0].id,
+    };
+  });
+  assert(
+    !!uxReload.ok && uxReload.pote === 7 && uxReload.cardapio === "pipoca",
+    "reload: pote e cardápio da criança persistem (save por perfil)"
+  );
+
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 
   console.log(`\n${"=".repeat(50)}`);

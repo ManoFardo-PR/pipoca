@@ -111,7 +111,15 @@ class Component extends DCLogic {
       const perfil = Canon.onboarding.perfilDoOnboarding(dados);
       if (App.repo) await App.repo.salvarPerfil(perfil);
       const est = Canon.onboarding.montarEstadoOnboarding(dados, Date.now());
-      App.setState({ perfil: est.perfil, modos: est.modos, sessao: est.sessao });
+      // UX por perfil: seleciona zerando os slices (perfil novo começa do zero;
+      // nada vaza da criança anterior) e aplica as escolhas do onboarding por
+      // cima — o save nasce já com elas (debounce do setState).
+      if (App.selecionarPerfil) {
+        App.selecionarPerfil(est.perfil);
+        App.setState({ modos: est.modos, sessao: est.sessao });
+      } else {
+        App.setState({ perfil: est.perfil, modos: est.modos, sessao: est.sessao });
+      }
       App.aoVoltarParaCrianca(); // modo criança + T2; a criança já vê o avatar
     } catch (e) {
       console.warn('[Onboarding] salvar perfil falhou:', e);

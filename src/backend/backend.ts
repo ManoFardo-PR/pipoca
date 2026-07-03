@@ -88,6 +88,18 @@ export function criarAuthLocal(): ServicoAuth {
       if (!s) throw new Error(ERRO_LOGIN_NEUTRO);
       return { uid: s.adminId, tipo: "superadmin", ...(s.escopoTenants !== "todos" && s.escopoTenants[0] ? { tenantId: s.escopoTenants[0] } : {}) };
     },
+    async criarFamilia(cred: CredenciaisLogin): Promise<SessaoAuth | null> {
+      // O stub local já cria a conta no 1º login — o cadastro explícito delega.
+      const r = entrarFamiliaStub(cred.email, cred.senha, Date.now());
+      if (!r.ok || !r.conta || !r.sessao) throw new Error(r.erro || ERRO_LOGIN_NEUTRO);
+      salvarConta(r.conta);
+      salvarSessaoConta(r.sessao);
+      return { uid: r.conta.id, tipo: "familia" };
+    },
+    async recuperarSenha(_email: string): Promise<void> {
+      // Sem servidor de e-mail no modo local — resolve neutro (a tela mostra a
+      // mesma mensagem "se existir conta, enviamos" em todos os backends).
+    },
     async sair(): Promise<void> {
       // A FAMÍLIA tem precedência (o consumidor local deste seam é o app da
       // criança; o admin local segue no repoAdmin próprio) — assim uma sessão

@@ -5,8 +5,10 @@
      superfícies adultas atravessando o PINGATE). Pode aparecer no tablet da
      criança: texto sóbrio e curto, sem linguagem adulta sensível.
 
-     Núcleo: PipocaCanonico.conta (entrarFamilia é stub MVP — valida formato e
-     cria conta+sessão locais; auth real é fase06). NUNCA guarda a senha.
+     Modos: entrar · criar (cadastro explícito) · recuperar (link por e-mail) ·
+     novaSenha (aberto pelo hash do link de recuperação — type=recovery).
+     Núcleo: tudo pelo seam do App (entrarNaConta/criarConta/recuperarSenha/
+     redefinirSenha → ServicoAuth do backend). NUNCA guarda a senha.
 -->
 <x-dc>
 <helmet>
@@ -15,6 +17,7 @@
     .pip-lf-campo:focus { border-color:#c9a86f; }
     .pip-lf-btn { cursor:pointer;transition:transform .12s ease; }
     .pip-lf-btn:active { transform:scale(.97); }
+    .pip-lf-link { border:none;background:transparent;padding:6px 4px;font-family:'Nunito';font-weight:700;font-size:13.5px;color:#3f6f9e;cursor:pointer;text-decoration:underline;text-underline-offset:3px; }
   </style>
 </helmet>
 
@@ -24,25 +27,52 @@
     <!-- Cabeçalho sóbrio -->
     <div style="text-align:center;margin-bottom:18px;">
       <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
-      <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Entrar da família</div>
-      <p style="color:#7a6a54;font-family:'Nunito';font-size:14px;line-height:1.5;margin:8px 0 0;">Uma conta por casa. No primeiro uso, ela é criada aqui mesmo.</p>
+      <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">{{ titulo }}</div>
+      <p style="color:#7a6a54;font-family:'Nunito';font-size:14px;line-height:1.5;margin:8px 0 0;">{{ subtitulo }}</p>
     </div>
 
     <!-- Cartão do formulário -->
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
 
-      <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;">E-mail</label>
-      <input class="pip-lf-campo" style="margin-top:7px;" value="{{ email }}" onInput="{{ setEmail }}" type="email" autocomplete="email" placeholder="nome@exemplo.com" aria-label="E-mail da família" />
+      <sc-if value="{{ mostrarEmail }}" hint-placeholder-val="{{ true }}">
+        <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;">E-mail</label>
+        <input class="pip-lf-campo" style="margin-top:7px;" value="{{ email }}" onInput="{{ setEmail }}" type="email" autocomplete="email" placeholder="nome@exemplo.com" aria-label="E-mail da família" />
+      </sc-if>
 
-      <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Senha</label>
-      <input class="pip-lf-campo" style="margin-top:7px;" value="{{ senha }}" onInput="{{ setSenha }}" onKeyDown="{{ aoTeclar }}" type="password" autocomplete="current-password" placeholder="Sua senha" aria-label="Senha" />
+      <sc-if value="{{ mostrarSenha }}" hint-placeholder-val="{{ true }}">
+        <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">{{ rotuloSenha }}</label>
+        <input class="pip-lf-campo" style="margin-top:7px;" value="{{ senha }}" onInput="{{ setSenha }}" onKeyDown="{{ aoTeclar }}" type="password" autocomplete="{{ autoSenha }}" placeholder="{{ placeholderSenha }}" aria-label="Senha" />
+      </sc-if>
+
+      <sc-if value="{{ mostrarSenha2 }}" hint-placeholder-val="{{ false }}">
+        <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Confirme a senha</label>
+        <input class="pip-lf-campo" style="margin-top:7px;" value="{{ senha2 }}" onInput="{{ setSenha2 }}" onKeyDown="{{ aoTeclar }}" type="password" autocomplete="new-password" placeholder="A mesma senha, de novo" aria-label="Confirme a senha" />
+      </sc-if>
 
       <!-- Erro acolhedor (sem X vermelho) -->
       <sc-if value="{{ temErro }}" hint-placeholder-val="{{ false }}">
         <div role="status" aria-live="polite" style="margin-top:16px;color:#9a5a3a;font-family:'Nunito';font-size:14px;">{{ erro }}</div>
       </sc-if>
 
-      <button class="pip-lf-btn" onClick="{{ entrar }}" style="{{ entrarStyle }}">{{ entrarLabel }}</button>
+      <!-- Aviso caloroso (link enviado, conta criada…) -->
+      <sc-if value="{{ temAviso }}" hint-placeholder-val="{{ false }}">
+        <div role="status" aria-live="polite" style="margin-top:16px;color:#5a6b53;font-family:'Nunito';font-size:14px;">{{ aviso }}</div>
+      </sc-if>
+
+      <button class="pip-lf-btn" onClick="{{ acaoPrimaria }}" style="{{ primariaStyle }}">{{ primariaLabel }}</button>
+
+      <!-- Caminhos secundários por modo -->
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;margin-top:14px;">
+        <sc-if value="{{ mostrarCriar }}" hint-placeholder-val="{{ true }}">
+          <button class="pip-lf-link" onClick="{{ irCriar }}">Criar conta da família</button>
+        </sc-if>
+        <sc-if value="{{ mostrarRecuperar }}" hint-placeholder-val="{{ true }}">
+          <button class="pip-lf-link" onClick="{{ irRecuperar }}">Esqueci a senha</button>
+        </sc-if>
+        <sc-if value="{{ mostrarVoltar }}" hint-placeholder-val="{{ false }}">
+          <button class="pip-lf-link" onClick="{{ irEntrar }}">← Já tenho conta, entrar</button>
+        </sc-if>
+      </div>
     </div>
 
     <div style="height:24px;"></div>
@@ -51,18 +81,38 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { email: '', senha: '', erro: '', entrando: false };
+  state = { modo: 'entrar', email: '', senha: '', senha2: '', erro: '', aviso: '', ocupado: false, tokenRecuperacao: '' };
+
+  componentDidMount() {
+    // Link de recuperação do e-mail: o GoTrue volta com #access_token=…&type=recovery.
+    try {
+      const hash = (window.location.hash || '').replace(/^#/, '');
+      if (hash.indexOf('type=recovery') >= 0) {
+        const p = new URLSearchParams(hash);
+        const token = p.get('access_token') || '';
+        if (token) {
+          this.setState({ modo: 'novaSenha', tokenRecuperacao: token });
+          // limpa o hash (o token não deve sobreviver na barra de endereço)
+          try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (_) {}
+        }
+      }
+    } catch (_) {}
+  }
+
+  _irPara(modo) {
+    this.setState({ modo, erro: '', aviso: '', senha: '', senha2: '', ocupado: false });
+  }
 
   async _entrar() {
-    if (this.state.entrando) return;
+    if (this.state.ocupado) return;
     const App = window.PipocaApp;
     if (!App || !App.entrarNaConta) { this.setState({ erro: 'App indisponível. Recarregue a página.' }); return; }
-    this.setState({ entrando: true, erro: '' });
+    this.setState({ ocupado: true, erro: '', aviso: '' });
     // fase06 · a tela não conhece o provedor: entrarNaConta fala com o seam
     // (ServicoAuth remoto ou stub local — mesmo gesto, mesmo erro neutro).
     const r = await App.entrarNaConta(this.state.email, this.state.senha);
     if (!r || !r.ok) {
-      this.setState({ entrando: false, erro: (r && r.erro) || 'Confira o e-mail e a senha, por favor.' });
+      this.setState({ ocupado: false, erro: (r && r.erro) || 'Confira o e-mail e a senha, por favor.' });
       return;
     }
     try {
@@ -73,24 +123,119 @@ class Component extends DCLogic {
     App.setState({ tela: 2 }); // HH_LOGIN → KIDMODE → T2 (doc 02-01, regra 3)
   }
 
+  async _criar() {
+    if (this.state.ocupado) return;
+    const App = window.PipocaApp;
+    if (!App || !App.criarConta) { this.setState({ erro: 'App indisponível. Recarregue a página.' }); return; }
+    const senha = this.state.senha || '';
+    if (senha.length < 6) { this.setState({ erro: 'A senha precisa de pelo menos 6 caracteres.' }); return; }
+    if (senha !== this.state.senha2) { this.setState({ erro: 'As senhas não conferem — digite a mesma nas duas caixas.' }); return; }
+    this.setState({ ocupado: true, erro: '', aviso: '' });
+    const r = await App.criarConta(this.state.email, senha);
+    if (!r || !r.ok) {
+      this.setState({ ocupado: false, erro: (r && r.erro) || 'Não foi possível criar a conta. Tente de novo.' });
+      return;
+    }
+    if (r.pendente) {
+      // "Confirm email" ligado no projeto: a conta existe, falta o clique no e-mail.
+      this.setState({ modo: 'entrar', ocupado: false, senha: '', senha2: '', erro: '',
+        aviso: 'Quase lá! Confirme o e-mail que enviamos e depois entre aqui.' });
+      return;
+    }
+    try { if (App.repo) await App.repo.carregarPerfis(); } catch (_) {}
+    App.setState({ tela: 2 });
+  }
+
+  async _recuperar() {
+    if (this.state.ocupado) return;
+    const App = window.PipocaApp;
+    if (!App || !App.recuperarSenha) { this.setState({ erro: 'App indisponível. Recarregue a página.' }); return; }
+    const email = (this.state.email || '').trim();
+    if (!email || email.indexOf('@') < 0) { this.setState({ erro: 'Conte o e-mail da conta para enviarmos o link.' }); return; }
+    this.setState({ ocupado: true, erro: '', aviso: '' });
+    await App.recuperarSenha(email);
+    // SEMPRE neutro: não revela se a conta existe.
+    this.setState({ modo: 'entrar', ocupado: false, senha: '',
+      aviso: 'Se este e-mail tiver conta, enviamos um link para redefinir a senha. Vale por pouco tempo.' });
+  }
+
+  async _salvarNovaSenha() {
+    if (this.state.ocupado) return;
+    const App = window.PipocaApp;
+    if (!App || !App.redefinirSenha) { this.setState({ erro: 'App indisponível. Recarregue a página.' }); return; }
+    const senha = this.state.senha || '';
+    if (senha.length < 6) { this.setState({ erro: 'A nova senha precisa de pelo menos 6 caracteres.' }); return; }
+    if (senha !== this.state.senha2) { this.setState({ erro: 'As senhas não conferem — digite a mesma nas duas caixas.' }); return; }
+    this.setState({ ocupado: true, erro: '', aviso: '' });
+    const r = await App.redefinirSenha(this.state.tokenRecuperacao, senha);
+    if (!r || !r.ok) {
+      this.setState({ ocupado: false, erro: (r && r.erro) || 'Não deu para salvar a nova senha. Peça um novo link.' });
+      return;
+    }
+    this.setState({ modo: 'entrar', ocupado: false, senha: '', senha2: '', tokenRecuperacao: '',
+      aviso: 'Senha nova salva! Agora é só entrar com ela.' });
+  }
+
+  _acao() {
+    const m = this.state.modo;
+    if (m === 'criar') return this._criar();
+    if (m === 'recuperar') return this._recuperar();
+    if (m === 'novaSenha') return this._salvarNovaSenha();
+    return this._entrar();
+  }
+
   renderVals() {
     const s = this.state;
-    const pode = !!(s.email || '').trim() && !!(s.senha || '').trim() && !s.entrando;
+    const m = s.modo;
+    const textos = {
+      entrar:    { titulo: 'Entrar da família', subtitulo: 'Uma conta por casa. Primeira vez? Crie a conta aqui embaixo.', botao: 'Entrar', ocupado: 'Entrando…' },
+      criar:     { titulo: 'Criar a conta da casa', subtitulo: 'Só e-mail e uma senha com 6+ caracteres. Nada da criança fica público.', botao: 'Criar conta', ocupado: 'Criando…' },
+      recuperar: { titulo: 'Recuperar a senha', subtitulo: 'A gente envia um link de redefinição para o e-mail da conta.', botao: 'Enviar link', ocupado: 'Enviando…' },
+      novaSenha: { titulo: 'Escolher a nova senha', subtitulo: 'Você chegou pelo link do e-mail. Escolha a nova senha da casa.', botao: 'Salvar nova senha', ocupado: 'Salvando…' },
+    };
+    const t = textos[m] || textos.entrar;
+
+    const precisaEmail = m !== 'novaSenha';
+    const precisaSenha = m !== 'recuperar';
+    const precisaSenha2 = m === 'criar' || m === 'novaSenha';
+    const emailOk = !precisaEmail || !!(s.email || '').trim();
+    const senhaOk = !precisaSenha || !!(s.senha || '').trim();
+    const senha2Ok = !precisaSenha2 || !!(s.senha2 || '').trim();
+    const pode = emailOk && senhaOk && senha2Ok && !s.ocupado;
+
     return {
+      titulo: t.titulo,
+      subtitulo: t.subtitulo,
       email: s.email,
       senha: s.senha,
+      senha2: s.senha2,
       setEmail: (e) => this.setState({ email: e.target.value }),
       setSenha: (e) => this.setState({ senha: e.target.value }),
-      aoTeclar: (e) => { if (e && e.key === 'Enter') this._entrar(); },
+      setSenha2: (e) => this.setState({ senha2: e.target.value }),
+      aoTeclar: (e) => { if (e && e.key === 'Enter') this._acao(); },
+      mostrarEmail: precisaEmail,
+      mostrarSenha: precisaSenha,
+      mostrarSenha2: precisaSenha2,
+      rotuloSenha: (m === 'criar' || m === 'novaSenha') ? 'Senha (6+ caracteres)' : 'Senha',
+      placeholderSenha: (m === 'criar' || m === 'novaSenha') ? 'Escolha uma senha' : 'Sua senha',
+      autoSenha: (m === 'criar' || m === 'novaSenha') ? 'new-password' : 'current-password',
       erro: s.erro || '',
       temErro: !!s.erro,
-      entrar: () => this._entrar(),
-      entrarLabel: s.entrando ? 'Entrando…' : 'Entrar',
-      entrarStyle: 'margin-top:22px;width:100%;min-height:52px;border:none;border-radius:16px;'
+      aviso: s.aviso || '',
+      temAviso: !!s.aviso && !s.erro,
+      acaoPrimaria: () => this._acao(),
+      primariaLabel: s.ocupado ? t.ocupado : t.botao,
+      primariaStyle: 'margin-top:22px;width:100%;min-height:52px;border:none;border-radius:16px;'
         + 'font-family:Baloo 2;font-weight:800;font-size:17px;color:#fff;cursor:' + (pode ? 'pointer' : 'not-allowed') + ';'
         + (pode
           ? 'background:linear-gradient(150deg,#e8965a,#d5713f);box-shadow:0 10px 24px -8px rgba(181,86,40,.55);'
           : 'background:#cbb692;opacity:.7;'),
+      mostrarCriar: m === 'entrar',
+      mostrarRecuperar: m === 'entrar',
+      mostrarVoltar: m !== 'entrar',
+      irCriar: () => this._irPara('criar'),
+      irRecuperar: () => this._irPara('recuperar'),
+      irEntrar: () => this._irPara('entrar'),
     };
   }
 }

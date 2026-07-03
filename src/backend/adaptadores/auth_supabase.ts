@@ -23,7 +23,13 @@ import type { Transporte } from "../../ia/provedor.js";
 import { transportePadrao } from "../../ia/provedor.js";
 import { criarSessao, DURACAO_SESSAO_MS } from "../../core/contaFamilia.js";
 import { limparSessaoConta, salvarConta, salvarSessaoConta } from "../../servicos/conta_repo.js";
-import { ERRO_LOGIN_NEUTRO, type CredenciaisLogin, type ServicoAuth, type SessaoAuth } from "../auth.js";
+import {
+  ERRO_CRIAR_CONTA,
+  ERRO_LOGIN_NEUTRO,
+  type CredenciaisLogin,
+  type ServicoAuth,
+  type SessaoAuth,
+} from "../auth.js";
 
 export const CHAVE_SESSAO_BACKEND = "pipoca.backend.sessao.v1";
 const ERRO_CONFIRMACAO = "Quase lá! Confirme o e-mail que enviamos e tente entrar de novo.";
@@ -222,6 +228,48 @@ export function criarAuthSupabase(op: OpcoesAuthSupabase): AuthSupabase {
       const escopo = linha.escopo;
       const tenantId = Array.isArray(escopo) && typeof escopo[0] === "string" ? (escopo[0] as string) : undefined;
       return assentarSessao(r, "superadmin", tenantId);
+    },
+
+    async criarFamilia(cred: CredenciaisLogin): Promise<SessaoAuth | null> {
+      const email = (cred.email || "").trim().toLowerCase();
+      const senha = cred.senha || "";
+      // GoTrue exige senha >= 6; barra ANTES da rede com a mensagem clara.
+      if (!email || !email.includes("@") || senha.length < 6) throw new Error(ERRO_CRIAR_CONTA);
+
+      const s = await chamarToken("/auth/v1/signup", { email, password: senha });
+      if (s && s.access_token) return assentarSessao(s, "familia");
+      // "Confirm email" ligado: o GoTrue devolve o user SEM sessão (também no
+      // e-mail já registrado — resposta ofuscada de propósito, segue neutra).
+      if (s && s.user) return null;
+      throw new Error(ERRO_CRIAR_CONTA);
+    },
+
+    async recuperarSenha(email: string): Promise<void> {
+      const e = (email || "").trim().toLowerCase();
+      if (!e || !e.includes("@")) return;
+      // Melhor esforço e SEMPRE neutro: falha de rede/limite não vaza pra tela.
+      try {
+        await transporte(base + "/auth/v1/recover", {
+          method: "POST",
+          headers: cabecalhos(),
+          body: JSON.stringify({ email: e }),
+        });
+      } catch {
+        /* neutro por contrato */
+      }
+    },
+
+    async redefinirSenha(tokenRecuperacao: string, novaSenha: string): Promise<void> {
+      if (!tokenRecuperacao) throw new Error("O link de redefinição venceu. Peça um novo e tente de novo.");
+      if ((novaSenha || "").length < 6) throw new Error("A nova senha precisa de pelo menos 6 caracteres.");
+      const resp = await transporte(base + "/auth/v1/user", {
+        method: "PUT",
+        headers: cabecalhos(tokenRecuperacao),
+        body: JSON.stringify({ password: novaSenha }),
+      });
+      if (resp.status !== 200) {
+        throw new Error("O link de redefinição venceu. Peça um novo e tente de novo.");
+      }
     },
 
     async sair(): Promise<void> {

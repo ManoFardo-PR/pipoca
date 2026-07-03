@@ -1631,6 +1631,7 @@
 
   // src/backend/auth.ts
   var ERRO_LOGIN_NEUTRO = "Não foi possível entrar. Confira os dados e tente de novo.";
+  var ERRO_CRIAR_CONTA = "Não foi possível criar a conta. Confira o e-mail e use uma senha com pelo menos 6 caracteres.";
 
   // src/backend/config.ts
   var CONFIG_LOCAL = { provedor: "local" };
@@ -1856,6 +1857,44 @@
         const escopo = linha.escopo;
         const tenantId = Array.isArray(escopo) && typeof escopo[0] === "string" ? escopo[0] : undefined;
         return assentarSessao(r, "superadmin", tenantId);
+      },
+      async criarFamilia(cred) {
+        const email = (cred.email || "").trim().toLowerCase();
+        const senha = cred.senha || "";
+        if (!email || !email.includes("@") || senha.length < 6)
+          throw new Error(ERRO_CRIAR_CONTA);
+        const s = await chamarToken("/auth/v1/signup", { email, password: senha });
+        if (s && s.access_token)
+          return assentarSessao(s, "familia");
+        if (s && s.user)
+          return null;
+        throw new Error(ERRO_CRIAR_CONTA);
+      },
+      async recuperarSenha(email) {
+        const e = (email || "").trim().toLowerCase();
+        if (!e || !e.includes("@"))
+          return;
+        try {
+          await transporte(base + "/auth/v1/recover", {
+            method: "POST",
+            headers: cabecalhos(),
+            body: JSON.stringify({ email: e })
+          });
+        } catch {}
+      },
+      async redefinirSenha(tokenRecuperacao, novaSenha) {
+        if (!tokenRecuperacao)
+          throw new Error("O link de redefinição venceu. Peça um novo e tente de novo.");
+        if ((novaSenha || "").length < 6)
+          throw new Error("A nova senha precisa de pelo menos 6 caracteres.");
+        const resp = await transporte(base + "/auth/v1/user", {
+          method: "PUT",
+          headers: cabecalhos(tokenRecuperacao),
+          body: JSON.stringify({ password: novaSenha })
+        });
+        if (resp.status !== 200) {
+          throw new Error("O link de redefinição venceu. Peça um novo e tente de novo.");
+        }
       },
       async sair() {
         const s = lerSessaoBackend();
@@ -2152,6 +2191,15 @@
           throw new Error(ERRO_LOGIN_NEUTRO);
         return { uid: s.adminId, tipo: "superadmin", ...s.escopoTenants !== "todos" && s.escopoTenants[0] ? { tenantId: s.escopoTenants[0] } : {} };
       },
+      async criarFamilia(cred) {
+        const r = entrarFamilia(cred.email, cred.senha, Date.now());
+        if (!r.ok || !r.conta || !r.sessao)
+          throw new Error(r.erro || ERRO_LOGIN_NEUTRO);
+        salvarConta(r.conta);
+        salvarSessaoConta(r.sessao);
+        return { uid: r.conta.id, tipo: "familia" };
+      },
+      async recuperarSenha(_email) {},
       async sair() {
         const fam = carregarSessaoConta();
         if (fam && sessaoValida(fam, Date.now())) {

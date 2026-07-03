@@ -1,5 +1,7 @@
 # fase06 · 06-02 · Auth: serviço e adaptadores (família + super admin)
 
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO (Supabase real; Firebase stub)** — `ServicoAuth`/`SessaoAuth` ipsis litteris em `src/backend/auth.ts`; adaptador GoTrue via REST (`adaptadores/auth_supabase.ts`): password grant com signup automático no 1º uso da família (espelha o stub), espelhos síncronos que o boot do app já lê (contrato `sessaoAtual()` síncrono preservado), refresh de token sob demanda regravado, operador exige linha na tabela `operadores` (SEM signup automático) e erro NEUTRO em toda falha. Telas LoginFamilia/SaLogin agnósticas via seam; `sessaoAtual().tipo` separa família de operador (critério testado). Passo manual: Confirm email OFF (PARIDADE.md). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase06-06-02`
 - nó(s) da arquitetura: —

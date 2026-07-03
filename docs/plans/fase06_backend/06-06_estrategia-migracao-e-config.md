@@ -1,5 +1,7 @@
 # fase06 · 06-06 · Estratégia de migração e configuração
 
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO (MVP)** — `ConfigBackend` + normalização fail-safe em `src/backend/config.ts` (qualquer dúvida → "local", offline-first); config PÚBLICA em `pipoca.config.js` com guard de override (os runners e2e injetam "local" e rodam offline para sempre); PARIDADE.md criado com a matriz Supabase↔Firebase, o estado do projeto real e os passos manuais. Alternar provedor = editar a config pública (a fachada seleciona o adaptador; nenhuma tela muda — critério verificado); a migração de dados usa `migrar()`/`sincronizarInicial` testados (não há função `alternarProvedor` dedicada — alternância é operacional via config, registrado aqui). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase06-06-06`
 - nó(s) da arquitetura: —

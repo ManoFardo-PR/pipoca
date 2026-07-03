@@ -1,5 +1,7 @@
 # fase06 · 06-01 · Seam de backend e portabilidade (Supabase | Firebase)
 
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO (Supabase real; Firebase stub)** — fachada `Backend { auth, repo, proxyIA }` + `obterBackend(config)` em `src/backend/backend.ts`; adaptadores: local (delega aos núcleos que o app já usava — offline-first, regra 4), supabase (REST puro via `Transporte` injetável — ZERO SDK no bundle) e firebase (stub honesto; paridade em PARIDADE.md). Lei do backend cumprida: nenhum SDK/URL de provedor fora de `src/backend/`. Config pública em `pipoca.config.js` (`window.PIPOCA_CONFIG`, fail-safe → local; o e2e força "local" e roda offline). Trocar `config.provedor` não muda tela/CORE (critério verificado). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase06-06-01`
 - nó(s) da arquitetura: —

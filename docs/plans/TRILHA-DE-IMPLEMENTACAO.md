@@ -51,6 +51,15 @@ O caminho verde roda **inteiro sobre os módulos canônicos** — a convergênci
   com remontagem ao vivo do motor (`state.motorAtivo`). Modo fala no portão: `ServicoASR`
   (`src/servicos/asr.ts`, irmão do tts) avalia participação — não perfeição; sem microfone o portão
   degrada acolhedor para o caminho do cuidador (e2e cobre).
+- **Backend trocável no ar (2026-07-02, Supabase real)** — fachada `Backend { auth, repo, proxyIA }`
+  (`src/backend/backend.ts`) com adaptadores local / supabase (REST puro, sem SDK) / firebase (stub);
+  config pública em `pipoca.config.js` (fail-safe → local; o e2e força "local" e segue 100% offline).
+  Projeto real `pipoca` (sa-east-1, free) com RLS aplicado e verificado ao vivo, Edge Function
+  `proxy-ia` deployada (chaves dos 4 provedores — Anthropic/OpenAI/Gemini/DeepSeek — só nos secrets;
+  cota/custo persistidos checados antes de cada chamada). Estratégia "remoto com fallback local":
+  leitura sempre local, escrita espelhada fire-and-forget, tombstones para apagar offline e
+  sincronização inicial no login (união com preferência local). Sem rede/config, o app é exatamente o
+  de antes. Passos operacionais restantes em fase06_backend/PARIDADE.md.
 - **Dívida conhecida (coexistência v1/v2)** — `_initMotor()` em `src/app/estado.js` ainda carrega
   `quintal_grafo.json` (v1) em paralelo à v2; o motor narrativo (A ou B desde a fase05) segue
   instanciado, mas a linha verde usa a composição.
@@ -59,13 +68,14 @@ O caminho verde roda **inteiro sobre os módulos canônicos** — a convergênci
 - Persistir a preferência de coleta de PC_PRIV (`coletaTelemetria` hoje é efêmera, some ao recarregar).
 - Caminho Windows hardcoded (`PW_CORE`) em `tests/e2e/run-linha-verde-canonico.mjs`.
 - Runner legado `tests/e2e/run-linha-verde.mjs` desalinhado das telas canônicas (não é portão; candidato a `old/`).
-- Fase 04: enforcement de `maxPerfis`/`retencaoTelemetriaDias` no app da família e credencial/sessão do
-  operador em servidor dependem da fase06; as FLAGS já são consumidas pelo runtime da criança (fase05),
-  mas a config de IA por tenant só chega ao runtime com o vínculo tenant↔família (fase06).
-- Fase 05: chamada real aos provedores (chaves/SDK via ProxyIA), seleção de adaptador pela config do
-  tenant no runtime, cotas/custo persistidos e telemetria de custo de verdade dependem da fase06 —
-  até lá o provedor do app é o simulado local.
-- Fases 06–08 não iniciadas.
+- Fase 06 (operacional, fora do código): desligar "Confirm email" no dashboard, configurar os secrets
+  dos 4 provedores de IA na função e semear o operador na tabela `operadores` — passos no
+  fase06_backend/PARIDADE.md. Sem eles o app funciona igual (fail-soft: simulado/local).
+- Fase 06 (código, próxima iteração): telas do admin (tenants/conteúdo/flags) sobre PostgREST — hoje só
+  a config de IA é espelhada no servidor; vínculo explícito conta↔tenant (`contas_tenant`); telemetria
+  remota com retenção; adaptadores Firebase reais (stubs + paridade documentada); teto de perfis por
+  plano no app da família (o trigger cobre o dado remoto com tenant).
+- Fase 08 depende de conteúdo; fase 07 (QA/A11y/CI) não iniciada.
 
 Aposentados em 2026-07-02 (movidos para `old/`): `app.html` (entry duplicado; o e2e canônico agora aponta
 para `/`) e `src/motores/jogar.ts` (inlinado em `motor.test.ts`).
@@ -79,7 +89,7 @@ para `/`) e `src/motores/jogar.ts` (inlinado em `motor.test.ts`).
 | 03 Telemetria/painel | 🟢 **completa no app** (2026-07-02) | captura ligada em `src/app/estado.js` (portão/recompensa/sessão/desfecho, respeitando PC_PRIV) + tela `PainelEvolucao` (8) sobre `PipocaCanonico.agregados` |
 | 04 Super admin | 🟢 **completa no app (MVP local)** (2026-07-02) | entry `admin.html` + `src/admin/*` (auth/guard/tenants/conteúdo/IA/flags) + 6 telas SA_* + e2e próprio (`test:e2e:admin`, 22 asserts); auth/persistência reais e chaves de IA = fase06 |
 | 05 IA e fala | 🟢 **completa no app (MVP local)** (2026-07-02) | Motor B (`MotorIA`) atrás da fábrica + `src/ia/*` (prompt/guardrails/orquestrador/simulado; adaptadores testados com transporte fake) + ASR no portão (T5) e "Pela voz" nas Regras; kill-switches consumidos pelo runtime; chamada real de IA = fase06 |
-| 06 Backend | 🟡 migração pronta | `migrar(de,para)` em `src/backend/migracao.ts` (testado); adaptadores BaaS aguardam 06-01 |
+| 06 Backend | 🟢 **completa no app (Supabase real)** (2026-07-02) | fachada `Backend{auth,repo,proxyIA}` + adaptadores REST puros (`src/backend/*`); projeto real sa-east-1 com RLS aplicado + Edge Function `proxy-ia` deployada (4 provedores via secrets); remoto com fallback local (sem rede, tudo segue); Firebase = stub + PARIDADE.md |
 | 07 QA/A11y/CI | 🔴 não iniciado | `motor.test`/`persistencia.test`; `check_plans.mjs` sem CI |
 | 08 Conteúdo | 🔴 não iniciado | só `quintal_grafo.json`; SVGs dos 4 cenários sem grafo |
 
@@ -236,9 +246,29 @@ do cuidador) e "Pela voz" nas Regras; `aplicarFlagsAosModos` estendida (kill-swi
 adaptador pela `ConfigIaTenant` no runtime (vínculo tenant↔família), cotas/custo persistidos no backend,
 telemetria de custo de verdade.
 
-## Marco 6 — Fase 06 · Backend trocável (Supabase | Firebase)
+## Marco 6 — Fase 06 · Backend trocável (Supabase | Firebase) — ✅ CONCLUÍDO (2026-07-02, Supabase real)
 `ServicoAuth`, adaptadores de `RepositorioPersistencia` (completar `RepositorioSupabase`), RLS/Security Rules,
 `ProxyIA` server-side (chaves nunca no cliente). Login agnóstico via seam.
+
+**Feito (2026-07-02):** fachada `Backend { auth, repo, proxyIA }` + `obterBackend(config)` em
+`src/backend/backend.ts` — lei do backend cumprida (REST puro via `Transporte` injetável da fase05,
+ZERO SDK; nada de provedor fora de `src/backend/`). Config pública `pipoca.config.js`
+(`window.PIPOCA_CONFIG`, fail-safe → local; e2e injeta "local" e roda offline para sempre). Auth GoTrue
+via REST: família com signup no 1º uso e espelhos síncronos (o boot não mudou de forma), refresh sob
+demanda, operador via tabela `operadores` sem signup automático, erro neutro em tudo; telas
+LoginFamilia/SaLogin agnósticas. Persistência: repo PostgREST (mesmos envelopes canônicos, revalidados),
+repo SINCRONIZADO (leitura local; escrita local + espelho fire-and-forget com catch; tombstones para
+apagar offline) e `sincronizarInicial` (união com preferência local). DeepSeek entrou como 4º provedor
+(adaptador próprio em JSON mode; catálogo/telas do admin com 4 chips). ProxyIA: Edge Function deployada
+no projeto real (verify_jwt; 401 sem bearer verificado ao vivo), servidor decide provedor/modelo pela
+config do tenant e checa cota/custo persistidos ANTES da chamada, guardrails server-side; cliente
+`provedorViaProxy` na cadeia do orquestrador — falha degrada p/ simulado → Motor A. Infra real via MCP:
+projeto sa-east-1 (free), migrations de schema+RLS+hardening aplicadas, RLS provado ao vivo (anon lê 0 e
+escreve negado). Portões: 465 asserts bun · e2e canônico 37 · e2e admin 24 — tudo OFFLINE mesmo com a
+config real commitada.
+**Pendências:** passos operacionais do dashboard (confirm-email OFF, secrets de IA, seed do operador —
+PARIDADE.md) e a próxima iteração de código (telas admin sobre PostgREST, vínculo conta↔tenant,
+telemetria remota com retenção, Firebase real).
 
 ## Marco 7 — Fase 07 · QA / A11y / CI
 Auditoria de acessibilidade automatizada; `.github/workflows/ci.yml` com `check_plans.mjs` como gate +

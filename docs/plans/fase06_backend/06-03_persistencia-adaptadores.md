@@ -1,6 +1,6 @@
 # fase06 · 06-03 · Persistência: adaptadores e migração
 
-> 🟡 **STATUS · 2026-06-29 · PARCIAL** — Utilitário `migrar(de,para)` (perfis+saves pelo seam) em `src/backend/migracao.ts`, testado; `RepositorioLocalStorage` funcional. Adaptadores BaaS reais (Supabase/Firebase) aguardam a fachada `Backend` (06-01) + backend — Marco 6. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-07-02 · IMPLEMENTADO (Supabase real; Firebase stub)** — adaptadores completos em `src/backend/adaptadores/`: repo_local (o repositório local canônico), repo_supabase (PostgREST via REST — os MESMOS envelopes canônicos em jsonb, revalidados na leitura; upsert idempotente; token relido a cada request; LGPD apaga nas 3 tabelas) e repo_sincronizado ("remoto com fallback local": leitura local, escrita local + espelho fire-and-forget, TOMBSTONES para apagar offline). `sincronizarInicial` (união com preferência local, reusa `migrar()`). Round-trip por adaptador e `migrar(local, supabase)` testados com PostgREST fake (critérios do doc). O stub antigo do core foi aposentado. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase06-06-03`

@@ -505,6 +505,35 @@ try {
   assert(true, "cancelar o PIN devolve à mesma tela da leitura (retomada sem perdas)");
   await page.evaluate(() => { window.PipocaApp.setState({ tela: 2 }); });
 
+  // ── Conta da família · cadastro explícito + recuperação de senha (T9) ──
+  console.log("\n=== Conta da família · criar conta + recuperar senha ===");
+  const uxConta = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const cria = await App.criarConta("nova-casa@pipoca.dev", "segredo123");
+    const rec = await App.recuperarSenha("qualquer@x.dev");
+    return { criaOk: !!(cria && cria.ok), recOk: !!(rec && rec.ok) };
+  });
+  assert(uxConta.criaOk, "criarConta pelo seam (backend local) cria conta + sessão");
+  assert(uxConta.recOk, "recuperarSenha SEMPRE resolve ok (postura neutra, nunca lança)");
+
+  // UI: a T9 mostra os dois caminhos e o cadastro pela tela entra direto.
+  await page.evaluate(() => { window.PipocaApp.sairDaConta(); });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 9, { timeout: 4000 });
+  await page.waitForFunction(
+    () => /Criar conta da família/i.test(document.body.innerText) && /Esqueci a senha/i.test(document.body.innerText),
+    { timeout: 4000 }
+  );
+  assert(true, "T9 mostra 'Criar conta da família' e 'Esqueci a senha'");
+  await page.locator("button", { hasText: "Criar conta da família" }).first().click();
+  await page.waitForFunction(() => /Confirme a senha/i.test(document.body.innerText), { timeout: 4000 });
+  assert(true, "modo criar conta monta (com confirmação de senha)");
+  await page.fill('[aria-label="E-mail da família"]', "casa-ui@pipoca.dev");
+  await page.fill('[aria-label="Senha"]', "segredo123");
+  await page.fill('[aria-label="Confirme a senha"]', "segredo123");
+  await page.locator("button", { hasText: "Criar conta" }).first().click();
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 2, { timeout: 4000 });
+  assert(true, "cadastro pela UI entra direto (backend local) e aterrissa na T2");
+
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 
   console.log(`\n${"=".repeat(50)}`);

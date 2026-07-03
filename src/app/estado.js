@@ -523,6 +523,56 @@
     return Promise.resolve({ ok: true });
   }
 
+  function _backend() {
+    var Canon = window.PipocaCanonico;
+    try { if (Canon && Canon.backend) return Canon.backend.obterBackend(); } catch (_) {}
+    return null;
+  }
+
+  // Cadastro explícito da família (tela "Criar conta"). ok+pendente=true →
+  // conta criada aguardando confirmação de e-mail (sem sessão ainda).
+  function criarConta(email, senha) {
+    var b = _backend();
+    if (!b || !b.auth) return Promise.resolve({ ok: false, erro: "O app ainda está carregando. Tente de novo." });
+    var criar = b.auth.criarFamilia
+      ? b.auth.criarFamilia({ email: email, senha: senha })
+      : b.auth.entrarFamilia({ email: email, senha: senha }); // bundle antigo: 1º login já cria
+    return criar.then(function (sessao) {
+      if (!sessao) return { ok: true, pendente: true };
+      if (typeof b.sincronizar === "function") {
+        b.sincronizar()
+          .then(function () { return repo.carregarPerfis(); })
+          .then(function () { notify(); })
+          .catch(function () {});
+      }
+      return { ok: true };
+    }).catch(function (e) {
+      return { ok: false, erro: (e && e.message) || "Não foi possível criar a conta. Tente de novo." };
+    });
+  }
+
+  // Recuperação de senha: SEMPRE resolve ok (postura neutra — não revela conta).
+  function recuperarSenha(email) {
+    var b = _backend();
+    if (!b || !b.auth || !b.auth.recuperarSenha) return Promise.resolve({ ok: true });
+    return b.auth.recuperarSenha(email)
+      .then(function () { return { ok: true }; })
+      .catch(function () { return { ok: true }; });
+  }
+
+  // Nova senha a partir do token do link de recuperação (hash da URL).
+  function redefinirSenha(tokenRecuperacao, novaSenha) {
+    var b = _backend();
+    if (!b || !b.auth || !b.auth.redefinirSenha) {
+      return Promise.resolve({ ok: false, erro: "A redefinição não está disponível neste modo." });
+    }
+    return b.auth.redefinirSenha(tokenRecuperacao, novaSenha)
+      .then(function () { return { ok: true }; })
+      .catch(function (e) {
+        return { ok: false, erro: (e && e.message) || "Não deu para salvar a nova senha. Tente de novo." };
+      });
+  }
+
   // ─── Motor/validador CANÔNICOS (src/) via window.PipocaCanonico ────────────
 
   // fase05 · modos EFETIVOS na borda de consumo: state.modos é a INTENÇÃO do
@@ -809,6 +859,9 @@
     abrirPortao: abrirPortao,
     aoVoltarParaCrianca: aoVoltarParaCrianca,
     entrarNaConta: entrarNaConta,
+    criarConta: criarConta,
+    recuperarSenha: recuperarSenha,
+    redefinirSenha: redefinirSenha,
     sairDaConta: sairDaConta,
     // composição autoral v2 (linha verde T2→T7)
     iniciarComposicao: iniciarComposicao,

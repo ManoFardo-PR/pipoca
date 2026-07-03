@@ -37,11 +37,17 @@ dedicada, a alternância é operacional via config).
 
 ## Passos manuais (dashboard) — únicos itens fora do código
 
-1. **Desligar a confirmação de e-mail** (Auth → Sign In / Providers → Email →
-   "Confirm email" OFF). Hoje está LIGADA (default): o 1º login da família
-   cria o usuário mas fica pendente de confirmação — o app mostra "Quase lá!
-   Confirme o e-mail…" e nada quebra, mas o fluxo sem fricção do stub só
-   volta com a confirmação desligada.
+1. **Confirmação de e-mail** (Auth → Sign In / Providers → Email → "Confirm
+   email"). Hoje está LIGADA (default). A tela de conta AGORA cobre os dois
+   estados: o cadastro explícito mostra "Quase lá! Confirme o e-mail…" quando
+   ligada e entra direto quando desligada. Desligar continua sendo a opção
+   sem fricção do MVP; ligada, é um passo a mais para a família.
+1b. **URLs de retorno do e-mail** (Auth → URL Configuration): apontar o
+   **Site URL** para a origem publicada do app (ex.:
+   `https://pipoca-mfardo.replit.app`) e adicioná-la em **Redirect URLs**.
+   Sem isso, os links de confirmação e de RECUPERAÇÃO DE SENHA redirecionam
+   para o default (localhost) e a tela "Escolher a nova senha" (hash
+   `type=recovery`) nunca abre no app publicado.
 2. **Secrets dos provedores de IA** (Edge Functions → Secrets): configurar
    qualquer combinação de `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
    `GEMINI_API_KEY`, `DEEPSEEK_API_KEY`. Sem a chave do provedor configurado,

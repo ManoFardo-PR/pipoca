@@ -8,7 +8,7 @@
 
 import { CONFIG_LOCAL, configDoAmbiente, normalizarConfigBackend } from "./config.js";
 import { escopoTenant } from "./tenant.js";
-import { criarBackendLocal, espelharConfigIA, obterBackend } from "./backend.js";
+import { criarAuthLocal, criarBackendLocal, espelharConfigIA, obterBackend } from "./backend.js";
 import { CHAVE_SESSAO_BACKEND, criarAuthSupabase } from "./adaptadores/auth_supabase.js";
 import { RepositorioSupabase } from "./adaptadores/repo_supabase.js";
 import { RepositorioLocalStorage } from "./adaptadores/repo_local.js";
@@ -277,6 +277,70 @@ console.log("\n=== auth Supabase — 1º uso (signup) e erros neutros ===");
       msgNeutra = e.message;
     });
   assert(/não foi possível entrar/i.test(msgNeutra), "login+signup falham → erro NEUTRO (não distingue e-mail de senha)");
+}
+
+console.log("\n=== auth Supabase — criar conta explícita + recuperar/redefinir senha ===");
+{
+  armazem.limpar();
+  const { t, chamadas } = transporteRotas([
+    { casa: (u) => u.indexOf("/auth/v1/signup") >= 0, responder: () => ({ status: 200, json: SESSAO_OK }) },
+    { casa: (u) => u.indexOf("/auth/v1/recover") >= 0, responder: () => ({ status: 200, json: {} }) },
+    { casa: (u, m) => u.indexOf("/auth/v1/user") >= 0 && m === "PUT", responder: () => ({ status: 200, json: { id: "uid-1" } }) },
+  ]);
+  const auth = criarAuthSupabase({ url: URL_SUPA, anonKey: "anon-k", transporte: t });
+
+  const criada = await auth.criarFamilia!({ email: "Nova@Casa.dev", senha: "segredo123" });
+  assert(!!criada && criada.tipo === "familia" && criada.uid === "uid-1", "criarFamilia com sessão → SessaoAuth familia");
+  assert(armazem.getItem(CHAVE_SESSAO_BACKEND) !== null && armazem.getItem("pipoca.conta.v1") !== null, "cadastro grava tokens + espelhos (igual ao login)");
+  assert(chamadas.some((c) => c.url.indexOf("/auth/v1/signup") >= 0), "cadastro usa a rota de signup do GoTrue");
+
+  // senha curta barra ANTES da rede, com mensagem clara
+  const nAntes = chamadas.length;
+  let msgCurta = "";
+  await auth.criarFamilia!({ email: "a@b.c", senha: "12345" }).catch((e: Error) => { msgCurta = e.message; });
+  assert(/6 caracteres/.test(msgCurta) && chamadas.length === nAntes, "senha < 6 → erro claro SEM ir à rede");
+
+  // confirmação de e-mail ligada: user sem sessão → null, nada gravado
+  armazem.limpar();
+  const { t: tPend } = transporteRotas([
+    { casa: (u) => u.indexOf("/auth/v1/signup") >= 0, responder: () => ({ status: 200, json: { user: { id: "u9" } } }) },
+  ]);
+  const pend = await criarAuthSupabase({ url: URL_SUPA, anonKey: "anon-k", transporte: tPend })
+    .criarFamilia!({ email: "pend@x.dev", senha: "segredo123" });
+  assert(pend === null && armazem.getItem(CHAVE_SESSAO_BACKEND) === null, "confirmação pendente → null e NENHUMA sessão gravada");
+
+  // recuperar senha: rota certa com apikey, e NUNCA lança (nem com a rede morta)
+  await auth.recuperarSenha!("Quem@Esqueceu.dev");
+  const rec = chamadas.find((c) => c.url.indexOf("/auth/v1/recover") >= 0);
+  assert(!!rec && (rec.corpo as { email?: string }).email === "quem@esqueceu.dev" && rec.headers["apikey"] === "anon-k", "recuperarSenha → POST /recover com e-mail normalizado + apikey");
+  const { t: tMorto } = transporteRotas([]);
+  let lancou = false;
+  await criarAuthSupabase({ url: URL_SUPA, anonKey: "anon-k", transporte: tMorto })
+    .recuperarSenha!("x@y.dev")
+    .catch(() => { lancou = true; });
+  assert(!lancou, "recuperarSenha é neutra: rede falhando não vaza erro pra tela");
+
+  // redefinir senha: PUT /user com o bearer do LINK de recuperação
+  await auth.redefinirSenha!("tok-recovery", "novaSenha9");
+  const red = chamadas.find((c) => c.url.indexOf("/auth/v1/user") >= 0 && c.metodo === "PUT");
+  assert(!!red && red.headers["Authorization"] === "Bearer tok-recovery", "redefinirSenha usa o token de recuperação como bearer");
+  const { t: t401 } = transporteRotas([
+    { casa: (u, m) => u.indexOf("/auth/v1/user") >= 0 && m === "PUT", responder: () => ({ status: 401, json: {} }) },
+  ]);
+  let msgVencido = "";
+  await criarAuthSupabase({ url: URL_SUPA, anonKey: "anon-k", transporte: t401 })
+    .redefinirSenha!("tok-velho", "novaSenha9")
+    .catch((e: Error) => { msgVencido = e.message; });
+  assert(/venceu/i.test(msgVencido), "link vencido/recusado → mensagem clara para pedir novo link");
+
+  // adaptador LOCAL: cadastro explícito delega ao stub (cria conta + sessão)
+  armazem.limpar();
+  const local = criarAuthLocal();
+  const sLocal = await local.criarFamilia!({ email: "casa-nova@pipoca.dev", senha: "segredo" });
+  assert(!!sLocal && sLocal.tipo === "familia" && local.sessaoAtual() !== null, "local: criarFamilia delega ao stub (conta + sessão na hora)");
+  let lancouLocal = false;
+  await local.recuperarSenha!("casa-nova@pipoca.dev").catch(() => { lancouLocal = true; });
+  assert(!lancouLocal, "local: recuperarSenha resolve neutro (sem servidor de e-mail)");
 }
 
 console.log("\n=== auth Supabase — sair ===");

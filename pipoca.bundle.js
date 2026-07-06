@@ -1292,6 +1292,75 @@
     return eventos.filter((e) => dentroDaRetencao(e, agora, retencaoDias));
   }
 
+  // src/core/historias.ts
+  var ESQUEMA_HISTORIAS = "pipoca.historias.v1";
+  var RETENCAO_HISTORIAS_DIAS = 20;
+  var MAX_NAO_FAVORITAS = 30;
+  var MS_POR_DIA2 = 86400000;
+  var NIVEIS2 = ["n1", "n2", "n3", "n4"];
+  var DESFECHOS = ["convergente", "aberto"];
+  function validarHistoriaSalva(raw) {
+    if (typeof raw !== "object" || raw === null)
+      return null;
+    const r = raw;
+    if (typeof r["id"] !== "string" || r["id"].trim() === "")
+      return null;
+    if (typeof r["cenarioId"] !== "string" || r["cenarioId"] === "")
+      return null;
+    if (typeof r["texto"] !== "string" || r["texto"].trim() === "")
+      return null;
+    if (!Array.isArray(r["linha"]) || !r["linha"].every((x) => typeof x === "string"))
+      return null;
+    if (!NIVEIS2.includes(r["nivel"]))
+      return null;
+    if (!DESFECHOS.includes(r["desfecho"]))
+      return null;
+    if (typeof r["titulo"] !== "string" || r["titulo"] === "")
+      return null;
+    if (typeof r["criadaEm"] !== "number" || !Number.isFinite(r["criadaEm"]))
+      return null;
+    return {
+      id: r["id"],
+      cenarioId: r["cenarioId"],
+      texto: r["texto"],
+      linha: r["linha"].slice(),
+      nivel: r["nivel"],
+      desfecho: r["desfecho"],
+      titulo: r["titulo"],
+      emoji: typeof r["emoji"] === "string" && r["emoji"] !== "" ? r["emoji"] : "✨",
+      criadaEm: r["criadaEm"],
+      favorita: r["favorita"] === true
+    };
+  }
+  function dentroDaRetencaoHistoria(h, agora, retencaoDias = RETENCAO_HISTORIAS_DIAS) {
+    if (h.favorita)
+      return true;
+    return h.criadaEm >= agora - retencaoDias * MS_POR_DIA2;
+  }
+  function normalizarHistorias(lista, agora) {
+    const porId = new Map;
+    for (const raw of Array.isArray(lista) ? lista : []) {
+      const h = validarHistoriaSalva(raw);
+      if (h)
+        porId.set(h.id, h);
+    }
+    const vivas = [...porId.values()].filter((h) => dentroDaRetencaoHistoria(h, agora)).sort((a, b) => b.criadaEm - a.criadaEm);
+    const resultado = [];
+    let naoFavoritas = 0;
+    for (const h of vivas) {
+      if (!h.favorita) {
+        if (naoFavoritas >= MAX_NAO_FAVORITAS)
+          continue;
+        naoFavoritas++;
+      }
+      resultado.push(h);
+    }
+    return resultado;
+  }
+  function criarEnvelopeHistoria(historia) {
+    return { esquema: ESQUEMA_HISTORIAS, historia };
+  }
+
   // src/core/persistencia/chaves.ts
   var CHAVE_PERFIS = "pipoca.perfil.v1";
   function chaveSave(perfilId) {
@@ -1299,6 +1368,9 @@
   }
   function chaveTelemetria(perfilId) {
     return `pipoca.telemetria.v1:${perfilId}`;
+  }
+  function chaveHistorias(perfilId) {
+    return `pipoca.historias.v1:${perfilId}`;
   }
   function lerArrayEnvelopes(chave, esquemaEsperado) {
     try {
@@ -1396,12 +1468,39 @@
       }
       return removidos;
     }
+    async carregarHistorias(perfilId) {
+      const envelopes = lerArrayEnvelopes(chaveHistorias(perfilId), ESQUEMA_HISTORIAS);
+      return envelopes.map((e) => validarHistoriaSalva(e.historia)).filter((h) => h !== null).sort((a, b) => b.criadaEm - a.criadaEm);
+    }
+    async salvarHistoria(perfilId, historia) {
+      const envelopes = lerArrayEnvelopes(chaveHistorias(perfilId), ESQUEMA_HISTORIAS);
+      const semEsta = envelopes.filter((e) => e.historia?.id !== historia.id);
+      gravarItem(chaveHistorias(perfilId), [...semEsta, criarEnvelopeHistoria({ ...historia })]);
+    }
+    async apagarHistoria(perfilId, historiaId) {
+      const envelopes = lerArrayEnvelopes(chaveHistorias(perfilId), ESQUEMA_HISTORIAS);
+      const restantes = envelopes.filter((e) => e.historia?.id !== historiaId);
+      if (restantes.length !== envelopes.length)
+        gravarItem(chaveHistorias(perfilId), restantes);
+    }
+    async podarHistorias(perfilId, agora) {
+      const antes = await this.carregarHistorias(perfilId);
+      const mantidas = normalizarHistorias(antes, agora);
+      const removidas = antes.length - mantidas.length;
+      if (removidas > 0) {
+        gravarItem(chaveHistorias(perfilId), mantidas.map(criarEnvelopeHistoria));
+      }
+      return removidas;
+    }
     async apagarPerfil(perfilId) {
       try {
         localStorage.removeItem(chaveSave(perfilId));
       } catch {}
       try {
         localStorage.removeItem(chaveTelemetria(perfilId));
+      } catch {}
+      try {
+        localStorage.removeItem(chaveHistorias(perfilId));
       } catch {}
       const envelopes = lerArrayEnvelopes(CHAVE_PERFIS, "pipoca.perfil.v1");
       const filtrado = envelopes.filter((e) => e.perfil?.id !== perfilId);
@@ -2407,11 +2506,17 @@
     const perfis = await repo.carregarPerfis();
     const perfil = perfis.find((p) => p.id === perfilId) ?? null;
     const estado = await repo.carregarSave(perfilId);
+    let historias = [];
+    try {
+      if (repo.carregarHistorias)
+        historias = await repo.carregarHistorias(perfilId);
+    } catch {}
     return {
       esquema: "pipoca.export.v1",
       exportadoEm: agora,
       perfil: perfil ? criarEnvelopePerfil(perfil) : null,
-      save: estado ? criarEnvelopeSave(perfilId, estado) : null
+      save: estado ? criarEnvelopeSave(perfilId, estado) : null,
+      historias
     };
   }
   async function apagarDados(perfilId, repo) {
@@ -2714,7 +2819,7 @@
   }
 
   // src/core/agregadosTelemetria.ts
-  var MS_POR_DIA2 = 86400000;
+  var MS_POR_DIA3 = 86400000;
   var TETO_MINUTOS_SESSAO = 60;
   var META_LEITURAS_DIA = 5;
   var META_CENARIOS_DIA = 3;
@@ -2732,10 +2837,10 @@
     }
   }
   function indiceDia(ts) {
-    return Math.floor(ts / MS_POR_DIA2);
+    return Math.floor(ts / MS_POR_DIA3);
   }
   function rotuloDia(idxDia) {
-    return new Date(idxDia * MS_POR_DIA2).toISOString().slice(0, 10);
+    return new Date(idxDia * MS_POR_DIA3).toISOString().slice(0, 10);
   }
   function chaveDia(ts) {
     return rotuloDia(indiceDia(ts));
@@ -2744,7 +2849,7 @@
     const dias = diasDoPeriodo(periodo);
     if (!Number.isFinite(dias))
       return eventos.slice();
-    const limite = agora - dias * MS_POR_DIA2;
+    const limite = agora - dias * MS_POR_DIA3;
     return eventos.filter((e) => e.ts >= limite);
   }
   function minutosClampados(e) {

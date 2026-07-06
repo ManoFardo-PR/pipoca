@@ -16,10 +16,19 @@ import type { RepositorioPersistencia } from "./index.js";
 import { validarEnvelopePerfil, validarEnvelopeSave } from "../../dados/schemas.js";
 import { validarEvento } from "../telemetria.js";
 import { podarPorRetencao, RETENCAO_DIAS_PADRAO } from "../../servicos/telemetria_repo.js";
+import type { HistoriaSalva } from "../historias.js";
+import {
+  ESQUEMA_HISTORIAS,
+  criarEnvelopeHistoria,
+  normalizarHistorias,
+  validarHistoriaSalva,
+  type EnvelopeHistoriaV1,
+} from "../historias.js";
 import {
   CHAVE_PERFIS,
   chaveSave,
   chaveTelemetria,
+  chaveHistorias,
   lerArrayEnvelopes,
   gravarItem,
 } from "./chaves.js";
@@ -133,13 +142,61 @@ export class RepositorioLocalStorage implements RepositorioPersistencia {
     return removidos;
   }
 
+  // ─── Histórias salvas (pós-fase06) ─────────────────────────────────────────
+
+  /** Histórias válidas do perfil, mais novas primeiro (corrompidas caem). */
+  async carregarHistorias(perfilId: string): Promise<HistoriaSalva[]> {
+    const envelopes = lerArrayEnvelopes<EnvelopeHistoriaV1>(
+      chaveHistorias(perfilId),
+      ESQUEMA_HISTORIAS
+    );
+    return envelopes
+      .map((e) => validarHistoriaSalva(e.historia))
+      .filter((h): h is HistoriaSalva => h !== null)
+      .sort((a, b) => b.criadaEm - a.criadaEm);
+  }
+
+  /** Upsert por historia.id (favoritar = regravar com favorita=true). */
+  async salvarHistoria(perfilId: string, historia: HistoriaSalva): Promise<void> {
+    const envelopes = lerArrayEnvelopes<EnvelopeHistoriaV1>(
+      chaveHistorias(perfilId),
+      ESQUEMA_HISTORIAS
+    );
+    const semEsta = envelopes.filter((e) => e.historia?.id !== historia.id);
+    gravarItem(chaveHistorias(perfilId), [...semEsta, criarEnvelopeHistoria({ ...historia })]);
+  }
+
+  async apagarHistoria(perfilId: string, historiaId: string): Promise<void> {
+    const envelopes = lerArrayEnvelopes<EnvelopeHistoriaV1>(
+      chaveHistorias(perfilId),
+      ESQUEMA_HISTORIAS
+    );
+    const restantes = envelopes.filter((e) => e.historia?.id !== historiaId);
+    if (restantes.length !== envelopes.length) gravarItem(chaveHistorias(perfilId), restantes);
+  }
+
+  /**
+   * Poda por retenção (20 dias; FAVORITAS ficam) + teto de não-favoritas.
+   * `agora` é injetado pela borda. Retorna quantas histórias saíram.
+   */
+  async podarHistorias(perfilId: string, agora: number): Promise<number> {
+    const antes = await this.carregarHistorias(perfilId);
+    const mantidas = normalizarHistorias(antes, agora);
+    const removidas = antes.length - mantidas.length;
+    if (removidas > 0) {
+      gravarItem(chaveHistorias(perfilId), mantidas.map(criarEnvelopeHistoria));
+    }
+    return removidas;
+  }
+
   /**
    * Apaga todos os dados de um perfil (LGPD).
-   * Remove save + telemetria + entrada da lista de perfis.
+   * Remove save + telemetria + histórias + entrada da lista de perfis.
    */
   async apagarPerfil(perfilId: string): Promise<void> {
     try { localStorage.removeItem(chaveSave(perfilId)); } catch {}
     try { localStorage.removeItem(chaveTelemetria(perfilId)); } catch {}
+    try { localStorage.removeItem(chaveHistorias(perfilId)); } catch {}
     const envelopes = lerArrayEnvelopes<EnvelopePerfil>(CHAVE_PERFIS, "pipoca.perfil.v1");
     const filtrado = envelopes.filter((e) => e.perfil?.id !== perfilId);
     gravarItem(CHAVE_PERFIS, filtrado);

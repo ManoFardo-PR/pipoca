@@ -1357,6 +1357,20 @@
     }
     return resultado;
   }
+  function tituloDaHistoria(ultimoObjeto) {
+    const nome = ultimoObjeto && ultimoObjeto.nome ? String(ultimoObjeto.nome).trim() : "";
+    if (!nome)
+      return "Minha história no Quintal";
+    return "A história de " + nome;
+  }
+  function dataRelativa(criadaEm, agora) {
+    const dias = Math.floor((agora - criadaEm) / MS_POR_DIA2);
+    if (dias <= 0)
+      return "hoje";
+    if (dias === 1)
+      return "ontem";
+    return "há " + dias + " dias";
+  }
   function criarEnvelopeHistoria(historia) {
     return { esquema: ESQUEMA_HISTORIAS, historia };
   }
@@ -3124,6 +3138,15 @@
     limites: { LIMITES_PADRAO, definirBlocoFoco, normalizarTempoDeTela, normalizarLimites },
     cardapio: { CARDAPIO_PADRAO, normalizarCardapio, validarItemCardapio, CENARIOS_PADRAO, normalizarCenariosLiberados },
     lgpd: { exportarDados, apagarDados },
+    historias: {
+      RETENCAO_HISTORIAS_DIAS,
+      MAX_NAO_FAVORITAS,
+      validarHistoriaSalva,
+      dentroDaRetencaoHistoria,
+      normalizarHistorias,
+      tituloDaHistoria,
+      dataRelativa
+    },
     perfil: { criarPerfil },
     onboarding: { montarEstadoOnboarding, perfilDoOnboarding, BLOCO_PADRAO },
     sessao: { iniciarSessao, tick, encerrarSessao, formatarRestante },

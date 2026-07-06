@@ -83,6 +83,13 @@ export function criarRepositorioSincronizado(
       await local.registrarTelemetria(evento);
       remoto.registrarTelemetria(evento).catch(() => {});
     },
+    // Retenção de telemetria: sem este repasse, a borda (feature-detection em
+    // estado.js) deixava de podar ATÉ o local quando o backend era o remoto.
+    async podarTelemetria(perfilId: string, agora: number, retencaoDias?: number): Promise<number> {
+      const removidos = local.podarTelemetria ? await local.podarTelemetria(perfilId, agora, retencaoDias) : 0;
+      if (remoto.podarTelemetria) remoto.podarTelemetria(perfilId, agora, retencaoDias).catch(() => {});
+      return removidos;
+    },
     async apagarPerfil(perfilId: string): Promise<void> {
       await local.apagarPerfil(perfilId);
       adicionarTombstone(perfilId); // só sai da fila quando o remoto confirmar

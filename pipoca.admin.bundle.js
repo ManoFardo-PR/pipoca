@@ -2170,6 +2170,11 @@
       }
       return out;
     }
+    async podarTelemetria(perfilId, agora, retencaoDias = RETENCAO_DIAS_PADRAO) {
+      const limite = new Date(agora - retencaoDias * 86400000).toISOString();
+      await this.req("/telemetria?perfil_id=eq." + encodeURIComponent(perfilId) + "&criado_em=lt." + encodeURIComponent(limite), "DELETE", undefined, "return=minimal");
+      return 0;
+    }
     async carregarHistorias(perfilId) {
       const linhas = await this.req("/historias?select=dados&perfil_id=eq." + encodeURIComponent(perfilId) + "&order=criada_em.desc", "GET");
       const out = [];
@@ -2263,6 +2268,12 @@
       async registrarTelemetria(evento) {
         await local.registrarTelemetria(evento);
         remoto.registrarTelemetria(evento).catch(() => {});
+      },
+      async podarTelemetria(perfilId, agora, retencaoDias) {
+        const removidos = local.podarTelemetria ? await local.podarTelemetria(perfilId, agora, retencaoDias) : 0;
+        if (remoto.podarTelemetria)
+          remoto.podarTelemetria(perfilId, agora, retencaoDias).catch(() => {});
+        return removidos;
       },
       async apagarPerfil(perfilId) {
         await local.apagarPerfil(perfilId);
@@ -2378,6 +2389,11 @@
           }
         } catch {}
       }
+      try {
+        for (const ev of await remoto.carregarTelemetria(p.id)) {
+          await local.registrarTelemetria(ev);
+        }
+      } catch {}
       puxados++;
     }
     const res = await migrar(local, remoto);

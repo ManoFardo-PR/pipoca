@@ -455,7 +455,7 @@ console.log("\n=== auth Supabase — operador (06-02) ===");
 function servidorSupabaseFake() {
   const perfis = new Map<string, { id: string; tenant_id?: string; dados: unknown }>();
   const saves = new Map<string, { perfil_id: string; dados: unknown }>();
-  const telemetria: Array<{ perfil_id: string; evento: unknown }> = [];
+  const telemetria: Array<{ perfil_id: string; evento: unknown; criado_em: string }> = [];
   const historias = new Map<string, { id: string; perfil_id: string; favorita: boolean; criada_em: string; dados: unknown }>();
   const chamadas: Array<{ url: string; metodo: string; headers: Record<string, string> }> = [];
   const ok = (json: unknown, status = 200) => ({ status, json: async () => json });
@@ -494,7 +494,13 @@ function servidorSupabaseFake() {
       const linhas = (Array.isArray(corpo) ? corpo : [corpo]) as Array<Record<string, unknown>>;
       if (tabela === "perfis") for (const l of linhas) perfis.set(l["id"] as string, l as never);
       if (tabela === "saves") for (const l of linhas) saves.set(l["perfil_id"] as string, l as never);
-      if (tabela === "telemetria") for (const l of linhas) telemetria.push(l as never);
+      if (tabela === "telemetria")
+        for (const l of linhas) {
+          // o servidor real carimba criado_em = now(); o fake aproxima pelo ts
+          // do evento (deixa os testes controlarem a idade da linha)
+          const ts = ((l["evento"] as { ts?: number }) || {}).ts || 0;
+          telemetria.push({ ...l, criado_em: new Date(ts).toISOString() } as never);
+        }
       if (tabela === "historias") for (const l of linhas) historias.set(l["id"] as string, l as never); // upsert por id
       return ok(null, 201);
     }
@@ -509,7 +515,14 @@ function servidorSupabaseFake() {
       }
       if (tabela === "telemetria") {
         const id = eq("perfil_id");
-        for (let i = telemetria.length - 1; i >= 0; i--) if (telemetria[i]!.perfil_id === id) telemetria.splice(i, 1);
+        const ltRaw = u.searchParams.get("criado_em");
+        const lt = ltRaw && ltRaw.indexOf("lt.") === 0 ? ltRaw.slice(3) : null;
+        for (let i = telemetria.length - 1; i >= 0; i--) {
+          const r = telemetria[i]!;
+          if (id && r.perfil_id !== id) continue;
+          if (lt !== null && !(r.criado_em < lt)) continue;
+          telemetria.splice(i, 1);
+        }
       }
       if (tabela === "historias") {
         const pid = eq("perfil_id");
@@ -569,6 +582,16 @@ function repoMem(nome: string) {
       chamadas.push(nome + ".carregarTelemetria:" + id);
       if (falhar) throw new Error("offline");
       return eventos.filter((e) => e.perfilId === id);
+    },
+    async podarTelemetria(id, agora, retencaoDias = 90) {
+      chamadas.push(nome + ".podarTelemetria:" + id);
+      if (falhar) throw new Error("offline");
+      const limite = agora - retencaoDias * 86_400_000;
+      const antes = eventos.length;
+      for (let i = eventos.length - 1; i >= 0; i--) {
+        if (eventos[i]!.perfilId === id && eventos[i]!.ts < limite) eventos.splice(i, 1);
+      }
+      return antes - eventos.length;
     },
     async apagarPerfil(id) {
       chamadas.push(nome + ".apagarPerfil:" + id);
@@ -772,6 +795,62 @@ console.log("\n=== histórias salvas — espelho remoto, poda por filtro e sync 
   const localNovo = new RepositorioLocalStorage();
   await sincronizarInicial(localNovo, remoto2);
   assert((await localNovo.carregarHistorias("p-bbb")).some((h) => h.id === "h-remota"), "aparelho novo puxa as histórias junto do perfil");
+}
+
+console.log("\n=== telemetria — retenção remota (poda por filtro) e pull no sync ===");
+{
+  armazem.limpar();
+  const DIA = 86_400_000;
+  const agora = 1_750_000_000_000;
+
+  // poda remota: DELETE por filtro apaga SÓ os eventos além da retenção
+  const srv = servidorSupabaseFake();
+  const remoto = new RepositorioSupabase({
+    url: "https://proj.supabase.co", anonKey: "anon-k",
+    obterToken: async () => "tok", transporte: srv.t,
+  });
+  await remoto.registrarTelemetria(criarEvento("sessao_iniciada", "p1", { blocoMin: 15 }, agora - 100 * DIA));
+  await remoto.registrarTelemetria(criarEvento("sessao_iniciada", "p1", { blocoMin: 15 }, agora - 1 * DIA));
+  await remoto.podarTelemetria!("p1", agora);
+  const urlPoda = srv.chamadas[srv.chamadas.length - 1]!.url;
+  assert(
+    urlPoda.indexOf("/telemetria?perfil_id=eq.p1") >= 0 && urlPoda.indexOf("criado_em=lt.") >= 0,
+    "poda remota é um DELETE por filtro (perfil + criado_em antigo)"
+  );
+  assert(srv.telemetria.length === 1, "evento de 100 dias sai; o de 1 dia fica (retenção 90d)");
+
+  // sincronizado: poda o LOCAL com await e espelha no remoto fail-soft
+  const local = repoMem("local");
+  const remotoMem = repoMem("remoto");
+  const sinc = criarRepositorioSincronizado(local.repo, remotoMem.repo);
+  await local.repo.registrarTelemetria(criarEvento("sessao_iniciada", "p1", { blocoMin: 15 }, agora - 100 * DIA));
+  await local.repo.registrarTelemetria(criarEvento("sessao_iniciada", "p1", { blocoMin: 15 }, agora - 1 * DIA));
+  remotoMem.setFalhar(true);
+  const removidos = await sinc.podarTelemetria!("p1", agora);
+  await new Promise((r) => setTimeout(r, 0));
+  assert(removidos === 1 && local.eventos.length === 1, "sincronizado poda o local e reporta os removidos");
+  assert(
+    remotoMem.chamadas.some((c) => c.indexOf("remoto.podarTelemetria") === 0),
+    "espelho da poda é TENTADO no remoto (e a falha não rejeita — fail-soft)"
+  );
+
+  // sincronizarInicial puxa a telemetria do perfil AUSENTE; 2ª rodada não duplica
+  armazem.limpar();
+  const srv2 = servidorSupabaseFake();
+  const remoto2 = new RepositorioSupabase({
+    url: "https://proj.supabase.co", anonKey: "k",
+    obterToken: async () => "tok", transporte: srv2.t,
+  });
+  await remoto2.salvarPerfil(PERFIL_B);
+  await remoto2.registrarTelemetria(criarEvento("sessao_iniciada", "p-bbb", { blocoMin: 15 }, agora));
+  const localNovo = new RepositorioLocalStorage();
+  await sincronizarInicial(localNovo, remoto2);
+  assert((await localNovo.carregarTelemetria("p-bbb")).length === 1, "aparelho novo puxa a telemetria junto do perfil");
+  await sincronizarInicial(localNovo, remoto2);
+  assert(
+    (await localNovo.carregarTelemetria("p-bbb")).length === 1,
+    "2ª sincronização não duplica eventos (perfil já existe localmente)"
+  );
 }
 
 // ─── Etapa 5 · ProxyIA cliente (06-05, lado cliente) ─────────────────────────

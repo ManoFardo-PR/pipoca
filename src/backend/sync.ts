@@ -58,6 +58,15 @@ export async function sincronizarInicial(
         /* histórias não podem travar o sync de perfis */
       }
     }
+    // telemetria idem (painel multi-dispositivo). Sem risco de duplicar:
+    // só roda para perfil AUSENTE localmente e migrar() não empurra eventos.
+    try {
+      for (const ev of await remoto.carregarTelemetria(p.id)) {
+        await local.registrarTelemetria(ev);
+      }
+    } catch {
+      /* telemetria não trava o sync de perfis */
+    }
     puxados++;
   }
 

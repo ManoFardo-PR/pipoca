@@ -19,6 +19,11 @@ export function chaveTelemetria(perfilId: string): string {
   return `pipoca.telemetria.v1:${perfilId}`;
 }
 
+/** Chave das histórias salvas de um perfil (retenção 20d; favoritas ficam). */
+export function chaveHistorias(perfilId: string): string {
+  return `pipoca.historias.v1:${perfilId}`;
+}
+
 /**
  * Lê e parseia um envelope do localStorage.
  * Valida que o campo `esquema` bate com esquemaEsperado.

@@ -124,6 +124,30 @@ export async function espelharCenarioRemoto(
   ]);
 }
 
+/**
+ * Vínculo explícito conta↔tenant na tabela `contas_tenant` (pós-fase06).
+ * A família resolve o tenant real no login por este vínculo; e-mail sempre
+ * minúsculo (as policies reforçam com lower()). ignore-duplicates: revincular
+ * o mesmo par é no-op.
+ */
+export async function espelharVinculoConta(
+  email: string,
+  tenantId: string,
+  config?: ConfigBackend,
+  transporte?: Transporte
+): Promise<boolean> {
+  const e = (email || "").trim().toLowerCase();
+  if (!e || !e.includes("@") || !tenantId) return false;
+  const ctx = await contextoOperador(config, transporte);
+  if (!ctx) return false;
+  return upsert(
+    ctx,
+    "/contas_tenant?on_conflict=email,tenant_id",
+    [{ email: e, tenant_id: tenantId }],
+    "resolution=ignore-duplicates,return=minimal"
+  );
+}
+
 /** Upsert das flags na linha única `flags_admin.id='global'` (kill-switch global). */
 export async function espelharFlagsRemotas(
   flags: FeatureFlags,

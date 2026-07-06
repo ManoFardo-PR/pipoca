@@ -25,6 +25,7 @@ import {
   espelharTenantRemoto,
   espelharCenarioRemoto,
   espelharFlagsRemotas,
+  espelharVinculoConta,
   puxarAdminDoServidor,
   envolverRepoTenantComEspelho,
 } from "./espelho_admin.js";
@@ -473,6 +474,7 @@ function servidorSupabaseFake() {
   const tenants = new Map<string, { id: string; dados: unknown }>();
   const conteudo = new Map<string, Record<string, unknown>>(); // chave cenario_id:versao
   const flagsAdmin = new Map<string, { id: string; dados: unknown }>();
+  const contasTenant: Array<{ email: string; tenant_id: string }> = [];
   const chamadas: Array<{ url: string; metodo: string; headers: Record<string, string> }> = [];
   const ok = (json: unknown, status = 200) => ({ status, json: async () => json });
 
@@ -514,6 +516,7 @@ function servidorSupabaseFake() {
         const id = eq("id");
         return ok([...flagsAdmin.values()].filter((x) => !id || x.id === id).map((x) => ({ dados: x.dados })));
       }
+      if (tabela === "contas_tenant") return ok(contasTenant.map((x) => ({ tenant_id: x.tenant_id })));
     }
     if (init.method === "POST") {
       const linhas = (Array.isArray(corpo) ? corpo : [corpo]) as Array<Record<string, unknown>>;
@@ -530,6 +533,7 @@ function servidorSupabaseFake() {
       if (tabela === "tenants") for (const l of linhas) tenants.set(l["id"] as string, l as never);
       if (tabela === "conteudo") for (const l of linhas) conteudo.set(l["cenario_id"] + ":" + l["versao"], l);
       if (tabela === "flags_admin") for (const l of linhas) flagsAdmin.set(l["id"] as string, l as never);
+      if (tabela === "contas_tenant") for (const l of linhas) contasTenant.push(l as never);
       return ok(null, 201);
     }
     if (init.method === "DELETE") {
@@ -570,7 +574,7 @@ function servidorSupabaseFake() {
     }
     return ok({}, 404);
   };
-  return { t, perfis, saves, telemetria, historias, tenants, conteudo, flagsAdmin, chamadas };
+  return { t, perfis, saves, telemetria, historias, tenants, conteudo, flagsAdmin, contasTenant, chamadas };
 }
 
 /** Repo em memória com espião de chamadas (p/ sincronizado/sync). */
@@ -1054,6 +1058,65 @@ console.log("\n=== espelho do admin — tenants/conteúdo/flags no PostgREST ===
   await embrulhadoOff.salvarTenant(novoTenant("Sem Rede", 1_750_000_000_002)).catch(() => { rejeitou = true; });
   await new Promise((r) => setTimeout(r, 0));
   assert(!rejeitou, "espelho falhando NÃO rejeita a escrita local (fail-soft)");
+  armazem.limpar();
+}
+
+console.log("\n=== vínculo conta↔tenant — tenant REAL na sessão da família ===");
+{
+  armazem.limpar();
+  const cfgSupa = { provedor: "supabase" as const, supabaseUrl: URL_SUPA, supabaseAnonKey: "anon-k" };
+
+  // espelharVinculoConta: só operador; e-mail normalizado minúsculo
+  const srv = servidorSupabaseFake();
+  assert((await espelharVinculoConta("Mae@X.dev", "ten_escola", cfgSupa, srv.t)) === false && srv.chamadas.length === 0, "sem sessão de operador → não vincula e não toca a rede");
+  const agora = Date.now();
+  armazem.setItem(CHAVE_SESSAO_BACKEND, JSON.stringify({
+    access_token: "tokOp", refresh_token: "r1",
+    expiraTokenEm: agora + 3_600_000, validaAte: agora + 86_400_000,
+    uid: "op-1", tipo: "superadmin",
+  }));
+  assert((await espelharVinculoConta("  Mae@X.dev ", "ten_escola", cfgSupa, srv.t)) === true, "operador → vínculo espelhado no servidor");
+  assert(srv.chamadas[srv.chamadas.length - 1]!.url.indexOf("on_conflict=email,tenant_id") >= 0, "upsert idempotente por (email, tenant_id)");
+  assert(srv.contasTenant[0]!.email === "mae@x.dev", "e-mail viaja normalizado (trim + minúsculo)");
+  assert((await espelharVinculoConta("sem-arroba", "ten_x", cfgSupa, srv.t)) === false, "e-mail inválido barra antes da rede");
+  armazem.limpar();
+
+  // login da família COM vínculo → tenant real na sessão (e no escopoTenant)
+  const { t: tVinculo } = transporteRotas([
+    { casa: (u) => u.indexOf("grant_type=password") >= 0, responder: () => ({ status: 200, json: SESSAO_OK }) },
+    { casa: (u) => u.indexOf("/rest/v1/contas_tenant") >= 0, responder: () => ({ status: 200, json: [{ tenant_id: "ten_escola" }] }) },
+  ]);
+  const authV = criarAuthSupabase({ url: URL_SUPA, anonKey: "anon-k", transporte: tVinculo });
+  const sV = await authV.entrarFamilia({ email: "casa@pipoca.dev", senha: "x1" });
+  assert(sV.tenantId === "ten_escola", "login com vínculo → tenantId REAL na SessaoAuth");
+  assert(escopoTenant(authV.sessaoAtual()) === "ten_escola", "escopoTenant passa a carimbar o tenant real nos perfis");
+  armazem.limpar();
+
+  // SEM vínculo (ou lookup falhando) → tenant sintético, login intacto
+  const { t: tSem } = transporteRotas([
+    { casa: (u) => u.indexOf("grant_type=password") >= 0, responder: () => ({ status: 200, json: SESSAO_OK }) },
+    { casa: (u) => u.indexOf("/rest/v1/contas_tenant") >= 0, responder: () => ({ status: 200, json: [] }) },
+  ]);
+  const authS = criarAuthSupabase({ url: URL_SUPA, anonKey: "anon-k", transporte: tSem });
+  const sS = await authS.entrarFamilia({ email: "casa@pipoca.dev", senha: "x1" });
+  assert(!sS.tenantId && escopoTenant(authS.sessaoAtual()) === "familia:uid-1", "sem vínculo → tenant sintético como sempre");
+  armazem.limpar();
+
+  const { t: t500 } = transporteRotas([
+    { casa: (u) => u.indexOf("grant_type=password") >= 0, responder: () => ({ status: 200, json: SESSAO_OK }) },
+    { casa: (u) => u.indexOf("/rest/v1/contas_tenant") >= 0, responder: () => ({ status: 500, json: {} }) },
+  ]);
+  const s500 = await criarAuthSupabase({ url: URL_SUPA, anonKey: "anon-k", transporte: t500 }).entrarFamilia({ email: "casa@pipoca.dev", senha: "x1" });
+  assert(s500.tipo === "familia" && !s500.tenantId, "lookup do vínculo falhando NÃO derruba o login (fail-soft)");
+  armazem.limpar();
+
+  // cadastro explícito também resolve o vínculo
+  const { t: tCriar } = transporteRotas([
+    { casa: (u) => u.indexOf("/auth/v1/signup") >= 0, responder: () => ({ status: 200, json: SESSAO_OK }) },
+    { casa: (u) => u.indexOf("/rest/v1/contas_tenant") >= 0, responder: () => ({ status: 200, json: [{ tenant_id: "ten_escola" }] }) },
+  ]);
+  const sC = await criarAuthSupabase({ url: URL_SUPA, anonKey: "anon-k", transporte: tCriar }).criarFamilia!({ email: "nova@x.dev", senha: "x1x1x1" });
+  assert(!!sC && sC.tenantId === "ten_escola", "criarFamilia com vínculo → tenant real desde o cadastro");
   armazem.limpar();
 }
 

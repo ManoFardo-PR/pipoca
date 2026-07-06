@@ -86,6 +86,7 @@ import {
   espelharTenantRemoto,
   espelharCenarioRemoto,
   espelharFlagsRemotas,
+  espelharVinculoConta,
   puxarAdminDoServidor,
   envolverRepoTenantComEspelho,
 } from "../backend/espelho_admin.js";
@@ -162,6 +163,7 @@ const PipocaAdminCanonico = {
     espelharTenantRemoto,
     espelharCenarioRemoto,
     espelharFlagsRemotas,
+    espelharVinculoConta,
     puxarAdminDoServidor,
     envolverRepoTenantComEspelho,
   },

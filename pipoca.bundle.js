@@ -1922,6 +1922,18 @@
         return null;
       }
     }
+    async function tenantVinculado(bearer) {
+      try {
+        const resp = await transporte(base + "/rest/v1/contas_tenant?select=tenant_id&order=criado_em.asc&limit=1", { method: "GET", headers: cabecalhos(bearer) });
+        if (resp.status !== 200)
+          return;
+        const linhas = await resp.json();
+        const t = Array.isArray(linhas) && linhas[0] ? linhas[0].tenant_id : undefined;
+        return typeof t === "string" && t.length > 0 ? t : undefined;
+      } catch {
+        return;
+      }
+    }
     async function renovar() {
       const atual = lerSessaoBackend();
       if (!atual || !atual.refresh_token)
@@ -1960,7 +1972,7 @@
           else
             throw new Error(ERRO_LOGIN_NEUTRO);
         }
-        return assentarSessao(r, "familia");
+        return assentarSessao(r, "familia", await tenantVinculado(r.access_token));
       },
       async entrarSuperAdmin(cred) {
         const email = (cred.email || "").trim().toLowerCase();
@@ -1988,7 +2000,7 @@
           throw new Error(ERRO_CRIAR_CONTA);
         const s = await chamarToken("/auth/v1/signup", { email, password: senha });
         if (s && s.access_token)
-          return assentarSessao(s, "familia");
+          return assentarSessao(s, "familia", await tenantVinculado(s.access_token));
         if (s && s.user)
           return null;
         throw new Error(ERRO_CRIAR_CONTA);

@@ -167,6 +167,27 @@ export function criarAuthSupabase(op: OpcoesAuthSupabase): AuthSupabase {
     }
   }
 
+  /**
+   * Vínculo conta↔tenant (pós-fase06): o tenant mais ANTIGO vinculado ao
+   * e-mail da sessão. A RLS de `contas_tenant` já filtra pelo e-mail do JWT
+   * (claim assinado) — a query nem precisa filtrar. Melhor esforço: erro ou
+   * vazio → undefined e o tenant sintético `familia:<uid>` segue valendo.
+   */
+  async function tenantVinculado(bearer: string): Promise<string | undefined> {
+    try {
+      const resp = await transporte(
+        base + "/rest/v1/contas_tenant?select=tenant_id&order=criado_em.asc&limit=1",
+        { method: "GET", headers: cabecalhos(bearer) }
+      );
+      if (resp.status !== 200) return undefined;
+      const linhas = (await resp.json()) as Array<{ tenant_id?: unknown }>;
+      const t = Array.isArray(linhas) && linhas[0] ? linhas[0].tenant_id : undefined;
+      return typeof t === "string" && t.length > 0 ? t : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
   async function renovar(): Promise<SessaoBackend | null> {
     const atual = lerSessaoBackend();
     if (!atual || !atual.refresh_token) return null;
@@ -203,7 +224,8 @@ export function criarAuthSupabase(op: OpcoesAuthSupabase): AuthSupabase {
         else if (s && s.user && !s.access_token) throw new Error(ERRO_CONFIRMACAO);
         else throw new Error(ERRO_LOGIN_NEUTRO);
       }
-      return assentarSessao(r, "familia");
+      // tenant real (vínculo por e-mail) na sessão — sem vínculo, sintético
+      return assentarSessao(r, "familia", await tenantVinculado(r.access_token as string));
     },
 
     async entrarSuperAdmin(cred: CredenciaisLogin): Promise<SessaoAuth> {
@@ -237,7 +259,7 @@ export function criarAuthSupabase(op: OpcoesAuthSupabase): AuthSupabase {
       if (!email || !email.includes("@") || senha.length < 6) throw new Error(ERRO_CRIAR_CONTA);
 
       const s = await chamarToken("/auth/v1/signup", { email, password: senha });
-      if (s && s.access_token) return assentarSessao(s, "familia");
+      if (s && s.access_token) return assentarSessao(s, "familia", await tenantVinculado(s.access_token));
       // "Confirm email" ligado: o GoTrue devolve o user SEM sessão (também no
       // e-mail já registrado — resposta ofuscada de propósito, segue neutra).
       if (s && s.user) return null;

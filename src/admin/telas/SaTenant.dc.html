@@ -122,7 +122,16 @@ class Component extends DCLogic {
       const t = C.tenants.novoTenant(nome, Date.now());
       await repo.salvarTenant(t);
       const email = (this.state.emailNovo || '').trim();
-      if (email) C.tenants.vincularConta(email, t.id);
+      if (email) {
+        C.tenants.vincularConta(email, t.id);
+        // pós-fase06: espelho do vínculo no servidor (contas_tenant) — é ele
+        // que faz a família resolver o tenant REAL no próximo login.
+        try {
+          if (C.backend && C.backend.espelharVinculoConta) {
+            C.backend.espelharVinculoConta(email, t.id).catch(() => {});
+          }
+        } catch (_) {}
+      }
       this.setState({ nomeNovo: '', emailNovo: '', erro: '' });
       this._recarregar();
     } catch (e) {

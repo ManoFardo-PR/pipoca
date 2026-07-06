@@ -729,6 +729,14 @@
       return { ...FLAGS_PADRAO };
     }
   }
+  function salvarFlags(flags, armazem) {
+    const st = armazem ?? storagePadrao();
+    if (!st)
+      return;
+    try {
+      st.setItem(CHAVE_FLAGS, JSON.stringify(flags));
+    } catch {}
+  }
 
   // src/core/estado.ts
   var estadoInicial = {
@@ -2496,6 +2504,45 @@
     return criarBackendLocal();
   }
 
+  // src/backend/flags_globais.ts
+  async function puxarFlagsGlobais(config, transporte) {
+    const cfg = config || configDoAmbiente();
+    if (cfg.provedor !== "supabase" || !cfg.supabaseUrl || !cfg.supabaseAnonKey)
+      return null;
+    try {
+      const auth = criarAuthSupabase({
+        url: cfg.supabaseUrl,
+        anonKey: cfg.supabaseAnonKey,
+        ...transporte ? { transporte } : {}
+      });
+      if (!auth.sessaoAtual())
+        return null;
+      const token = await auth.obterToken();
+      if (!token)
+        return null;
+      const t = transporte || transportePadrao();
+      const resp = await t(cfg.supabaseUrl.replace(/\/+$/, "") + "/rest/v1/flags_admin?select=dados&id=eq.global", {
+        method: "GET",
+        headers: {
+          apikey: cfg.supabaseAnonKey,
+          Authorization: "Bearer " + token,
+          "content-type": "application/json"
+        }
+      });
+      if (resp.status < 200 || resp.status >= 300)
+        return null;
+      const json = await resp.json();
+      const linha = Array.isArray(json) ? json[0] : undefined;
+      if (!linha || !linha.dados || typeof linha.dados !== "object")
+        return null;
+      const limpo = normalizarFlags(linha.dados);
+      salvarFlags(limpo);
+      return limpo;
+    } catch {
+      return null;
+    }
+  }
+
   // src/core/composicao.ts
   function nivelKey(nivel) {
     const s = String(nivel ?? "").trim().toLowerCase();
@@ -3244,7 +3291,7 @@
         return criarOrquestrador(cadeia);
       }
     },
-    backend: { obterBackend, configDoAmbiente, normalizarConfigBackend, escopoTenant, sincronizarInicial },
+    backend: { obterBackend, configDoAmbiente, normalizarConfigBackend, escopoTenant, sincronizarInicial, puxarFlagsGlobais },
     flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos },
     tts,
     asr: { asr, criarServicoASR, asrDisponivel, avaliarParticipacao },

@@ -540,6 +540,7 @@
     try { if (Canon && Canon.backend) b = Canon.backend.obterBackend(); } catch (_) { b = null; }
     if (b) {
       return b.auth.entrarFamilia({ email: email, senha: senha }).then(function () {
+        _puxarFlagsGlobais();
         if (typeof b.sincronizar === "function") {
           b.sincronizar()
             .then(function () { return repo.carregarPerfis(); })
@@ -566,6 +567,21 @@
     return null;
   }
 
+  // pós-fase06 · kill-switch GLOBAL: puxa as flags do servidor (fire-and-
+  // forget) e, se chegaram, remonta o motor com os modos efetivos novos.
+  // Modo local/offline → no-op silencioso (o comportamento atual não muda).
+  function _puxarFlagsGlobais() {
+    var Canon = window.PipocaCanonico;
+    if (!Canon || !Canon.backend || !Canon.backend.puxarFlagsGlobais) return;
+    try {
+      Canon.backend.puxarFlagsGlobais().then(function (f) {
+        if (!f) return;
+        if (_grafo) { try { _montarMotor(_grafo); } catch (_) {} }
+        notify();
+      }).catch(function () {});
+    } catch (_) {}
+  }
+
   // Cadastro explícito da família (tela "Criar conta"). ok+pendente=true →
   // conta criada aguardando confirmação de e-mail (sem sessão ainda).
   function criarConta(email, senha) {
@@ -576,6 +592,7 @@
       : b.auth.entrarFamilia({ email: email, senha: senha }); // bundle antigo: 1º login já cria
     return criar.then(function (sessao) {
       if (!sessao) return { ok: true, pendente: true };
+      _puxarFlagsGlobais();
       if (typeof b.sincronizar === "function") {
         b.sincronizar()
           .then(function () { return repo.carregarPerfis(); })
@@ -1061,11 +1078,14 @@
     if (_CanonB && _telaInicial === 2) {
       var _b0 = _CanonB.obterBackend();
       var _s0 = _b0.auth.sessaoAtual();
-      if (_s0 && _s0.tipo === "familia" && typeof _b0.sincronizar === "function") {
-        _b0.sincronizar()
-          .then(function () { return repo.carregarPerfis(); })
-          .then(function () { notify(); })
-          .catch(function () {});
+      if (_s0 && _s0.tipo === "familia") {
+        _puxarFlagsGlobais(); // kill-switch global alcança a casa no boot
+        if (typeof _b0.sincronizar === "function") {
+          _b0.sincronizar()
+            .then(function () { return repo.carregarPerfis(); })
+            .then(function () { notify(); })
+            .catch(function () {});
+        }
       }
     }
   } catch (_) {}

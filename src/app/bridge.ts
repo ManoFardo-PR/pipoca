@@ -29,6 +29,8 @@ import { obterBackend } from "../backend/backend.js";
 import { configDoAmbiente, normalizarConfigBackend } from "../backend/config.js";
 import { escopoTenant } from "../backend/tenant.js";
 import { sincronizarInicial } from "../backend/sync.js";
+// pós-fase06: kill-switch GLOBAL — o app puxa as flags do servidor no boot/login
+import { puxarFlagsGlobais } from "../backend/flags_globais.js";
 import { provedorViaProxy } from "../backend/proxy_ia.js";
 
 import {
@@ -237,7 +239,7 @@ const PipocaCanonico = {
   },
 
   // --- backend trocável (fase06 · lei do backend) ---
-  backend: { obterBackend, configDoAmbiente, normalizarConfigBackend, escopoTenant, sincronizarInicial },
+  backend: { obterBackend, configDoAmbiente, normalizarConfigBackend, escopoTenant, sincronizarInicial, puxarFlagsGlobais },
 
   // --- flags da plataforma (kill-switches do SA_SAFE, fase04→05) ---
   flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos },

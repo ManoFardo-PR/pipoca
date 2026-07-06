@@ -91,6 +91,23 @@ function tenantValido(t: unknown): t is Tenant {
   );
 }
 
+/** Envelope pipoca.tenant.v1 → Tenant (ou null) — reusado pelo pull do espelho remoto. */
+export function validarEnvelopeTenant(raw: unknown): Tenant | null {
+  const env = raw as Partial<EnvelopeTenant> | null;
+  if (env && env.esquema === ESQUEMA_TENANT && tenantValido(env.tenant)) return { ...env.tenant };
+  return null;
+}
+
+/**
+ * Substituição INTEGRAL da chave local (pull do servidor — servidor vence).
+ * Inválidos são filtrados; nunca lança.
+ */
+export function substituirTenantsLocais(tenants: Tenant[], armazem?: StorageLike): void {
+  const st = armazem ?? storagePadrao();
+  if (!st) return;
+  gravarTenants(st, (Array.isArray(tenants) ? tenants : []).filter(tenantValido));
+}
+
 /** Parsing defensivo: envelopes fora do esquema/da forma são descartados em silêncio. */
 function lerTenants(st: StorageLike): Tenant[] {
   try {

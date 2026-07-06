@@ -80,6 +80,15 @@ import { modosPadrao } from "../core/modos.js";
 // config de IA que o ProxyIA lê server-side). Config "local" → tudo local.
 import { espelharConfigIA, obterBackend } from "../backend/backend.js";
 import { configDoAmbiente, normalizarConfigBackend } from "../backend/config.js";
+// pós-fase06: espelho remoto de tenants/conteúdo/flags + pull no login do
+// operador (servidor vence) — admin-only, não entra no bundle da criança.
+import {
+  espelharTenantRemoto,
+  espelharCenarioRemoto,
+  espelharFlagsRemotas,
+  puxarAdminDoServidor,
+  envolverRepoTenantComEspelho,
+} from "../backend/espelho_admin.js";
 
 const PipocaAdminCanonico = {
   auth: {
@@ -145,7 +154,17 @@ const PipocaAdminCanonico = {
   },
   modos: { modosPadrao },
   // fase06 · backend trocável (lei do backend: telas/estado só falam com a fachada)
-  backend: { obterBackend, configDoAmbiente, normalizarConfigBackend, espelharConfigIA },
+  backend: {
+    obterBackend,
+    configDoAmbiente,
+    normalizarConfigBackend,
+    espelharConfigIA,
+    espelharTenantRemoto,
+    espelharCenarioRemoto,
+    espelharFlagsRemotas,
+    puxarAdminDoServidor,
+    envolverRepoTenantComEspelho,
+  },
 };
 
 declare global {

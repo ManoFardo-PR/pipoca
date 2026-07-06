@@ -21,6 +21,16 @@ import {
 import { sincronizarInicial } from "./sync.js";
 import { migrar } from "./migracao.js";
 import { criarProxyIA, provedorViaProxy } from "./proxy_ia.js";
+import {
+  espelharTenantRemoto,
+  espelharCenarioRemoto,
+  espelharFlagsRemotas,
+  puxarAdminDoServidor,
+  envolverRepoTenantComEspelho,
+} from "./espelho_admin.js";
+import { criarRepositorioTenant, novoTenant } from "../admin/tenant/repositorioTenant.js";
+import { listarCenarios, type CenarioVersionado } from "../admin/validar_grafo.js";
+import { carregarFlags, salvarFlags } from "../admin/flags.js";
 import { criarOrquestrador } from "../ia/orquestrador.js";
 import type { RepositorioPersistencia } from "../core/persistencia/index.js";
 import { criarPerfil, type Perfil } from "../core/perfil.js";
@@ -457,6 +467,10 @@ function servidorSupabaseFake() {
   const saves = new Map<string, { perfil_id: string; dados: unknown }>();
   const telemetria: Array<{ perfil_id: string; evento: unknown; criado_em: string }> = [];
   const historias = new Map<string, { id: string; perfil_id: string; favorita: boolean; criada_em: string; dados: unknown }>();
+  // pós-fase06 (iteração 2): tabelas do espelho do admin
+  const tenants = new Map<string, { id: string; dados: unknown }>();
+  const conteudo = new Map<string, Record<string, unknown>>(); // chave cenario_id:versao
+  const flagsAdmin = new Map<string, { id: string; dados: unknown }>();
   const chamadas: Array<{ url: string; metodo: string; headers: Record<string, string> }> = [];
   const ok = (json: unknown, status = 200) => ({ status, json: async () => json });
 
@@ -489,6 +503,15 @@ function servidorSupabaseFake() {
             .map((x) => ({ dados: x.dados }))
         );
       }
+      if (tabela === "tenants") {
+        const id = eq("id");
+        return ok([...tenants.values()].filter((x) => !id || x.id === id).map((x) => ({ dados: x.dados })));
+      }
+      if (tabela === "conteudo") return ok([...conteudo.values()].map((x) => ({ dados: x["dados"] })));
+      if (tabela === "flags_admin") {
+        const id = eq("id");
+        return ok([...flagsAdmin.values()].filter((x) => !id || x.id === id).map((x) => ({ dados: x.dados })));
+      }
     }
     if (init.method === "POST") {
       const linhas = (Array.isArray(corpo) ? corpo : [corpo]) as Array<Record<string, unknown>>;
@@ -502,6 +525,9 @@ function servidorSupabaseFake() {
           telemetria.push({ ...l, criado_em: new Date(ts).toISOString() } as never);
         }
       if (tabela === "historias") for (const l of linhas) historias.set(l["id"] as string, l as never); // upsert por id
+      if (tabela === "tenants") for (const l of linhas) tenants.set(l["id"] as string, l as never);
+      if (tabela === "conteudo") for (const l of linhas) conteudo.set(l["cenario_id"] + ":" + l["versao"], l);
+      if (tabela === "flags_admin") for (const l of linhas) flagsAdmin.set(l["id"] as string, l as never);
       return ok(null, 201);
     }
     if (init.method === "DELETE") {
@@ -542,7 +568,7 @@ function servidorSupabaseFake() {
     }
     return ok({}, 404);
   };
-  return { t, perfis, saves, telemetria, historias, chamadas };
+  return { t, perfis, saves, telemetria, historias, tenants, conteudo, flagsAdmin, chamadas };
 }
 
 /** Repo em memória com espião de chamadas (p/ sincronizado/sync). */
@@ -942,6 +968,90 @@ console.log("\n=== espelharConfigIA (06-05) — só operador, só supabase ===")
   const ok = await espelharConfigIA("ten_x", { provedor: "deepseek", cotaMensal: 50 }, cfgSupa, t);
   assert(ok === true && chamadas[0]!.headers["Authorization"] === "Bearer tokOp", "operador logado → upsert em config_ia com o bearer dele");
   assert(chamadas[0]!.url.indexOf("on_conflict=tenant_id") >= 0, "upsert idempotente por tenant_id");
+  armazem.limpar();
+}
+
+// ─── Etapa 7 · espelho do admin (pós-fase06, iteração 2) ─────────────────────
+
+console.log("\n=== espelho do admin — tenants/conteúdo/flags no PostgREST ===");
+{
+  armazem.limpar();
+  const cfgSupa = { provedor: "supabase" as const, supabaseUrl: URL_SUPA, supabaseAnonKey: "anon-k" };
+  const agora = Date.now();
+  const sessaoDe = (tipo: string) =>
+    JSON.stringify({
+      access_token: "tokOp",
+      refresh_token: "r1",
+      expiraTokenEm: agora + 3_600_000,
+      validaAte: agora + 86_400_000,
+      uid: "op-1",
+      tipo,
+    });
+  const srv = servidorSupabaseFake();
+  const tenant = novoTenant("Escola Sol", 1_750_000_000_000);
+  const cenario: CenarioVersionado = {
+    cenarioId: "quintal_x",
+    versao: 1,
+    publicadoEm: null,
+    tenantId: null,
+    grafo: { cenario: { id: "quintal_x" } },
+  };
+
+  // guardas: sem rede em TODAS as recusas
+  assert((await espelharTenantRemoto(tenant, { provedor: "local" })) === false, "backend local → no-op silencioso (false)");
+  assert((await espelharTenantRemoto(tenant, cfgSupa, srv.t)) === false && srv.chamadas.length === 0, "sem sessão → não espelha e NÃO toca a rede");
+  armazem.setItem(CHAVE_SESSAO_BACKEND, sessaoDe("familia"));
+  assert((await espelharFlagsRemotas({ ia: true }, cfgSupa, srv.t)) === false && srv.chamadas.length === 0, "sessão de FAMÍLIA → não espelha (só operador)");
+  assert((await puxarAdminDoServidor(cfgSupa, srv.t)) === null && srv.chamadas.length === 0, "pull com sessão de família → null sem rede");
+
+  // operador logado: os 3 espelhos chegam com envelope/on_conflict certos
+  armazem.setItem(CHAVE_SESSAO_BACKEND, sessaoDe("superadmin"));
+  assert((await espelharTenantRemoto(tenant, cfgSupa, srv.t)) === true, "operador → upsert do tenant no servidor");
+  assert(srv.chamadas[srv.chamadas.length - 1]!.url.indexOf("/tenants?on_conflict=id") >= 0, "tenant: upsert idempotente por id");
+  const linhaT = srv.tenants.get(tenant.id) as { dados?: { esquema?: string } };
+  assert(!!linhaT && linhaT.dados!.esquema === "pipoca.tenant.v1", "tenant viaja no envelope pipoca.tenant.v1");
+
+  assert((await espelharCenarioRemoto(cenario, cfgSupa, srv.t)) === true, "operador → upsert do cenário");
+  assert(srv.chamadas[srv.chamadas.length - 1]!.url.indexOf("on_conflict=cenario_id,versao") >= 0, "cenário: identidade COMPOSTA (cenario_id, versao)");
+  assert(srv.conteudo.has("quintal_x:1"), "linha do cenário chega com a chave composta");
+
+  assert((await espelharFlagsRemotas({ ia: false, fala: false, conteudoCustomizado: true, telemetria: true }, cfgSupa, srv.t)) === true, "operador → upsert das flags");
+  assert(srv.flagsAdmin.has("global"), "flags vivem na linha única 'global'");
+
+  // pull: SERVIDOR VENCE — estado local divergente é substituído
+  salvarFlags({ ia: true, fala: true, conteudoCustomizado: true, telemetria: true });
+  const res = await puxarAdminDoServidor(cfgSupa, srv.t);
+  assert(!!res && res.tenants === 1 && res.cenarios === 1 && res.flags === true, "pull devolve as contagens do que puxou");
+  const lidos = await criarRepositorioTenant("todos").listarTenants("todos");
+  assert(lidos.length === 1 && lidos[0]!.nome === "Escola Sol", "pull substitui os tenants locais (servidor vence)");
+  assert(listarCenarios().some((c) => c.cenarioId === "quintal_x"), "pull grava a biblioteca local");
+  assert(carregarFlags()["ia"] === false, "pull sobrescreve as flags locais (kill-switch do servidor vence)");
+
+  // envelope corrompido no servidor é descartado em silêncio
+  srv.tenants.set("podre", { id: "podre", dados: { esquema: "outro", tenant: null } });
+  const res2 = await puxarAdminDoServidor(cfgSupa, srv.t);
+  assert(!!res2 && res2.tenants === 1, "envelope corrompido no servidor é descartado no pull");
+
+  // flags SEM linha no servidor → local intocado (seed é o 1º salvamento)
+  const srv2 = servidorSupabaseFake();
+  salvarFlags({ ia: true, fala: false, conteudoCustomizado: true, telemetria: true });
+  const res3 = await puxarAdminDoServidor(cfgSupa, srv2.t);
+  assert(!!res3 && res3.flags === false && carregarFlags()["ia"] === true, "servidor sem linha de flags NÃO toca o local");
+
+  // wrapper do seam: salvarTenant grava local (await) + espelha fire-and-forget
+  const srv3 = servidorSupabaseFake();
+  const embrulhado = envolverRepoTenantComEspelho(criarRepositorioTenant("todos"), cfgSupa, srv3.t);
+  const t2 = novoTenant("Casa Lua", 1_750_000_000_001);
+  await embrulhado.salvarTenant(t2);
+  await new Promise((r) => setTimeout(r, 0));
+  assert((await embrulhado.listarTenants("todos")).some((x) => x.id === t2.id), "wrapper grava no local");
+  assert(srv3.tenants.has(t2.id), "wrapper espelha no servidor");
+  const tQuebrado: Transporte = async () => { throw new Error("offline"); };
+  const embrulhadoOff = envolverRepoTenantComEspelho(criarRepositorioTenant("todos"), cfgSupa, tQuebrado);
+  let rejeitou = false;
+  await embrulhadoOff.salvarTenant(novoTenant("Sem Rede", 1_750_000_000_002)).catch(() => { rejeitou = true; });
+  await new Promise((r) => setTimeout(r, 0));
+  assert(!rejeitou, "espelho falhando NÃO rejeita a escrita local (fail-soft)");
   armazem.limpar();
 }
 

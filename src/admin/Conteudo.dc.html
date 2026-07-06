@@ -99,6 +99,17 @@ class Component extends DCLogic {
     this.setState({ cenarios: C.conteudo.listarCenarios() });
   }
 
+  // pós-fase06: espelho da entrada no servidor (tabela conteudo) —
+  // fire-and-forget, no-op silencioso no modo local/offline.
+  _espelhar(entrada) {
+    const C = window.PipocaAdminCanonico;
+    try {
+      if (entrada && C && C.backend && C.backend.espelharCenarioRemoto) {
+        C.backend.espelharCenarioRemoto(entrada).catch(() => {});
+      }
+    } catch (_) {}
+  }
+
   _parse() {
     try { return JSON.parse(this.state.grafoTexto); } catch (_) { return null; }
   }
@@ -126,6 +137,7 @@ class Component extends DCLogic {
       // MVP: rascunhos entram no catálogo da plataforma (tenantId null, sem teto);
       // vincular cenário a um tenant específico chega com o backend (fase06).
       const entrada = C.conteudo.salvarRascunho(json, null);
+      this._espelhar(entrada);
       this.setState({ aviso: 'Rascunho salvo: ' + entrada.cenarioId + ' v' + entrada.versao + '.' });
       this._recarregar();
     } catch (e) { this.setState({ aviso: (e && e.message) || 'Não foi possível salvar.' }); }
@@ -139,6 +151,12 @@ class Component extends DCLogic {
       try { limites = await A.repoTenant.obterLimitesEfetivos(c.tenantId); } catch (_) { limites = null; }
     }
     const r = C.conteudo.publicarCenario(c.cenarioId, c.versao, Date.now(), limites);
+    if (r.ok) {
+      const publicada = C.conteudo.listarCenarios().find(
+        (x) => x.cenarioId === c.cenarioId && x.versao === c.versao
+      );
+      this._espelhar(publicada);
+    }
     this.setState({ aviso: r.ok ? 'Publicado: ' + c.cenarioId + ' v' + c.versao + '.' : (r.motivo || 'Não foi possível publicar.') });
     this._recarregar();
   }
@@ -146,7 +164,10 @@ class Component extends DCLogic {
   _versionar(cenarioId) {
     const C = window.PipocaAdminCanonico;
     const nova = C.conteudo.versionarCenario(cenarioId);
-    if (nova) this.setState({ aviso: 'Nova versão aberta: ' + cenarioId + ' v' + nova.versao + ' (rascunho).' });
+    if (nova) {
+      this._espelhar(nova);
+      this.setState({ aviso: 'Nova versão aberta: ' + cenarioId + ' v' + nova.versao + ' (rascunho).' });
+    }
     this._recarregar();
   }
 

@@ -298,6 +298,18 @@
     const r = t;
     return typeof r["id"] === "string" && r["id"].length > 0 && typeof r["nome"] === "string" && typeof r["planoId"] === "string" && typeof r["ativo"] === "boolean" && typeof r["criadoEm"] === "number";
   }
+  function validarEnvelopeTenant(raw) {
+    const env = raw;
+    if (env && env.esquema === ESQUEMA_TENANT && tenantValido(env.tenant))
+      return { ...env.tenant };
+    return null;
+  }
+  function substituirTenantsLocais(tenants, armazem) {
+    const st = armazem ?? storagePadrao2();
+    if (!st)
+      return;
+    gravarTenants(st, (Array.isArray(tenants) ? tenants : []).filter(tenantValido));
+  }
   function lerTenants(st) {
     try {
       const raw = st.getItem(CHAVE_TENANTS);
@@ -991,6 +1003,19 @@
     const st = armazem ?? storagePadrao3();
     return st ? ler(st) : [];
   }
+  function validarEnvelopeCenario(raw) {
+    const env = raw;
+    if (env && env.esquema === "pipoca.conteudo.v1" && entradaValida(env.cenario)) {
+      return { ...env.cenario };
+    }
+    return null;
+  }
+  function substituirCenariosLocais(itens, armazem) {
+    const st = armazem ?? storagePadrao3();
+    if (!st)
+      return;
+    gravar(st, (Array.isArray(itens) ? itens : []).filter(entradaValida));
+  }
   function cenarioIdDe(grafo) {
     const c = grafo?.cenario;
     return c && typeof c.id === "string" && c.id.length > 0 ? c.id : null;
@@ -1094,6 +1119,16 @@
       return null;
     }
   }
+  function normalizarFlags(raw) {
+    const limpo = { ...FLAGS_PADRAO };
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+      for (const [k, v] of Object.entries(raw)) {
+        if (typeof v === "boolean")
+          limpo[k] = v;
+      }
+    }
+    return limpo;
+  }
   function carregarFlags(armazem) {
     const st = armazem ?? storagePadrao4();
     if (!st)
@@ -1102,15 +1137,7 @@
       const raw = st.getItem(CHAVE_FLAGS);
       if (raw === null)
         return { ...FLAGS_PADRAO };
-      const obj = JSON.parse(raw);
-      if (!obj || typeof obj !== "object" || Array.isArray(obj))
-        return { ...FLAGS_PADRAO };
-      const limpo = { ...FLAGS_PADRAO };
-      for (const [k, v] of Object.entries(obj)) {
-        if (typeof v === "boolean")
-          limpo[k] = v;
-      }
-      return limpo;
+      return normalizarFlags(JSON.parse(raw));
     } catch {
       return { ...FLAGS_PADRAO };
     }
@@ -2550,6 +2577,132 @@
     return criarBackendLocal();
   }
 
+  // src/backend/espelho_admin.ts
+  var ESQUEMA_CONTEUDO = "pipoca.conteudo.v1";
+  async function contextoOperador(config, transporte) {
+    const cfg = config || configDoAmbiente();
+    if (cfg.provedor !== "supabase" || !cfg.supabaseUrl || !cfg.supabaseAnonKey)
+      return null;
+    try {
+      const auth = criarAuthSupabase({
+        url: cfg.supabaseUrl,
+        anonKey: cfg.supabaseAnonKey,
+        ...transporte ? { transporte } : {}
+      });
+      const s = auth.sessaoAtual();
+      if (!s || s.tipo !== "superadmin")
+        return null;
+      const token = await auth.obterToken();
+      if (!token)
+        return null;
+      return {
+        base: cfg.supabaseUrl.replace(/\/+$/, "") + "/rest/v1",
+        headers: {
+          apikey: cfg.supabaseAnonKey,
+          Authorization: "Bearer " + token,
+          "content-type": "application/json"
+        },
+        t: transporte || transportePadrao()
+      };
+    } catch {
+      return null;
+    }
+  }
+  async function upsert(ctx, caminho, linhas, prefer = "resolution=merge-duplicates,return=minimal") {
+    try {
+      const resp = await ctx.t(ctx.base + caminho, {
+        method: "POST",
+        headers: { ...ctx.headers, Prefer: prefer },
+        body: JSON.stringify(linhas)
+      });
+      return resp.status >= 200 && resp.status < 300;
+    } catch {
+      return false;
+    }
+  }
+  async function lerLinhas(ctx, caminho) {
+    const resp = await ctx.t(ctx.base + caminho, { method: "GET", headers: ctx.headers });
+    if (resp.status < 200 || resp.status >= 300)
+      throw new Error("HTTP " + resp.status);
+    const json = await resp.json();
+    return Array.isArray(json) ? json : [];
+  }
+  async function espelharTenantRemoto(t, config, transporte) {
+    const ctx = await contextoOperador(config, transporte);
+    if (!ctx)
+      return false;
+    return upsert(ctx, "/tenants?on_conflict=id", [
+      { id: t.id, dados: { esquema: "pipoca.tenant.v1", tenant: { ...t } } }
+    ]);
+  }
+  async function espelharCenarioRemoto(c, config, transporte) {
+    const ctx = await contextoOperador(config, transporte);
+    if (!ctx)
+      return false;
+    return upsert(ctx, "/conteudo?on_conflict=cenario_id,versao", [
+      {
+        cenario_id: c.cenarioId,
+        versao: c.versao,
+        tenant_id: c.tenantId,
+        publicado_em: c.publicadoEm,
+        dados: { esquema: ESQUEMA_CONTEUDO, cenario: { ...c } }
+      }
+    ]);
+  }
+  async function espelharFlagsRemotas(flags, config, transporte) {
+    const ctx = await contextoOperador(config, transporte);
+    if (!ctx)
+      return false;
+    return upsert(ctx, "/flags_admin?on_conflict=id", [{ id: "global", dados: { ...flags } }]);
+  }
+  async function puxarAdminDoServidor(config, transporte) {
+    const ctx = await contextoOperador(config, transporte);
+    if (!ctx)
+      return null;
+    try {
+      const [linhasT, linhasC, linhasF] = await Promise.all([
+        lerLinhas(ctx, "/tenants?select=dados"),
+        lerLinhas(ctx, "/conteudo?select=dados"),
+        lerLinhas(ctx, "/flags_admin?select=dados&id=eq.global")
+      ]);
+      const tenants = [];
+      for (const l of linhasT) {
+        const t = validarEnvelopeTenant(l ? l.dados : null);
+        if (t !== null)
+          tenants.push(t);
+      }
+      substituirTenantsLocais(tenants);
+      const cenarios = [];
+      for (const l of linhasC) {
+        const c = validarEnvelopeCenario(l ? l.dados : null);
+        if (c !== null)
+          cenarios.push(c);
+      }
+      substituirCenariosLocais(cenarios);
+      let flags = false;
+      const linhaFlags = linhasF[0];
+      if (linhaFlags && linhaFlags.dados && typeof linhaFlags.dados === "object") {
+        salvarFlags(normalizarFlags(linhaFlags.dados));
+        flags = true;
+      }
+      return { tenants: tenants.length, cenarios: cenarios.length, flags };
+    } catch {
+      return null;
+    }
+  }
+  function envolverRepoTenantComEspelho(repo, config, transporte) {
+    return {
+      listarTenants: (escopo) => repo.listarTenants(escopo),
+      obterTenant: (id) => repo.obterTenant(id),
+      listarPlanos: () => repo.listarPlanos(),
+      obterLimitesEfetivos: (id, agora) => repo.obterLimitesEfetivos(id, agora),
+      async salvarTenant(t) {
+        await repo.salvarTenant(t);
+        espelharTenantRemoto(t, config, transporte).catch(() => {});
+      }
+    };
+  }
+
   // src/admin/bridge_admin.ts
   var PipocaAdminCanonico = {
     auth: {
@@ -2614,7 +2767,17 @@
       salvarFlags
     },
     modos: { modosPadrao },
-    backend: { obterBackend, configDoAmbiente, normalizarConfigBackend, espelharConfigIA }
+    backend: {
+      obterBackend,
+      configDoAmbiente,
+      normalizarConfigBackend,
+      espelharConfigIA,
+      espelharTenantRemoto,
+      espelharCenarioRemoto,
+      espelharFlagsRemotas,
+      puxarAdminDoServidor,
+      envolverRepoTenantComEspelho
+    }
   };
   globalThis.PipocaAdminCanonico = PipocaAdminCanonico;
   var bridge_admin_default = PipocaAdminCanonico;

@@ -19,6 +19,12 @@ import type { EstadoApp, EventoTelemetria } from "../../core/estado.js";
 import type { RepositorioPersistencia } from "../../core/persistencia/index.js";
 import { validarEnvelopePerfil, validarEnvelopeSave } from "../../dados/schemas.js";
 import { validarEvento } from "../../core/telemetria.js";
+import type { HistoriaSalva } from "../../core/historias.js";
+import {
+  ESQUEMA_HISTORIAS,
+  RETENCAO_HISTORIAS_DIAS,
+  validarHistoriaSalva,
+} from "../../core/historias.js";
 import type { Transporte } from "../../ia/provedor.js";
 import { transportePadrao } from "../../ia/provedor.js";
 
@@ -119,9 +125,64 @@ export class RepositorioSupabase implements RepositorioPersistencia {
     return out;
   }
 
+  // ─── Histórias salvas (pós-fase06) — tabela `historias` ───────────────────
+  // `favorita`/`criada_em` são COLUNAS (além do envelope em `dados`) para a
+  // retenção remota ser um DELETE por filtro — idempotente, sem tombstones.
+
+  async carregarHistorias(perfilId: string): Promise<HistoriaSalva[]> {
+    const linhas = (await this.req(
+      "/historias?select=dados&perfil_id=eq." + encodeURIComponent(perfilId) + "&order=criada_em.desc",
+      "GET"
+    )) as Array<{ dados?: { historia?: unknown } }>;
+    const out: HistoriaSalva[] = [];
+    for (const l of Array.isArray(linhas) ? linhas : []) {
+      const h = validarHistoriaSalva(l && l.dados ? l.dados.historia : null);
+      if (h !== null) out.push(h);
+    }
+    return out;
+  }
+
+  async salvarHistoria(perfilId: string, historia: HistoriaSalva): Promise<void> {
+    await this.req(
+      "/historias?on_conflict=id",
+      "POST",
+      [{
+        id: historia.id,
+        perfil_id: perfilId,
+        favorita: historia.favorita === true,
+        criada_em: new Date(historia.criadaEm).toISOString(),
+        dados: { esquema: ESQUEMA_HISTORIAS, historia: { ...historia } },
+      }],
+      "resolution=merge-duplicates,return=minimal"
+    );
+  }
+
+  async apagarHistoria(perfilId: string, historiaId: string): Promise<void> {
+    await this.req(
+      "/historias?perfil_id=eq." + encodeURIComponent(perfilId) + "&id=eq." + encodeURIComponent(historiaId),
+      "DELETE",
+      undefined,
+      "return=minimal"
+    );
+  }
+
+  /** Retenção remota: apaga SÓ as não-favoritas mais velhas que 20 dias. */
+  async podarHistorias(perfilId: string, agora: number): Promise<number> {
+    const limite = new Date(agora - RETENCAO_HISTORIAS_DIAS * 86_400_000).toISOString();
+    await this.req(
+      "/historias?perfil_id=eq." + encodeURIComponent(perfilId)
+        + "&favorita=eq.false&criada_em=lt." + encodeURIComponent(limite),
+      "DELETE",
+      undefined,
+      "return=minimal"
+    );
+    return 0; // o PostgREST com return=minimal não conta — o local reporta
+  }
+
   async apagarPerfil(perfilId: string): Promise<void> {
     const id = encodeURIComponent(perfilId);
     await this.req("/telemetria?perfil_id=eq." + id, "DELETE", undefined, "return=minimal");
+    await this.req("/historias?perfil_id=eq." + id, "DELETE", undefined, "return=minimal");
     await this.req("/saves?perfil_id=eq." + id, "DELETE", undefined, "return=minimal");
     await this.req("/perfis?id=eq." + id, "DELETE", undefined, "return=minimal");
   }

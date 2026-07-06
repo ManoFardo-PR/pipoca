@@ -71,6 +71,15 @@ import {
 } from "../core/historia.js";
 import { modosPadrao, alternarPalco, autorizarIA, normalizarModos, definirVerificacao, definirDesfecho } from "../core/modos.js";
 import { exportarDados, apagarDados } from "../core/lgpd.js";
+import {
+  RETENCAO_HISTORIAS_DIAS,
+  MAX_NAO_FAVORITAS,
+  validarHistoriaSalva,
+  dentroDaRetencaoHistoria,
+  normalizarHistorias,
+  tituloDaHistoria,
+  dataRelativa,
+} from "../core/historias.js";
 import { LIMITES_PADRAO, definirBlocoFoco, normalizarTempoDeTela, normalizarLimites } from "../core/limites.js";
 import {
   CARDAPIO_PADRAO,
@@ -168,6 +177,15 @@ const PipocaCanonico = {
   limites: { LIMITES_PADRAO, definirBlocoFoco, normalizarTempoDeTela, normalizarLimites },
   cardapio: { CARDAPIO_PADRAO, normalizarCardapio, validarItemCardapio, CENARIOS_PADRAO, normalizarCenariosLiberados },
   lgpd: { exportarDados, apagarDados },
+  historias: {
+    RETENCAO_HISTORIAS_DIAS,
+    MAX_NAO_FAVORITAS,
+    validarHistoriaSalva,
+    dentroDaRetencaoHistoria,
+    normalizarHistorias,
+    tituloDaHistoria,
+    dataRelativa,
+  },
   perfil: { criarPerfil },
   onboarding: { montarEstadoOnboarding, perfilDoOnboarding, BLOCO_PADRAO },
   sessao: { iniciarSessao, tick, encerrarSessao, formatarRestante },

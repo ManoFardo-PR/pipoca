@@ -74,11 +74,27 @@ O caminho verde roda **inteiro sobre os módulos canônicos** — a convergênci
   (→ PINGATE) e `aoVoltarParaCrianca` retoma a tela onde a criança estava (`_telaCriancaAnterior`,
   invalidação central na troca de perfil). Pelo repo sincronizado (fase06), cada gravação de save
   espelha no Supabase quando há sessão.
+- **Histórias salvas (2026-07-06)** — toda história CONCLUÍDA é capturada automaticamente na
+  convergência (`_capturarHistoriaSalva` em `src/app/estado.js`: texto completo tecido na hora —
+  fonte fiel mesmo se a IA um dia tecer a linha verde — + linha/nível/desfecho/título/emoji) e
+  guardada por perfil em `pipoca.historias.v1:<perfilId>` com **retenção de 20 dias**; a criança
+  favorita (💛 na T6 e nos cartões da T3) e a história fica **para sempre** (`criadaEm` preservado
+  ao (des)favoritar). Núcleo puro em `src/core/historias.ts` (validador rejeitador por item,
+  `normalizarHistorias` com dedupe/poda/teto de 30 não-favoritas); 4 métodos ADITIVO-OPCIONAIS no
+  seam `RepositorioPersistencia`; espelho Supabase na tabela `historias` (favorita/criada_em como
+  colunas → a poda remota é um DELETE por filtro idempotente, sem tombstones por item);
+  `sincronizarInicial`/`migrar` puxam/empurram as histórias junto dos perfis; LGPD cobre (export
+  inclui, apagar limpa local+remoto). UI: faixa "Minhas histórias" na T3 + leitor em modal
+  (`LeitorHistoria.dc.html`, padrão PainelA11y, fonte respeita a11y) + coração na T6.
 - **Dívida conhecida (coexistência v1/v2)** — `_initMotor()` em `src/app/estado.js` ainda carrega
   `quintal_grafo.json` (v1) em paralelo à v2; o motor narrativo (A ou B desde a fase05) segue
   instanciado, mas a linha verde usa a composição.
 
-### Pendências reais (2026-07-03)
+### Pendências reais (2026-07-06)
+- Histórias salvas: aplicar a migration da tabela `historias` no projeto Supabase real (bloco novo
+  do `rls_supabase.sql`; via MCP `apply_migration` ou SQL editor) — sem ela o espelho remoto das
+  histórias falha silencioso (fail-soft: o local funciona 100%). Gestão por item pelo cuidador
+  (apagar UMA história) e teto para favoritas ficam como follow-up (favoritas ilimitadas = aceito).
 - Reabrir a Sessao de leitura ao voltar do portão: `_entrarCuidador` encerra com calma (correto) e a
   retomada via `_telaCriancaAnterior` devolve a criança à tela onde estava, mas uma nova Sessao só
   nasce na próxima composição — aceito no MVP, follow-up.

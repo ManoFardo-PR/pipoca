@@ -15,6 +15,14 @@ import {
 } from "./captura.js";
 import { podarPorRetencao } from "../servicos/telemetria_repo.js";
 import {
+  validarHistoriaSalva,
+  dentroDaRetencaoHistoria,
+  normalizarHistorias,
+  tituloDaHistoria,
+  dataRelativa,
+  MAX_NAO_FAVORITAS,
+} from "./historias.js";
+import {
   resumir,
   gerarSeries,
   calcularEngajamento,
@@ -138,6 +146,66 @@ console.log("\n=== Retenção (03-03) — podarPorRetencao ===");
   const mantidos = podarPorRetencao(eventos, agora, 90);
   assert(mantidos.length === 2, "retenção 90d remove o evento do dia 5, mantém 50 e 99");
   assert(mantidos.every((e) => e.ts >= agora - 90 * 86_400_000), "todos os mantidos dentro da janela");
+}
+
+console.log("\n=== Histórias salvas — validador, retenção 20d e favoritas ===");
+{
+  const DIA = 86_400_000;
+  const agora = 100 * DIA;
+  const mkH = (id: string, diasAtras: number, favorita = false, extras: Record<string, unknown> = {}) => ({
+    id, cenarioId: "quintal_anoitecer", texto: "Era uma noite mansa. Fim.",
+    linha: ["vagalume", "frasco"], nivel: "n2", desfecho: "convergente",
+    titulo: "A história de o vaga-lume", emoji: "🌟",
+    criadaEm: agora - diasAtras * DIA, favorita, ...extras,
+  });
+
+  // validador — rejeitador por item, favorita saneada
+  assert(validarHistoriaSalva(mkH("h1", 0)) !== null, "história válida passa");
+  assert(validarHistoriaSalva(null) === null, "null → descartada");
+  assert(validarHistoriaSalva(mkH("", 0)) === null, "id vazio → descartada");
+  assert(validarHistoriaSalva(mkH("h1", 0, false, { texto: "  " })) === null, "texto vazio → descartada");
+  assert(validarHistoriaSalva(mkH("h1", 0, false, { nivel: "n9" })) === null, "nível inválido → descartada");
+  assert(validarHistoriaSalva(mkH("h1", 0, false, { linha: ["a", 7] })) === null, "linha com não-string → descartada");
+  assert(validarHistoriaSalva(mkH("h1", 0, false, { criadaEm: "ontem" })) === null, "criadaEm não-número → descartada");
+  const saneada = validarHistoriaSalva(mkH("h1", 0, false, { favorita: "sim", emoji: "" }));
+  assert(saneada !== null && saneada.favorita === false && saneada.emoji === "✨", "favorita/emoji malformados → SANEADAS (não rejeitam)");
+
+  // retenção: 20 dias; favorita fica PARA SEMPRE; limite exato conta como dentro
+  assert(dentroDaRetencaoHistoria(validarHistoriaSalva(mkH("h", 19))!, agora), "19 dias → dentro");
+  assert(dentroDaRetencaoHistoria(validarHistoriaSalva(mkH("h", 20))!, agora), "exatamente 20 dias → ainda dentro (>= limite)");
+  assert(!dentroDaRetencaoHistoria(validarHistoriaSalva(mkH("h", 21))!, agora), "21 dias → fora");
+  assert(dentroDaRetencaoHistoria(validarHistoriaSalva(mkH("h", 300, true))!, agora), "favorita de 300 dias → fica para sempre");
+
+  // normalizarHistorias: valida + dedupe (última vence) + poda + ordena + teto
+  const bruta = [
+    mkH("velha", 25), // cai (fora da retenção)
+    mkH("fav-velha", 25, true), // fica (favorita)
+    mkH("dupe", 10, false, { texto: "primeira versão." }),
+    mkH("dupe", 10, true, { texto: "versão favoritada." }), // última vence
+    "lixo", mkH("quebrada", 1, false, { titulo: "" }), // descartadas
+    mkH("nova", 1), mkH("media", 5),
+  ];
+  const norm = normalizarHistorias(bruta, agora);
+  assert(norm.length === 4, "sobram 4: fav-velha + dupe(favoritada) + nova + media");
+  assert(!norm.some((h) => h.id === "velha"), "não-favorita de 25 dias foi podada");
+  const dupe = norm.find((h) => h.id === "dupe");
+  assert(!!dupe && dupe.favorita && /favoritada/.test(dupe.texto), "dedupe por id: a ÚLTIMA ocorrência vence");
+  assert(norm[0]!.id === "nova" && norm[0]!.criadaEm >= norm[norm.length - 1]!.criadaEm, "ordenada por criadaEm desc");
+
+  // teto de não-favoritas: as mais novas ficam; favoritas nunca contam pro teto
+  const monte: unknown[] = [];
+  for (let i = 0; i < MAX_NAO_FAVORITAS + 5; i++) monte.push(mkH("m" + i, 0, false, { criadaEm: agora - i * 1000 }));
+  monte.push(mkH("fav", 10, true));
+  const comTeto = normalizarHistorias(monte, agora);
+  assert(comTeto.filter((h) => !h.favorita).length === MAX_NAO_FAVORITAS, "teto de " + MAX_NAO_FAVORITAS + " não-favoritas");
+  assert(comTeto.some((h) => h.id === "fav"), "favorita não conta pro teto e sobrevive");
+  assert(!comTeto.some((h) => h.id === "m" + (MAX_NAO_FAVORITAS + 4)), "as mais ANTIGAS caem primeiro");
+
+  // título e data relativa
+  assert(tituloDaHistoria({ nome: "a Lua" }) === "A história de a Lua", "título usa o nome do último objeto");
+  assert(tituloDaHistoria(null) === "Minha história no Quintal", "sem objeto → título fallback");
+  assert(dataRelativa(agora, agora) === "hoje" && dataRelativa(agora - DIA, agora) === "ontem"
+    && dataRelativa(agora - 3 * DIA, agora) === "há 3 dias", "data relativa calorosa (hoje/ontem/há N dias)");
 }
 
 console.log("\n=== Acesso (02-03) — PIN + lockout suave ===");

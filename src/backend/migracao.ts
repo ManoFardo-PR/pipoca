@@ -34,6 +34,17 @@ export async function migrar(
       await para.salvarSave(p.id, save);
       saves++;
     }
+    // histórias salvas (pós-fase06): upsert idempotente por id, quando ambos
+    // os lados sabem lidar com elas (métodos aditivo-opcionais do seam)
+    if (de.carregarHistorias && para.salvarHistoria) {
+      try {
+        for (const h of await de.carregarHistorias(p.id)) {
+          await para.salvarHistoria(p.id, h);
+        }
+      } catch {
+        /* histórias não podem travar a migração de perfis */
+      }
+    }
   }
   return { perfis: perfis.length, saves };
 }

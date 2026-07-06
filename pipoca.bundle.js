@@ -1292,6 +1292,89 @@
     return eventos.filter((e) => dentroDaRetencao(e, agora, retencaoDias));
   }
 
+  // src/core/historias.ts
+  var ESQUEMA_HISTORIAS = "pipoca.historias.v1";
+  var RETENCAO_HISTORIAS_DIAS = 20;
+  var MAX_NAO_FAVORITAS = 30;
+  var MS_POR_DIA2 = 86400000;
+  var NIVEIS2 = ["n1", "n2", "n3", "n4"];
+  var DESFECHOS = ["convergente", "aberto"];
+  function validarHistoriaSalva(raw) {
+    if (typeof raw !== "object" || raw === null)
+      return null;
+    const r = raw;
+    if (typeof r["id"] !== "string" || r["id"].trim() === "")
+      return null;
+    if (typeof r["cenarioId"] !== "string" || r["cenarioId"] === "")
+      return null;
+    if (typeof r["texto"] !== "string" || r["texto"].trim() === "")
+      return null;
+    if (!Array.isArray(r["linha"]) || !r["linha"].every((x) => typeof x === "string"))
+      return null;
+    if (!NIVEIS2.includes(r["nivel"]))
+      return null;
+    if (!DESFECHOS.includes(r["desfecho"]))
+      return null;
+    if (typeof r["titulo"] !== "string" || r["titulo"] === "")
+      return null;
+    if (typeof r["criadaEm"] !== "number" || !Number.isFinite(r["criadaEm"]))
+      return null;
+    return {
+      id: r["id"],
+      cenarioId: r["cenarioId"],
+      texto: r["texto"],
+      linha: r["linha"].slice(),
+      nivel: r["nivel"],
+      desfecho: r["desfecho"],
+      titulo: r["titulo"],
+      emoji: typeof r["emoji"] === "string" && r["emoji"] !== "" ? r["emoji"] : "✨",
+      criadaEm: r["criadaEm"],
+      favorita: r["favorita"] === true
+    };
+  }
+  function dentroDaRetencaoHistoria(h, agora, retencaoDias = RETENCAO_HISTORIAS_DIAS) {
+    if (h.favorita)
+      return true;
+    return h.criadaEm >= agora - retencaoDias * MS_POR_DIA2;
+  }
+  function normalizarHistorias(lista, agora) {
+    const porId = new Map;
+    for (const raw of Array.isArray(lista) ? lista : []) {
+      const h = validarHistoriaSalva(raw);
+      if (h)
+        porId.set(h.id, h);
+    }
+    const vivas = [...porId.values()].filter((h) => dentroDaRetencaoHistoria(h, agora)).sort((a, b) => b.criadaEm - a.criadaEm);
+    const resultado = [];
+    let naoFavoritas = 0;
+    for (const h of vivas) {
+      if (!h.favorita) {
+        if (naoFavoritas >= MAX_NAO_FAVORITAS)
+          continue;
+        naoFavoritas++;
+      }
+      resultado.push(h);
+    }
+    return resultado;
+  }
+  function tituloDaHistoria(ultimoObjeto) {
+    const nome = ultimoObjeto && ultimoObjeto.nome ? String(ultimoObjeto.nome).trim() : "";
+    if (!nome)
+      return "Minha história no Quintal";
+    return "A história de " + nome;
+  }
+  function dataRelativa(criadaEm, agora) {
+    const dias = Math.floor((agora - criadaEm) / MS_POR_DIA2);
+    if (dias <= 0)
+      return "hoje";
+    if (dias === 1)
+      return "ontem";
+    return "há " + dias + " dias";
+  }
+  function criarEnvelopeHistoria(historia) {
+    return { esquema: ESQUEMA_HISTORIAS, historia };
+  }
+
   // src/core/persistencia/chaves.ts
   var CHAVE_PERFIS = "pipoca.perfil.v1";
   function chaveSave(perfilId) {
@@ -1299,6 +1382,9 @@
   }
   function chaveTelemetria(perfilId) {
     return `pipoca.telemetria.v1:${perfilId}`;
+  }
+  function chaveHistorias(perfilId) {
+    return `pipoca.historias.v1:${perfilId}`;
   }
   function lerArrayEnvelopes(chave, esquemaEsperado) {
     try {
@@ -1396,12 +1482,39 @@
       }
       return removidos;
     }
+    async carregarHistorias(perfilId) {
+      const envelopes = lerArrayEnvelopes(chaveHistorias(perfilId), ESQUEMA_HISTORIAS);
+      return envelopes.map((e) => validarHistoriaSalva(e.historia)).filter((h) => h !== null).sort((a, b) => b.criadaEm - a.criadaEm);
+    }
+    async salvarHistoria(perfilId, historia) {
+      const envelopes = lerArrayEnvelopes(chaveHistorias(perfilId), ESQUEMA_HISTORIAS);
+      const semEsta = envelopes.filter((e) => e.historia?.id !== historia.id);
+      gravarItem(chaveHistorias(perfilId), [...semEsta, criarEnvelopeHistoria({ ...historia })]);
+    }
+    async apagarHistoria(perfilId, historiaId) {
+      const envelopes = lerArrayEnvelopes(chaveHistorias(perfilId), ESQUEMA_HISTORIAS);
+      const restantes = envelopes.filter((e) => e.historia?.id !== historiaId);
+      if (restantes.length !== envelopes.length)
+        gravarItem(chaveHistorias(perfilId), restantes);
+    }
+    async podarHistorias(perfilId, agora) {
+      const antes = await this.carregarHistorias(perfilId);
+      const mantidas = normalizarHistorias(antes, agora);
+      const removidas = antes.length - mantidas.length;
+      if (removidas > 0) {
+        gravarItem(chaveHistorias(perfilId), mantidas.map(criarEnvelopeHistoria));
+      }
+      return removidas;
+    }
     async apagarPerfil(perfilId) {
       try {
         localStorage.removeItem(chaveSave(perfilId));
       } catch {}
       try {
         localStorage.removeItem(chaveTelemetria(perfilId));
+      } catch {}
+      try {
+        localStorage.removeItem(chaveHistorias(perfilId));
       } catch {}
       const envelopes = lerArrayEnvelopes(CHAVE_PERFIS, "pipoca.perfil.v1");
       const filtrado = envelopes.filter((e) => e.perfil?.id !== perfilId);
@@ -1997,9 +2110,37 @@
       }
       return out;
     }
+    async carregarHistorias(perfilId) {
+      const linhas = await this.req("/historias?select=dados&perfil_id=eq." + encodeURIComponent(perfilId) + "&order=criada_em.desc", "GET");
+      const out = [];
+      for (const l of Array.isArray(linhas) ? linhas : []) {
+        const h = validarHistoriaSalva(l && l.dados ? l.dados.historia : null);
+        if (h !== null)
+          out.push(h);
+      }
+      return out;
+    }
+    async salvarHistoria(perfilId, historia) {
+      await this.req("/historias?on_conflict=id", "POST", [{
+        id: historia.id,
+        perfil_id: perfilId,
+        favorita: historia.favorita === true,
+        criada_em: new Date(historia.criadaEm).toISOString(),
+        dados: { esquema: ESQUEMA_HISTORIAS, historia: { ...historia } }
+      }], "resolution=merge-duplicates,return=minimal");
+    }
+    async apagarHistoria(perfilId, historiaId) {
+      await this.req("/historias?perfil_id=eq." + encodeURIComponent(perfilId) + "&id=eq." + encodeURIComponent(historiaId), "DELETE", undefined, "return=minimal");
+    }
+    async podarHistorias(perfilId, agora) {
+      const limite = new Date(agora - RETENCAO_HISTORIAS_DIAS * 86400000).toISOString();
+      await this.req("/historias?perfil_id=eq." + encodeURIComponent(perfilId) + "&favorita=eq.false&criada_em=lt." + encodeURIComponent(limite), "DELETE", undefined, "return=minimal");
+      return 0;
+    }
     async apagarPerfil(perfilId) {
       const id = encodeURIComponent(perfilId);
       await this.req("/telemetria?perfil_id=eq." + id, "DELETE", undefined, "return=minimal");
+      await this.req("/historias?perfil_id=eq." + id, "DELETE", undefined, "return=minimal");
       await this.req("/saves?perfil_id=eq." + id, "DELETE", undefined, "return=minimal");
       await this.req("/perfis?id=eq." + id, "DELETE", undefined, "return=minimal");
     }
@@ -2067,6 +2208,25 @@
         await local.apagarPerfil(perfilId);
         adicionarTombstone(perfilId);
         remoto.apagarPerfil(perfilId).then(() => removerTombstone(perfilId)).catch(() => {});
+      },
+      carregarHistorias: (perfilId) => local.carregarHistorias ? local.carregarHistorias(perfilId) : Promise.resolve([]),
+      async salvarHistoria(perfilId, historia) {
+        if (local.salvarHistoria)
+          await local.salvarHistoria(perfilId, historia);
+        if (remoto.salvarHistoria)
+          remoto.salvarHistoria(perfilId, historia).catch(() => {});
+      },
+      async apagarHistoria(perfilId, historiaId) {
+        if (local.apagarHistoria)
+          await local.apagarHistoria(perfilId, historiaId);
+        if (remoto.apagarHistoria)
+          remoto.apagarHistoria(perfilId, historiaId).catch(() => {});
+      },
+      async podarHistorias(perfilId, agora) {
+        const removidas = local.podarHistorias ? await local.podarHistorias(perfilId, agora) : 0;
+        if (remoto.podarHistorias)
+          remoto.podarHistorias(perfilId, agora).catch(() => {});
+        return removidas;
       }
     };
   }
@@ -2127,6 +2287,13 @@
         await para.salvarSave(p.id, save);
         saves++;
       }
+      if (de.carregarHistorias && para.salvarHistoria) {
+        try {
+          for (const h of await de.carregarHistorias(p.id)) {
+            await para.salvarHistoria(p.id, h);
+          }
+        } catch {}
+      }
     }
     return { perfis: perfis.length, saves };
   }
@@ -2151,6 +2318,13 @@
       const save = await remoto.carregarSave(p.id);
       if (save)
         await local.salvarSave(p.id, save);
+      if (remoto.carregarHistorias && local.salvarHistoria) {
+        try {
+          for (const h of await remoto.carregarHistorias(p.id)) {
+            await local.salvarHistoria(p.id, h);
+          }
+        } catch {}
+      }
       puxados++;
     }
     const res = await migrar(local, remoto);
@@ -2407,11 +2581,17 @@
     const perfis = await repo.carregarPerfis();
     const perfil = perfis.find((p) => p.id === perfilId) ?? null;
     const estado = await repo.carregarSave(perfilId);
+    let historias = [];
+    try {
+      if (repo.carregarHistorias)
+        historias = await repo.carregarHistorias(perfilId);
+    } catch {}
     return {
       esquema: "pipoca.export.v1",
       exportadoEm: agora,
       perfil: perfil ? criarEnvelopePerfil(perfil) : null,
-      save: estado ? criarEnvelopeSave(perfilId, estado) : null
+      save: estado ? criarEnvelopeSave(perfilId, estado) : null,
+      historias
     };
   }
   async function apagarDados(perfilId, repo) {
@@ -2714,7 +2894,7 @@
   }
 
   // src/core/agregadosTelemetria.ts
-  var MS_POR_DIA2 = 86400000;
+  var MS_POR_DIA3 = 86400000;
   var TETO_MINUTOS_SESSAO = 60;
   var META_LEITURAS_DIA = 5;
   var META_CENARIOS_DIA = 3;
@@ -2732,10 +2912,10 @@
     }
   }
   function indiceDia(ts) {
-    return Math.floor(ts / MS_POR_DIA2);
+    return Math.floor(ts / MS_POR_DIA3);
   }
   function rotuloDia(idxDia) {
-    return new Date(idxDia * MS_POR_DIA2).toISOString().slice(0, 10);
+    return new Date(idxDia * MS_POR_DIA3).toISOString().slice(0, 10);
   }
   function chaveDia(ts) {
     return rotuloDia(indiceDia(ts));
@@ -2744,7 +2924,7 @@
     const dias = diasDoPeriodo(periodo);
     if (!Number.isFinite(dias))
       return eventos.slice();
-    const limite = agora - dias * MS_POR_DIA2;
+    const limite = agora - dias * MS_POR_DIA3;
     return eventos.filter((e) => e.ts >= limite);
   }
   function minutosClampados(e) {
@@ -2958,6 +3138,15 @@
     limites: { LIMITES_PADRAO, definirBlocoFoco, normalizarTempoDeTela, normalizarLimites },
     cardapio: { CARDAPIO_PADRAO, normalizarCardapio, validarItemCardapio, CENARIOS_PADRAO, normalizarCenariosLiberados },
     lgpd: { exportarDados, apagarDados },
+    historias: {
+      RETENCAO_HISTORIAS_DIAS,
+      MAX_NAO_FAVORITAS,
+      validarHistoriaSalva,
+      dentroDaRetencaoHistoria,
+      normalizarHistorias,
+      tituloDaHistoria,
+      dataRelativa
+    },
     perfil: { criarPerfil },
     onboarding: { montarEstadoOnboarding, perfilDoOnboarding, BLOCO_PADRAO },
     sessao: { iniciarSessao, tick, encerrarSessao, formatarRestante },

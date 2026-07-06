@@ -15,6 +15,7 @@
 
 import type { Perfil } from "../../core/perfil.js";
 import type { EstadoApp, EventoTelemetria } from "../../core/estado.js";
+import type { HistoriaSalva } from "../../core/historias.js";
 import type { RepositorioPersistencia } from "../../core/persistencia/index.js";
 
 export const CHAVE_TOMBSTONES = "pipoca.sync.apagados.v1";
@@ -89,6 +90,25 @@ export function criarRepositorioSincronizado(
         .apagarPerfil(perfilId)
         .then(() => removerTombstone(perfilId))
         .catch(() => {});
+    },
+
+    // ─── Histórias salvas: local base + espelho fire-and-forget ─────────────
+    // SEM tombstone por item: a poda remota é um DELETE por filtro idempotente
+    // (re-executado a cada borda); apagar tudo já tem o tombstone de perfil.
+    carregarHistorias: (perfilId: string) =>
+      local.carregarHistorias ? local.carregarHistorias(perfilId) : Promise.resolve([]),
+    async salvarHistoria(perfilId: string, historia: HistoriaSalva): Promise<void> {
+      if (local.salvarHistoria) await local.salvarHistoria(perfilId, historia);
+      if (remoto.salvarHistoria) remoto.salvarHistoria(perfilId, historia).catch(() => {});
+    },
+    async apagarHistoria(perfilId: string, historiaId: string): Promise<void> {
+      if (local.apagarHistoria) await local.apagarHistoria(perfilId, historiaId);
+      if (remoto.apagarHistoria) remoto.apagarHistoria(perfilId, historiaId).catch(() => {});
+    },
+    async podarHistorias(perfilId: string, agora: number): Promise<number> {
+      const removidas = local.podarHistorias ? await local.podarHistorias(perfilId, agora) : 0;
+      if (remoto.podarHistorias) remoto.podarHistorias(perfilId, agora).catch(() => {});
+      return removidas;
     },
   };
 }

@@ -15,6 +15,10 @@ import {
 } from "../../dados/schemas.js";
 import { estadoInicial } from "../estado.js";
 import { criarPerfil } from "../perfil.js";
+import { RepositorioLocalStorage } from "./RepositorioLocalStorage.js";
+import { chaveHistorias } from "./chaves.js";
+import { ESQUEMA_HISTORIAS, type HistoriaSalva } from "../historias.js";
+import { exportarDados } from "../lgpd.js";
 
 let passou = 0;
 let falhou = 0;
@@ -269,6 +273,68 @@ assert(parcial?.limites?.blocoMin === 15 && parcial?.limites?.tempoDeTelaMin ===
 // Cardápio com mistura: itens válidos sobrevivem, inválidos caem.
 const mistura = validarEnvelopeSave(saveCom({ cardapio: [...itens, { id: "x" }] }));
 assert(mistura?.cardapio?.length === 1, "cardápio misto → só itens válidos sobrevivem");
+
+// --- Histórias salvas: CRUD no RepositorioLocalStorage (localStorage fake) ---
+console.log("\n=== histórias salvas — repo local (upsert, poda, LGPD) ===");
+{
+  // fake mínimo de localStorage (mesmo padrão do ArmazemMem do backend.test.ts)
+  const mem = new Map<string, string>();
+  (globalThis as Record<string, unknown>)["localStorage"] = {
+    getItem: (k: string) => (mem.has(k) ? (mem.get(k) as string) : null),
+    setItem: (k: string, v: string) => { mem.set(k, String(v)); },
+    removeItem: (k: string) => { mem.delete(k); },
+    clear: () => { mem.clear(); },
+    key: (i: number) => [...mem.keys()][i] ?? null,
+    get length() { return mem.size; },
+  };
+
+  const DIA = 86_400_000;
+  const agora = 200 * DIA;
+  const repo = new RepositorioLocalStorage();
+  const mkH = (id: string, diasAtras: number, favorita = false): HistoriaSalva => ({
+    id, cenarioId: "quintal_anoitecer", texto: "Era uma noite mansa. Fim.",
+    linha: ["vagalume"], nivel: "n2", desfecho: "convergente",
+    titulo: "A história de o vaga-lume", emoji: "🌟",
+    criadaEm: agora - diasAtras * DIA, favorita,
+  });
+
+  await repo.salvarHistoria("p1", mkH("h1", 2));
+  await repo.salvarHistoria("p1", mkH("h2", 5));
+  const lidas = await repo.carregarHistorias("p1");
+  assert(lidas.length === 2 && lidas[0]?.id === "h1", "salvar+carregar: 2 histórias, mais nova primeiro");
+
+  // upsert por id: favoritar regrava SEM duplicar e preserva criadaEm
+  const h2fav = { ...mkH("h2", 5), favorita: true };
+  await repo.salvarHistoria("p1", h2fav);
+  const aposUpsert = await repo.carregarHistorias("p1");
+  assert(aposUpsert.length === 2, "upsert por id não duplica");
+  const h2 = aposUpsert.find((h) => h.id === "h2");
+  assert(!!h2 && h2.favorita === true && h2.criadaEm === agora - 5 * DIA, "favoritar preserva criadaEm");
+
+  // item corrompido na chave é descartado em silêncio
+  const bruto = JSON.parse(mem.get(chaveHistorias("p1")) as string) as unknown[];
+  bruto.push({ esquema: ESQUEMA_HISTORIAS, historia: { id: "quebrada" } });
+  mem.set(chaveHistorias("p1"), JSON.stringify(bruto));
+  assert((await repo.carregarHistorias("p1")).length === 2, "história corrompida é descartada na leitura");
+
+  // poda: não-favorita velha sai, favorita mais velha ainda fica
+  await repo.salvarHistoria("p1", mkH("velha", 25));
+  await repo.salvarHistoria("p1", mkH("fav-velha", 40, true));
+  const removidas = await repo.podarHistorias("p1", agora);
+  const aposPoda = await repo.carregarHistorias("p1");
+  assert(removidas >= 1 && !aposPoda.some((h) => h.id === "velha"), "poda remove a não-favorita de 25 dias");
+  assert(aposPoda.some((h) => h.id === "fav-velha"), "favorita de 40 dias sobrevive à poda");
+
+  // apagarHistoria remove só a pedida
+  await repo.apagarHistoria("p1", "h1");
+  assert(!(await repo.carregarHistorias("p1")).some((h) => h.id === "h1"), "apagarHistoria remove por id");
+
+  // LGPD: export inclui historias; apagarPerfil limpa a chave
+  const exp = await exportarDados("p1", repo, agora);
+  assert(Array.isArray(exp.historias) && exp.historias.length >= 1, "export LGPD inclui as histórias");
+  await repo.apagarPerfil("p1");
+  assert(mem.get(chaveHistorias("p1")) === undefined, "apagarPerfil remove a chave de histórias (sem resíduos)");
+}
 
 console.log(`\n${"=".repeat(50)}`);
 console.log(`Total: ${passou + falhou} | ✓ ${passou} passou | ✗ ${falhou} falhou`);

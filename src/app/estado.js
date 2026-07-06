@@ -60,6 +60,11 @@
     showA11y: false,
     showOnboarding: false,
     storyMsg: null,
+    // Histórias salvas: modal de releitura (overlay no Shell) e a última
+    // história capturada nesta sessão (o coração da T6 usa). EFÊMEROS —
+    // nunca entram no _projetarSave (whitelist).
+    leitorHistoria: null,
+    ultimaHistoriaSalvaId: null,
     // gate (T5) state
     gateObjId: null,
     gateTrecho: "",
@@ -223,6 +228,10 @@
     salvarSave: function () { return Promise.resolve(); },
     registrarTelemetria: function () { return Promise.resolve(); },
     carregarTelemetria: function () { return Promise.resolve([]); },
+    carregarHistorias: function () { return Promise.resolve([]); },
+    salvarHistoria: function () { return Promise.resolve(); },
+    apagarHistoria: function () { return Promise.resolve(); },
+    podarHistorias: function () { return Promise.resolve(0); },
   };
 
   // Fachada estável para as telas: mantém o cache _perfis em dia a cada operação.
@@ -257,6 +266,23 @@
     },
     carregarTelemetria: function (perfilId) {
       return (_repoBase() || _fallbackRepo).carregarTelemetria(perfilId);
+    },
+    // Histórias salvas (métodos aditivo-opcionais do seam — guarda p/ bundle antigo)
+    carregarHistorias: function (perfilId) {
+      var base = _repoBase() || _fallbackRepo;
+      return base.carregarHistorias ? base.carregarHistorias(perfilId) : Promise.resolve([]);
+    },
+    salvarHistoria: function (perfilId, historia) {
+      var base = _repoBase() || _fallbackRepo;
+      return base.salvarHistoria ? base.salvarHistoria(perfilId, historia) : Promise.resolve();
+    },
+    apagarHistoria: function (perfilId, historiaId) {
+      var base = _repoBase() || _fallbackRepo;
+      return base.apagarHistoria ? base.apagarHistoria(perfilId, historiaId) : Promise.resolve();
+    },
+    podarHistorias: function (perfilId, agora) {
+      var base = _repoBase() || _fallbackRepo;
+      return base.podarHistorias ? base.podarHistorias(perfilId, agora) : Promise.resolve(0);
     },
   };
 
@@ -418,9 +444,14 @@
     patch.perfil = p;
     patch.comp = null;
     patch.gatePendente = null;
+    patch.leitorHistoria = null; // a releitura da criança A não vaza pra B
+    patch.ultimaHistoriaSalvaId = null;
     for (var k in nav) { if (Object.prototype.hasOwnProperty.call(nav, k)) patch[k] = nav[k]; }
     setState(patch);
     _hidratarPerfil(p);
+    // Retenção das histórias na borda da troca (20d; favoritas ficam) —
+    // fire-and-forget: o repo sincronizado também poda o espelho remoto.
+    try { repo.podarHistorias(p.id, Date.now()).catch(function () {}); } catch (_) {}
   }
 
   // ─── Portão parental (PINGATE / acesso.ts via bundle) ─────────────────────
@@ -460,6 +491,7 @@
     state.modoApp = M ? M.aoVoltarParaCrianca() : "crianca";
     state.showA11y = false;
     state.showOnboarding = false;
+    state.leitorHistoria = null;
     // Retoma a tela capturada SÓ se a mesma criança segue ativa (fallback T2).
     var ant = _telaCriancaAnterior;
     _telaCriancaAnterior = null;
@@ -491,6 +523,8 @@
     state.modoApp = M ? M.aoVoltarParaCrianca() : "crianca";
     state.showA11y = false;
     state.showOnboarding = false;
+    state.leitorHistoria = null;
+    state.ultimaHistoriaSalvaId = null;
     _irPara(9);
   }
 
@@ -786,6 +820,7 @@
       }
       _encerrarSessaoLeitura();
       _agendarSave(); // historia mutada direto (fora do setState) — persiste a conclusão
+      _capturarHistoriaSalva(); // guarda a história completa (20d; coração = p/ sempre)
 
     }
   }
@@ -842,6 +877,70 @@
     _acum.palavras += palavras;
   }
 
+  // ─── Histórias salvas (pós-fase06) ─────────────────────────────────────────
+
+  function _uuid() {
+    try {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    } catch (_) {}
+    return "h-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+  }
+
+  // Captura AUTOMÁTICA na convergência: o texto completo tecido AGORA é a
+  // fonte fiel (se a IA um dia tecer a linha verde, não é re-derivável).
+  // Guards: sem perfil ou sem comp, não salva. Fire-and-forget com catch.
+  function _capturarHistoriaSalva() {
+    if (!state.perfil || !state.perfil.id || !state.comp) return;
+    var Canon = window.PipocaCanonico;
+    var nivel = state.perfil.nivel || "n2";
+    var texto = montarComposicao(nivel);
+    if (!texto) return;
+    var linha = (state.comp.linha || []).slice();
+    var ultimo = linha.length ? objetoMetaV2(linha[linha.length - 1]) : null;
+    var h = {
+      id: _uuid(),
+      cenarioId: state.comp.cenarioId || "quintal_anoitecer",
+      texto: texto,
+      linha: linha,
+      nivel: nivel,
+      desfecho: (state.modos && state.modos.desfecho) || "convergente",
+      titulo: (Canon && Canon.historias)
+        ? Canon.historias.tituloDaHistoria(ultimo)
+        : "Minha história no Quintal",
+      emoji: (ultimo && ultimo.emoji) || "✨",
+      criadaEm: Date.now(),
+      favorita: false,
+    };
+    state.ultimaHistoriaSalvaId = h.id;
+    var pid = state.perfil.id;
+    try {
+      repo.salvarHistoria(pid, h)
+        .then(function () { return repo.podarHistorias(pid, Date.now()); })
+        .catch(function () {});
+    } catch (_) {}
+  }
+
+  // (Des)favoritar pela criança: regrava com criadaEm PRESERVADO (o relógio
+  // de 20 dias volta a contar do dia em que a história nasceu).
+  function favoritarHistoria(historiaId, favorita) {
+    if (!state.perfil || !state.perfil.id || !historiaId) return Promise.resolve({ ok: false });
+    var pid = state.perfil.id;
+    return repo.carregarHistorias(pid).then(function (lista) {
+      var alvo = null;
+      for (var i = 0; i < (lista || []).length; i++) {
+        if (lista[i] && lista[i].id === historiaId) { alvo = lista[i]; break; }
+      }
+      if (!alvo) return { ok: false };
+      var nova = {};
+      for (var k in alvo) { if (Object.prototype.hasOwnProperty.call(alvo, k)) nova[k] = alvo[k]; }
+      nova.favorita = favorita !== false;
+      return repo.salvarHistoria(pid, nova).then(function () {
+        notify(); // T3/T6/leitor re-renderizam e releem
+        return { ok: true, favorita: nova.favorita };
+      });
+    }).catch(function () { return { ok: false }; });
+  }
+
   // ─── API pública ──────────────────────────────────────────────────────────
   window.PipocaApp = {
     get estado() { return state; },
@@ -874,6 +973,7 @@
     abrirProximaRodadaComposicao: abrirProximaRodadaComposicao,
     composicaoConvergiu: composicaoConvergiu,
     objetoMetaV2: objetoMetaV2,
+    favoritarHistoria: favoritarHistoria,
   };
 
   // ─── Inicialização (na borda) ─────────────────────────────────────────────

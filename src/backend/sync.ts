@@ -48,6 +48,16 @@ export async function sincronizarInicial(
     await local.salvarPerfil(p);
     const save = await remoto.carregarSave(p.id);
     if (save) await local.salvarSave(p.id, save);
+    // histórias salvas viajam junto do perfil novo (aparelho novo relê tudo)
+    if (remoto.carregarHistorias && local.salvarHistoria) {
+      try {
+        for (const h of await remoto.carregarHistorias(p.id)) {
+          await local.salvarHistoria(p.id, h);
+        }
+      } catch {
+        /* histórias não podem travar o sync de perfis */
+      }
+    }
     puxados++;
   }
 

@@ -52,6 +52,11 @@
       <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;color:#b8693c;">{{ vagalumes }} vaga-lumes no pote</span>
     </div>
 
+    <!-- Coração da criança: guardar a história que acabou (só na convergência) -->
+    <sc-if value="{{ mostrarCoracao }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ guardarParaSempre }}" style="{{ coracaoStyle }}">{{ coracaoLabel }}</button>
+    </sc-if>
+
     <!-- Ações -->
     <div style="display:flex;gap:14px;width:100%;">
       <button onClick="{{ verPote }}" style="flex:1;padding:16px;border:1.5px solid rgba(160,140,110,.3);border-radius:16px;background:rgba(255,255,255,.7);cursor:pointer;font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:#7a6a54;">🫙 Ver meu pote</button>
@@ -64,9 +69,20 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = {};
+  state = { favoritada: false, guardando: false };
 
   _getApp() { return window.PipocaApp; }
+
+  // Coração da criança: (des)guarda a história recém-terminada para sempre.
+  async _guardarParaSempre() {
+    if (this.state.guardando) return;
+    const App = this._getApp();
+    const id = App && App.estado ? App.estado.ultimaHistoriaSalvaId : null;
+    if (!App || !App.favoritarHistoria || !id) return;
+    this.setState({ guardando: true });
+    const r = await App.favoritarHistoria(id, !this.state.favoritada);
+    this.setState({ guardando: false, favoritada: !!(r && r.ok && r.favorita) });
+  }
 
   continuar() {
     const App = this._getApp();
@@ -114,6 +130,10 @@ class Component extends DCLogic {
     const bloomClass = a11y.reduceMotion ? '' : 'earn-bloom';
     const popClass = a11y.reduceMotion ? '' : 'earn-pop';
 
+    // Coração: só quando a história terminou E foi capturada nesta sessão.
+    const fav = this.state.favoritada;
+    const mostrarCoracao = !!(convergiu && estado.ultimaHistoriaSalvaId && App && App.favoritarHistoria);
+
     return {
       earned,
       objetoEmoji,
@@ -122,6 +142,16 @@ class Component extends DCLogic {
       continuarLabel,
       bloomClass,
       popClass,
+      mostrarCoracao,
+      guardarParaSempre: () => this._guardarParaSempre(),
+      coracaoLabel: this.state.guardando
+        ? 'Guardando…'
+        : (fav ? 'Guardada para sempre 💛' : '🤍 Guardar esta história para sempre'),
+      coracaoStyle: 'width:100%;min-height:52px;border-radius:16px;cursor:pointer;'
+        + 'font-family:Baloo 2,cursive;font-weight:800;font-size:16px;'
+        + (fav
+          ? 'border:none;background:linear-gradient(150deg,#f2c14e,#e8965a);color:#fff;box-shadow:0 8px 20px -6px rgba(232,150,90,.5);'
+          : 'border:2px solid #e3d4ba;background:rgba(255,255,255,.8);color:#7a6a54;'),
       continuar: () => this.continuar(),
       verPote: () => this.verPote(),
     };

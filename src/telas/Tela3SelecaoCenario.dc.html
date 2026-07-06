@@ -71,15 +71,65 @@
         </sc-for>
       </div>
     </div>
+
+    <!-- Minhas histórias (salvas por 20 dias; 💛 = para sempre) -->
+    <div style="flex-shrink:0;margin-top:14px;">
+      <div style="display:flex;align-items:baseline;gap:10px;">
+        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:17px;color:#3a4f63;">Minhas histórias</div>
+        <div style="font-size:11.5px;color:#9a8a72;">toque para reler · 💛 guarda para sempre</div>
+      </div>
+      <sc-if value="{{ temHistorias }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:12px;overflow-x:auto;padding:10px 2px 4px;">
+          <sc-for list="{{ cartoesHistorias }}" as="hh" hint-placeholder-count="3">
+            <div onClick="{{ hh.abrir }}" role="button" style="flex-shrink:0;width:200px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.8);border-radius:16px;padding:10px 12px;box-shadow:0 8px 20px -12px rgba(74,59,44,.35);cursor:pointer;">
+              <div style="font-size:26px;flex-shrink:0;">{{ hh.emoji }}</div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:13px;color:#3a2c20;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ hh.titulo }}</div>
+                <div style="font-size:11px;color:#9a8a72;margin-top:2px;">{{ hh.quando }}</div>
+              </div>
+              <button onClick="{{ hh.coracao }}" aria-label="Guardar para sempre" title="Guardar para sempre" style="border:none;background:transparent;font-size:19px;cursor:pointer;flex-shrink:0;padding:4px;">{{ hh.coracaoIcone }}</button>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ semHistorias }}" hint-placeholder-val="{{ false }}">
+        <div style="margin-top:8px;font-size:13px;color:#9a8a72;">Suas histórias terminadas vão morar aqui ✨</div>
+      </sc-if>
+    </div>
   </div>
 </div>
 
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = {};
+  state = { historias: [] };
 
   _inject(el, html) { if (el && el._k !== html) { el.innerHTML = html; el._k = html; } }
+
+  // Minhas histórias: lê do seam (com guarda de perfilId capturado no
+  // agendamento) e normaliza na exibição (defesa se a poda async não rodou).
+  async _carregarHistorias() {
+    const App = window.PipocaApp;
+    const Canon = window.PipocaCanonico;
+    const pid = App && App.estado.perfil ? App.estado.perfil.id : null;
+    if (!pid || !App.repo || !App.repo.carregarHistorias) return;
+    try {
+      const lista = await App.repo.carregarHistorias(pid);
+      if (!App.estado.perfil || App.estado.perfil.id !== pid) return; // trocou no meio
+      const vivas = (Canon && Canon.historias)
+        ? Canon.historias.normalizarHistorias(lista || [], Date.now())
+        : (lista || []);
+      const chave = JSON.stringify(vivas.map((h) => h.id + ':' + h.favorita));
+      if (chave !== this._chaveHist) { this._chaveHist = chave; this.setState({ historias: vivas }); }
+    } catch (_) {}
+  }
+
+  async _favoritar(h) {
+    const App = window.PipocaApp;
+    if (!App || !App.favoritarHistoria) return;
+    await App.favoritarHistoria(h.id, !h.favorita);
+    this._carregarHistorias();
+  }
 
   _scene(key) {
     const S = {
@@ -138,7 +188,19 @@ class Component extends DCLogic {
     if (App) App.setState({ showA11y: true });
   }
 
-  componentDidMount() { this._updateRefs(); }
+  componentDidMount() {
+    this._updateRefs();
+    this._carregarHistorias();
+    // Recarrega quando o estado global muda com a T3 ativa (favoritar no
+    // leitor, troca de perfil, história nova) — leitura local barata.
+    const App = window.PipocaApp;
+    if (App && App.subscribe) {
+      this._unsubHist = App.subscribe(() => {
+        if (App.estado.tela === 3) this._carregarHistorias();
+      });
+    }
+  }
+  componentWillUnmount() { if (this._unsubHist) this._unsubHist(); }
   componentDidUpdate() { this._updateRefs(); }
 
   _updateRefs() {
@@ -197,12 +259,26 @@ class Component extends DCLogic {
       };
     });
 
+    // Minhas histórias: cartões de releitura (tap abre o leitor; 💛 favorita).
+    const CanonH = window.PipocaCanonico && window.PipocaCanonico.historias;
+    const cartoesHistorias = (this.state.historias || []).map((h) => ({
+      emoji: h.emoji || '✨',
+      titulo: h.titulo,
+      quando: CanonH ? CanonH.dataRelativa(h.criadaEm, Date.now()) : '',
+      coracaoIcone: h.favorita ? '💛' : '🤍',
+      abrir: () => { if (App) App.setState({ leitorHistoria: h }); },
+      coracao: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this._favoritar(h); },
+    }));
+
     return {
       childName,
       saudacao,
       vagalumes,
       poupado,
       temPoupado: poupado > 0,
+      temHistorias: cartoesHistorias.length > 0,
+      semHistorias: cartoesHistorias.length === 0,
+      cartoesHistorias,
       childAvatarRef,
       featuredSceneRef,
       featuredPick: () => this.escolherCenario('quintal_anoitecer'),

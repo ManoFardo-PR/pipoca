@@ -31,6 +31,19 @@ create table telemetria (
   criado_em  timestamptz not null default now()
 );
 
+-- histórias salvas (pós-fase06): retenção de 20 dias no CLIENTE via DELETE
+-- por filtro (favorita=false e criada_em antiga) — por isso favorita/criada_em
+-- são colunas além do envelope pipoca.historias.v1 em `dados`.
+create table historias (
+  id            text primary key,            -- uuid gerado no cliente
+  perfil_id     text not null,
+  dono          uuid not null default auth.uid(),
+  favorita      boolean not null default false,
+  criada_em     timestamptz not null,        -- fiel ao criadaEm do cliente
+  dados         jsonb not null,              -- envelope pipoca.historias.v1
+  atualizado_em timestamptz not null default now()
+);
+
 -- ── plataforma (operador / proxy) ───────────────────────────────────────────
 create table operadores (
   uid    uuid primary key references auth.users(id) on delete cascade,
@@ -59,11 +72,13 @@ create table uso_ia (
 
 create index perfis_dono_idx on perfis(dono);
 create index telemetria_dono_perfil_idx on telemetria(dono, perfil_id);
+create index historias_dono_perfil_idx on historias(dono, perfil_id);
 
 -- ── RLS ─────────────────────────────────────────────────────────────────────
 alter table perfis      enable row level security;
 alter table saves       enable row level security;
 alter table telemetria  enable row level security;
+alter table historias   enable row level security;
 alter table operadores  enable row level security;
 alter table tenants     enable row level security;
 alter table config_ia   enable row level security;
@@ -75,6 +90,8 @@ create policy perfis_dono on perfis for all
 create policy saves_dono on saves for all
   using (dono = auth.uid()) with check (dono = auth.uid());
 create policy telemetria_dono on telemetria for all
+  using (dono = auth.uid()) with check (dono = auth.uid());
+create policy historias_dono on historias for all
   using (dono = auth.uid()) with check (dono = auth.uid());
 
 -- operador: gate por função SECURITY DEFINER (evita recursão de RLS)

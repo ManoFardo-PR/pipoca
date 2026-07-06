@@ -56,6 +56,9 @@
   <!-- Overlay de acessibilidade ("Do meu jeito") — preenche a viewport. -->
   <sc-if value="{{ showA11y }}" hint-placeholder-val="{{ false }}"><dc-import name="PainelA11y"></dc-import></sc-if>
 
+  <!-- Releitura de história salva — mesmo padrão de overlay. -->
+  <sc-if value="{{ showLeitor }}" hint-placeholder-val="{{ false }}"><dc-import name="LeitorHistoria"></dc-import></sc-if>
+
   <!-- Portão parental (PIN) — modal de viewport (position:fixed), no nível da raiz. -->
   <sc-if value="{{ ehT1 }}" hint-placeholder-val="{{ false }}"><dc-import name="PortaoParental"></dc-import></sc-if>
 
@@ -144,10 +147,12 @@ class Component extends DCLogic {
     const dev = this.props && this.props.dev;
     const App = window.PipocaApp;
     const showA11y = !!(App && App.estado && App.estado.showA11y);
+    const showLeitor = !!(App && App.estado && App.estado.leitorHistoria);
     return {
       tela,
       devMode: dev,
       showA11y,
+      showLeitor,
       // Marca só onde a tela não traz app bar própria (evita cabeçalho duplo).
       mostrarMarca: tela === 2 || tela === 9,
       // Flags de montagem do slot (uma tela ativa por vez).

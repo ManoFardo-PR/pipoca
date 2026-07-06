@@ -43,8 +43,8 @@
           <sc-if value="{{ t.selecionado }}" hint-placeholder-val="{{ false }}">
             <div style="margin-top:12px;border-top:1px dashed #e4dcc9;padding-top:12px;">
               <div style="font-family:'Baloo 2';font-weight:700;font-size:13px;color:#2c241a;">Plano</div>
-              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;">
-                <sc-for list="{{ t.planos }}" as="p" hint-placeholder-count="3">
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;">
+                <sc-for list="{{ t.planos }}" as="p" hint-placeholder-count="4">
                   <button class="pip-st-btn" onClick="{{ p.escolher }}" style="{{ p.style }}">{{ p.nome }}</button>
                 </sc-for>
               </div>
@@ -62,7 +62,7 @@
     <!-- Criar tenant (exige escopo de plataforma inteira) -->
     <div style="background:#fffdf8;border:1px solid #e4dcc9;border-radius:14px;padding:18px;margin-top:16px;box-shadow:0 10px 28px -18px rgba(44,36,26,.35);">
       <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#2c241a;">Criar tenant</div>
-      <p style="color:#7a6c56;font-family:'Nunito';font-size:12px;margin:4px 0 10px;">Nasce no plano mais restritivo, com IA desligada — liga-se deliberadamente depois.</p>
+      <p style="color:#7a6c56;font-family:'Nunito';font-size:12px;margin:4px 0 10px;">Nasce no Freemium: 60 dias com os limites do Família, grátis; depois, os do Grátis (nada é apagado).</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <input class="pip-st-campo" style="flex:2;min-width:160px;" value="{{ nomeNovo }}" onInput="{{ setNomeNovo }}" placeholder="Nome (escola/família)" aria-label="Nome do tenant" />
         <input class="pip-st-campo" style="flex:2;min-width:160px;" value="{{ emailNovo }}" onInput="{{ setEmailNovo }}" type="email" placeholder="E-mail de contato (opcional)" aria-label="E-mail de contato" />
@@ -163,10 +163,19 @@ class Component extends DCLogic {
       ? 'Limites efetivos: até ' + lim.maxPerfis + ' perfil(is) · IA ' + (lim.iaPermitida ? 'permitida' : 'não permitida')
         + ' · ' + lim.cenariosCustomizados + ' cenário(s) customizado(s) · telemetria por ' + lim.retencaoTelemetriaDias + ' dias'
       : '';
+    const C = window.PipocaAdminCanonico;
+    // Freemium mostra o relógio: "· N dias restantes" ou "(expirado → Grátis)".
+    const rotuloPlano = (t) => {
+      const base = nomePlano[t.planoId] || t.planoId;
+      if (!C || !C.tenants || !C.tenants.diasRestantes) return base;
+      const dias = C.tenants.diasRestantes(t, Date.now());
+      if (dias === null) return base;
+      return dias > 0 ? base + ' · ' + dias + ' dia(s) restante(s)' : base + ' (expirado → limites do Grátis)';
+    };
     const tenants = s.tenants.map((t) => ({
       id: t.id,
       nome: t.nome,
-      planoNome: nomePlano[t.planoId] || t.planoId,
+      planoNome: rotuloPlano(t),
       statusRotulo: t.ativo ? 'Ativo' : 'Suspenso',
       selecionado: s.selecionadoId === t.id,
       selecionar: () => this._selecionar(t.id),

@@ -94,15 +94,27 @@ O caminho verde roda **inteiro sobre os módulos canônicos** — a convergênci
   LOGADO (`ServicoAuth.alterarSenha` — PUT /auth/v1/user com o bearer da sessão; local = no-op
   honesto) e ver/trocar o e-mail (`alterarEmail` — no Supabase dispara confirmação ao novo
   endereço; local atualiza o espelho `pipoca.conta.v1`).
+- **Plano Freemium (2026-07-06)** — 4º plano no catálogo (`tiposTenant.ts`): 60 dias com os
+  LIMITES DO FAMÍLIA, grátis; âncora = `criadoEm` do tenant; vencido, `limitesVigentes` degrada
+  aos limites do Grátis (nada é apagado — regra 4). `novoTenant` nasce no `PLANO_INICIAL`
+  ("freemium"); o fallback fail-closed (`PLANO_MAIS_RESTRITIVO`) segue "gratis". SaTenant mostra
+  o relógio ("N dia(s) restante(s)" / "expirado → limites do Grátis"). No SERVIDOR (espelho no
+  `rls_supabase.sql`, aplicação pendente — ver PARIDADE): trigger `provisionar_tenant_familia`
+  em `auth.users` dá a TODO cadastro a linha `tenants` `familia:<uid>` no Freemium (com backfill
+  dos existentes), e `verificar_teto_perfis` foi CONSERTADO (a versão da fase06 lia um shape que
+  ninguém escrevia — teto inerte): agora resolve por planoId + validade e é fail-closed (teto 1)
+  para tenant sem linha.
 - **Dívida conhecida (coexistência v1/v2)** — `_initMotor()` em `src/app/estado.js` ainda carrega
   `quintal_grafo.json` (v1) em paralelo à v2; o motor narrativo (A ou B desde a fase05) segue
   instanciado, mas a linha verde usa a composição.
 
 ### Pendências reais (2026-07-06)
-- Histórias salvas: aplicar a migration da tabela `historias` no projeto Supabase real (bloco novo
-  do `rls_supabase.sql`; via MCP `apply_migration` ou SQL editor) — sem ela o espelho remoto das
-  histórias falha silencioso (fail-soft: o local funciona 100%). Gestão por item pelo cuidador
-  (apagar UMA história) e teto para favoritas ficam como follow-up (favoritas ilimitadas = aceito).
+- Migrations pós-fase06 pendentes no projeto real (PARIDADE.md passo 0): tabela `historias`
+  (RLS+índice) e o bloco do Freemium (`verificar_teto_perfis` consertado + trigger
+  `provisionar_tenant_familia` + backfill). Fail-soft até lá: histórias só locais; cadastros
+  novos sem linha de tenant; teto de perfis sem efeito.
+- Histórias salvas: gestão por item pelo cuidador (apagar UMA história) e teto para favoritas
+  ficam como follow-up (favoritas ilimitadas = aceito).
 - Reabrir a Sessao de leitura ao voltar do portão: `_entrarCuidador` encerra com calma (correto) e a
   retomada via `_telaCriancaAnterior` devolve a criança à tela onde estava, mas uma nova Sessao só
   nasce na próxima composição — aceito no MVP, follow-up.

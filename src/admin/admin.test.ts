@@ -30,7 +30,7 @@ import {
   TELA_SA_LOGIN,
   TELA_SA_HOME,
 } from "./rotasAdmin.js";
-import { limitesDoPlano, excedeTetoPerfis } from "./tenant/tiposTenant.js";
+import { limitesDoPlano, excedeTetoPerfis, limitesVigentes, diasRestantes } from "./tenant/tiposTenant.js";
 import {
   criarRepositorioTenant,
   novoTenant,
@@ -206,10 +206,10 @@ console.log("\n=== SA_TENANT · tenants, planos e isolamento por escopo ===");
 
   const tA = novoTenant("Escola Modelo", AGORA);
   const tB = novoTenant("Família Silva", AGORA + 1);
-  assert(tA.planoId === "gratis" && tA.ativo === true, "tenant novo nasce no plano mais restritivo e ativo (regra 7)");
+  assert(tA.planoId === "freemium" && tA.ativo === true, "tenant novo nasce no Freemium (60 dias de Família) e ativo");
   await raiz.salvarTenant(tA);
   await raiz.salvarTenant(tB);
-  assert((await raiz.obterLimitesEfetivos(tA.id)).iaPermitida === false, "tenant novo nasce com IA desligada pelo plano");
+  assert((await raiz.obterLimitesEfetivos(tA.id, AGORA + 10)).maxPerfis === 4, "no prazo do Freemium valem os limites do Família");
 
   assert((await raiz.listarTenants("todos")).length === 2, "operador raiz lista todos os tenants");
   const restrito = criarRepositorioTenant([tA.id], st);
@@ -226,13 +226,23 @@ console.log("\n=== SA_TENANT · tenants, planos e isolamento por escopo ===");
   try { await restrito.salvarTenant(novoTenant("Novo da plataforma", AGORA + 2)); } catch { recusouCriar = true; }
   assert(recusouCriar, "criar tenant novo exige escopo todos (operador raiz)");
 
-  assert((await raiz.listarPlanos()).length === 3, "catálogo tem 3 planos (gratis/familia/escola)");
+  assert((await raiz.listarPlanos()).length === 4, "catálogo tem 4 planos (gratis/freemium/familia/escola)");
   await raiz.salvarTenant({ ...tA, planoId: "escola" });
   assert((await raiz.obterLimitesEfetivos(tA.id)).maxPerfis === 40, "trocar o plano muda os limites efetivos");
   assert((await raiz.obterLimitesEfetivos("ten_inexistente")).maxPerfis === 1, "tenant desconhecido cai nos limites do gratis (fail-closed)");
 
   const familia = limitesDoPlano("familia");
   assert(excedeTetoPerfis(4, familia) && !excedeTetoPerfis(3, familia), "rebaixar não destrói: só a criação acima do teto é bloqueada");
+
+  // Vigência do Freemium: dentro dos 60d = Família; vencido = Grátis (nada apagado)
+  const DIA = 86_400_000;
+  const fre = novoTenant("Casa Freemium", AGORA);
+  assert(limitesVigentes(fre, AGORA + 59 * DIA).maxPerfis === 4, "Freemium no dia 59 → limites do Família");
+  assert(limitesVigentes(fre, AGORA + 61 * DIA).maxPerfis === 1 && limitesVigentes(fre, AGORA + 61 * DIA).iaPermitida === false,
+    "Freemium no dia 61 → degrada aos limites do Grátis (IA fecha junto)");
+  assert(diasRestantes(fre, AGORA + 10 * DIA) === 50, "diasRestantes conta a partir do criadoEm");
+  assert(diasRestantes({ ...fre, planoId: "familia" }, AGORA) === null, "plano sem prazo → diasRestantes null");
+  assert(limitesVigentes({ ...fre, planoId: "familia" }, AGORA + 400 * DIA).maxPerfis === 4, "plano sem validade nunca vence");
 
   await raiz.salvarTenant({ ...tA, planoId: "escola", ativo: false });
   const suspenso = await raiz.obterTenant(tA.id);

@@ -113,7 +113,7 @@ try {
       .every((t) => new RegExp(t, "i").test(document.body.innerText)));
   assert(cartoes, "os 4 cartões de área montam no hub");
 
-  console.log("\n=== SA_TENANT · criar tenant com defaults restritivos ===");
+  console.log("\n=== SA_TENANT · criar tenant nasce no Freemium (60 dias de Família) ===");
   await page.evaluate(() => window.PipocaAdmin.irParaTela(3));
   await page.waitForFunction(() => /Tenants e planos/i.test(document.body.innerText), { timeout: 8000 });
   await page.fill('[aria-label="Nome do tenant"]', "Escola Modelo");
@@ -121,10 +121,16 @@ try {
   await page.waitForFunction(() => /Escola Modelo/.test(document.body.innerText), { timeout: 5000 });
   const tenant = await page.evaluate(() => {
     const envs = JSON.parse(localStorage.getItem("pipoca.admin.tenants.v1") || "[]");
-    return { esquema: (envs[0] || {}).esquema, plano: (envs[0] || { tenant: {} }).tenant.planoId, naTela: /Grátis/i.test(document.body.innerText) };
+    return {
+      esquema: (envs[0] || {}).esquema,
+      plano: (envs[0] || { tenant: {} }).tenant.planoId,
+      naTela: /Freemium/i.test(document.body.innerText),
+      relogio: /dia\(s\) restante\(s\)/i.test(document.body.innerText),
+    };
   });
   assert(tenant.esquema === "pipoca.tenant.v1", "tenant persiste em envelope pipoca.tenant.v1");
-  assert(tenant.plano === "gratis" && tenant.naTela, "tenant novo nasce no plano Grátis (restritivo, IA off)");
+  assert(tenant.plano === "freemium" && tenant.naTela, "tenant novo nasce no Freemium (60 dias de Família grátis)");
+  assert(tenant.relogio, "a tela mostra os dias restantes do Freemium");
 
   console.log("\n=== SA_CONTENT · validação dupla na tela ===");
   await page.evaluate(() => window.PipocaAdmin.irParaTela(4));
@@ -138,6 +144,14 @@ try {
   assert(true, "exemplo do Quintal passa a validação dupla na tela");
 
   console.log("\n=== SA_AI · sem chaves no cliente + gate do plano ===");
+  // Rebaixa o tenant p/ Grátis (iaPermitida=false) para exercitar o gate —
+  // o Freemium de nascença permite IA, então o gate não apareceria.
+  await page.evaluate(async () => {
+    const A = window.PipocaAdmin;
+    const envs = JSON.parse(localStorage.getItem("pipoca.admin.tenants.v1") || "[]");
+    const t = envs[0].tenant;
+    await A.repoTenant.salvarTenant({ ...t, planoId: "gratis" });
+  });
   await page.evaluate(() => window.PipocaAdmin.irParaTela(5));
   await page.waitForFunction(() => /Configuração de IA/i.test(document.body.innerText), { timeout: 8000 });
   const ia = await page.evaluate(() => ({
@@ -147,7 +161,7 @@ try {
   }));
   assert(ia.semInputChave, "não existe input de chave na tela (server-side, fase06)");
   assert(ia.notaServidor, "a tela explica que chaves/teste de conexão são do servidor");
-  assert(ia.gatePlano, "plano Grátis do tenant bloqueia o formulário de IA (gate do plano)");
+  assert(ia.gatePlano, "tenant rebaixado a Grátis bloqueia o formulário de IA (gate do plano)");
   assert(
     await page.evaluate(() => /DeepSeek/i.test(document.body.innerText)),
     "fase06: DeepSeek aparece como 4º provedor na tela"

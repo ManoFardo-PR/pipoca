@@ -110,16 +110,38 @@ create policy config_ia_operador on config_ia for all
 -- uso_ia: NENHUMA policy → invisível/intocável do cliente (só service role).
 
 -- ── teto de perfis por tenant (limite do plano — critério 06-04) ────────────
-create function verificar_teto_perfis() returns trigger
+-- Pós-fase06 (Freemium): o teto é resolvido pelo planoId do envelope
+-- pipoca.tenant.v1 (a versão original lia dados.tenant.limites.perfis, shape
+-- que nunca foi escrito — o teto estava inerte). Freemium vale 60 dias a
+-- partir do criadoEm; vencido, degrada ao teto do Grátis. Tenant SEM linha
+-- em `tenants` agora é fail-closed (teto 1) — o provisionamento no signup
+-- (abaixo) garante a linha de toda família.
+create or replace function verificar_teto_perfis() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare
+  t_plano text;
+  t_criado bigint;
+  vencido boolean;
   teto int;
   atuais int;
 begin
   if new.tenant_id is null then return new; end if;
-  select coalesce((dados->'tenant'->'limites'->>'perfis')::int, null) into teto
+  select dados->'tenant'->>'planoId',
+         coalesce((dados->'tenant'->>'criadoEm')::bigint, 0)
+    into t_plano, t_criado
     from tenants where id = new.tenant_id;
-  if teto is null then return new; end if; -- tenant sintético/sem plano: sem teto aqui
+  if t_plano is null then
+    teto := 1; -- sem linha de tenant: fail-closed no teto do Grátis
+  else
+    vencido := (t_plano = 'freemium')
+      and ((extract(epoch from now()) * 1000)::bigint > t_criado + 60::bigint * 86400000);
+    teto := case
+      when t_plano = 'escola' then 40
+      when t_plano = 'familia' then 4
+      when t_plano = 'freemium' and not vencido then 4
+      else 1 -- gratis, freemium vencido, plano desconhecido
+    end;
+  end if;
   select count(*) into atuais from perfis where tenant_id = new.tenant_id and id <> new.id;
   if atuais + 1 > teto then
     raise exception 'teto de perfis do plano atingido para o tenant %', new.tenant_id;
@@ -129,3 +151,45 @@ end $$;
 
 create trigger teto_perfis before insert on perfis
   for each row execute function verificar_teto_perfis();
+
+-- ── Freemium: TODO cadastro entra no plano (pós-fase06) ─────────────────────
+-- Trigger em auth.users provisiona o tenant sintético da família
+-- ('familia:<uid>') já no Freemium (60 dias com os limites do Família).
+-- EXCEPTION engolida: o signup NUNCA morre por causa do tenant.
+create or replace function provisionar_tenant_familia() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  insert into tenants (id, dados)
+  values (
+    'familia:' || new.id,
+    jsonb_build_object(
+      'esquema', 'pipoca.tenant.v1',
+      'tenant', jsonb_build_object(
+        'id', 'familia:' || new.id,
+        'nome', 'Família',
+        'planoId', 'freemium',
+        'ativo', true,
+        'criadoEm', (extract(epoch from now()) * 1000)::bigint
+      )
+    )
+  )
+  on conflict (id) do nothing;
+  return new;
+exception when others then
+  return new; -- fail-soft: cadastro sempre passa
+end $$;
+revoke execute on function provisionar_tenant_familia() from public, anon, authenticated;
+
+create trigger provisionar_tenant_apos_signup
+  after insert on auth.users
+  for each row execute function provisionar_tenant_familia();
+
+-- Backfill: contas existentes ganham os 60 dias a partir da migration.
+insert into tenants (id, dados)
+select 'familia:' || u.id,
+       jsonb_build_object('esquema', 'pipoca.tenant.v1', 'tenant',
+         jsonb_build_object('id', 'familia:' || u.id, 'nome', 'Família',
+                            'planoId', 'freemium', 'ativo', true,
+                            'criadoEm', (extract(epoch from now()) * 1000)::bigint))
+from auth.users u
+on conflict (id) do nothing;

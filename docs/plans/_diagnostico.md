@@ -2,19 +2,19 @@
 
 Gerado por `node docs/plans/check_plans.mjs`.
 
-- Docs de sub-passo encontrados: **77**
+- Docs de sub-passo encontrados: **78**
 - Nós no mermaid: **43**
-- Checagens: **10/10 PASS**
-- Resultado: ✅ **TUDO VERDE**
+- Checagens: **7/10 PASS**
+- Resultado: ❌ **HÁ FALHAS**
 
 | # | Checagem | Status | Falhas |
 |---|----------|--------|--------|
 | 1 | Cobertura de nós | ✅ PASS | 0 |
 | 2 | Cobertura de telas do brief | ✅ PASS | 0 |
 | 3 | Linha verde completa | ✅ PASS | 0 |
-| 4 | Resolução de referências | ✅ PASS | 0 |
-| 5 | Resolução de nomes | ✅ PASS | 0 |
-| 6 | Ordem de dependências | ✅ PASS | 0 |
+| 4 | Resolução de referências | ❌ FAIL | 8 |
+| 5 | Resolução de nomes | ❌ FAIL | 5 |
+| 6 | Ordem de dependências | ❌ FAIL | 1 |
 | 7 | Auditoria do seam | ✅ PASS | 0 |
 | 8 | Auditoria da reconciliação | ✅ PASS | 0 |
 | 9 | Conformidade de template | ✅ PASS | 0 |
@@ -29,14 +29,25 @@ Sem problemas.
 ## 3. Linha verde completa — PASS
 Sem problemas.
 
-## 4. Resolução de referências — PASS
-Sem problemas.
+## 4. Resolução de referências — FAIL
+- LINK QUEBRADO: fase08-08-00 → [[faseFF-FF-NN]]
+- LINK QUEBRADO: fase08-08-00 → [[_contratos/nome]]
+- LINK QUEBRADO: fase08-08-00 → [[_contratos/grafo-autoral-v3]]
+- LINK QUEBRADO: fase08-08-00 → [[_contratos/grafo-autoral-v3]]
+- LINK QUEBRADO: fase08-08-00 → [[../fase08_conteudo/08-00_motor-a-plus-grafo-v3]]
+- LINK QUEBRADO: fase08-08-00 → [[grafo-autoral-v3]]
+- LINK QUEBRADO: fase08-08-00 → [[_contratos/grafo-autoral-v3]]
+- LINK QUEBRADO: fase08-08-00 → [[_contratos/grafo-autoral-v3]]
 
-## 5. Resolução de nomes — PASS
-Sem problemas.
+## 5. Resolução de nomes — FAIL
+- SCHEMA DESCONHECIDO: fase08-08-00 → pipoca.grafo-autoral.v3
+- SCHEMA DESCONHECIDO: fase08-08-00 → pipoca.grafo-autoral.v3
+- SCHEMA DESCONHECIDO: fase08-08-00 → pipoca.grafo-autoral.v3
+- SCHEMA DESCONHECIDO: fase08-08-00 → pipoca.grafo-autoral.v3
+- SCHEMA DESCONHECIDO: fase08-08-00 → pipoca.grafo-autoral.v3
 
-## 6. Ordem de dependências — PASS _(141 arestas)_
-Sem problemas.
+## 6. Ordem de dependências — FAIL _(142 arestas)_
+- DEP NÃO RESOLVE: fase08-08-00 → [[_contratos/grafo-autoral-v3]]
 
 ## 7. Auditoria do seam — PASS
 Sem problemas.

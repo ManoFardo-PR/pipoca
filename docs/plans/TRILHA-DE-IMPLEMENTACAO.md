@@ -136,10 +136,10 @@ O caminho verde roda **inteiro sobre os módulos canônicos** — a convergênci
   nasce na próxima composição — aceito no MVP, follow-up.
 - Caminho Windows hardcoded (`PW_CORE`) em `tests/e2e/run-linha-verde-canonico.mjs`.
 - Runner legado `tests/e2e/run-linha-verde.mjs` desalinhado das telas canônicas (não é portão; candidato a `old/`).
-- **Migration da iteração 2 PENDENTE no projeto real** (PARIDADE.md passo 0b): colar
-  `src/backend/adaptadores/migracao_2026-07-06_admin_remoto.sql` no SQL editor (idempotente).
-  Fail-soft até lá: espelhos do admin e kill-switch global falham em silêncio; vínculo e teto
-  no app degradam ao comportamento anterior.
+- ~~Migration da iteração 2 pendente~~ **APLICADA E VERIFICADA AO VIVO (2026-07-06)** —
+  tabelas novas respondendo com RLS correta, família lendo a própria linha de `tenants`
+  (freemium) e o trigger `fixar_tenant_perfis` corrigindo `tenant_id` forjado (PARIDADE 0b).
+  Resta o seed das flags: operador salva SA_SAFE uma vez no admin publicado.
 - Fase 06 (operacional, fora do código): configurar os secrets dos 4 provedores de IA na função —
   passos no fase06_backend/PARIDADE.md. "Confirm email" segue LIGADO e, desde o vínculo
   conta↔tenant, desligá-lo REABRE o risco de sequestro de vínculo por e-mail não confirmado

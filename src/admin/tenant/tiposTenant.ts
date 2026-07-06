@@ -95,3 +95,28 @@ export function diasRestantes(tenant: Tenant, agora: number): number | null {
 export function excedeTetoPerfis(contagemAtual: number, limites: LimitesPlano): boolean {
   return contagemAtual + 1 > limites.maxPerfis;
 }
+
+// ─── Validação do envelope (módulo PURO — seguro no bundle da criança) ───────
+// Vive aqui (e não no repositório admin) para o app da família validar a
+// própria linha de `tenants` sem arrastar o runtime do operador.
+
+export const ESQUEMA_TENANT = "pipoca.tenant.v1";
+
+export function tenantValido(t: unknown): t is Tenant {
+  if (!t || typeof t !== "object") return false;
+  const r = t as Record<string, unknown>;
+  return (
+    typeof r["id"] === "string" && (r["id"] as string).length > 0 &&
+    typeof r["nome"] === "string" &&
+    typeof r["planoId"] === "string" &&
+    typeof r["ativo"] === "boolean" &&
+    typeof r["criadoEm"] === "number"
+  );
+}
+
+/** Envelope pipoca.tenant.v1 → Tenant (ou null). */
+export function validarEnvelopeTenant(raw: unknown): Tenant | null {
+  const env = raw as { esquema?: unknown; tenant?: unknown } | null;
+  if (env && env.esquema === ESQUEMA_TENANT && tenantValido(env.tenant)) return { ...env.tenant };
+  return null;
+}

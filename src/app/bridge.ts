@@ -31,6 +31,10 @@ import { escopoTenant } from "../backend/tenant.js";
 import { sincronizarInicial } from "../backend/sync.js";
 // pós-fase06: kill-switch GLOBAL — o app puxa as flags do servidor no boot/login
 import { puxarFlagsGlobais } from "../backend/flags_globais.js";
+// pós-fase06: teto de perfis no app (UX acolhedora; o trigger do servidor é o
+// enforcement real). tiposTenant é 100% puro — nada do runtime admin vem junto.
+import { limitesDaFamilia } from "../backend/limites_familia.js";
+import { excedeTetoPerfis } from "../admin/tenant/tiposTenant.js";
 import { provedorViaProxy } from "../backend/proxy_ia.js";
 
 import {
@@ -239,7 +243,16 @@ const PipocaCanonico = {
   },
 
   // --- backend trocável (fase06 · lei do backend) ---
-  backend: { obterBackend, configDoAmbiente, normalizarConfigBackend, escopoTenant, sincronizarInicial, puxarFlagsGlobais },
+  backend: {
+    obterBackend,
+    configDoAmbiente,
+    normalizarConfigBackend,
+    escopoTenant,
+    sincronizarInicial,
+    puxarFlagsGlobais,
+    limitesDaFamilia,
+    excedeTetoPerfis,
+  },
 
   // --- flags da plataforma (kill-switches do SA_SAFE, fase04→05) ---
   flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos },

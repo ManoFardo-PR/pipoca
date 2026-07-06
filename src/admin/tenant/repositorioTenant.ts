@@ -18,9 +18,16 @@ import {
   PLANOS_PADRAO,
   PLANO_MAIS_RESTRITIVO,
   PLANO_INICIAL,
+  ESQUEMA_TENANT,
   limitesDoPlano,
   limitesVigentes,
+  tenantValido,
+  validarEnvelopeTenant,
 } from "./tiposTenant.js";
+
+// A validação do envelope vive no módulo PURO (tiposTenant) — o app da
+// família a consome sem arrastar este repositório; reexportada por compat.
+export { validarEnvelopeTenant };
 
 /** Seam consumido pelas telas (ipsis litteris doc 04-03). */
 export interface RepositorioTenant {
@@ -37,7 +44,6 @@ export const ERRO_FORA_DE_ESCOPO = "Não foi possível concluir a ação.";
 
 const CHAVE_TENANTS = "pipoca.admin.tenants.v1";
 const CHAVE_CONTAS = "pipoca.admin.contas.v1";
-const ESQUEMA_TENANT = "pipoca.tenant.v1";
 
 interface EnvelopeTenant {
   esquema: typeof ESQUEMA_TENANT;
@@ -77,25 +83,6 @@ export function novoTenant(nome: string, agora: number): Tenant {
     ativo: true,
     criadoEm: agora,
   };
-}
-
-function tenantValido(t: unknown): t is Tenant {
-  if (!t || typeof t !== "object") return false;
-  const r = t as Record<string, unknown>;
-  return (
-    typeof r["id"] === "string" && (r["id"] as string).length > 0 &&
-    typeof r["nome"] === "string" &&
-    typeof r["planoId"] === "string" &&
-    typeof r["ativo"] === "boolean" &&
-    typeof r["criadoEm"] === "number"
-  );
-}
-
-/** Envelope pipoca.tenant.v1 → Tenant (ou null) — reusado pelo pull do espelho remoto. */
-export function validarEnvelopeTenant(raw: unknown): Tenant | null {
-  const env = raw as Partial<EnvelopeTenant> | null;
-  if (env && env.esquema === ESQUEMA_TENANT && tenantValido(env.tenant)) return { ...env.tenant };
-  return null;
 }
 
 /**

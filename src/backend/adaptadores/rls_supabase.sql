@@ -161,6 +161,17 @@ create policy contas_tenant_self on contas_tenant for select
   to authenticated
   using (lower(email) = lower(coalesce(auth.jwt()->>'email', '')));
 
+-- tenants: a família LÊ a própria linha (teto/plano no app — pós-fase06 it.2);
+-- SECURITY DEFINER para não depender das policies de contas_tenant.
+create function tenant_vinculado_a_mim(tid text) returns boolean
+language sql security definer stable set search_path = public as
+$$ select tid = 'familia:' || coalesce(auth.uid()::text, '')
+       or exists (select 1 from contas_tenant ct
+                   where ct.tenant_id = tid
+                     and lower(ct.email) = lower(coalesce(auth.jwt()->>'email',''))) $$;
+create policy tenants_familia_leitura on tenants for select
+  to authenticated using (tenant_vinculado_a_mim(id));
+
 -- ── teto de perfis por tenant (limite do plano — critério 06-04) ────────────
 -- Pós-fase06 (Freemium): o teto é resolvido pelo planoId do envelope
 -- pipoca.tenant.v1 (a versão original lia dados.tenant.limites.perfis, shape

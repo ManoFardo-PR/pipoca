@@ -28,9 +28,11 @@ import {
   puxarAdminDoServidor,
   envolverRepoTenantComEspelho,
 } from "./espelho_admin.js";
+import { puxarFlagsGlobais } from "./flags_globais.js";
 import { criarRepositorioTenant, novoTenant } from "../admin/tenant/repositorioTenant.js";
 import { listarCenarios, type CenarioVersionado } from "../admin/validar_grafo.js";
-import { carregarFlags, salvarFlags } from "../admin/flags.js";
+import { aplicarFlagsAosModos, carregarFlags, salvarFlags } from "../admin/flags.js";
+import { modosPadrao } from "../core/modos.js";
 import { criarOrquestrador } from "../ia/orquestrador.js";
 import type { RepositorioPersistencia } from "../core/persistencia/index.js";
 import { criarPerfil, type Perfil } from "../core/perfil.js";
@@ -1052,6 +1054,49 @@ console.log("\n=== espelho do admin — tenants/conteúdo/flags no PostgREST ===
   await embrulhadoOff.salvarTenant(novoTenant("Sem Rede", 1_750_000_000_002)).catch(() => { rejeitou = true; });
   await new Promise((r) => setTimeout(r, 0));
   assert(!rejeitou, "espelho falhando NÃO rejeita a escrita local (fail-soft)");
+  armazem.limpar();
+}
+
+console.log("\n=== flags globais — o kill-switch alcança a família ===");
+{
+  armazem.limpar();
+  const cfgSupa = { provedor: "supabase" as const, supabaseUrl: URL_SUPA, supabaseAnonKey: "anon-k" };
+  const agora = Date.now();
+  const sessaoFamilia = JSON.stringify({
+    access_token: "tokFam",
+    refresh_token: "r1",
+    expiraTokenEm: agora + 3_600_000,
+    validaAte: agora + 86_400_000,
+    uid: "fam-1",
+    tipo: "familia",
+  });
+
+  // guardas: local / sem sessão → null SEM rede
+  const srvVazio = servidorSupabaseFake();
+  assert((await puxarFlagsGlobais({ provedor: "local" })) === null, "provedor local → null (no-op)");
+  assert((await puxarFlagsGlobais(cfgSupa, srvVazio.t)) === null && srvVazio.chamadas.length === 0, "sem sessão → null e NENHUMA chamada de rede");
+
+  // família logada + linha no servidor → grava no local e o kill-switch vale
+  armazem.setItem(CHAVE_SESSAO_BACKEND, sessaoFamilia);
+  salvarFlags({ ia: true, fala: true, conteudoCustomizado: true, telemetria: true });
+  const srv = servidorSupabaseFake();
+  srv.flagsAdmin.set("global", { id: "global", dados: { ia: false, fala: false, conteudoCustomizado: true, telemetria: true } });
+  const puxadas = await puxarFlagsGlobais(cfgSupa, srv.t);
+  assert(!!puxadas && puxadas["ia"] === false, "família logada puxa a linha 'global' do servidor");
+  assert(carregarFlags()["ia"] === false, "as flags puxadas ficam na MESMA chave local que _modosEfetivos lê");
+  const efetivos = aplicarFlagsAosModos({ ...modosPadrao, iaLigada: true }, carregarFlags());
+  assert(efetivos.iaLigada === false, "kill-switch do servidor DESLIGA a IA mesmo com o cuidador autorizando");
+
+  // sem linha no servidor → null e o local fica como estava (fail-closed offline)
+  salvarFlags({ ia: true, fala: false, conteudoCustomizado: true, telemetria: true });
+  const srvSemLinha = servidorSupabaseFake();
+  assert((await puxarFlagsGlobais(cfgSupa, srvSemLinha.t)) === null && carregarFlags()["ia"] === true, "servidor sem linha → local intocado");
+
+  // dados corrompidos no servidor → saneados pelos defaults seguros
+  const srvPodre = servidorSupabaseFake();
+  srvPodre.flagsAdmin.set("global", { id: "global", dados: { ia: "sim", fala: 1 } });
+  const saneadas = await puxarFlagsGlobais(cfgSupa, srvPodre.t);
+  assert(!!saneadas && saneadas["ia"] === false && saneadas["fala"] === false, "dados corrompidos → defaults seguros (fail-closed)");
   armazem.limpar();
 }
 

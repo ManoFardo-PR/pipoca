@@ -141,6 +141,25 @@ export function listarCenarios(armazem?: StorageLike): CenarioVersionado[] {
   return st ? ler(st) : [];
 }
 
+/** Envelope pipoca.conteudo.v1 → CenarioVersionado (ou null) — pull do espelho remoto. */
+export function validarEnvelopeCenario(raw: unknown): CenarioVersionado | null {
+  const env = raw as { esquema?: unknown; cenario?: unknown } | null;
+  if (env && env.esquema === "pipoca.conteudo.v1" && entradaValida(env.cenario)) {
+    return { ...env.cenario };
+  }
+  return null;
+}
+
+/**
+ * Substituição INTEGRAL da chave local (pull do servidor — servidor vence).
+ * Inválidos são filtrados; nunca lança.
+ */
+export function substituirCenariosLocais(itens: CenarioVersionado[], armazem?: StorageLike): void {
+  const st = armazem ?? storagePadrao();
+  if (!st) return;
+  gravar(st, (Array.isArray(itens) ? itens : []).filter(entradaValida));
+}
+
 /** Extrai o id do cenário sem exigir grafo 100% válido (rascunho pode estar incompleto). */
 function cenarioIdDe(grafo: unknown): string | null {
   const c = (grafo as { cenario?: { id?: unknown } } | null)?.cenario;

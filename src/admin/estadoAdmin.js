@@ -97,6 +97,7 @@
     if (remoto) {
       return remoto.auth.entrarSuperAdmin({ email: email, senha: senha }).then(function (s) {
         state.sessao = _sessaoDeAuth(s);
+        _puxarAdmin();
         setState({ telaAdmin: 2, erro: null });
         return { ok: true };
       }).catch(function () {
@@ -127,11 +128,25 @@
   }
 
   // Seam de tenants preso ao escopo da sessão (fail-closed: sem sessão → null).
+  // pós-fase06: embrulhado com o espelho remoto (salvarTenant local + upsert
+  // fire-and-forget) — com provedor local o wrapper é no-op silencioso.
   function repoTenant() {
     var C = _canon();
     if (!C || !state.sessao) return null;
     if (!C.auth.sessaoSuperAdminValida(state.sessao, Date.now())) return null;
-    return C.tenants.criarRepositorioTenant(state.sessao.escopoTenants);
+    var repo = C.tenants.criarRepositorioTenant(state.sessao.escopoTenants);
+    if (C.backend && C.backend.envolverRepoTenantComEspelho) {
+      try { repo = C.backend.envolverRepoTenantComEspelho(repo); } catch (_) {}
+    }
+    return repo;
+  }
+
+  // Pull do servidor no login/boot do operador (servidor vence) — fire-and-
+  // forget: a tela aberta relê o local ao remontar. Nunca lança.
+  function _puxarAdmin() {
+    var C = _canon();
+    if (!C || !C.backend || !C.backend.puxarAdminDoServidor) return;
+    try { C.backend.puxarAdminDoServidor().catch(function () {}); } catch (_) {}
   }
 
   window.PipocaAdmin = {
@@ -154,6 +169,7 @@
     try { _s0 = _remoto0.auth.sessaoAtual(); } catch (_) {}
     if (_s0 && _s0.tipo === "superadmin") {
       state.sessao = _sessaoDeAuth(_s0);
+      _puxarAdmin();
       setState({ telaAdmin: 2 });
     } else {
       setState({ telaAdmin: TELA_LOGIN });

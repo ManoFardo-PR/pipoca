@@ -35,6 +35,8 @@ import {
   criarRepositorioTenant,
   novoTenant,
   vincularConta,
+  validarEnvelopeTenant,
+  substituirTenantsLocais,
   ERRO_FORA_DE_ESCOPO,
 } from "./tenant/repositorioTenant.js";
 import {
@@ -43,6 +45,8 @@ import {
   salvarRascunho,
   versionarCenario,
   publicarCenario,
+  validarEnvelopeCenario,
+  substituirCenariosLocais,
 } from "./validar_grafo.js";
 import {
   CONFIG_IA_PADRAO,
@@ -61,6 +65,7 @@ import {
   aplicarFlagsAosModos,
   carregarFlags,
   salvarFlags,
+  normalizarFlags,
 } from "./flags.js";
 import { modosPadrao } from "../core/modos.js";
 import grafoQuintal from "../dados/quintal_grafo.json" with { type: "json" };
@@ -390,6 +395,39 @@ console.log("\n=== SA_SAFE · flags, kill-switch e efeito nos Modos ===");
   assert(carregarFlags(st).ia === false, "storage corrompido volta aos defaults seguros");
   salvarFlags(morta, st);
   assert(carregarFlags(st).ia === false && carregarFlags(st).telemetria === true, "salvar/carregar preserva o mapa (com defaults por baixo)");
+}
+
+console.log("\n=== espelho remoto (pós-fase06) · envelopes e substituição integral ===");
+{
+  // normalizarFlags: só booleanos entram; corrompido → defaults seguros
+  const saneadas = normalizarFlags({ ia: true, fala: "sim", extra: 1, telemetria: false });
+  assert(saneadas.ia === true && saneadas.fala === false && !("extra" in saneadas) && saneadas.telemetria === false, "normalizarFlags aceita só booleanos (resto cai nos defaults)");
+  assert(normalizarFlags("podre").ia === false && normalizarFlags(null).fala === false, "normalizarFlags de lixo → defaults seguros");
+
+  // validarEnvelopeTenant / substituirTenantsLocais (pull: servidor vence)
+  const t1 = novoTenant("Escola Sol", AGORA);
+  assert(validarEnvelopeTenant({ esquema: "pipoca.tenant.v1", tenant: t1 })!.id === t1.id, "envelope de tenant válido passa");
+  assert(validarEnvelopeTenant({ esquema: "outro", tenant: t1 }) === null, "esquema errado → null");
+  assert(validarEnvelopeTenant({ esquema: "pipoca.tenant.v1", tenant: { id: "x" } }) === null, "tenant incompleto → null");
+  const stT = new ArmazemMem();
+  const repoAntes = criarRepositorioTenant("todos", stT);
+  const antigo = novoTenant("Antiga", AGORA - 1000);
+  // semeia um tenant local que o pull vai substituir
+  void repoAntes.salvarTenant(antigo);
+  substituirTenantsLocais([t1], stT);
+  assert(
+    JSON.stringify(stT.getItem("pipoca.admin.tenants.v1")).indexOf(t1.id) >= 0 &&
+      JSON.stringify(stT.getItem("pipoca.admin.tenants.v1")).indexOf(antigo.id) < 0,
+    "substituirTenantsLocais é INTEGRAL (servidor vence; o antigo local sai)"
+  );
+
+  // validarEnvelopeCenario / substituirCenariosLocais
+  const c1 = { cenarioId: "quintal_x", versao: 1, publicadoEm: null, tenantId: null, grafo: {} };
+  assert(validarEnvelopeCenario({ esquema: "pipoca.conteudo.v1", cenario: c1 })!.cenarioId === "quintal_x", "envelope de cenário válido passa");
+  assert(validarEnvelopeCenario({ esquema: "pipoca.conteudo.v1", cenario: { cenarioId: "" } }) === null, "cenário inválido → null");
+  const stC = new ArmazemMem();
+  substituirCenariosLocais([c1], stC);
+  assert(listarCenarios(stC).length === 1 && listarCenarios(stC)[0]!.cenarioId === "quintal_x", "substituirCenariosLocais grava a biblioteca inteira");
 }
 
 console.log(`\n${"=".repeat(50)}`);

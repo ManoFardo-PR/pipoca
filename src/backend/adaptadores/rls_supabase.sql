@@ -45,6 +45,27 @@ create table historias (
 );
 
 -- ── plataforma (operador / proxy) ───────────────────────────────────────────
+-- flags_admin: kill-switches GLOBAIS (pós-fase06, iteração 2) — linha única
+-- 'global'. A FAMÍLIA lê (o kill-switch alcança o app no boot); só o operador
+-- escreve. SEM seed: a linha nasce no 1º salvamento em SA_SAFE.
+create table flags_admin (
+  id            text primary key default 'global',
+  dados         jsonb not null,              -- FeatureFlags (nome → bool)
+  atualizado_em timestamptz not null default now()
+);
+
+-- conteudo: biblioteca de cenários versionados (pós-fase06, iteração 2) —
+-- identidade composta (cenario_id, versao); publicação p/ famílias = fase08.
+create table conteudo (
+  cenario_id    text not null,
+  versao        int  not null,
+  tenant_id     text,                        -- null = catálogo da plataforma
+  publicado_em  bigint,                      -- epoch ms do envelope; null = rascunho
+  dados         jsonb not null,              -- envelope pipoca.conteudo.v1
+  atualizado_em timestamptz not null default now(),
+  primary key (cenario_id, versao)
+);
+
 create table operadores (
   uid    uuid primary key references auth.users(id) on delete cascade,
   escopo jsonb not null default '"todos"'::jsonb
@@ -79,6 +100,8 @@ alter table perfis      enable row level security;
 alter table saves       enable row level security;
 alter table telemetria  enable row level security;
 alter table historias   enable row level security;
+alter table flags_admin enable row level security;
+alter table conteudo    enable row level security;
 alter table operadores  enable row level security;
 alter table tenants     enable row level security;
 alter table config_ia   enable row level security;
@@ -108,6 +131,17 @@ create policy tenants_operador on tenants for all
 create policy config_ia_operador on config_ia for all
   using (eh_operador()) with check (eh_operador());
 -- uso_ia: NENHUMA policy → invisível/intocável do cliente (só service role).
+
+-- flags_admin: leitura para QUALQUER autenticado (a família puxa o
+-- kill-switch no boot — nunca anon); escrita só operador.
+create policy flags_admin_leitura on flags_admin for select
+  to authenticated using (true);
+create policy flags_admin_operador on flags_admin for all
+  using (eh_operador()) with check (eh_operador());
+
+-- conteudo: só operador (publicação para famílias = fase08).
+create policy conteudo_operador on conteudo for all
+  using (eh_operador()) with check (eh_operador());
 
 -- ── teto de perfis por tenant (limite do plano — critério 06-04) ────────────
 -- Pós-fase06 (Freemium): o teto é resolvido pelo planoId do envelope

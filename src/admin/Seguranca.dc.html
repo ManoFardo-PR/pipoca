@@ -66,6 +66,13 @@ class Component extends DCLogic {
   _salvar(flags) {
     const C = window.PipocaAdminCanonico;
     C.flags.salvarFlags(flags);
+    // pós-fase06: espelho no servidor (kill-switch GLOBAL — as famílias puxam
+    // esta linha no boot). Fire-and-forget: offline/local não muda nada.
+    try {
+      if (C.backend && C.backend.espelharFlagsRemotas) {
+        C.backend.espelharFlagsRemotas(flags).catch(() => {});
+      }
+    } catch (_) {}
     this.setState({ flags });
   }
 

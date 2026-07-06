@@ -64,6 +64,20 @@ function storagePadrao(): StorageLike | null {
   }
 }
 
+/**
+ * Saneia um mapa de flags vindo de fora (storage OU servidor): parte dos
+ * defaults seguros e só aceita valores booleanos. Corrompido → FLAGS_PADRAO.
+ */
+export function normalizarFlags(raw: unknown): FeatureFlags {
+  const limpo: FeatureFlags = { ...FLAGS_PADRAO };
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+      if (typeof v === "boolean") limpo[k] = v;
+    }
+  }
+  return limpo;
+}
+
 /** Ausente/corrompido → FLAGS_PADRAO (defaults seguros). */
 export function carregarFlags(armazem?: StorageLike): FeatureFlags {
   const st = armazem ?? storagePadrao();
@@ -71,13 +85,7 @@ export function carregarFlags(armazem?: StorageLike): FeatureFlags {
   try {
     const raw = st.getItem(CHAVE_FLAGS);
     if (raw === null) return { ...FLAGS_PADRAO };
-    const obj = JSON.parse(raw) as unknown;
-    if (!obj || typeof obj !== "object" || Array.isArray(obj)) return { ...FLAGS_PADRAO };
-    const limpo: FeatureFlags = { ...FLAGS_PADRAO };
-    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
-      if (typeof v === "boolean") limpo[k] = v;
-    }
-    return limpo;
+    return normalizarFlags(JSON.parse(raw) as unknown);
   } catch {
     return { ...FLAGS_PADRAO };
   }

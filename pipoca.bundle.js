@@ -706,6 +706,16 @@
       return null;
     }
   }
+  function normalizarFlags(raw) {
+    const limpo = { ...FLAGS_PADRAO };
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+      for (const [k, v] of Object.entries(raw)) {
+        if (typeof v === "boolean")
+          limpo[k] = v;
+      }
+    }
+    return limpo;
+  }
   function carregarFlags(armazem) {
     const st = armazem ?? storagePadrao();
     if (!st)
@@ -714,15 +724,7 @@
       const raw = st.getItem(CHAVE_FLAGS);
       if (raw === null)
         return { ...FLAGS_PADRAO };
-      const obj = JSON.parse(raw);
-      if (!obj || typeof obj !== "object" || Array.isArray(obj))
-        return { ...FLAGS_PADRAO };
-      const limpo = { ...FLAGS_PADRAO };
-      for (const [k, v] of Object.entries(obj)) {
-        if (typeof v === "boolean")
-          limpo[k] = v;
-      }
-      return limpo;
+      return normalizarFlags(JSON.parse(raw));
     } catch {
       return { ...FLAGS_PADRAO };
     }

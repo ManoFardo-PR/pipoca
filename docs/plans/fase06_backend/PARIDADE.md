@@ -37,6 +37,16 @@ dedicada, a alternância é operacional via config).
 
 ## Passos manuais (dashboard) — únicos itens fora do código
 
+0. **Migrations pós-fase06 pendentes** (aplicar via MCP `apply_migration` ou
+   SQL editor, na ordem do espelho `src/backend/adaptadores/rls_supabase.sql`):
+   (a) tabela `historias` + índice + policy RLS (bloco "histórias salvas");
+   (b) Freemium: `create or replace` do `verificar_teto_perfis` (teto por
+   planoId + validade de 60 dias — a versão original estava inerte),
+   função+trigger `provisionar_tenant_familia` em `auth.users` e o backfill
+   dos usuários existentes. Sem (a), o espelho remoto das histórias falha em
+   silêncio (local funciona); sem (b), cadastros novos não entram no Freemium
+   e o teto de perfis segue sem efeito.
+
 1. **Confirmação de e-mail** (Auth → Sign In / Providers → Email → "Confirm
    email"). Hoje está LIGADA (default). A tela de conta AGORA cobre os dois
    estados: o cadastro explícito mostra "Quase lá! Confirme o e-mail…" quando

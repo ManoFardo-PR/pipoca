@@ -231,14 +231,31 @@
   // src/admin/tenant/tiposTenant.ts
   var PLANOS_PADRAO = [
     { id: "gratis", nome: "Grátis", limites: { maxPerfis: 1, iaPermitida: false, cenariosCustomizados: 0, retencaoTelemetriaDias: 30 } },
+    { id: "freemium", nome: "Freemium", validadeDias: 60, limites: { maxPerfis: 4, iaPermitida: true, cenariosCustomizados: 2, retencaoTelemetriaDias: 90 } },
     { id: "familia", nome: "Família", limites: { maxPerfis: 4, iaPermitida: true, cenariosCustomizados: 2, retencaoTelemetriaDias: 90 } },
     { id: "escola", nome: "Escola", limites: { maxPerfis: 40, iaPermitida: true, cenariosCustomizados: 10, retencaoTelemetriaDias: 180 } }
   ];
   var PLANO_MAIS_RESTRITIVO = "gratis";
+  var PLANO_INICIAL = "freemium";
+  var MS_POR_DIA = 86400000;
   function limitesDoPlano(planoId) {
     const p = PLANOS_PADRAO.find((x) => x.id === planoId);
     const base = p ?? PLANOS_PADRAO.find((x) => x.id === PLANO_MAIS_RESTRITIVO);
     return { ...base.limites };
+  }
+  function limitesVigentes(tenant, agora) {
+    const p = PLANOS_PADRAO.find((x) => x.id === tenant.planoId);
+    if (p && typeof p.validadeDias === "number" && agora > tenant.criadoEm + p.validadeDias * MS_POR_DIA) {
+      return limitesDoPlano(PLANO_MAIS_RESTRITIVO);
+    }
+    return limitesDoPlano(tenant.planoId);
+  }
+  function diasRestantes(tenant, agora) {
+    const p = PLANOS_PADRAO.find((x) => x.id === tenant.planoId);
+    if (!p || typeof p.validadeDias !== "number")
+      return null;
+    const fim = tenant.criadoEm + p.validadeDias * MS_POR_DIA;
+    return Math.max(0, Math.ceil((fim - agora) / MS_POR_DIA));
   }
   function excedeTetoPerfis(contagemAtual, limites) {
     return contagemAtual + 1 > limites.maxPerfis;
@@ -270,7 +287,7 @@
     return {
       id: idDoTenant(nome, agora),
       nome: String(nome).trim(),
-      planoId: PLANO_MAIS_RESTRITIVO,
+      planoId: PLANO_INICIAL,
       ativo: true,
       criadoEm: agora
     };
@@ -335,11 +352,13 @@
       async listarPlanos() {
         return PLANOS_PADRAO.map((p) => ({ ...p, limites: { ...p.limites } }));
       },
-      async obterLimitesEfetivos(id) {
+      async obterLimitesEfetivos(id, agora) {
         if (!st || !autorizado(id))
           return limitesDoPlano(PLANO_MAIS_RESTRITIVO);
         const t = lerTenants(st).find((x) => x.id === id);
-        return limitesDoPlano(t ? t.planoId : PLANO_MAIS_RESTRITIVO);
+        if (!t)
+          return limitesDoPlano(PLANO_MAIS_RESTRITIVO);
+        return limitesVigentes(t, typeof agora === "number" ? agora : Date.now());
       }
     };
   }
@@ -1279,6 +1298,11 @@
 
   // src/core/sessao.ts
   var BLOCOS_VALIDOS = [10, 15, 20, 25];
+  function normalizarBlocoMin(valor) {
+    if (BLOCOS_VALIDOS.includes(valor))
+      return valor;
+    return 15;
+  }
   function validarSessao(s) {
     const erros = [];
     if (typeof s !== "object" || s === null)
@@ -1293,6 +1317,28 @@
     if (typeof r["restanteSeg"] !== "number")
       erros.push("restanteSeg deve ser number");
     return erros;
+  }
+
+  // src/core/limites.ts
+  function normalizarTempoDeTela(valor) {
+    if (typeof valor !== "number" || !Number.isFinite(valor) || valor <= 0)
+      return null;
+    return Math.round(valor);
+  }
+  function normalizarLimites(raw) {
+    const r = raw && typeof raw === "object" ? raw : {};
+    return {
+      blocoMin: normalizarBlocoMin(r["blocoMin"]),
+      tempoDeTelaMin: normalizarTempoDeTela(r["tempoDeTelaMin"])
+    };
+  }
+
+  // src/core/cardapio.ts
+  function validarItemCardapio(it) {
+    if (!it || typeof it !== "object")
+      return false;
+    const r = it;
+    return typeof r["id"] === "string" && r["id"].length > 0 && typeof r["label"] === "string" && r["label"].length > 0 && typeof r["icon"] === "string" && typeof r["cost"] === "number" && r["cost"] >= 0;
   }
 
   // src/dados/schemas.ts
@@ -1316,6 +1362,28 @@
     if (raw === null || raw === undefined)
       return [];
     return validarPerfil(raw);
+  }
+  function sanearLimites(raw) {
+    if (raw === null || raw === undefined)
+      return null;
+    if (typeof raw !== "object")
+      return null;
+    return normalizarLimites(raw);
+  }
+  function sanearCardapio(raw) {
+    if (!Array.isArray(raw))
+      return null;
+    const itens = raw.filter(validarItemCardapio);
+    return itens.length > 0 ? itens : null;
+  }
+  function sanearCenariosLiberados(raw) {
+    if (!Array.isArray(raw))
+      return null;
+    const ids = raw.filter((x) => typeof x === "string" && x.length > 0);
+    return ids.length > 0 ? ids : null;
+  }
+  function sanearColetaTelemetria(raw) {
+    return typeof raw === "boolean" ? raw : null;
   }
   function validarEnvelopePerfil(raw) {
     if (typeof raw !== "object" || raw === null)
@@ -1360,7 +1428,13 @@
         return null;
       if (validarA11y(e["a11y"]).length > 0)
         return null;
-      return estado;
+      return {
+        ...estado,
+        limites: sanearLimites(e["limites"]),
+        cardapio: sanearCardapio(e["cardapio"]),
+        cenariosLiberados: sanearCenariosLiberados(e["cenariosLiberados"]),
+        coletaTelemetria: sanearColetaTelemetria(e["coletaTelemetria"])
+      };
     } catch {
       return null;
     }
@@ -1394,13 +1468,82 @@
 
   // src/servicos/telemetria_repo.ts
   var RETENCAO_DIAS_PADRAO = 90;
-  var MS_POR_DIA = 86400000;
+  var MS_POR_DIA2 = 86400000;
   function dentroDaRetencao(evento, agora, retencaoDias = RETENCAO_DIAS_PADRAO) {
-    const limite = agora - retencaoDias * MS_POR_DIA;
+    const limite = agora - retencaoDias * MS_POR_DIA2;
     return evento.ts >= limite;
   }
   function podarPorRetencao(eventos, agora, retencaoDias = RETENCAO_DIAS_PADRAO) {
     return eventos.filter((e) => dentroDaRetencao(e, agora, retencaoDias));
+  }
+
+  // src/core/historias.ts
+  var ESQUEMA_HISTORIAS = "pipoca.historias.v1";
+  var RETENCAO_HISTORIAS_DIAS = 20;
+  var MAX_NAO_FAVORITAS = 30;
+  var MS_POR_DIA3 = 86400000;
+  var NIVEIS3 = ["n1", "n2", "n3", "n4"];
+  var DESFECHOS = ["convergente", "aberto"];
+  function validarHistoriaSalva(raw) {
+    if (typeof raw !== "object" || raw === null)
+      return null;
+    const r = raw;
+    if (typeof r["id"] !== "string" || r["id"].trim() === "")
+      return null;
+    if (typeof r["cenarioId"] !== "string" || r["cenarioId"] === "")
+      return null;
+    if (typeof r["texto"] !== "string" || r["texto"].trim() === "")
+      return null;
+    if (!Array.isArray(r["linha"]) || !r["linha"].every((x) => typeof x === "string"))
+      return null;
+    if (!NIVEIS3.includes(r["nivel"]))
+      return null;
+    if (!DESFECHOS.includes(r["desfecho"]))
+      return null;
+    if (typeof r["titulo"] !== "string" || r["titulo"] === "")
+      return null;
+    if (typeof r["criadaEm"] !== "number" || !Number.isFinite(r["criadaEm"]))
+      return null;
+    return {
+      id: r["id"],
+      cenarioId: r["cenarioId"],
+      texto: r["texto"],
+      linha: r["linha"].slice(),
+      nivel: r["nivel"],
+      desfecho: r["desfecho"],
+      titulo: r["titulo"],
+      emoji: typeof r["emoji"] === "string" && r["emoji"] !== "" ? r["emoji"] : "✨",
+      criadaEm: r["criadaEm"],
+      favorita: r["favorita"] === true
+    };
+  }
+  function dentroDaRetencaoHistoria(h, agora, retencaoDias = RETENCAO_HISTORIAS_DIAS) {
+    if (h.favorita)
+      return true;
+    return h.criadaEm >= agora - retencaoDias * MS_POR_DIA3;
+  }
+  function normalizarHistorias(lista, agora) {
+    const porId = new Map;
+    for (const raw of Array.isArray(lista) ? lista : []) {
+      const h = validarHistoriaSalva(raw);
+      if (h)
+        porId.set(h.id, h);
+    }
+    const vivas = [...porId.values()].filter((h) => dentroDaRetencaoHistoria(h, agora)).sort((a, b) => b.criadaEm - a.criadaEm);
+    const resultado = [];
+    let naoFavoritas = 0;
+    for (const h of vivas) {
+      if (!h.favorita) {
+        if (naoFavoritas >= MAX_NAO_FAVORITAS)
+          continue;
+        naoFavoritas++;
+      }
+      resultado.push(h);
+    }
+    return resultado;
+  }
+  function criarEnvelopeHistoria(historia) {
+    return { esquema: ESQUEMA_HISTORIAS, historia };
   }
 
   // src/core/persistencia/chaves.ts
@@ -1410,6 +1553,9 @@
   }
   function chaveTelemetria(perfilId) {
     return `pipoca.telemetria.v1:${perfilId}`;
+  }
+  function chaveHistorias(perfilId) {
+    return `pipoca.historias.v1:${perfilId}`;
   }
   function lerArrayEnvelopes(chave, esquemaEsperado) {
     try {
@@ -1507,12 +1653,39 @@
       }
       return removidos;
     }
+    async carregarHistorias(perfilId) {
+      const envelopes = lerArrayEnvelopes(chaveHistorias(perfilId), ESQUEMA_HISTORIAS);
+      return envelopes.map((e) => validarHistoriaSalva(e.historia)).filter((h) => h !== null).sort((a, b) => b.criadaEm - a.criadaEm);
+    }
+    async salvarHistoria(perfilId, historia) {
+      const envelopes = lerArrayEnvelopes(chaveHistorias(perfilId), ESQUEMA_HISTORIAS);
+      const semEsta = envelopes.filter((e) => e.historia?.id !== historia.id);
+      gravarItem(chaveHistorias(perfilId), [...semEsta, criarEnvelopeHistoria({ ...historia })]);
+    }
+    async apagarHistoria(perfilId, historiaId) {
+      const envelopes = lerArrayEnvelopes(chaveHistorias(perfilId), ESQUEMA_HISTORIAS);
+      const restantes = envelopes.filter((e) => e.historia?.id !== historiaId);
+      if (restantes.length !== envelopes.length)
+        gravarItem(chaveHistorias(perfilId), restantes);
+    }
+    async podarHistorias(perfilId, agora) {
+      const antes = await this.carregarHistorias(perfilId);
+      const mantidas = normalizarHistorias(antes, agora);
+      const removidas = antes.length - mantidas.length;
+      if (removidas > 0) {
+        gravarItem(chaveHistorias(perfilId), mantidas.map(criarEnvelopeHistoria));
+      }
+      return removidas;
+    }
     async apagarPerfil(perfilId) {
       try {
         localStorage.removeItem(chaveSave(perfilId));
       } catch {}
       try {
         localStorage.removeItem(chaveTelemetria(perfilId));
+      } catch {}
+      try {
+        localStorage.removeItem(chaveHistorias(perfilId));
       } catch {}
       const envelopes = lerArrayEnvelopes(CHAVE_PERFIS, "pipoca.perfil.v1");
       const filtrado = envelopes.filter((e) => e.perfil?.id !== perfilId);
@@ -1556,6 +1729,18 @@
   // src/servicos/conta_repo.ts
   var CHAVE_CONTA = "pipoca.conta.v1";
   var CHAVE_SESSAO2 = "pipoca.sessao-conta.v1";
+  function carregarConta() {
+    try {
+      const raw = localStorage.getItem(CHAVE_CONTA);
+      if (!raw)
+        return null;
+      const p = JSON.parse(raw);
+      if (p && typeof p["id"] === "string" && typeof p["email"] === "string" && typeof p["criadaEm"] === "number") {
+        return { id: p["id"], email: p["email"], criadaEm: p["criadaEm"] };
+      }
+    } catch {}
+    return null;
+  }
   function salvarConta(conta) {
     try {
       localStorage.setItem(CHAVE_CONTA, JSON.stringify(conta));
@@ -1590,6 +1775,7 @@
 
   // src/backend/auth.ts
   var ERRO_LOGIN_NEUTRO = "Não foi possível entrar. Confira os dados e tente de novo.";
+  var ERRO_CRIAR_CONTA = "Não foi possível criar a conta. Confira o e-mail e use uma senha com pelo menos 6 caracteres.";
 
   // src/backend/config.ts
   var CONFIG_LOCAL = { provedor: "local" };
@@ -1816,6 +2002,73 @@
         const tenantId = Array.isArray(escopo) && typeof escopo[0] === "string" ? escopo[0] : undefined;
         return assentarSessao(r, "superadmin", tenantId);
       },
+      async criarFamilia(cred) {
+        const email = (cred.email || "").trim().toLowerCase();
+        const senha = cred.senha || "";
+        if (!email || !email.includes("@") || senha.length < 6)
+          throw new Error(ERRO_CRIAR_CONTA);
+        const s = await chamarToken("/auth/v1/signup", { email, password: senha });
+        if (s && s.access_token)
+          return assentarSessao(s, "familia");
+        if (s && s.user)
+          return null;
+        throw new Error(ERRO_CRIAR_CONTA);
+      },
+      async recuperarSenha(email) {
+        const e = (email || "").trim().toLowerCase();
+        if (!e || !e.includes("@"))
+          return;
+        try {
+          await transporte(base + "/auth/v1/recover", {
+            method: "POST",
+            headers: cabecalhos(),
+            body: JSON.stringify({ email: e })
+          });
+        } catch {}
+      },
+      async redefinirSenha(tokenRecuperacao, novaSenha) {
+        if (!tokenRecuperacao)
+          throw new Error("O link de redefinição venceu. Peça um novo e tente de novo.");
+        if ((novaSenha || "").length < 6)
+          throw new Error("A nova senha precisa de pelo menos 6 caracteres.");
+        const resp = await transporte(base + "/auth/v1/user", {
+          method: "PUT",
+          headers: cabecalhos(tokenRecuperacao),
+          body: JSON.stringify({ password: novaSenha })
+        });
+        if (resp.status !== 200) {
+          throw new Error("O link de redefinição venceu. Peça um novo e tente de novo.");
+        }
+      },
+      async alterarSenha(novaSenha) {
+        if ((novaSenha || "").length < 6)
+          throw new Error("A nova senha precisa de pelo menos 6 caracteres.");
+        const token = await this.obterToken();
+        if (!token)
+          throw new Error("A sessão venceu — entre de novo para trocar a senha.");
+        const resp = await transporte(base + "/auth/v1/user", {
+          method: "PUT",
+          headers: cabecalhos(token),
+          body: JSON.stringify({ password: novaSenha })
+        });
+        if (resp.status !== 200)
+          throw new Error("Não deu para trocar a senha agora. Tente de novo.");
+      },
+      async alterarEmail(novoEmail) {
+        const email = (novoEmail || "").trim().toLowerCase();
+        if (!email || !email.includes("@"))
+          throw new Error("Confira o novo e-mail, por favor.");
+        const token = await this.obterToken();
+        if (!token)
+          throw new Error("A sessão venceu — entre de novo para trocar o e-mail.");
+        const resp = await transporte(base + "/auth/v1/user", {
+          method: "PUT",
+          headers: cabecalhos(token),
+          body: JSON.stringify({ email })
+        });
+        if (resp.status !== 200)
+          throw new Error("Não deu para trocar o e-mail agora. Tente de novo.");
+      },
       async sair() {
         const s = lerSessaoBackend();
         gravarSessaoBackend(null);
@@ -1917,9 +2170,37 @@
       }
       return out;
     }
+    async carregarHistorias(perfilId) {
+      const linhas = await this.req("/historias?select=dados&perfil_id=eq." + encodeURIComponent(perfilId) + "&order=criada_em.desc", "GET");
+      const out = [];
+      for (const l of Array.isArray(linhas) ? linhas : []) {
+        const h = validarHistoriaSalva(l && l.dados ? l.dados.historia : null);
+        if (h !== null)
+          out.push(h);
+      }
+      return out;
+    }
+    async salvarHistoria(perfilId, historia) {
+      await this.req("/historias?on_conflict=id", "POST", [{
+        id: historia.id,
+        perfil_id: perfilId,
+        favorita: historia.favorita === true,
+        criada_em: new Date(historia.criadaEm).toISOString(),
+        dados: { esquema: ESQUEMA_HISTORIAS, historia: { ...historia } }
+      }], "resolution=merge-duplicates,return=minimal");
+    }
+    async apagarHistoria(perfilId, historiaId) {
+      await this.req("/historias?perfil_id=eq." + encodeURIComponent(perfilId) + "&id=eq." + encodeURIComponent(historiaId), "DELETE", undefined, "return=minimal");
+    }
+    async podarHistorias(perfilId, agora) {
+      const limite = new Date(agora - RETENCAO_HISTORIAS_DIAS * 86400000).toISOString();
+      await this.req("/historias?perfil_id=eq." + encodeURIComponent(perfilId) + "&favorita=eq.false&criada_em=lt." + encodeURIComponent(limite), "DELETE", undefined, "return=minimal");
+      return 0;
+    }
     async apagarPerfil(perfilId) {
       const id = encodeURIComponent(perfilId);
       await this.req("/telemetria?perfil_id=eq." + id, "DELETE", undefined, "return=minimal");
+      await this.req("/historias?perfil_id=eq." + id, "DELETE", undefined, "return=minimal");
       await this.req("/saves?perfil_id=eq." + id, "DELETE", undefined, "return=minimal");
       await this.req("/perfis?id=eq." + id, "DELETE", undefined, "return=minimal");
     }
@@ -1987,6 +2268,25 @@
         await local.apagarPerfil(perfilId);
         adicionarTombstone(perfilId);
         remoto.apagarPerfil(perfilId).then(() => removerTombstone(perfilId)).catch(() => {});
+      },
+      carregarHistorias: (perfilId) => local.carregarHistorias ? local.carregarHistorias(perfilId) : Promise.resolve([]),
+      async salvarHistoria(perfilId, historia) {
+        if (local.salvarHistoria)
+          await local.salvarHistoria(perfilId, historia);
+        if (remoto.salvarHistoria)
+          remoto.salvarHistoria(perfilId, historia).catch(() => {});
+      },
+      async apagarHistoria(perfilId, historiaId) {
+        if (local.apagarHistoria)
+          await local.apagarHistoria(perfilId, historiaId);
+        if (remoto.apagarHistoria)
+          remoto.apagarHistoria(perfilId, historiaId).catch(() => {});
+      },
+      async podarHistorias(perfilId, agora) {
+        const removidas = local.podarHistorias ? await local.podarHistorias(perfilId, agora) : 0;
+        if (remoto.podarHistorias)
+          remoto.podarHistorias(perfilId, agora).catch(() => {});
+        return removidas;
       }
     };
   }
@@ -2040,6 +2340,13 @@
         await para.salvarSave(p.id, save);
         saves++;
       }
+      if (de.carregarHistorias && para.salvarHistoria) {
+        try {
+          for (const h of await de.carregarHistorias(p.id)) {
+            await para.salvarHistoria(p.id, h);
+          }
+        } catch {}
+      }
     }
     return { perfis: perfis.length, saves };
   }
@@ -2064,6 +2371,13 @@
       const save = await remoto.carregarSave(p.id);
       if (save)
         await local.salvarSave(p.id, save);
+      if (remoto.carregarHistorias && local.salvarHistoria) {
+        try {
+          for (const h of await remoto.carregarHistorias(p.id)) {
+            await local.salvarHistoria(p.id, h);
+          }
+        } catch {}
+      }
       puxados++;
     }
     const res = await migrar(local, remoto);
@@ -2103,6 +2417,25 @@
         if (!s)
           throw new Error(ERRO_LOGIN_NEUTRO);
         return { uid: s.adminId, tipo: "superadmin", ...s.escopoTenants !== "todos" && s.escopoTenants[0] ? { tenantId: s.escopoTenants[0] } : {} };
+      },
+      async criarFamilia(cred) {
+        const r = entrarFamilia(cred.email, cred.senha, Date.now());
+        if (!r.ok || !r.conta || !r.sessao)
+          throw new Error(r.erro || ERRO_LOGIN_NEUTRO);
+        salvarConta(r.conta);
+        salvarSessaoConta(r.sessao);
+        return { uid: r.conta.id, tipo: "familia" };
+      },
+      async recuperarSenha(_email) {},
+      async alterarSenha(_novaSenha) {},
+      async alterarEmail(novoEmail) {
+        const email = (novoEmail || "").trim().toLowerCase();
+        if (!email || !email.includes("@"))
+          throw new Error("Confira o novo e-mail, por favor.");
+        const conta = carregarConta();
+        if (!conta)
+          throw new Error("Sem conta nesta casa ainda.");
+        salvarConta({ ...conta, email });
       },
       async sair() {
         const fam = carregarSessaoConta();
@@ -2233,7 +2566,10 @@
       vincularConta,
       PLANOS_PADRAO,
       PLANO_MAIS_RESTRITIVO,
+      PLANO_INICIAL,
       limitesDoPlano,
+      limitesVigentes,
+      diasRestantes,
       excedeTetoPerfis,
       ERRO_FORA_DE_ESCOPO
     },

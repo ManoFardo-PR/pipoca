@@ -17,7 +17,9 @@ import {
   type Tenant,
   PLANOS_PADRAO,
   PLANO_MAIS_RESTRITIVO,
+  PLANO_INICIAL,
   limitesDoPlano,
+  limitesVigentes,
 } from "./tiposTenant.js";
 
 /** Seam consumido pelas telas (ipsis litteris doc 04-03). */
@@ -26,7 +28,8 @@ export interface RepositorioTenant {
   obterTenant(id: TenantId): Promise<Tenant | null>;
   salvarTenant(t: Tenant): Promise<void>;
   listarPlanos(): Promise<Plano[]>;
-  obterLimitesEfetivos(id: TenantId): Promise<LimitesPlano>;
+  /** Limites vigentes AGORA (Freemium vencido degrada). `agora` injetável nos testes. */
+  obterLimitesEfetivos(id: TenantId, agora?: number): Promise<LimitesPlano>;
 }
 
 /** Mensagem neutra (regra 2 do doc: erro fora do escopo não revela nada). */
@@ -61,12 +64,16 @@ function idDoTenant(nome: string, agora: number): string {
   return "ten_" + (h >>> 0).toString(16);
 }
 
-/** Núcleo puro de criação (regra 7): nasce no plano mais restritivo e ativo. */
+/**
+ * Núcleo puro de criação: nasce no FREEMIUM (60 dias com os limites do
+ * Família; expirado degrada aos do Grátis) e ativo. A postura segura da
+ * regra 7 continua no tempo: o prazo é a trava, não a IA de partida.
+ */
 export function novoTenant(nome: string, agora: number): Tenant {
   return {
     id: idDoTenant(nome, agora),
     nome: String(nome).trim(),
-    planoId: PLANO_MAIS_RESTRITIVO,
+    planoId: PLANO_INICIAL,
     ativo: true,
     criadoEm: agora,
   };
@@ -147,11 +154,13 @@ export function criarRepositorioTenant(
     async listarPlanos(): Promise<Plano[]> {
       return PLANOS_PADRAO.map((p) => ({ ...p, limites: { ...p.limites } }));
     },
-    async obterLimitesEfetivos(id: TenantId): Promise<LimitesPlano> {
+    async obterLimitesEfetivos(id: TenantId, agora?: number): Promise<LimitesPlano> {
       // Fail-closed: fora do escopo/desconhecido → limites do plano mais restritivo.
       if (!st || !autorizado(id)) return limitesDoPlano(PLANO_MAIS_RESTRITIVO);
       const t = lerTenants(st).find((x) => x.id === id);
-      return limitesDoPlano(t ? t.planoId : PLANO_MAIS_RESTRITIVO);
+      if (!t) return limitesDoPlano(PLANO_MAIS_RESTRITIVO);
+      // Vigência: Freemium vencido (60d do criadoEm) degrada aos limites do Grátis.
+      return limitesVigentes(t, typeof agora === "number" ? agora : Date.now());
     },
   };
 }

@@ -38,7 +38,10 @@ import {
 import {
   PLANOS_PADRAO,
   PLANO_MAIS_RESTRITIVO,
+  PLANO_INICIAL,
   limitesDoPlano,
+  limitesVigentes,
+  diasRestantes,
   excedeTetoPerfis,
 } from "./tenant/tiposTenant.js";
 import {
@@ -109,7 +112,10 @@ const PipocaAdminCanonico = {
     vincularConta,
     PLANOS_PADRAO,
     PLANO_MAIS_RESTRITIVO,
+    PLANO_INICIAL,
     limitesDoPlano,
+    limitesVigentes,
+    diasRestantes,
     excedeTetoPerfis,
     ERRO_FORA_DE_ESCOPO,
   },

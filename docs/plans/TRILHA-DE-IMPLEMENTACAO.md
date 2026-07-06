@@ -86,6 +86,14 @@ O caminho verde roda **inteiro sobre os módulos canônicos** — a convergênci
   `sincronizarInicial`/`migrar` puxam/empurram as histórias junto dos perfis; LGPD cobre (export
   inclui, apagar limpa local+remoto). UI: faixa "Minhas histórias" na T3 + leitor em modal
   (`LeitorHistoria.dc.html`, padrão PainelA11y, fonte respeita a11y) + coração na T6.
+- **Aterrissagem do cuidador + Conta & segurança (2026-07-06)** — pós-PIN com perfis, o cuidador
+  aterrissa na **Evolução da leitura (T8)** (o hub T11 fica a um toque no "↩ Painel";
+  `_irParaPosPin` em `src/app/estado.js`; 1º uso sem perfis segue no onboarding T10). Tela nova
+  **T16 `ContaCuidador.dc.html`** (superfície adulta 16 no KIDMODE): trocar o PIN do portão
+  exigindo o PIN atual (mesmo lockout do PINGATE, via `App.trocarPin`), trocar a senha da conta
+  LOGADO (`ServicoAuth.alterarSenha` — PUT /auth/v1/user com o bearer da sessão; local = no-op
+  honesto) e ver/trocar o e-mail (`alterarEmail` — no Supabase dispara confirmação ao novo
+  endereço; local atualiza o espelho `pipoca.conta.v1`).
 - **Dívida conhecida (coexistência v1/v2)** — `_initMotor()` em `src/app/estado.js` ainda carrega
   `quintal_grafo.json` (v1) em paralelo à v2; o motor narrativo (A ou B desde a fase05) segue
   instanciado, mas a linha verde usa a composição.

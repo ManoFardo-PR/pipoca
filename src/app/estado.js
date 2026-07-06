@@ -24,8 +24,9 @@
   var PERFIS_KEY_LEGADO = "pipoca.perfis.v1"; // chave antiga (array plano); o repo canônico usa envelopes
 
   // Superfícies adultas (KIDMODE · modoApp.ts): Onboarding (10), hub e telas do
-  // cuidador (11–15) e o painel de evolução (8). A numeração pertence ao app.
-  var SUPERFICIES_ADULTAS = [8, 10, 11, 12, 13, 14, 15];
+  // cuidador (11–15), painel de evolução (8) e Conta & segurança (16).
+  // A numeração pertence ao app.
+  var SUPERFICIES_ADULTAS = [8, 10, 11, 12, 13, 14, 15, 16];
 
   var FALLBACK_CENARIO = {
     id: "quintal_anoitecer",
@@ -160,11 +161,13 @@
     state.modoApp = M ? M.aoPassarPortao() : "cuidador";
   }
 
-  // Após PIN aceito: sem perfis → onboarding (T10); com perfis → hub do cuidador (T11).
+  // Após PIN aceito: sem perfis → onboarding (T10); com perfis → a EVOLUÇÃO
+  // DA LEITURA (T8) é a aterrissagem do cuidador — o hub (T11) fica a um
+  // toque no "↩ Painel".
   function _irParaPosPin() {
     _entrarCuidador();
     if ((_perfis || []).length === 0) _irPara(10);
-    else _irPara(11);
+    else _irPara(8);
   }
 
   // ─── Persistência (seam RepositorioPersistencia via bundle) ───────────────

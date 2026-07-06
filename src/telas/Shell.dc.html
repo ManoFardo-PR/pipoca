@@ -48,6 +48,7 @@
     <sc-if value="{{ ehT13 }}" hint-placeholder-val="{{ false }}"><dc-import name="Limites"></dc-import></sc-if>
     <sc-if value="{{ ehT14 }}" hint-placeholder-val="{{ false }}"><dc-import name="Regras"></dc-import></sc-if>
     <sc-if value="{{ ehT15 }}" hint-placeholder-val="{{ false }}"><dc-import name="Privacidade"></dc-import></sc-if>
+    <sc-if value="{{ ehT16 }}" hint-placeholder-val="{{ false }}"><dc-import name="ContaCuidador"></dc-import></sc-if>
   </div>
 
   <!-- Textura de papel — overlay suave sobre toda a viewport (não capta clique). -->
@@ -171,6 +172,7 @@ class Component extends DCLogic {
       ehT13: tela === 13, // limites (PC_LIM)
       ehT14: tela === 14, // regras + IA (PC_RULES/PC_AI)
       ehT15: tela === 15, // privacidade (PC_PRIV)
+      ehT16: tela === 16, // conta & segurança do cuidador
       goT1: () => this.irParaTela(1),
       goT2: () => this.irParaTela(2),
       goT3: () => this.irParaTela(3),

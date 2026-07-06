@@ -438,7 +438,8 @@ try {
 
   // Chips das crianças aparecem na tela do cuidador (T14 Regras & IA).
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
-  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 8, { timeout: 4000 });
+  assert(true, "pós-PIN aterrissa na Evolução da leitura (T8) — o hub fica a um toque");
   await page.evaluate(() => { window.PipocaApp.setState({ tela: 14 }); });
   await page.waitForFunction(() => /Quem confirma a leitura/i.test(document.body.innerText), { timeout: 4000 });
   const uxChips = await page.evaluate(() => ({
@@ -452,7 +453,8 @@ try {
   // cartão do pote no painel de evolução (T8).
   console.log("\n=== UX por perfil · dashboards (T11 saldos, T8 pote) ===");
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
-  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 8, { timeout: 4000 });
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 11 }); });
   await page.waitForFunction(() => /guardados/i.test(document.body.innerText), { timeout: 4000 });
   const t11Saldos = await page.evaluate(() => ({
     ana: /Ana/.test(document.body.innerText),
@@ -488,7 +490,7 @@ try {
   assert(true, "⚙ → 'Sou o adulto' fecha o modal e abre o PINGATE");
   // PIN certo → hub do cuidador; "Para a criança" → volta pra T5, não pra T2
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
-  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 8, { timeout: 4000 });
   await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
   await page.waitForFunction(() => window.PipocaApp.estado.tela === 5, { timeout: 4000 });
   const volta = await page.evaluate(() => ({
@@ -621,6 +623,36 @@ try {
   });
   assert(uxRetencao.removidas >= 1 && uxRetencao.soltaSumiu, "poda de 20 dias remove a história antiga NÃO favorita");
   assert(uxRetencao.coracaoFicou, "a favorita de 21 dias fica PARA SEMPRE (retenção não a toca)");
+
+  // ── Conta & segurança (T16) · trocar PIN exige o atual; senha/e-mail pelo seam ──
+  console.log("\n=== Conta & segurança (T16) · PIN, senha e e-mail ===");
+  await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 8, { timeout: 4000 });
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 16 }); });
+  await page.waitForFunction(() => /Conta & segurança|PIN do portão/i.test(document.body.innerText), { timeout: 4000 });
+  assert(true, "T16 monta (Conta & segurança) a partir do hub");
+  const uxConta16 = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const errado = App.trocarPin("0000", "4321");
+    const certo = App.trocarPin("1234", "4321");
+    // confirma que o novo PIN vale e devolve ao original (não suja os outros testes)
+    const volta = App.trocarPin("4321", "1234");
+    const senha = await App.alterarSenha("nova-senha-9");
+    const email = await App.alterarEmail("casa-trocada@pipoca.dev");
+    return {
+      erradoRecusa: !!(errado && !errado.ok),
+      certoTroca: !!(certo && certo.ok),
+      voltaOk: !!(volta && volta.ok),
+      senhaOk: !!(senha && senha.ok), // modo local: no-op honesto
+      emailOk: !!(email && email.ok),
+      espelho: (App.emailDaConta && App.emailDaConta()) || "",
+    };
+  });
+  assert(uxConta16.erradoRecusa, "trocar PIN com o atual ERRADO recusa (lockout do portão vale aqui)");
+  assert(uxConta16.certoTroca && uxConta16.voltaOk, "trocar PIN com o atual certo troca de verdade");
+  assert(uxConta16.senhaOk, "alterarSenha pelo seam resolve (backend local: no-op honesto)");
+  assert(uxConta16.emailOk && uxConta16.espelho === "casa-trocada@pipoca.dev", "alterarEmail atualiza o espelho da conta (modo local)");
+  await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
 
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 

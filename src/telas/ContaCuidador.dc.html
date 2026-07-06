@@ -1,0 +1,156 @@
+<!-- ContaCuidador.dc.html — Conta & segurança do cuidador (T16)
+     ─────────────────────────────────────────────────────────────
+     Atrás do PINGATE. Três cartões: trocar o PIN do portão (exige o PIN
+     atual — mesmo lockout do PINGATE), trocar a senha da conta (logado,
+     pelo seam) e ver/trocar o e-mail da conta (no Supabase dispara
+     confirmação ao novo endereço; no modo local atualiza o espelho).
+     Seam: window.PipocaApp.trocarPin/alterarSenha/alterarEmail/emailDaConta.
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-cc-campo { width:100%;padding:12px 14px;border-radius:14px;border:2px solid #e3d4ba;background:#fffdf7;font-family:'Nunito';font-size:15px;color:#3a2c20;outline:none; }
+    .pip-cc-campo:focus { border-color:#c9a86f; }
+    .pip-cc-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-cc-btn:active { transform:scale(.97); }
+  </style>
+</helmet>
+
+<div style="position:absolute;inset:0;overflow-y:auto;background:radial-gradient(120% 120% at 50% 0%, var(--pip-areia,#efe6d4) 0%, #ded2be 70%, #d3c5ad 100%);padding:32px 20px;">
+  <div style="max-width:560px;margin:0 auto;">
+
+    <!-- Cabeçalho -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div>
+        <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
+        <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Conta &amp; segurança</div>
+      </div>
+      <button class="pip-cc-btn" onClick="{{ voltar }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
+    </div>
+    <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 22px;">O PIN protege o portão neste aparelho; a senha e o e-mail são da conta da família.</p>
+
+    <!-- PIN do portão -->
+    <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">PIN do portão (4 números)</div>
+      <p style="color:#7a6a54;font-family:'Nunito';font-size:13px;margin:6px 0 12px;">Para trocar, confirme o PIN de agora. Errar demais tranca por um instante — igual ao portão.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <input class="pip-cc-campo" value="{{ pinAtual }}" onInput="{{ setPinAtual }}" type="password" inputmode="numeric" maxlength="4" placeholder="PIN atual" aria-label="PIN atual" />
+        <input class="pip-cc-campo" value="{{ pinNovo }}" onInput="{{ setPinNovo }}" type="password" inputmode="numeric" maxlength="4" placeholder="PIN novo" aria-label="PIN novo" />
+      </div>
+      <sc-if value="{{ temMsgPin }}" hint-placeholder-val="{{ false }}">
+        <div role="status" aria-live="polite" style="margin-top:12px;font-family:'Nunito';font-size:13px;color:{{ corMsgPin }};">{{ msgPin }}</div>
+      </sc-if>
+      <button class="pip-cc-btn" onClick="{{ trocarPin }}" style="margin-top:14px;min-height:46px;border:none;border-radius:14px;background:#3f6f9e;color:#fff;padding:0 18px;font-family:'Baloo 2';font-weight:800;font-size:14px;cursor:pointer;">Trocar o PIN</button>
+    </div>
+
+    <!-- Senha da conta -->
+    <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;margin-top:16px;">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">Senha da conta</div>
+      <p style="color:#7a6a54;font-family:'Nunito';font-size:13px;margin:6px 0 12px;">{{ dicaSenha }}</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <input class="pip-cc-campo" value="{{ senhaNova }}" onInput="{{ setSenhaNova }}" type="password" autocomplete="new-password" placeholder="Nova senha (6+)" aria-label="Nova senha" />
+        <input class="pip-cc-campo" value="{{ senhaNova2 }}" onInput="{{ setSenhaNova2 }}" type="password" autocomplete="new-password" placeholder="Confirme a nova senha" aria-label="Confirme a nova senha" />
+      </div>
+      <sc-if value="{{ temMsgSenha }}" hint-placeholder-val="{{ false }}">
+        <div role="status" aria-live="polite" style="margin-top:12px;font-family:'Nunito';font-size:13px;color:{{ corMsgSenha }};">{{ msgSenha }}</div>
+      </sc-if>
+      <button class="pip-cc-btn" onClick="{{ trocarSenha }}" style="margin-top:14px;min-height:46px;border:none;border-radius:14px;background:#3f6f9e;color:#fff;padding:0 18px;font-family:'Baloo 2';font-weight:800;font-size:14px;cursor:pointer;">{{ trocarSenhaLabel }}</button>
+    </div>
+
+    <!-- E-mail da conta -->
+    <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;margin-top:16px;">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">E-mail da conta</div>
+      <p style="color:#7a6a54;font-family:'Nunito';font-size:13px;margin:6px 0 12px;">Hoje: <b>{{ emailAtual }}</b>. Ao trocar, enviamos uma confirmação para o novo endereço.</p>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <input class="pip-cc-campo" style="flex:1;" value="{{ emailNovo }}" onInput="{{ setEmailNovo }}" type="email" autocomplete="email" placeholder="novo@email.com" aria-label="Novo e-mail" />
+        <button class="pip-cc-btn" onClick="{{ trocarEmail }}" style="min-height:46px;border:none;border-radius:14px;background:#3f6f9e;color:#fff;padding:0 18px;font-family:'Baloo 2';font-weight:800;font-size:14px;cursor:pointer;">Trocar</button>
+      </div>
+      <sc-if value="{{ temMsgEmail }}" hint-placeholder-val="{{ false }}">
+        <div role="status" aria-live="polite" style="margin-top:12px;font-family:'Nunito';font-size:13px;color:{{ corMsgEmail }};">{{ msgEmail }}</div>
+      </sc-if>
+    </div>
+
+    <div style="height:24px;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    pinAtual: '', pinNovo: '', msgPin: '', pinOk: false,
+    senhaNova: '', senhaNova2: '', msgSenha: '', senhaOk: false, trocandoSenha: false,
+    emailNovo: '', msgEmail: '', emailOk: false,
+  };
+
+  _trocarPin() {
+    const App = window.PipocaApp;
+    if (!App || !App.trocarPin) { this.setState({ msgPin: 'App indisponível. Recarregue a página.', pinOk: false }); return; }
+    const r = App.trocarPin(this.state.pinAtual, this.state.pinNovo);
+    if (r && r.ok) {
+      this.setState({ pinAtual: '', pinNovo: '', msgPin: 'PIN trocado! Já vale no portão. ✓', pinOk: true });
+    } else {
+      this.setState({ msgPin: (r && r.erro) || 'O PIN atual não confere.', pinOk: false });
+    }
+  }
+
+  async _trocarSenha() {
+    if (this.state.trocandoSenha) return;
+    const App = window.PipocaApp;
+    if (!App || !App.alterarSenha) { this.setState({ msgSenha: 'App indisponível. Recarregue a página.', senhaOk: false }); return; }
+    const s = this.state.senhaNova || '';
+    if (s.length < 6) { this.setState({ msgSenha: 'A nova senha precisa de pelo menos 6 caracteres.', senhaOk: false }); return; }
+    if (s !== this.state.senhaNova2) { this.setState({ msgSenha: 'As senhas não conferem — digite a mesma nas duas caixas.', senhaOk: false }); return; }
+    this.setState({ trocandoSenha: true, msgSenha: '' });
+    const r = await App.alterarSenha(s);
+    if (r && r.ok) this.setState({ trocandoSenha: false, senhaNova: '', senhaNova2: '', msgSenha: 'Senha trocada! ✓', senhaOk: true });
+    else this.setState({ trocandoSenha: false, msgSenha: (r && r.erro) || 'Não deu para trocar a senha agora.', senhaOk: false });
+  }
+
+  async _trocarEmail() {
+    const App = window.PipocaApp;
+    if (!App || !App.alterarEmail) { this.setState({ msgEmail: 'App indisponível. Recarregue a página.', emailOk: false }); return; }
+    const e = (this.state.emailNovo || '').trim();
+    if (!e || e.indexOf('@') < 0) { this.setState({ msgEmail: 'Confira o novo e-mail, por favor.', emailOk: false }); return; }
+    const r = await App.alterarEmail(e);
+    if (r && r.ok) this.setState({ emailNovo: '', msgEmail: 'Prontinho! Confirme pelo link que enviamos ao novo e-mail. ✓', emailOk: true });
+    else this.setState({ msgEmail: (r && r.erro) || 'Não deu para trocar o e-mail agora.', emailOk: false });
+  }
+
+  _modoLocal() {
+    const cfg = window.PIPOCA_CONFIG;
+    return !cfg || cfg.provedor !== 'supabase';
+  }
+
+  renderVals() {
+    const s = this.state;
+    const App = window.PipocaApp;
+    const soDigitos = (v) => String(v || '').replace(/\D/g, '').slice(0, 4);
+    return {
+      voltar: () => { if (App) App.setState({ tela: 11 }); },
+      // PIN
+      pinAtual: s.pinAtual,
+      pinNovo: s.pinNovo,
+      setPinAtual: (e) => this.setState({ pinAtual: soDigitos(e.target.value), msgPin: '' }),
+      setPinNovo: (e) => this.setState({ pinNovo: soDigitos(e.target.value), msgPin: '' }),
+      trocarPin: () => this._trocarPin(),
+      msgPin: s.msgPin, temMsgPin: !!s.msgPin, corMsgPin: s.pinOk ? '#5a6b53' : '#9a5a3a',
+      // Senha
+      dicaSenha: this._modoLocal()
+        ? 'Neste modo local (sem servidor), a senha não é usada para entrar — a troca fica sem efeito.'
+        : 'Troca na hora, sem e-mail — você já está na sua conta.',
+      senhaNova: s.senhaNova, senhaNova2: s.senhaNova2,
+      setSenhaNova: (e) => this.setState({ senhaNova: e.target.value, msgSenha: '' }),
+      setSenhaNova2: (e) => this.setState({ senhaNova2: e.target.value, msgSenha: '' }),
+      trocarSenha: () => this._trocarSenha(),
+      trocarSenhaLabel: s.trocandoSenha ? 'Trocando…' : 'Trocar a senha',
+      msgSenha: s.msgSenha, temMsgSenha: !!s.msgSenha, corMsgSenha: s.senhaOk ? '#5a6b53' : '#9a5a3a',
+      // E-mail
+      emailAtual: (App && App.emailDaConta && App.emailDaConta()) || '—',
+      emailNovo: s.emailNovo,
+      setEmailNovo: (e) => this.setState({ emailNovo: e.target.value, msgEmail: '' }),
+      trocarEmail: () => this._trocarEmail(),
+      msgEmail: s.msgEmail, temMsgEmail: !!s.msgEmail, corMsgEmail: s.emailOk ? '#5a6b53' : '#9a5a3a',
+    };
+  }
+}
+</script>

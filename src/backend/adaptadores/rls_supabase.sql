@@ -66,6 +66,15 @@ create table conteudo (
   primary key (cenario_id, versao)
 );
 
+-- contas_tenant: vínculo explícito conta↔tenant (pós-fase06, iteração 2) —
+-- e-mail sempre minúsculo; a família resolve o tenant REAL no login por aqui.
+create table contas_tenant (
+  email      text not null,
+  tenant_id  text not null,
+  criado_em  timestamptz not null default now(),
+  primary key (email, tenant_id)
+);
+
 create table operadores (
   uid    uuid primary key references auth.users(id) on delete cascade,
   escopo jsonb not null default '"todos"'::jsonb
@@ -102,6 +111,7 @@ alter table telemetria  enable row level security;
 alter table historias   enable row level security;
 alter table flags_admin enable row level security;
 alter table conteudo    enable row level security;
+alter table contas_tenant enable row level security;
 alter table operadores  enable row level security;
 alter table tenants     enable row level security;
 alter table config_ia   enable row level security;
@@ -142,6 +152,14 @@ create policy flags_admin_operador on flags_admin for all
 -- conteudo: só operador (publicação para famílias = fase08).
 create policy conteudo_operador on conteudo for all
   using (eh_operador()) with check (eh_operador());
+
+-- contas_tenant: operador tudo; a família SÓ enxerga os próprios vínculos
+-- (auth.jwt()->>'email' é claim ASSINADO — não spoofável).
+create policy contas_tenant_operador on contas_tenant for all
+  using (eh_operador()) with check (eh_operador());
+create policy contas_tenant_self on contas_tenant for select
+  to authenticated
+  using (lower(email) = lower(coalesce(auth.jwt()->>'email', '')));
 
 -- ── teto de perfis por tenant (limite do plano — critério 06-04) ────────────
 -- Pós-fase06 (Freemium): o teto é resolvido pelo planoId do envelope
@@ -185,6 +203,34 @@ end $$;
 
 create trigger teto_perfis before insert on perfis
   for each row execute function verificar_teto_perfis();
+
+-- ── o SERVIDOR decide o tenant de todo perfil (pós-fase06, iteração 2) ───────
+-- tenant_da_sessao(): vínculo mais antigo do e-mail do JWT; sem vínculo →
+-- sintético 'familia:<uid>'. fixar_tenant_perfis roda ANTES do teto_perfis
+-- (ordem alfabética: f < t) e sobrescreve new.tenant_id — fecha o spoofing
+-- (tenant alheio) e o bypass do teto (tenant_id omitido). Perfis antigos
+-- migram sozinhos: o sync re-empurra com upsert e o trigger fixa.
+create or replace function tenant_da_sessao() returns text
+language sql security definer stable set search_path = public as
+$$ select coalesce(
+     (select ct.tenant_id from contas_tenant ct
+       where lower(ct.email) = lower(coalesce(auth.jwt()->>'email',''))
+       order by ct.criado_em asc limit 1),
+     case when auth.uid() is not null then 'familia:' || auth.uid()::text end) $$;
+revoke execute on function tenant_da_sessao() from public, anon;
+
+create or replace function fixar_tenant_perfil() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is not null then
+    new.tenant_id := tenant_da_sessao();
+  end if;                                  -- service role passa intacto
+  return new;
+end $$;
+revoke execute on function fixar_tenant_perfil() from public, anon, authenticated;
+
+create trigger fixar_tenant_perfis before insert or update on perfis
+  for each row execute function fixar_tenant_perfil();
 
 -- ── Freemium: TODO cadastro entra no plano (pós-fase06) ─────────────────────
 -- Trigger em auth.users provisiona o tenant sintético da família

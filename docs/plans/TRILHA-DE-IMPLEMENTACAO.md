@@ -104,6 +104,22 @@ O caminho verde roda **inteiro sobre os módulos canônicos** — a convergênci
   dos existentes), e `verificar_teto_perfis` foi CONSERTADO (a versão da fase06 lia um shape que
   ninguém escrevia — teto inerte): agora resolve por planoId + validade e é fail-closed (teto 1)
   para tenant sem linha.
+- **Fase 06 · iteração 2 (2026-07-06, PRs #14–#18)** — o servidor deixou de ser só espelho da
+  família: **telemetria** ganhou retenção remota (poda por DELETE idempotente; o sincronizado
+  voltou a expor `podarTelemetria` — bug: a borda deixava de podar até o local com backend
+  remoto) e o `sincronizarInicial` puxa eventos do perfil ausente (painel multi-dispositivo).
+  **Admin sobre PostgREST**: tenants/conteúdo/flags espelham no servidor (padrão
+  `espelharConfigIA`; novo `src/backend/espelho_admin.ts`, admin-only) com PULL no login do
+  operador (servidor vence — navegadores convergem). **Kill-switch GLOBAL**: o app da família
+  puxa `flags_admin.id='global'` no boot/login (`flags_globais.ts`) — desligar a IA no SA_SAFE
+  desliga para todas as casas na próxima sessão (flags puxadas "grudam" offline: fail-closed).
+  **Vínculo conta↔tenant** (`contas_tenant`): SaTenant espelha o vínculo; `entrarFamilia`/
+  `criarFamilia` resolvem o tenant REAL pelo e-mail do JWT (fail-soft → sintético); no servidor,
+  `fixar_tenant_perfis` (BEFORE trigger) decide o tenant_id de todo perfil — fecha o spoofing e
+  o bypass do teto (tenant_id omitido), e migra perfis antigos sozinhos no re-push do sync.
+  **Teto no app**: `limitesDaFamilia()` lê a própria linha de `tenants` (policy
+  `tenants_familia_leitura`) com a MESMA régua do trigger e a tela Perfis recusa a criação acima
+  do teto com mensagem acolhedora (editar nunca bloqueia; sem informação, deixa criar).
 - **Dívida conhecida (coexistência v1/v2)** — `_initMotor()` em `src/app/estado.js` ainda carrega
   `quintal_grafo.json` (v1) em paralelo à v2; o motor narrativo (A ou B desde a fase05) segue
   instanciado, mas a linha verde usa a composição.
@@ -120,13 +136,20 @@ O caminho verde roda **inteiro sobre os módulos canônicos** — a convergênci
   nasce na próxima composição — aceito no MVP, follow-up.
 - Caminho Windows hardcoded (`PW_CORE`) em `tests/e2e/run-linha-verde-canonico.mjs`.
 - Runner legado `tests/e2e/run-linha-verde.mjs` desalinhado das telas canônicas (não é portão; candidato a `old/`).
-- Fase 06 (operacional, fora do código): desligar "Confirm email" no dashboard, configurar os secrets
-  dos 4 provedores de IA na função e semear o operador na tabela `operadores` — passos no
-  fase06_backend/PARIDADE.md. Sem eles o app funciona igual (fail-soft: simulado/local).
-- Fase 06 (código, próxima iteração): telas do admin (tenants/conteúdo/flags) sobre PostgREST — hoje só
-  a config de IA é espelhada no servidor; vínculo explícito conta↔tenant (`contas_tenant`); telemetria
-  remota com retenção; adaptadores Firebase reais (stubs + paridade documentada); teto de perfis por
-  plano no app da família (o trigger cobre o dado remoto com tenant).
+- **Migration da iteração 2 PENDENTE no projeto real** (PARIDADE.md passo 0b): colar
+  `src/backend/adaptadores/migracao_2026-07-06_admin_remoto.sql` no SQL editor (idempotente).
+  Fail-soft até lá: espelhos do admin e kill-switch global falham em silêncio; vínculo e teto
+  no app degradam ao comportamento anterior.
+- Fase 06 (operacional, fora do código): configurar os secrets dos 4 provedores de IA na função —
+  passos no fase06_backend/PARIDADE.md. "Confirm email" segue LIGADO e, desde o vínculo
+  conta↔tenant, desligá-lo REABRE o risco de sequestro de vínculo por e-mail não confirmado
+  (quem registrar primeiro um e-mail vinculado herdaria o tenant) — manter ligado é a mitigação.
+- Dívidas registradas na iteração 2 (aceitas no MVP): adaptadores Firebase reais (stubs +
+  paridade); kill-switch alcança a família no PRÓXIMO boot/login (não em tempo real); pull do
+  admin é servidor-vence (escrita local offline nunca espelhada se perde no próximo login);
+  reconciliação dura do estouro de teto local×remoto (perfil recusado pelo trigger fica só
+  local); `eh_operador()` dá acesso total a qualquer operador — o escopo restrito só é honrado
+  client-side; publicação de `conteudo` para as famílias lerem = fase08.
 - Fase 08 depende de conteúdo; fase 07 (QA/A11y/CI) não iniciada.
 
 Aposentados em 2026-07-02 (movidos para `old/`): `app.html` (entry duplicado; o e2e canônico agora aponta

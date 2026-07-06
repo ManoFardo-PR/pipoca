@@ -23,6 +23,11 @@ export interface RepositorioPersistencia {
   registrarTelemetria(evento: EventoTelemetria): Promise<void>;
   /** Lê os eventos de telemetria de um perfil (origem do painel PC_DASH). */
   carregarTelemetria(perfilId: string): Promise<EventoTelemetria[]>;
+  /**
+   * Poda eventos além da retenção (90d padrão — fase03-03-03). OPCIONAL por
+   * contrato aditivo; devolve quantos saíram (o remoto pode devolver 0).
+   */
+  podarTelemetria?(perfilId: string, agora: number, retencaoDias?: number): Promise<number>;
   /** LGPD: remove o perfil + seu save + sua telemetria + suas histórias. */
   apagarPerfil(perfilId: string): Promise<void>;
   // ─── Histórias salvas (pós-fase06) — OPCIONAIS por contrato aditivo ───────

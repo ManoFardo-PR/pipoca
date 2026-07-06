@@ -25,6 +25,7 @@ import {
   RETENCAO_HISTORIAS_DIAS,
   validarHistoriaSalva,
 } from "../../core/historias.js";
+import { RETENCAO_DIAS_PADRAO } from "../../servicos/telemetria_repo.js";
 import type { Transporte } from "../../ia/provedor.js";
 import { transportePadrao } from "../../ia/provedor.js";
 
@@ -123,6 +124,28 @@ export class RepositorioSupabase implements RepositorioPersistencia {
       if (l && validarEvento(l.evento)) out.push(l.evento as EventoTelemetria);
     }
     return out;
+  }
+
+  /**
+   * Retenção remota de telemetria: DELETE por filtro, idempotente (padrão de
+   * `podarHistorias`). O local poda por `evento.ts` (relógio do cliente) e o
+   * remoto por `criado_em` (relógio do servidor) — divergência de minutos numa
+   * janela de 90 dias é aceitável.
+   */
+  async podarTelemetria(
+    perfilId: string,
+    agora: number,
+    retencaoDias: number = RETENCAO_DIAS_PADRAO
+  ): Promise<number> {
+    const limite = new Date(agora - retencaoDias * 86_400_000).toISOString();
+    await this.req(
+      "/telemetria?perfil_id=eq." + encodeURIComponent(perfilId)
+        + "&criado_em=lt." + encodeURIComponent(limite),
+      "DELETE",
+      undefined,
+      "return=minimal"
+    );
+    return 0; // return=minimal não conta — o local reporta
   }
 
   // ─── Histórias salvas (pós-fase06) — tabela `historias` ───────────────────

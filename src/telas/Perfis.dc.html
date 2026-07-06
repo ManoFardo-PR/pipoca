@@ -152,6 +152,23 @@ class Component extends DCLogic {
     if (!nome) { this.setState({ erro: 'Conte o nome da criança para salvar.' }); return; }
     if (!App || !App.repo || !Canon || !Canon.perfil) { this.setState({ erro: 'App indisponível. Recarregue a página.' }); return; }
     this.setState({ salvando: true, erro: '' });
+    // pós-fase06 · teto do plano SÓ na criação (editar nunca bloqueia — regra
+    // "rebaixar não destrói"). Sem informação (offline/local) → null e segue
+    // criando: o trigger do servidor é o enforcement real; aqui é acolhimento.
+    if (!this.state.editId && Canon.backend && Canon.backend.limitesDaFamilia) {
+      let lim = null;
+      try { lim = await Canon.backend.limitesDaFamilia(); } catch (_) { lim = null; }
+      const atuais = (this.state.perfis || []).length;
+      if (lim && Canon.backend.excedeTetoPerfis && Canon.backend.excedeTetoPerfis(atuais, lim)) {
+        this.setState({
+          salvando: false,
+          erro: 'Que casa cheia de leitores! O plano de vocês acompanha até '
+            + lim.maxPerfis + (lim.maxPerfis === 1 ? ' criança' : ' crianças')
+            + ' por enquanto. Para abrir espaço para mais uma, dê uma olhadinha nos planos.',
+        });
+        return;
+      }
+    }
     const id = this.state.editId
       || ((window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('p' + Date.now()));
     const perfil = Canon.perfil.criarPerfil(id, {

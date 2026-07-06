@@ -2555,6 +2555,86 @@
     }
   }
 
+  // src/admin/tenant/tiposTenant.ts
+  var PLANOS_PADRAO = [
+    { id: "gratis", nome: "Grátis", limites: { maxPerfis: 1, iaPermitida: false, cenariosCustomizados: 0, retencaoTelemetriaDias: 30 } },
+    { id: "freemium", nome: "Freemium", validadeDias: 60, limites: { maxPerfis: 4, iaPermitida: true, cenariosCustomizados: 2, retencaoTelemetriaDias: 90 } },
+    { id: "familia", nome: "Família", limites: { maxPerfis: 4, iaPermitida: true, cenariosCustomizados: 2, retencaoTelemetriaDias: 90 } },
+    { id: "escola", nome: "Escola", limites: { maxPerfis: 40, iaPermitida: true, cenariosCustomizados: 10, retencaoTelemetriaDias: 180 } }
+  ];
+  var PLANO_MAIS_RESTRITIVO = "gratis";
+  var MS_POR_DIA3 = 86400000;
+  function limitesDoPlano(planoId) {
+    const p = PLANOS_PADRAO.find((x) => x.id === planoId);
+    const base = p ?? PLANOS_PADRAO.find((x) => x.id === PLANO_MAIS_RESTRITIVO);
+    return { ...base.limites };
+  }
+  function limitesVigentes(tenant, agora) {
+    const p = PLANOS_PADRAO.find((x) => x.id === tenant.planoId);
+    if (p && typeof p.validadeDias === "number" && agora > tenant.criadoEm + p.validadeDias * MS_POR_DIA3) {
+      return limitesDoPlano(PLANO_MAIS_RESTRITIVO);
+    }
+    return limitesDoPlano(tenant.planoId);
+  }
+  function excedeTetoPerfis(contagemAtual, limites) {
+    return contagemAtual + 1 > limites.maxPerfis;
+  }
+  var ESQUEMA_TENANT = "pipoca.tenant.v1";
+  function tenantValido(t) {
+    if (!t || typeof t !== "object")
+      return false;
+    const r = t;
+    return typeof r["id"] === "string" && r["id"].length > 0 && typeof r["nome"] === "string" && typeof r["planoId"] === "string" && typeof r["ativo"] === "boolean" && typeof r["criadoEm"] === "number";
+  }
+  function validarEnvelopeTenant(raw) {
+    const env = raw;
+    if (env && env.esquema === ESQUEMA_TENANT && tenantValido(env.tenant))
+      return { ...env.tenant };
+    return null;
+  }
+
+  // src/backend/limites_familia.ts
+  async function limitesDaFamilia(agora, config, transporte) {
+    const cfg = config || configDoAmbiente();
+    if (cfg.provedor !== "supabase" || !cfg.supabaseUrl || !cfg.supabaseAnonKey)
+      return null;
+    try {
+      const auth = criarAuthSupabase({
+        url: cfg.supabaseUrl,
+        anonKey: cfg.supabaseAnonKey,
+        ...transporte ? { transporte } : {}
+      });
+      const s = auth.sessaoAtual();
+      if (!s || s.tipo !== "familia")
+        return null;
+      const tenant = escopoTenant(s);
+      if (!tenant)
+        return null;
+      const token = await auth.obterToken();
+      if (!token)
+        return null;
+      const t = transporte || transportePadrao();
+      const resp = await t(cfg.supabaseUrl.replace(/\/+$/, "") + "/rest/v1/tenants?select=dados&id=eq." + encodeURIComponent(tenant), {
+        method: "GET",
+        headers: {
+          apikey: cfg.supabaseAnonKey,
+          Authorization: "Bearer " + token,
+          "content-type": "application/json"
+        }
+      });
+      if (resp.status < 200 || resp.status >= 300)
+        return null;
+      const json = await resp.json();
+      const linha = Array.isArray(json) ? json[0] : undefined;
+      const dados = validarEnvelopeTenant(linha ? linha.dados : null);
+      if (!dados)
+        return null;
+      return limitesVigentes(dados, typeof agora === "number" ? agora : Date.now());
+    } catch {
+      return null;
+    }
+  }
+
   // src/core/composicao.ts
   function nivelKey(nivel) {
     const s = String(nivel ?? "").trim().toLowerCase();
@@ -3010,7 +3090,7 @@
   }
 
   // src/core/agregadosTelemetria.ts
-  var MS_POR_DIA3 = 86400000;
+  var MS_POR_DIA4 = 86400000;
   var TETO_MINUTOS_SESSAO = 60;
   var META_LEITURAS_DIA = 5;
   var META_CENARIOS_DIA = 3;
@@ -3028,10 +3108,10 @@
     }
   }
   function indiceDia(ts) {
-    return Math.floor(ts / MS_POR_DIA3);
+    return Math.floor(ts / MS_POR_DIA4);
   }
   function rotuloDia(idxDia) {
-    return new Date(idxDia * MS_POR_DIA3).toISOString().slice(0, 10);
+    return new Date(idxDia * MS_POR_DIA4).toISOString().slice(0, 10);
   }
   function chaveDia(ts) {
     return rotuloDia(indiceDia(ts));
@@ -3040,7 +3120,7 @@
     const dias = diasDoPeriodo(periodo);
     if (!Number.isFinite(dias))
       return eventos.slice();
-    const limite = agora - dias * MS_POR_DIA3;
+    const limite = agora - dias * MS_POR_DIA4;
     return eventos.filter((e) => e.ts >= limite);
   }
   function minutosClampados(e) {
@@ -3303,7 +3383,16 @@
         return criarOrquestrador(cadeia);
       }
     },
-    backend: { obterBackend, configDoAmbiente, normalizarConfigBackend, escopoTenant, sincronizarInicial, puxarFlagsGlobais },
+    backend: {
+      obterBackend,
+      configDoAmbiente,
+      normalizarConfigBackend,
+      escopoTenant,
+      sincronizarInicial,
+      puxarFlagsGlobais,
+      limitesDaFamilia,
+      excedeTetoPerfis
+    },
     flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos },
     tts,
     asr: { asr, criarServicoASR, asrDisponivel, avaliarParticipacao },

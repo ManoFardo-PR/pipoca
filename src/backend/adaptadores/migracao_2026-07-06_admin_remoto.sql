@@ -14,6 +14,8 @@
 --   3. contas_tenant — vínculo explícito conta↔tenant
 --   4. tenant_da_sessao() + trigger fixar_tenant_perfis — o SERVIDOR decide o
 --      tenant_id de todo perfil (fecha o spoofing/bypass do teto)
+--   5. tenants_familia_leitura — a família LÊ a própria linha de tenants
+--      (o app mostra o teto do plano com acolhimento antes do trigger negar)
 
 -- ── 1 · flags_admin: kill-switches globais (linha única 'global') ────────────
 -- A FAMÍLIA precisa LER (o kill-switch alcança o app no boot/login); só o
@@ -105,3 +107,19 @@ revoke execute on function fixar_tenant_perfil() from public, anon, authenticate
 drop trigger if exists fixar_tenant_perfis on perfis;
 create trigger fixar_tenant_perfis before insert or update on perfis
   for each row execute function fixar_tenant_perfil();
+
+-- ── 5 · tenants: a família LÊ a própria linha (teto/plano no app) ─────────────
+-- SECURITY DEFINER: a checagem não depende das policies de contas_tenant.
+-- Nunca `using (true)`: só a linha sintética do uid ou as vinculadas ao
+-- e-mail do JWT — um membro vê os metadados do PRÓPRIO plano, nada além.
+create or replace function tenant_vinculado_a_mim(tid text) returns boolean
+language sql security definer stable set search_path = public as
+$$ select tid = 'familia:' || coalesce(auth.uid()::text, '')
+       or exists (select 1 from contas_tenant ct
+                   where ct.tenant_id = tid
+                     and lower(ct.email) = lower(coalesce(auth.jwt()->>'email',''))) $$;
+revoke execute on function tenant_vinculado_a_mim(text) from public, anon;
+
+drop policy if exists tenants_familia_leitura on tenants;
+create policy tenants_familia_leitura on tenants for select
+  to authenticated using (tenant_vinculado_a_mim(id));

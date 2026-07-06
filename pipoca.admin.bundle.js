@@ -260,12 +260,24 @@
   function excedeTetoPerfis(contagemAtual, limites) {
     return contagemAtual + 1 > limites.maxPerfis;
   }
+  var ESQUEMA_TENANT = "pipoca.tenant.v1";
+  function tenantValido(t) {
+    if (!t || typeof t !== "object")
+      return false;
+    const r = t;
+    return typeof r["id"] === "string" && r["id"].length > 0 && typeof r["nome"] === "string" && typeof r["planoId"] === "string" && typeof r["ativo"] === "boolean" && typeof r["criadoEm"] === "number";
+  }
+  function validarEnvelopeTenant(raw) {
+    const env = raw;
+    if (env && env.esquema === ESQUEMA_TENANT && tenantValido(env.tenant))
+      return { ...env.tenant };
+    return null;
+  }
 
   // src/admin/tenant/repositorioTenant.ts
   var ERRO_FORA_DE_ESCOPO = "Não foi possível concluir a ação.";
   var CHAVE_TENANTS = "pipoca.admin.tenants.v1";
   var CHAVE_CONTAS = "pipoca.admin.contas.v1";
-  var ESQUEMA_TENANT = "pipoca.tenant.v1";
   function storagePadrao2() {
     try {
       const g = globalThis;
@@ -291,18 +303,6 @@
       ativo: true,
       criadoEm: agora
     };
-  }
-  function tenantValido(t) {
-    if (!t || typeof t !== "object")
-      return false;
-    const r = t;
-    return typeof r["id"] === "string" && r["id"].length > 0 && typeof r["nome"] === "string" && typeof r["planoId"] === "string" && typeof r["ativo"] === "boolean" && typeof r["criadoEm"] === "number";
-  }
-  function validarEnvelopeTenant(raw) {
-    const env = raw;
-    if (env && env.esquema === ESQUEMA_TENANT && tenantValido(env.tenant))
-      return { ...env.tenant };
-    return null;
   }
   function substituirTenantsLocais(tenants, armazem) {
     const st = armazem ?? storagePadrao2();

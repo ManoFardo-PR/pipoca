@@ -30,6 +30,7 @@ import {
   envolverRepoTenantComEspelho,
 } from "./espelho_admin.js";
 import { puxarFlagsGlobais } from "./flags_globais.js";
+import { limitesDaFamilia } from "./limites_familia.js";
 import { criarRepositorioTenant, novoTenant } from "../admin/tenant/repositorioTenant.js";
 import { listarCenarios, type CenarioVersionado } from "../admin/validar_grafo.js";
 import { aplicarFlagsAosModos, carregarFlags, salvarFlags } from "../admin/flags.js";
@@ -1160,6 +1161,52 @@ console.log("\n=== flags globais — o kill-switch alcança a família ===");
   srvPodre.flagsAdmin.set("global", { id: "global", dados: { ia: "sim", fala: 1 } });
   const saneadas = await puxarFlagsGlobais(cfgSupa, srvPodre.t);
   assert(!!saneadas && saneadas["ia"] === false && saneadas["fala"] === false, "dados corrompidos → defaults seguros (fail-closed)");
+  armazem.limpar();
+}
+
+console.log("\n=== limites da família — teto do plano no app (UX acolhedora) ===");
+{
+  armazem.limpar();
+  const cfgSupa = { provedor: "supabase" as const, supabaseUrl: URL_SUPA, supabaseAnonKey: "anon-k" };
+  const agora = 1_750_000_000_000;
+  const DIA = 86_400_000;
+  const sessaoDe = (tipo: string) =>
+    JSON.stringify({
+      access_token: "tokF", refresh_token: "r1",
+      expiraTokenEm: Date.now() + 3_600_000, validaAte: Date.now() + 86_400_000,
+      uid: "uid-9", tipo,
+    });
+  const linhaTenant = (planoId: string, criadoEm: number) => ({
+    id: "familia:uid-9",
+    dados: { esquema: "pipoca.tenant.v1", tenant: { id: "familia:uid-9", nome: "Família", planoId, ativo: true, criadoEm } },
+  });
+
+  // guardas → null (e sem rede quando nem deveria tentar)
+  const srvVazio = servidorSupabaseFake();
+  assert((await limitesDaFamilia(agora, { provedor: "local" })) === null, "provedor local → null (deixa criar; o app não muda)");
+  assert((await limitesDaFamilia(agora, cfgSupa, srvVazio.t)) === null && srvVazio.chamadas.length === 0, "sem sessão → null sem rede");
+  armazem.setItem(CHAVE_SESSAO_BACKEND, sessaoDe("superadmin"));
+  assert((await limitesDaFamilia(agora, cfgSupa, srvVazio.t)) === null, "sessão de operador → null (o teto é da família)");
+
+  // família + freemium no prazo → limites do Família (mesma régua do trigger)
+  armazem.setItem(CHAVE_SESSAO_BACKEND, sessaoDe("familia"));
+  const srv = servidorSupabaseFake();
+  srv.tenants.set("familia:uid-9", linhaTenant("freemium", agora - 10 * DIA));
+  const lim = await limitesDaFamilia(agora, cfgSupa, srv.t);
+  assert(!!lim && lim.maxPerfis === 4, "freemium no prazo → teto 4 (limites do Família)");
+
+  // freemium VENCIDO → degrada aos limites do Grátis (paridade com o servidor)
+  const srvVencido = servidorSupabaseFake();
+  srvVencido.tenants.set("familia:uid-9", linhaTenant("freemium", agora - 61 * DIA));
+  const limVencido = await limitesDaFamilia(agora, cfgSupa, srvVencido.t);
+  assert(!!limVencido && limVencido.maxPerfis === 1, "freemium vencido (61d) → teto 1 (degrada ao Grátis)");
+
+  // sem linha / envelope corrompido → null (fail-soft: deixa criar)
+  const srvSemLinha = servidorSupabaseFake();
+  assert((await limitesDaFamilia(agora, cfgSupa, srvSemLinha.t)) === null, "tenant sem linha → null");
+  const srvPodre2 = servidorSupabaseFake();
+  srvPodre2.tenants.set("familia:uid-9", { id: "familia:uid-9", dados: { esquema: "outro" } });
+  assert((await limitesDaFamilia(agora, cfgSupa, srvPodre2.t)) === null, "envelope corrompido → null");
   armazem.limpar();
 }
 

@@ -24,6 +24,7 @@ import { criarProxyIA, provedorViaProxy } from "./proxy_ia.js";
 import { criarOrquestrador } from "../ia/orquestrador.js";
 import type { RepositorioPersistencia } from "../core/persistencia/index.js";
 import { criarPerfil, type Perfil } from "../core/perfil.js";
+import type { HistoriaSalva } from "../core/historias.js";
 import { estadoInicial, type EstadoApp, type EventoTelemetria } from "../core/estado.js";
 import { criarEvento } from "../core/telemetria.js";
 import type { Transporte } from "../ia/provedor.js";
@@ -412,6 +413,7 @@ function servidorSupabaseFake() {
   const perfis = new Map<string, { id: string; tenant_id?: string; dados: unknown }>();
   const saves = new Map<string, { perfil_id: string; dados: unknown }>();
   const telemetria: Array<{ perfil_id: string; evento: unknown }> = [];
+  const historias = new Map<string, { id: string; perfil_id: string; favorita: boolean; criada_em: string; dados: unknown }>();
   const chamadas: Array<{ url: string; metodo: string; headers: Record<string, string> }> = [];
   const ok = (json: unknown, status = 200) => ({ status, json: async () => json });
 
@@ -435,12 +437,22 @@ function servidorSupabaseFake() {
         const id = eq("perfil_id");
         return ok(telemetria.filter((x) => x.perfil_id === id).map((x) => ({ evento: x.evento })));
       }
+      if (tabela === "historias") {
+        const id = eq("perfil_id");
+        return ok(
+          [...historias.values()]
+            .filter((x) => x.perfil_id === id)
+            .sort((a, b) => (a.criada_em < b.criada_em ? 1 : -1))
+            .map((x) => ({ dados: x.dados }))
+        );
+      }
     }
     if (init.method === "POST") {
       const linhas = (Array.isArray(corpo) ? corpo : [corpo]) as Array<Record<string, unknown>>;
       if (tabela === "perfis") for (const l of linhas) perfis.set(l["id"] as string, l as never);
       if (tabela === "saves") for (const l of linhas) saves.set(l["perfil_id"] as string, l as never);
       if (tabela === "telemetria") for (const l of linhas) telemetria.push(l as never);
+      if (tabela === "historias") for (const l of linhas) historias.set(l["id"] as string, l as never); // upsert por id
       return ok(null, 201);
     }
     if (init.method === "DELETE") {
@@ -456,11 +468,25 @@ function servidorSupabaseFake() {
         const id = eq("perfil_id");
         for (let i = telemetria.length - 1; i >= 0; i--) if (telemetria[i]!.perfil_id === id) telemetria.splice(i, 1);
       }
+      if (tabela === "historias") {
+        const pid = eq("perfil_id");
+        const hid = eq("id");
+        const fav = eq("favorita"); // "false" na poda
+        const ltRaw = u.searchParams.get("criada_em");
+        const lt = ltRaw && ltRaw.indexOf("lt.") === 0 ? ltRaw.slice(3) : null;
+        for (const [k, r] of [...historias.entries()]) {
+          if (pid && r.perfil_id !== pid) continue;
+          if (hid && r.id !== hid) continue;
+          if (fav !== null && String(r.favorita) !== fav) continue;
+          if (lt !== null && !(r.criada_em < lt)) continue;
+          historias.delete(k);
+        }
+      }
       return ok(null, 204);
     }
     return ok({}, 404);
   };
-  return { t, perfis, saves, telemetria, chamadas };
+  return { t, perfis, saves, telemetria, historias, chamadas };
 }
 
 /** Repo em memória com espião de chamadas (p/ sincronizado/sync). */
@@ -639,6 +665,70 @@ console.log("\n=== sincronizarInicial (06-03) — união com preferência local 
   assert(remoto.perfis.get("p-aaa")!.nome === "Aline Editada Local", "push local→remoto leva a edição local (upsert)");
   assert(res.puxados === 1 && res.empurrados === 2, "contadores do sync corretos");
   assert(armazem.getItem(CHAVE_TOMBSTONES) === null, "storage de tombstones limpo no fim");
+}
+
+console.log("\n=== histórias salvas — espelho remoto, poda por filtro e sync ===");
+{
+  armazem.limpar();
+  const DIA = 86_400_000;
+  const agora = 1_750_000_000_000;
+  const mkH = (id: string, diasAtras: number, favorita = false): HistoriaSalva => ({
+    id, cenarioId: "quintal_anoitecer", texto: "Era uma noite mansa. Fim.",
+    linha: ["vagalume"], nivel: "n2", desfecho: "convergente",
+    titulo: "A história de o vaga-lume", emoji: "🌟",
+    criadaEm: agora - diasAtras * DIA, favorita,
+  });
+
+  const srv = servidorSupabaseFake();
+  const remoto = new RepositorioSupabase({
+    url: "https://proj.supabase.co", anonKey: "anon-k",
+    obterToken: async () => "tok", transporte: srv.t,
+  });
+
+  // upsert com colunas favorita/criada_em + envelope em dados; dono NUNCA enviado
+  await remoto.salvarHistoria!("p1", mkH("h1", 1));
+  await remoto.salvarHistoria!("p1", { ...mkH("h1", 1), favorita: true }); // upsert
+  const linhaH = srv.historias.get("h1");
+  assert(!!linhaH && linhaH.favorita === true && typeof linhaH.criada_em === "string", "upsert por id com favorita/criada_em como COLUNAS");
+  assert(srv.historias.size === 1, "regravar a mesma história não duplica");
+  assert(!("dono" in (linhaH as Record<string, unknown>)), "coluna dono nunca é enviada (RLS + default no banco)");
+  const lidasRemoto = await remoto.carregarHistorias!("p1");
+  assert(lidasRemoto.length === 1 && lidasRemoto[0]!.favorita === true, "round-trip do envelope revalidado na leitura");
+
+  // poda remota: DELETE por filtro apaga SÓ não-favoritas velhas
+  await remoto.salvarHistoria!("p1", mkH("velha", 25));
+  await remoto.salvarHistoria!("p1", mkH("fav-velha", 40, true));
+  await remoto.salvarHistoria!("p1", mkH("nova", 2));
+  await remoto.podarHistorias!("p1", agora);
+  assert(!srv.historias.has("velha"), "poda remota apaga a não-favorita de 25 dias");
+  assert(srv.historias.has("fav-velha") && srv.historias.has("nova"), "favorita velha e não-favorita recente sobrevivem");
+
+  // sincronizado: escrita local + espelho; remoto offline não quebra
+  const localHist = new RepositorioLocalStorage();
+  const sinc = criarRepositorioSincronizado(localHist, remoto);
+  await sinc.salvarHistoria!("p2", mkH("h-sinc", 0));
+  await new Promise((r) => setTimeout(r, 0));
+  assert((await localHist.carregarHistorias("p2")).length === 1 && srv.historias.has("h-sinc"), "sincronizado grava local E espelha no remoto");
+  const remotoMorto = new RepositorioSupabase({ url: "https://x.supabase.co", anonKey: "k", obterToken: async () => null, transporte: srv.t });
+  const sincOffline = criarRepositorioSincronizado(localHist, remotoMorto);
+  let quebrou = false;
+  await sincOffline.salvarHistoria!("p2", mkH("h-off", 0)).catch(() => { quebrou = true; });
+  await new Promise((r) => setTimeout(r, 0));
+  assert(!quebrou && (await localHist.carregarHistorias("p2")).length === 2, "remoto sem sessão não quebra a escrita local (fail-soft)");
+
+  // apagarPerfil limpa a 4ª tabela no servidor
+  await remoto.apagarPerfil("p1");
+  assert(![...srv.historias.values()].some((h) => h.perfil_id === "p1"), "apagarPerfil (LGPD) limpa também as histórias remotas");
+
+  // sync inicial puxa as histórias do perfil ausente
+  armazem.limpar();
+  const srv2 = servidorSupabaseFake();
+  const remoto2 = new RepositorioSupabase({ url: "https://proj.supabase.co", anonKey: "k", obterToken: async () => "tok", transporte: srv2.t });
+  await remoto2.salvarPerfil(PERFIL_B);
+  await remoto2.salvarHistoria!("p-bbb", mkH("h-remota", 3));
+  const localNovo = new RepositorioLocalStorage();
+  await sincronizarInicial(localNovo, remoto2);
+  assert((await localNovo.carregarHistorias("p-bbb")).some((h) => h.id === "h-remota"), "aparelho novo puxa as histórias junto do perfil");
 }
 
 // ─── Etapa 5 · ProxyIA cliente (06-05, lado cliente) ─────────────────────────

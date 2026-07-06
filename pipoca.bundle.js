@@ -2096,9 +2096,37 @@
       }
       return out;
     }
+    async carregarHistorias(perfilId) {
+      const linhas = await this.req("/historias?select=dados&perfil_id=eq." + encodeURIComponent(perfilId) + "&order=criada_em.desc", "GET");
+      const out = [];
+      for (const l of Array.isArray(linhas) ? linhas : []) {
+        const h = validarHistoriaSalva(l && l.dados ? l.dados.historia : null);
+        if (h !== null)
+          out.push(h);
+      }
+      return out;
+    }
+    async salvarHistoria(perfilId, historia) {
+      await this.req("/historias?on_conflict=id", "POST", [{
+        id: historia.id,
+        perfil_id: perfilId,
+        favorita: historia.favorita === true,
+        criada_em: new Date(historia.criadaEm).toISOString(),
+        dados: { esquema: ESQUEMA_HISTORIAS, historia: { ...historia } }
+      }], "resolution=merge-duplicates,return=minimal");
+    }
+    async apagarHistoria(perfilId, historiaId) {
+      await this.req("/historias?perfil_id=eq." + encodeURIComponent(perfilId) + "&id=eq." + encodeURIComponent(historiaId), "DELETE", undefined, "return=minimal");
+    }
+    async podarHistorias(perfilId, agora) {
+      const limite = new Date(agora - RETENCAO_HISTORIAS_DIAS * 86400000).toISOString();
+      await this.req("/historias?perfil_id=eq." + encodeURIComponent(perfilId) + "&favorita=eq.false&criada_em=lt." + encodeURIComponent(limite), "DELETE", undefined, "return=minimal");
+      return 0;
+    }
     async apagarPerfil(perfilId) {
       const id = encodeURIComponent(perfilId);
       await this.req("/telemetria?perfil_id=eq." + id, "DELETE", undefined, "return=minimal");
+      await this.req("/historias?perfil_id=eq." + id, "DELETE", undefined, "return=minimal");
       await this.req("/saves?perfil_id=eq." + id, "DELETE", undefined, "return=minimal");
       await this.req("/perfis?id=eq." + id, "DELETE", undefined, "return=minimal");
     }
@@ -2166,6 +2194,25 @@
         await local.apagarPerfil(perfilId);
         adicionarTombstone(perfilId);
         remoto.apagarPerfil(perfilId).then(() => removerTombstone(perfilId)).catch(() => {});
+      },
+      carregarHistorias: (perfilId) => local.carregarHistorias ? local.carregarHistorias(perfilId) : Promise.resolve([]),
+      async salvarHistoria(perfilId, historia) {
+        if (local.salvarHistoria)
+          await local.salvarHistoria(perfilId, historia);
+        if (remoto.salvarHistoria)
+          remoto.salvarHistoria(perfilId, historia).catch(() => {});
+      },
+      async apagarHistoria(perfilId, historiaId) {
+        if (local.apagarHistoria)
+          await local.apagarHistoria(perfilId, historiaId);
+        if (remoto.apagarHistoria)
+          remoto.apagarHistoria(perfilId, historiaId).catch(() => {});
+      },
+      async podarHistorias(perfilId, agora) {
+        const removidas = local.podarHistorias ? await local.podarHistorias(perfilId, agora) : 0;
+        if (remoto.podarHistorias)
+          remoto.podarHistorias(perfilId, agora).catch(() => {});
+        return removidas;
       }
     };
   }
@@ -2226,6 +2273,13 @@
         await para.salvarSave(p.id, save);
         saves++;
       }
+      if (de.carregarHistorias && para.salvarHistoria) {
+        try {
+          for (const h of await de.carregarHistorias(p.id)) {
+            await para.salvarHistoria(p.id, h);
+          }
+        } catch {}
+      }
     }
     return { perfis: perfis.length, saves };
   }
@@ -2250,6 +2304,13 @@
       const save = await remoto.carregarSave(p.id);
       if (save)
         await local.salvarSave(p.id, save);
+      if (remoto.carregarHistorias && local.salvarHistoria) {
+        try {
+          for (const h of await remoto.carregarHistorias(p.id)) {
+            await local.salvarHistoria(p.id, h);
+          }
+        } catch {}
+      }
       puxados++;
     }
     const res = await migrar(local, remoto);

@@ -37,6 +37,16 @@ dedicada, a alternância é operacional via config).
 
 ## Passos manuais (dashboard) — únicos itens fora do código
 
+0b. **Migration da iteração 2 (2026-07-06) PENDENTE** — arquivo PRONTO PARA COLAR:
+   `src/backend/adaptadores/migracao_2026-07-06_admin_remoto.sql` (idempotente;
+   cole INTEIRO no SQL editor e Run). Contém: `flags_admin` (kill-switch global —
+   a família lê, só operador escreve; SEM seed: abra SA_SAFE e salve 1x para
+   semear), `conteudo`, `contas_tenant` (vínculo conta↔tenant),
+   `tenant_da_sessao()`/`fixar_tenant_perfis` (o servidor decide o tenant de
+   todo perfil) e `tenants_familia_leitura` (a família lê a própria linha —
+   teto do plano no app). Sem ela, tudo degrada fail-soft ao comportamento
+   anterior.
+
 0. ~~Migrations pós-fase06 pendentes~~ ✅ **APLICADAS (2026-07-06)** via SQL editor
    e verificadas ao vivo (`historias` → 200 com RLS; tenant `familia:<uid>` no
    Freemium via backfill). Registro do que era — arquivo PRONTO PARA COLAR:

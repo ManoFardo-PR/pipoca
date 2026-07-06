@@ -109,10 +109,10 @@ O caminho verde roda **inteiro sobre os módulos canônicos** — a convergênci
   instanciado, mas a linha verde usa a composição.
 
 ### Pendências reais (2026-07-06)
-- Migrations pós-fase06 pendentes no projeto real (PARIDADE.md passo 0): tabela `historias`
-  (RLS+índice) e o bloco do Freemium (`verificar_teto_perfis` consertado + trigger
-  `provisionar_tenant_familia` + backfill). Fail-soft até lá: histórias só locais; cadastros
-  novos sem linha de tenant; teto de perfis sem efeito.
+- ~~Migrations pós-fase06 pendentes no projeto real~~ **APLICADAS (2026-07-06)** — o usuário
+  colou `src/backend/adaptadores/migracao_2026-07-06_historias_freemium.sql` no SQL editor e
+  a verificação ao vivo passou: `GET /rest/v1/historias` → 200 (tabela + RLS ok) e o tenant
+  `familia:<uid>` da conta existe com `planoId: "freemium"` (backfill ok; teto de perfis ativo).
 - Histórias salvas: gestão por item pelo cuidador (apagar UMA história) e teto para favoritas
   ficam como follow-up (favoritas ilimitadas = aceito).
 - Reabrir a Sessao de leitura ao voltar do portão: `_entrarCuidador` encerra com calma (correto) e a

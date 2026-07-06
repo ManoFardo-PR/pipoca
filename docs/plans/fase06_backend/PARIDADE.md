@@ -37,7 +37,9 @@ dedicada, a alternância é operacional via config).
 
 ## Passos manuais (dashboard) — únicos itens fora do código
 
-0. **Migrations pós-fase06 pendentes** — arquivo PRONTO PARA COLAR:
+0. ~~Migrations pós-fase06 pendentes~~ ✅ **APLICADAS (2026-07-06)** via SQL editor
+   e verificadas ao vivo (`historias` → 200 com RLS; tenant `familia:<uid>` no
+   Freemium via backfill). Registro do que era — arquivo PRONTO PARA COLAR:
    `src/backend/adaptadores/migracao_2026-07-06_historias_freemium.sql`
    (idempotente; cole o conteúdo INTEIRO no SQL editor do dashboard e Run —
    ou aplique via MCP `apply_migration` quando o conector voltar). Contém:

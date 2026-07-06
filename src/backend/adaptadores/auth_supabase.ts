@@ -272,6 +272,35 @@ export function criarAuthSupabase(op: OpcoesAuthSupabase): AuthSupabase {
       }
     },
 
+    // Trocar a senha LOGADO: mesma rota do redefinir, mas com o bearer da
+    // SESSÃO ativa (obterToken renova sob demanda). Senha curta barra sem rede.
+    async alterarSenha(novaSenha: string): Promise<void> {
+      if ((novaSenha || "").length < 6) throw new Error("A nova senha precisa de pelo menos 6 caracteres.");
+      const token = await this.obterToken();
+      if (!token) throw new Error("A sessão venceu — entre de novo para trocar a senha.");
+      const resp = await transporte(base + "/auth/v1/user", {
+        method: "PUT",
+        headers: cabecalhos(token),
+        body: JSON.stringify({ password: novaSenha }),
+      });
+      if (resp.status !== 200) throw new Error("Não deu para trocar a senha agora. Tente de novo.");
+    },
+
+    // Trocar o e-mail LOGADO: o GoTrue envia confirmação ao NOVO endereço —
+    // o e-mail só muda depois do clique (o espelho local segue no login seguinte).
+    async alterarEmail(novoEmail: string): Promise<void> {
+      const email = (novoEmail || "").trim().toLowerCase();
+      if (!email || !email.includes("@")) throw new Error("Confira o novo e-mail, por favor.");
+      const token = await this.obterToken();
+      if (!token) throw new Error("A sessão venceu — entre de novo para trocar o e-mail.");
+      const resp = await transporte(base + "/auth/v1/user", {
+        method: "PUT",
+        headers: cabecalhos(token),
+        body: JSON.stringify({ email }),
+      });
+      if (resp.status !== 200) throw new Error("Não deu para trocar o e-mail agora. Tente de novo.");
+    },
+
     async sair(): Promise<void> {
       const s = lerSessaoBackend();
       // Espelhos limpos PRIMEIRO (um reload imediato não pode ressuscitar a

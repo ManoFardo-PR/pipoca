@@ -2009,6 +2009,35 @@
           throw new Error("O link de redefinição venceu. Peça um novo e tente de novo.");
         }
       },
+      async alterarSenha(novaSenha) {
+        if ((novaSenha || "").length < 6)
+          throw new Error("A nova senha precisa de pelo menos 6 caracteres.");
+        const token = await this.obterToken();
+        if (!token)
+          throw new Error("A sessão venceu — entre de novo para trocar a senha.");
+        const resp = await transporte(base + "/auth/v1/user", {
+          method: "PUT",
+          headers: cabecalhos(token),
+          body: JSON.stringify({ password: novaSenha })
+        });
+        if (resp.status !== 200)
+          throw new Error("Não deu para trocar a senha agora. Tente de novo.");
+      },
+      async alterarEmail(novoEmail) {
+        const email = (novoEmail || "").trim().toLowerCase();
+        if (!email || !email.includes("@"))
+          throw new Error("Confira o novo e-mail, por favor.");
+        const token = await this.obterToken();
+        if (!token)
+          throw new Error("A sessão venceu — entre de novo para trocar o e-mail.");
+        const resp = await transporte(base + "/auth/v1/user", {
+          method: "PUT",
+          headers: cabecalhos(token),
+          body: JSON.stringify({ email })
+        });
+        if (resp.status !== 200)
+          throw new Error("Não deu para trocar o e-mail agora. Tente de novo.");
+      },
       async sair() {
         const s = lerSessaoBackend();
         gravarSessaoBackend(null);
@@ -2374,6 +2403,16 @@
         return { uid: r.conta.id, tipo: "familia" };
       },
       async recuperarSenha(_email) {},
+      async alterarSenha(_novaSenha) {},
+      async alterarEmail(novoEmail) {
+        const email = (novoEmail || "").trim().toLowerCase();
+        if (!email || !email.includes("@"))
+          throw new Error("Confira o novo e-mail, por favor.");
+        const conta = carregarConta();
+        if (!conta)
+          throw new Error("Sem conta nesta casa ainda.");
+        salvarConta({ ...conta, email });
+      },
       async sair() {
         const fam = carregarSessaoConta();
         if (fam && sessaoValida(fam, Date.now())) {

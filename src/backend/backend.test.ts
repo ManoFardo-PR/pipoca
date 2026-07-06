@@ -344,6 +344,49 @@ console.log("\n=== auth Supabase — criar conta explícita + recuperar/redefini
   assert(!lancouLocal, "local: recuperarSenha resolve neutro (sem servidor de e-mail)");
 }
 
+console.log("\n=== auth — trocar senha/e-mail LOGADO (T16 · Conta & segurança) ===");
+{
+  armazem.limpar();
+  const { t, chamadas } = transporteRotas([
+    { casa: (u) => u.indexOf("grant_type=password") >= 0, responder: () => ({ status: 200, json: SESSAO_OK }) },
+    { casa: (u, m) => u.indexOf("/auth/v1/user") >= 0 && m === "PUT", responder: () => ({ status: 200, json: { id: "uid-1" } }) },
+  ]);
+  const auth = criarAuthSupabase({ url: URL_SUPA, anonKey: "anon-k", transporte: t });
+  await auth.entrarFamilia({ email: "casa@pipoca.dev", senha: "segredo123" });
+
+  await auth.alterarSenha!("novaSenha9");
+  const put = chamadas.find((c) => c.url.indexOf("/auth/v1/user") >= 0 && c.metodo === "PUT");
+  assert(!!put && put.headers["Authorization"] === "Bearer tok1", "alterarSenha usa o bearer da SESSÃO ativa");
+  assert((put!.corpo as { password?: string }).password === "novaSenha9", "corpo do PUT leva a senha nova");
+
+  const nAntes = chamadas.length;
+  let msgCurta = "";
+  await auth.alterarSenha!("123").catch((e: Error) => { msgCurta = e.message; });
+  assert(/6 caracteres/.test(msgCurta) && chamadas.length === nAntes, "senha curta barra ANTES da rede");
+
+  await auth.alterarEmail!("Novo@Email.dev");
+  const putEmail = chamadas.filter((c) => c.url.indexOf("/auth/v1/user") >= 0 && c.metodo === "PUT").pop();
+  assert((putEmail!.corpo as { email?: string }).email === "novo@email.dev", "alterarEmail normaliza e envia o novo e-mail (confirmação a caminho)");
+
+  // sem sessão → erro claro, sem rede
+  armazem.limpar();
+  const { t: tSem, chamadas: chSem } = transporteRotas([]);
+  let msgSem = "";
+  await criarAuthSupabase({ url: URL_SUPA, anonKey: "anon-k", transporte: tSem })
+    .alterarSenha!("novaSenha9").catch((e: Error) => { msgSem = e.message; });
+  assert(/sessão venceu/i.test(msgSem) && chSem.length === 0, "sem sessão → erro claro SEM ir à rede");
+
+  // local: alterarSenha é no-op honesto; alterarEmail atualiza o espelho
+  armazem.limpar();
+  const local2 = criarAuthLocal();
+  await local2.criarFamilia!({ email: "casa@pipoca.dev", senha: "segredo" });
+  let lancou2 = false;
+  await local2.alterarSenha!("qualquer-uma").catch(() => { lancou2 = true; });
+  assert(!lancou2, "local: alterarSenha resolve (o stub não usa senha)");
+  await local2.alterarEmail!("Nova@Casa.dev");
+  assert((armazem.getItem("pipoca.conta.v1") || "").indexOf("nova@casa.dev") >= 0, "local: alterarEmail atualiza o espelho pipoca.conta.v1");
+}
+
 console.log("\n=== auth Supabase — sair ===");
 {
   armazem.limpar();

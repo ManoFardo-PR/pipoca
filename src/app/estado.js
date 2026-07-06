@@ -24,8 +24,9 @@
   var PERFIS_KEY_LEGADO = "pipoca.perfis.v1"; // chave antiga (array plano); o repo canônico usa envelopes
 
   // Superfícies adultas (KIDMODE · modoApp.ts): Onboarding (10), hub e telas do
-  // cuidador (11–15) e o painel de evolução (8). A numeração pertence ao app.
-  var SUPERFICIES_ADULTAS = [8, 10, 11, 12, 13, 14, 15];
+  // cuidador (11–15), painel de evolução (8) e Conta & segurança (16).
+  // A numeração pertence ao app.
+  var SUPERFICIES_ADULTAS = [8, 10, 11, 12, 13, 14, 15, 16];
 
   var FALLBACK_CENARIO = {
     id: "quintal_anoitecer",
@@ -160,11 +161,13 @@
     state.modoApp = M ? M.aoPassarPortao() : "cuidador";
   }
 
-  // Após PIN aceito: sem perfis → onboarding (T10); com perfis → hub do cuidador (T11).
+  // Após PIN aceito: sem perfis → onboarding (T10); com perfis → a EVOLUÇÃO
+  // DA LEITURA (T8) é a aterrissagem do cuidador — o hub (T11) fica a um
+  // toque no "↩ Painel".
   function _irParaPosPin() {
     _entrarCuidador();
     if ((_perfis || []).length === 0) _irPara(10);
-    else _irPara(11);
+    else _irPara(8);
   }
 
   // ─── Persistência (seam RepositorioPersistencia via bundle) ───────────────
@@ -594,6 +597,63 @@
       .catch(function () { return { ok: true }; });
   }
 
+  // Troca de senha LOGADO (T16 · Conta & segurança). No modo local a senha
+  // não é usada — o adaptador resolve e a tela avisa.
+  function alterarSenha(novaSenha) {
+    var b = _backend();
+    if (!b || !b.auth || !b.auth.alterarSenha) {
+      return Promise.resolve({ ok: false, erro: "A troca de senha não está disponível neste modo." });
+    }
+    return b.auth.alterarSenha(novaSenha)
+      .then(function () { return { ok: true }; })
+      .catch(function (e) {
+        return { ok: false, erro: (e && e.message) || "Não deu para trocar a senha agora." };
+      });
+  }
+
+  // Troca de e-mail LOGADO (dispara confirmação no Supabase).
+  function alterarEmail(novoEmail) {
+    var b = _backend();
+    if (!b || !b.auth || !b.auth.alterarEmail) {
+      return Promise.resolve({ ok: false, erro: "A troca de e-mail não está disponível neste modo." });
+    }
+    return b.auth.alterarEmail(novoEmail)
+      .then(function () { return { ok: true }; })
+      .catch(function (e) {
+        return { ok: false, erro: (e && e.message) || "Não deu para trocar o e-mail agora." };
+      });
+  }
+
+  // E-mail da conta desta casa (espelho local — funciona em todos os backends).
+  function emailDaConta() {
+    var Canon = window.PipocaCanonico;
+    try {
+      var conta = Canon && Canon.conta ? Canon.conta.carregarConta() : null;
+      return (conta && conta.email) || "";
+    } catch (_) { return ""; }
+  }
+
+  // Troca do PIN do portão exigindo o PIN ATUAL (mesmo lockout do PINGATE).
+  function trocarPin(pinAtual, pinNovo) {
+    var Canon = window.PipocaCanonico;
+    var A = Canon && Canon.acesso;
+    if (!A) return { ok: false, erro: "O app ainda está carregando. Tente de novo." };
+    if (!/^\d{4}$/.test(String(pinNovo || ""))) {
+      return { ok: false, erro: "O PIN novo precisa de 4 números." };
+    }
+    var st = A.carregarAcesso();
+    if (st.pinHash === null) {
+      // sem PIN ainda (caso raro atrás do portão): define direto
+      A.salvarAcesso(A.definirPin(st, String(pinNovo)));
+      return { ok: true };
+    }
+    var r = A.verificarPin(st, String(pinAtual || ""), Date.now());
+    A.salvarAcesso(r.estado);
+    if (!r.ok) return { ok: false, bloqueado: r.bloqueado, erro: r.dica || "O PIN atual não confere." };
+    A.salvarAcesso(A.definirPin(r.estado, String(pinNovo)));
+    return { ok: true };
+  }
+
   // Nova senha a partir do token do link de recuperação (hash da URL).
   function redefinirSenha(tokenRecuperacao, novaSenha) {
     var b = _backend();
@@ -961,6 +1021,10 @@
     criarConta: criarConta,
     recuperarSenha: recuperarSenha,
     redefinirSenha: redefinirSenha,
+    alterarSenha: alterarSenha,
+    alterarEmail: alterarEmail,
+    emailDaConta: emailDaConta,
+    trocarPin: trocarPin,
     sairDaConta: sairDaConta,
     // composição autoral v2 (linha verde T2→T7)
     iniciarComposicao: iniciarComposicao,

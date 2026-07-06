@@ -37,6 +37,13 @@ export interface ServicoAuth {
   recuperarSenha?(email: string): Promise<void>;
   /** Define a nova senha usando o token do link de recuperação. */
   redefinirSenha?(tokenRecuperacao: string, novaSenha: string): Promise<void>;
+  /** Troca a senha do cuidador LOGADO (bearer da sessão ativa). */
+  alterarSenha?(novaSenha: string): Promise<void>;
+  /**
+   * Troca o e-mail da conta LOGADA. No GoTrue dispara confirmação ao novo
+   * endereço — o e-mail só muda de fato após o clique.
+   */
+  alterarEmail?(novoEmail: string): Promise<void>;
 }
 
 /** Erro neutro padrão de login (não distingue e-mail de senha — regra das fases 02/04). */

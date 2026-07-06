@@ -18,7 +18,7 @@ import type { Trecho } from "../core/grafo/tipos.js";
 import type { RepositorioPersistencia } from "../core/persistencia/index.js";
 import { criarRepositorio } from "../core/persistencia/index.js";
 import { entrarFamilia as entrarFamiliaStub } from "../core/contaFamilia.js";
-import { carregarSessaoConta, limparSessaoConta, salvarConta, salvarSessaoConta } from "../servicos/conta_repo.js";
+import { carregarConta, carregarSessaoConta, limparSessaoConta, salvarConta, salvarSessaoConta } from "../servicos/conta_repo.js";
 import { sessaoValida } from "../core/contaFamilia.js";
 import { criarRepositorioAdmin } from "../admin/auth/autenticacaoSuperAdmin.js";
 import { sessaoSuperAdminValida } from "../admin/auth/sessaoSuperAdmin.js";
@@ -99,6 +99,17 @@ export function criarAuthLocal(): ServicoAuth {
     async recuperarSenha(_email: string): Promise<void> {
       // Sem servidor de e-mail no modo local — resolve neutro (a tela mostra a
       // mesma mensagem "se existir conta, enviamos" em todos os backends).
+    },
+    async alterarSenha(_novaSenha: string): Promise<void> {
+      // O stub local não guarda nem valida senha (contaFamilia.ts) — no-op
+      // honesto: a tela avisa que no modo local a senha não é usada.
+    },
+    async alterarEmail(novoEmail: string): Promise<void> {
+      const email = (novoEmail || "").trim().toLowerCase();
+      if (!email || !email.includes("@")) throw new Error("Confira o novo e-mail, por favor.");
+      const conta = carregarConta();
+      if (!conta) throw new Error("Sem conta nesta casa ainda.");
+      salvarConta({ ...conta, email });
     },
     async sair(): Promise<void> {
       // A FAMÍLIA tem precedência (o consumidor local deste seam é o app da

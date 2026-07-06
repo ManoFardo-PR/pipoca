@@ -534,6 +534,94 @@ try {
   await page.waitForFunction(() => window.PipocaApp.estado.tela === 2, { timeout: 4000 });
   assert(true, "cadastro pela UI entra direto (backend local) e aterrissa na T2");
 
+  // ── Histórias salvas · captura automática na convergência + releitura +
+  // favoritar + retenção de 20 dias (favorita fica). ──
+  console.log("\n=== Histórias salvas · convergência → T3 → releitura → 💛 → retenção ===");
+  const uxHist = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+    const perfis = await App.repo.carregarPerfis();
+    const A = perfis.find((p) => p.id === "uxA");
+    App.selecionarPerfil(A, 3);
+    await espera(30);
+    // percorre a composição inteira pelo seam (R1 + inserções) até convergir
+    App.iniciarComposicao();
+    App.ordenarR1Composicao(App.estado.comp.banco.slice(0, 3));
+    App.abrirProximaRodadaComposicao();
+    let guarda = 0;
+    while (!App.composicaoConvergiu() && guarda++ < 10) {
+      const comp = App.estado.comp;
+      const objeto = comp.banco[0];
+      let inseriu = false;
+      for (let slot = 0; slot <= comp.linha.length && !inseriu; slot++) {
+        if (App.podeInserirComposicao(objeto, slot)) inseriu = App.inserirComposicao(objeto, slot);
+      }
+      if (!inseriu) break;
+      App.abrirProximaRodadaComposicao();
+    }
+    await espera(30); // captura fire-and-forget aterrissa
+    const chave = "pipoca.historias.v1:uxA";
+    const envs = JSON.parse(localStorage.getItem(chave) || "[]");
+    const h = envs.length ? envs[envs.length - 1].historia : null;
+    return {
+      convergiu: App.composicaoConvergiu(),
+      capturada: !!h && typeof h.texto === "string" && h.texto.length > 40 && h.linha.length >= 3,
+      idNoEstado: App.estado.ultimaHistoriaSalvaId === (h && h.id),
+      titulo: h ? h.titulo : "",
+    };
+  });
+  assert(uxHist.convergiu, "a composição converge pelo seam (história completa)");
+  assert(uxHist.capturada, "história COMPLETA capturada automaticamente na convergência (texto + linha)");
+  assert(uxHist.idNoEstado, "ultimaHistoriaSalvaId aponta a captura (coração da T6)");
+
+  // T3 mostra a faixa e o cartão; tap abre o leitor com o texto completo
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 3 }); });
+  await page.waitForFunction(() => /Minhas histórias/i.test(document.body.innerText), { timeout: 4000 });
+  await page.waitForFunction(
+    (t) => document.body.innerText.indexOf(t) >= 0,
+    uxHist.titulo,
+    { timeout: 4000 }
+  );
+  assert(true, "T3 lista o cartão da história recém-terminada");
+  await page.locator("div[role='button']", { hasText: uxHist.titulo }).first().click();
+  await page.waitForFunction(() => /Guardar para sempre/i.test(document.body.innerText), { timeout: 4000 });
+  assert(true, "tap no cartão abre o leitor (modal) da história");
+
+  // favoritar no leitor → envelope com favorita:true
+  await page.locator("button", { hasText: "Guardar para sempre" }).first().click();
+  await page.waitForFunction(() => /Guardada para sempre/i.test(document.body.innerText), { timeout: 4000 });
+  const favOk = await page.evaluate(() => {
+    const envs = JSON.parse(localStorage.getItem("pipoca.historias.v1:uxA") || "[]");
+    return envs.some((e) => e.historia && e.historia.favorita === true);
+  });
+  assert(favOk, "💛 no leitor grava favorita:true no envelope (criadaEm preservado)");
+  await page.locator('[aria-label="Fechar"]').first().click();
+  await page.waitForFunction(() => !window.PipocaApp.estado.leitorHistoria, { timeout: 4000 });
+
+  // retenção: forja 2 histórias de 21 dias (1 favorita) → a poda tira SÓ a não-favorita
+  const uxRetencao = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const DIA = 86400000;
+    const chave = "pipoca.historias.v1:uxA";
+    const mk = (id, fav) => ({
+      esquema: "pipoca.historias.v1",
+      historia: {
+        id, cenarioId: "quintal_anoitecer", texto: "História antiga de teste. Fim.",
+        linha: ["vagalume"], nivel: "n2", desfecho: "convergente",
+        titulo: "Antiga " + id, emoji: "🌙",
+        criadaEm: Date.now() - 21 * DIA, favorita: fav,
+      },
+    });
+    const arr = JSON.parse(localStorage.getItem(chave) || "[]");
+    arr.push(mk("antiga-solta", false), mk("antiga-do-coracao", true));
+    localStorage.setItem(chave, JSON.stringify(arr));
+    const removidas = await App.repo.podarHistorias("uxA", Date.now());
+    const ids = JSON.parse(localStorage.getItem(chave) || "[]").map((e) => e.historia.id);
+    return { removidas, soltaSumiu: !ids.includes("antiga-solta"), coracaoFicou: ids.includes("antiga-do-coracao") };
+  });
+  assert(uxRetencao.removidas >= 1 && uxRetencao.soltaSumiu, "poda de 20 dias remove a história antiga NÃO favorita");
+  assert(uxRetencao.coracaoFicou, "a favorita de 21 dias fica PARA SEMPRE (retenção não a toca)");
+
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 
   console.log(`\n${"=".repeat(50)}`);

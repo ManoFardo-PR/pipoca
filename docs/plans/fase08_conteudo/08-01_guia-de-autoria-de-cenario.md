@@ -7,10 +7,11 @@
 - classe: —
 
 ## Objetivo
-Padronizar como escrever um novo cenário `pipoca.grafo-autoral.v1` (objetos, regras, ordem, desfechos, 4 níveis) e validá-lo.
+Padronizar como escrever um novo cenário `pipoca.grafo-autoral.v3` (objetos, regras, ordem, desfechos, 4 níveis, variantes, condições de posição, ecos) e validá-lo.
 
 ## Pré-requisitos / Depende de
-- `[[fase00-00-13]]` — o schema do grafo (+ `ordem_canonica`).
+- `[[fase08-08-00]]` — Motor A+ e schema `pipoca.grafo-autoral.v3`.
+- `[[fase00-00-13]]` — linhagem do schema do grafo (v1→v2→v3).
 - `[[fase04-04-04]]` — a validação na biblioteca de conteúdo (SA_CONTENT).
 
 ## Arquivos afetados
@@ -22,7 +23,7 @@ Padronizar como escrever um novo cenário `pipoca.grafo-autoral.v1` (objetos, re
 - os 4 níveis `n1..n4` para cada fragmento.
 
 ## Interfaces / contratos
-- `GrafoAutoral`, `Cenario`, `Objeto`, `Fragmento4`, `Regra`, `DesfechoAberto` ([[_contratos/tipos-core]]); schema `pipoca.grafo-autoral.v1` ([[_contratos/schemas-json]]).
+- `GrafoAutoral`, `Cenario`, `Objeto`, `Fragmento4`, `Regra`, `DesfechoAberto` ([[_contratos/tipos-core]]); schema `pipoca.grafo-autoral.v3` ([[_contratos/grafo-autoral-v3]]).
 
 ## Regras de negócio
 1. **Tom e níveis** coerentes com o quintal (referência): frases curtas crescendo até parágrafos.

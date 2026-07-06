@@ -23,7 +23,7 @@ interação entre os arquivos.
 | 05 | [`fase05_ia_e_fala/`](fase05_ia_e_fala/) | Fase 2: Motor B + provedor multi-IA + guardrails + ASR | MB, AIPROV, GUARD, GEMINI/OPENAI/CLAUDE, ASR, AIMODEL |
 | 06 | [`fase06_backend/`](fase06_backend/) | Backend e login agnósticos (Supabase \| Firebase), multi-tenant, proxy de IA | (implementa SAVE, HH_LOGIN, SA_LOGIN, SA_TENANT, SA_AI) |
 | 07 | [`fase07_qa_a11y/`](fase07_qa_a11y/) | Testes e2e da linha verde + auditoria de acessibilidade + teste com criança | — |
-| 08 | [`fase08_conteudo/`](fase08_conteudo/) | Pipeline de conteúdo: os 4 cenários restantes (grafos + arte) | (alimenta GRAPH via SA_CONTENT) |
+| 08 | [`fase08_conteudo/`](fase08_conteudo/) | Pipeline de conteúdo: cunha 08-00 Motor A+/v3 (antes da fase 07) + os 4 cenários restantes (grafos + arte) | (alimenta GRAPH via SA_CONTENT) |
 
 > As fases 06–08 são extensões pós-arquitetura-v2.0: não são donas de nós do mermaid (os 43 nós seguem nas fases
 > 00–05); elas **implementam/consomem** nós existentes. Backend e login são **trocáveis** (Supabase ou Firebase)

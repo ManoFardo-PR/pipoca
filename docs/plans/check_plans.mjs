@@ -91,7 +91,7 @@ for (const d of Object.values(docs)) {
 }
 
 // resolvedor de link -> id de doc OU nome de contrato/raiz
-const CONTRACTS = new Set(['tipos-core', 'schemas-json', 'eventos-acoes', 'convencoes-dc-runtime', 'lei-do-contrato', 'glossario'])
+const CONTRACTS = new Set(['tipos-core', 'schemas-json', 'eventos-acoes', 'convencoes-dc-runtime', 'lei-do-contrato', 'glossario', 'grafo-autoral-v3'])
 const ROOTDOCS = new Set(['check_plans', '_template', 'readme', '_diagnostico'])
 function resolveLink(raw) {
   let s = raw.trim().replace(/^(\.\.\/)+/, '').replace(/^\.\//, '')
@@ -156,7 +156,7 @@ const add = (nome, falhas, detalhe = '') => checks.push({ nome, ok: falhas.lengt
 {
   // pipoca.grafo-autoral.v2 = composição autoral (src/core/composicao.ts · docs/quintal.v2.json),
   // citado no selo SUPERSEDED de fase00-00-20.
-  const SCHEMAS = new Set(['pipoca.grafo-autoral.v1', 'pipoca.grafo-autoral.v2', 'pipoca.perfil.v1', 'pipoca.save.v1', 'pipoca.telemetria.v1', 'pipoca.tenant.v1'])
+  const SCHEMAS = new Set(['pipoca.grafo-autoral.v1', 'pipoca.grafo-autoral.v2', 'pipoca.grafo-autoral.v3', 'pipoca.perfil.v1', 'pipoca.save.v1', 'pipoca.telemetria.v1', 'pipoca.tenant.v1'])
   const MOTORS = new Set(['MotorNarrativa', 'MotorGrafoAutoral', 'MotorIA'])
   const f = []
   for (const d of Object.values(docs)) {

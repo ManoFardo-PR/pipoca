@@ -10,10 +10,11 @@
 Autorar o grafo + nota de arte do cenário "Fundo do mar" (águas calmas).
 
 ## Pré-requisitos / Depende de
+- `[[fase08-08-00]]` — Motor A+ e schema `pipoca.grafo-autoral.v3`.
 - `[[fase08-08-01]]` — o guia de autoria e o processo de validação.
 
 ## Arquivos afetados
-- `src/dados/cenarios/fundomar.json` (criar) — grafo `pipoca.grafo-autoral.v1`.
+- `src/dados/cenarios/fundomar.json` (criar) — grafo `pipoca.grafo-autoral.v3`.
 - nota de arte: base na cena SVG `fundomar` do protótipo.
 
 ## Nomes & variáveis
@@ -21,7 +22,7 @@ Autorar o grafo + nota de arte do cenário "Fundo do mar" (águas calmas).
 - objetos (ex.): peixinho, concha, coral, polvo, baú — com `gatilho`/`regras`/`ordem_canonica`.
 
 ## Interfaces / contratos
-- `GrafoAutoral`, `Cenario`, `Objeto`, `Fragmento4` ([[_contratos/tipos-core]]); schema `pipoca.grafo-autoral.v1` ([[_contratos/schemas-json]]).
+- `GrafoAutoral`, `Cenario`, `Objeto`, `Fragmento4` ([[_contratos/tipos-core]]); schema `pipoca.grafo-autoral.v3` ([[_contratos/grafo-autoral-v3]]).
 
 ## Regras de negócio
 1. Tom tranquilo; níveis n1→n4.

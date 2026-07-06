@@ -8,6 +8,7 @@
 | Schema | Dono | Persistido por |
 |--------|------|----------------|
 | `pipoca.grafo-autoral.v1` | [[../fase00/00-13_schema-grafo]] | conteúdo autoral (SA_CONTENT) |
+| `pipoca.grafo-autoral.v3` | [[../fase08_conteudo/08-00_motor-a-plus-grafo-v3]] | conteúdo autoral |
 | `pipoca.perfil.v1` | [[../fase00/00-14_schema-perfil-e-save]] | SAVE / PC_PROF |
 | `pipoca.save.v1` | [[../fase00/00-14_schema-perfil-e-save]] | SAVE |
 | `pipoca.telemetria.v1` | [[../fase03/03-01_telemetria-TELE]] | TELE / SAVE |
@@ -124,3 +125,9 @@ SA_TENANT [[../fase04/04-03_tenants-planos-SA_TENANT]]). Escopo aplicado por RLS
   }
 }
 ```
+
+---
+
+## 6. `pipoca.grafo-autoral.v3`
+
+Evolução do v1 (conforme [[grafo-autoral-v3]]): variantes por célula, condições de posição, ecos no desfecho, conectivos, e replay determinístico. Schema novo em arquivo `docs/quintal.v3.json`; o v1 permanece intocado.

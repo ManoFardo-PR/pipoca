@@ -10,10 +10,11 @@
 Autorar o grafo + nota de arte do cenário "Quarto aconchegante" (hora de dormir).
 
 ## Pré-requisitos / Depende de
+- `[[fase08-08-00]]` — Motor A+ e schema `pipoca.grafo-autoral.v3`.
 - `[[fase08-08-01]]` — o guia de autoria e o processo de validação.
 
 ## Arquivos afetados
-- `src/dados/cenarios/quarto.json` (criar) — grafo `pipoca.grafo-autoral.v1`.
+- `src/dados/cenarios/quarto.json` (criar) — grafo `pipoca.grafo-autoral.v3`.
 - nota de arte: reaproveitar a cena SVG `quarto` do protótipo como base.
 
 ## Nomes & variáveis
@@ -22,7 +23,7 @@ Autorar o grafo + nota de arte do cenário "Quarto aconchegante" (hora de dormir
 - 4 níveis `n1..n4` por fragmento.
 
 ## Interfaces / contratos
-- `GrafoAutoral`, `Cenario`, `Objeto`, `Fragmento4` ([[_contratos/tipos-core]]); schema `pipoca.grafo-autoral.v1` ([[_contratos/schemas-json]]).
+- `GrafoAutoral`, `Cenario`, `Objeto`, `Fragmento4` ([[_contratos/tipos-core]]); schema `pipoca.grafo-autoral.v3` ([[_contratos/grafo-autoral-v3]]).
 
 ## Regras de negócio
 1. Tom calmo de "hora de dormir"; níveis crescendo n1→n4.

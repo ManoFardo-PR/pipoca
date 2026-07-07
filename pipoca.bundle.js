@@ -3,37 +3,27 @@
   var __getOwnPropNames = Object.getOwnPropertyNames;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
-  function __accessProp(key) {
-    return this[key];
-  }
+  var __moduleCache = /* @__PURE__ */ new WeakMap;
   var __toCommonJS = (from) => {
-    var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+    var entry = __moduleCache.get(from), desc;
     if (entry)
       return entry;
     entry = __defProp({}, "__esModule", { value: true });
-    if (from && typeof from === "object" || typeof from === "function") {
-      for (var key of __getOwnPropNames(from))
-        if (!__hasOwnProp.call(entry, key))
-          __defProp(entry, key, {
-            get: __accessProp.bind(from, key),
-            enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-          });
-    }
+    if (from && typeof from === "object" || typeof from === "function")
+      __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+        get: () => from[key],
+        enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+      }));
     __moduleCache.set(from, entry);
     return entry;
   };
-  var __moduleCache;
-  var __returnValue = (v) => v;
-  function __exportSetter(name, newValue) {
-    this[name] = __returnValue.bind(null, newValue);
-  }
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, {
         get: all[name],
         enumerable: true,
         configurable: true,
-        set: __exportSetter.bind(all, name)
+        set: (newValue) => all[name] = () => newValue
       });
   };
 
@@ -2189,6 +2179,48 @@
     novo.banco = bancoDaRodada(novo);
     return novo;
   }
+  function mioloAtual(estado) {
+    if (estado.linha.length < 3)
+      return [];
+    return estado.linha.slice(1, estado.linha.length - 1);
+  }
+  function podeCompor(estado, objetoId, ordemMiolo) {
+    if (estado.rodada < 2)
+      return false;
+    if (!estado.pontasTravadas)
+      return false;
+    if (estado.linha.length < 2)
+      return false;
+    if (estado.banco.indexOf(objetoId) === -1)
+      return false;
+    if (estado.linha.indexOf(objetoId) !== -1)
+      return false;
+    const esperado = mioloAtual(estado).concat([objetoId]);
+    const ordem = ordemMiolo || [];
+    if (ordem.length !== esperado.length)
+      return false;
+    for (let i = 0;i < ordem.length; i++) {
+      if (ordem.indexOf(ordem[i]) !== i)
+        return false;
+    }
+    for (const id of esperado)
+      if (ordem.indexOf(id) === -1)
+        return false;
+    for (const id of ordem)
+      if (esperado.indexOf(id) === -1)
+        return false;
+    return true;
+  }
+  function compor(estado, objetoId, ordemMiolo) {
+    if (!podeCompor(estado, objetoId, ordemMiolo))
+      return estado;
+    const inicio = estado.linha[0];
+    const fim = estado.linha[estado.linha.length - 1];
+    const linha = [inicio].concat(ordemMiolo.slice(), [fim]);
+    const novo = { ...estado, linha };
+    novo.banco = bancoDaRodada(novo);
+    return novo;
+  }
   function ordenarR1(estado, ordemIds) {
     const rodada1 = estado.cenario.rodadas.find((r) => r.n === 1);
     const limite = rodada1 && rodada1.escolhe || 3;
@@ -2776,6 +2808,9 @@
       bancoDaRodada,
       podeInserir,
       inserir,
+      mioloAtual,
+      podeCompor,
+      compor,
       ordenarR1,
       montar,
       abrirProximaRodada,

@@ -773,6 +773,21 @@
     return true;
   }
 
+  // R2–4: ids do miolo atual (interior entre as âncoras) da composição.
+  function mioloAtualComposicao() {
+    var C = _comp();
+    if (!C || !state.comp) return [];
+    return C.mioloAtual(state.comp);
+  }
+
+  // R2–4: valida inserir a peça nova E deixar o miolo na ordem `ordemMiolo`,
+  // mantendo as pontas travadas (config do admin). Não muta o estado.
+  function podeComporComposicao(objetoId, ordemMiolo) {
+    var C = _comp();
+    if (!C || !state.comp) return false;
+    return C.podeCompor(state.comp, objetoId, ordemMiolo);
+  }
+
   // Tece a história (abertura + contas + desfecho na última) no nível pedido.
   function montarComposicao(nivel) {
     var C = _comp();
@@ -823,6 +838,7 @@
 
   // Aplica (puro) um move autoral a uma composição, devolvendo a nova composição.
   // { tipo:"r1", ordem:[ids] } · { tipo:"insere", objetoId, slot }
+  // · { tipo:"compor", objetoId, ordemMiolo:[ids] }
   function _aplicarMove(comp, pendente) {
     var C = _comp();
     if (!C || !comp || !pendente) return comp;
@@ -830,6 +846,10 @@
     if (pendente.tipo === "insere") {
       if (!C.podeInserir(comp, pendente.objetoId, pendente.slot)) return comp;
       return C.inserir(comp, pendente.objetoId, pendente.slot);
+    }
+    if (pendente.tipo === "compor") {
+      if (!C.podeCompor(comp, pendente.objetoId, pendente.ordemMiolo)) return comp;
+      return C.compor(comp, pendente.objetoId, pendente.ordemMiolo);
     }
     return comp;
   }
@@ -950,6 +970,8 @@
     ordenarR1Composicao: ordenarR1Composicao,
     podeInserirComposicao: podeInserirComposicao,
     inserirComposicao: inserirComposicao,
+    mioloAtualComposicao: mioloAtualComposicao,
+    podeComporComposicao: podeComporComposicao,
     montarComposicao: montarComposicao,
     preverComposicao: preverComposicao,
     aplicarComposicao: aplicarComposicao,

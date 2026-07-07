@@ -7,6 +7,9 @@
 
 import {
   montar,
+  mioloAtual,
+  podeCompor,
+  compor,
   type CenarioV2,
   type EstadoComp,
   type ModosComp,
@@ -385,6 +388,68 @@ console.log("\n=== BLOCO 8 — Golden v3: grafo ativo reproduzido byte a byte + 
     rV3.erros.length === 0 && rV3.avisos.length === 0,
     "quintal.v3.json publicado passa o lint sem erros nem avisos"
   );
+}
+
+// ─── 9. Reposicionar o miolo nas rodadas (compor) ────────────────────────────
+console.log("\n=== BLOCO 9 — Compor R>=2: inserir a peça nova + reordenar o miolo, pontas fixas ===");
+{
+  // Cenário com 2 rodadas: R1 revela [a,b,c,z], R2 revela [d]. reveladosAte(2)
+  // = [a,b,c,z,d]; com a linha [a,b,c] fixada, o banco tem [z,d].
+  const g: CenarioV2 = {
+    id: "compor",
+    moldura: { abertura: celula("ABRE."), desfecho: { convergente: celula("FIM.") } },
+    rodadas: [
+      { n: 1, revela: ["a", "b", "c", "z"], escolhe: 3 },
+      { n: 2, revela: ["d"], escolhe: 1 },
+    ],
+    objetos: {
+      a: { conta: celula("A.") },
+      b: { conta: celula("B.") },
+      c: { conta: celula("C.") },
+      d: { conta: celula("D.") },
+      z: { conta: celula("Z.") },
+    },
+  };
+  // Estado R2 fixado: linha [a,b,c] (a,c âncoras · b miolo), banco [z,d].
+  const est: EstadoComp = {
+    cenarioId: g.id, rodada: 2, banco: ["z", "d"], linha: ["a", "b", "c"],
+    pontasTravadas: true, historiaTexto: "", convergiu: false, cenario: g, modos: {},
+  };
+
+  assertEqual(mioloAtual(est).join(","), "b", "miolo atual = interior entre as âncoras");
+
+  assert(podeCompor(est, "d", ["b", "d"]), "compor válido: nova peça d após o miolo b");
+  assert(podeCompor(est, "d", ["d", "b"]), "compor válido: nova peça d antes do miolo b");
+  assert(!podeCompor(est, "d", ["b"]), "inválido: ordemMiolo sem a peça nova");
+  assert(!podeCompor(est, "d", ["b", "d", "b"]), "inválido: id repetido no miolo");
+  assert(!podeCompor(est, "d", ["a", "b", "d"]), "inválido: âncora não entra no miolo");
+  assert(!podeCompor(est, "z2", ["b", "z2"]), "inválido: peça fora do banco");
+  assert(!podeCompor(est, "a", ["b", "a"]), "inválido: peça já na linha (âncora)");
+  assert(!podeCompor({ ...est, rodada: 1 }, "d", ["b", "d"]), "inválido: R1 não usa compor");
+  assert(!podeCompor({ ...est, pontasTravadas: false }, "d", ["b", "d"]), "inválido: pontas não travadas");
+
+  const r1 = compor(est, "d", ["b", "d"]);
+  assertEqual(r1.linha.join(","), "a,b,d,c", "compor [b,d]: linha = a,b,d,c (pontas fixas)");
+  const r2 = compor(est, "d", ["d", "b"]);
+  assertEqual(r2.linha.join(","), "a,d,b,c", "compor [d,b]: linha = a,d,b,c (pontas fixas)");
+  assertEqual(r1.linha[0], "a", "âncora inicial preservada");
+  assertEqual(r1.linha[r1.linha.length - 1], "c", "âncora final preservada");
+  assertEqual(compor(est, "d", ["b"]).linha.join(","), "a,b,c", "compor inválido devolve estado inalterado");
+  assert(r1.banco.indexOf("d") === -1, "após compor, a peça nova sai do banco");
+
+  // Sensibilidade: permutar o miolo muda o texto tecido.
+  assert(montar(r1, "n2") !== montar(r2, "n2"), "miolo em ordem distinta ⇒ história distinta");
+
+  // Reordenar o miolo já existente (R3): 2 peças no interior, âncoras fixas.
+  const estR3: EstadoComp = {
+    cenarioId: g.id, rodada: 3, banco: ["e"], linha: ["a", "b", "d", "c"],
+    pontasTravadas: true, historiaTexto: "", convergiu: false,
+    cenario: { ...g, rodadas: [...g.rodadas, { n: 3, revela: ["e"], escolhe: 1 }],
+      objetos: { ...g.objetos, e: { conta: celula("E.") } } }, modos: {},
+  };
+  assertEqual(mioloAtual(estR3).join(","), "b,d", "R3 miolo atual = b,d");
+  assert(podeCompor(estR3, "e", ["d", "e", "b"]), "R3: reordenar b,d e inserir e é válido");
+  assertEqual(compor(estR3, "e", ["d", "e", "b"]).linha.join(","), "a,d,e,b,c", "R3: linha final respeita miolo escolhido, pontas fixas");
 }
 
 console.log(`\n${"=".repeat(50)}`);

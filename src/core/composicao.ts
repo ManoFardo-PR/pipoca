@@ -335,6 +335,55 @@ export function inserir(estado: EstadoComp, objetoId: string, slotIndex: number)
 }
 
 /**
+ * Ids do miolo atual — o interior entre as âncoras (pontas). Vazio se a linha
+ * tem menos de 3 peças (não há interior). Não depende de número fixo: as pontas
+ * são sempre `linha[0]` e `linha[len-1]`.
+ */
+export function mioloAtual(estado: EstadoComp): string[] {
+  if (estado.linha.length < 3) return [];
+  return estado.linha.slice(1, estado.linha.length - 1);
+}
+
+/**
+ * R>=2: valida a composição da rodada — inserir a peça nova `objetoId` (do banco)
+ * e deixar o MIOLO exatamente na ordem `ordemMiolo`, mantendo as pontas fixas
+ * (respeita a config do admin via `pontasTravadas`). `ordemMiolo` precisa ser uma
+ * permutação de (miolo atual + `objetoId`), sem repetição e sem tocar nas âncoras.
+ */
+export function podeCompor(estado: EstadoComp, objetoId: string, ordemMiolo: string[]): boolean {
+  if (estado.rodada < 2) return false;
+  if (!estado.pontasTravadas) return false;
+  if (estado.linha.length < 2) return false;
+  if (estado.banco.indexOf(objetoId) === -1) return false;
+  if (estado.linha.indexOf(objetoId) !== -1) return false;
+  const esperado = mioloAtual(estado).concat([objetoId]);
+  const ordem = ordemMiolo || [];
+  if (ordem.length !== esperado.length) return false;
+  // sem duplicatas na ordem recebida
+  for (let i = 0; i < ordem.length; i++) {
+    if (ordem.indexOf(ordem[i]) !== i) return false;
+  }
+  // mesmo conjunto (mesmos ids, nada a mais nem a menos)
+  for (const id of esperado) if (ordem.indexOf(id) === -1) return false;
+  for (const id of ordem) if (esperado.indexOf(id) === -1) return false;
+  return true;
+}
+
+/**
+ * Aplica a composição da rodada: linha = [âncora inicial, ...ordemMiolo, âncora final].
+ * As pontas nunca mudam. Se a composição for inválida, devolve o estado inalterado.
+ */
+export function compor(estado: EstadoComp, objetoId: string, ordemMiolo: string[]): EstadoComp {
+  if (!podeCompor(estado, objetoId, ordemMiolo)) return estado;
+  const inicio = estado.linha[0];
+  const fim = estado.linha[estado.linha.length - 1];
+  const linha = [inicio].concat(ordemMiolo.slice(), [fim]);
+  const novo: EstadoComp = { ...estado, linha };
+  novo.banco = bancoDaRodada(novo);
+  return novo;
+}
+
+/**
  * R1: coloca e ORDENA os 3 escolhidos (na ordem recebida) e TRAVA as pontas.
  * Filtra para ids válidos do banco, sem duplicatas, no máximo `escolhe` (3).
  */

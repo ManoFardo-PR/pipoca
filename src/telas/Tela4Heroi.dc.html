@@ -63,11 +63,13 @@
             </sc-if>
             <div style="font-size:38px;line-height:1;">{{ cell.emoji }}</div>
             <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:13px;color:#5a4632;margin-top:4px;">{{ cell.nome }}</div>
-            <!-- controles R1 (mover / tirar) -->
+            <!-- controles de mover / tirar (R1 e miolo R2-4) -->
             <sc-if value="{{ cell.editavel }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex;gap:4px;margin-top:7px;">
               <button onClick="{{ cell.mover_esq }}" title="Mover para trás" style="{{ cell.miniBtn }}">◀</button>
+              <sc-if value="{{ cell.podeTirar }}" hint-placeholder-val="{{ true }}">
               <button onClick="{{ cell.tirar }}" title="Tirar" style="{{ cell.miniBtnX }}">✕</button>
+              </sc-if>
               <button onClick="{{ cell.mover_dir }}" title="Mover para frente" style="{{ cell.miniBtn }}">▶</button>
             </div>
             </sc-if>
@@ -108,9 +110,10 @@
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
   state = {
-    arranjo: [],   // R1: ordem de trabalho (ids) antes de confirmar
-    selObj: null,  // R2-4: objeto escolhido no banco
-    selSlot: null, // R2-4: posição escolhida no miolo
+    arranjo: [],      // R1: ordem de trabalho (ids) antes de confirmar
+    selObj: null,     // R2-4: peça nova escolhida no banco (antes de colocar)
+    mioloDraft: null, // R2-4: ordem de trabalho do miolo (existentes + a nova)
+    novoId: null,     // R2-4: a peça nova já colocada no miolo (ou null)
   };
 
   _getApp() { return window.PipocaApp; }
@@ -132,7 +135,9 @@ class Component extends DCLogic {
     }
     if (this._rodada !== comp.rodada) {
       this._rodada = comp.rodada;
-      this.setState({ arranjo: [], selObj: null, selSlot: null });
+      // Rascunho do miolo parte da linha atual (interior entre as âncoras).
+      const miolo = (comp.linha || []).slice(1, Math.max(1, (comp.linha || []).length - 1));
+      this.setState({ arranjo: [], selObj: null, mioloDraft: miolo, novoId: null });
     }
   }
 
@@ -159,13 +164,36 @@ class Component extends DCLogic {
     this.setState({ arranjo: a });
   }
 
-  // ── R2-4: escolher 1 e inserir no miolo ───────────────────────────────────
+  // ── R2-4: escolher 1, colocar no miolo e reordenar o miolo ────────────────
+  // Só dá pra (re)escolher enquanto a peça nova ainda não foi colocada.
   _selecionarObj(id) {
+    if (this.state.novoId != null) return;
     this.setState({ selObj: this.state.selObj === id ? null : id });
   }
-  _selecionarSlot(slot) {
-    if (!this.state.selObj) return;
-    this.setState({ selSlot: slot });
+  // Coloca a peça escolhida numa posição do miolo (0..len). Ela passa a fazer
+  // parte do rascunho e agora pode ser reordenada junto com as demais.
+  _colocarNoMiolo(pos) {
+    const sel = this.state.selObj;
+    if (!sel) return;
+    const d = (this.state.mioloDraft || []).slice();
+    const p = Math.max(0, Math.min(pos, d.length));
+    d.splice(p, 0, sel);
+    this.setState({ mioloDraft: d, novoId: sel, selObj: null });
+  }
+  // Reordena SÓ o miolo (nunca cruza as âncoras).
+  _moverMiolo(id, dir) {
+    const d = (this.state.mioloDraft || []).slice();
+    const i = d.indexOf(id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= d.length) return;
+    const t = d[i]; d[i] = d[j]; d[j] = t;
+    this.setState({ mioloDraft: d });
+  }
+  // Tira a peça nova de volta pro banco (as já colocadas antes ficam).
+  _tirarNovo() {
+    const n = this.state.novoId;
+    if (n == null) return;
+    this.setState({ mioloDraft: (this.state.mioloDraft || []).filter(x => x !== n), novoId: null });
   }
 
   lerEmVozAlta() {
@@ -184,11 +212,11 @@ class Component extends DCLogic {
       pendente = { tipo: 'r1', ordem: this.state.arranjo.slice() };
       objParaGate = this.state.arranjo[this.state.arranjo.length - 1];
     } else {
-      const { selObj, selSlot } = this.state;
-      if (!selObj || selSlot == null) return;
-      if (!App.podeInserirComposicao(selObj, selSlot)) return;
-      pendente = { tipo: 'insere', objetoId: selObj, slot: selSlot };
-      objParaGate = selObj;
+      const { novoId, mioloDraft } = this.state;
+      if (novoId == null || !mioloDraft) return;
+      if (!App.podeComporComposicao(novoId, mioloDraft)) return;
+      pendente = { tipo: 'compor', objetoId: novoId, ordemMiolo: mioloDraft.slice() };
+      objParaGate = novoId;
     }
 
     const texto = App.preverComposicao(pendente, nivel);
@@ -251,7 +279,7 @@ class Component extends DCLogic {
           linhaCells.push({
             wrapStyle: 'display:flex;align-items:center;',
             ehCarta: true, ehGap: false, ehVazio: false,
-            travada: false, editavel: true,
+            travada: false, editavel: true, podeTirar: true,
             emoji: m.emoji, nome: m.nome,
             cardStyle: cardBase,
             miniBtn, miniBtnX,
@@ -287,68 +315,99 @@ class Component extends DCLogic {
       dica = lerDisabled ? 'Coloque 3 coisas para poder ler.' : 'Prontinho! Toque para ler a sua história.';
 
     } else {
-      // ── RODADA 2-4 · escolher 1 e inserir no miolo ──
+      // ── RODADA 2-4 · escolher 1, colocar no miolo e reordenar o miolo ──
       instrucaoTitulo = 'A história cresceu! Coloque mais uma coisa';
-      instrucaoAjuda = 'Escolha 1 coisa do banco e coloque no meio da cena (entre as âncoras). Depois leia a história maior.';
+      instrucaoAjuda = 'Escolha 1 coisa e coloque no meio da cena. Você pode reordenar as peças do meio com ◀ ▶; as pontas ficam de âncora.';
       bancoTitulo = 'Escolha 1 para juntar ao meio';
+
       const linha = comp.linha;
+      const inicio = linha[0];
+      const fim = linha[linha.length - 1];
+      const draft = this.state.mioloDraft || linha.slice(1, Math.max(1, linha.length - 1));
       const selObj = this.state.selObj;
-      const selSlot = this.state.selSlot;
+      const novoId = this.state.novoId;
+      const colocado = novoId != null;
       const temSel = !!selObj;
 
-      linha.forEach((id, idx) => {
-        // lacuna de inserção ANTES de cada carta a partir da 2ª (miolo: 1..len-1)
-        if (idx >= 1) {
-          const ativo = selSlot === idx && temSel;
-          if (ativo) {
-            const m = this._meta(selObj);
+      const cartaPonta = (id) => {
+        const m = this._meta(id);
+        return {
+          wrapStyle: 'display:flex;align-items:center;',
+          ehCarta: true, ehGap: false, ehVazio: false,
+          travada: true, editavel: false, podeTirar: false,
+          emoji: m.emoji, nome: m.nome,
+          cardStyle: cardBase + 'background:rgba(250,238,207,.95);',
+          miniBtn, miniBtnX,
+          mover_esq: () => {}, mover_dir: () => {}, tirar: () => {},
+        };
+      };
+      const gap = (pos) => ({
+        wrapStyle: 'display:flex;align-items:center;',
+        ehCarta: false, ehVazio: false, ehGap: true,
+        gapLabel: temSel ? '+' : '·',
+        onGap: temSel ? (() => this._colocarNoMiolo(pos)) : (() => {}),
+        gapStyle: 'width:40px;min-height:96px;border-radius:14px;border:2px dashed ' + (temSel ? 'rgba(232,150,90,.75)' : 'rgba(160,140,110,.3)') + ';background:' + (temSel ? 'rgba(232,150,90,.1)' : 'transparent') + ';cursor:' + (temSel ? 'pointer' : 'default') + ';font-size:22px;font-weight:800;color:' + (temSel ? '#c25e33' : 'rgba(122,106,84,.4)') + ';display:flex;align-items:center;justify-content:center;',
+      });
+
+      // Âncora inicial
+      linhaCells.push(cartaPonta(inicio));
+
+      if (!colocado) {
+        // Fase A — ainda escolhendo onde colocar: lacunas "+" no miolo.
+        for (let k = 0; k <= draft.length; k++) {
+          linhaCells.push(gap(k));
+          if (k < draft.length) {
+            const m = this._meta(draft[k]);
             linhaCells.push({
               wrapStyle: 'display:flex;align-items:center;',
               ehCarta: true, ehGap: false, ehVazio: false,
-              travada: false, editavel: false,
+              travada: false, editavel: false, podeTirar: false,
               emoji: m.emoji, nome: m.nome,
-              cardStyle: cardBase + 'outline:3px solid #e8965a;outline-offset:2px;',
+              cardStyle: cardBase,
               miniBtn, miniBtnX,
               mover_esq: () => {}, mover_dir: () => {}, tirar: () => {},
             });
-          } else {
-            linhaCells.push({
-              wrapStyle: 'display:flex;align-items:center;',
-              ehCarta: false, ehVazio: false, ehGap: true,
-              gapLabel: temSel ? '+' : '·',
-              onGap: temSel ? (() => this._selecionarSlot(idx)) : (() => {}),
-              gapStyle: 'width:40px;min-height:96px;border-radius:14px;border:2px dashed ' + (temSel ? 'rgba(232,150,90,.75)' : 'rgba(160,140,110,.3)') + ';background:' + (temSel ? 'rgba(232,150,90,.1)' : 'transparent') + ';cursor:' + (temSel ? 'pointer' : 'default') + ';font-size:22px;font-weight:800;color:' + (temSel ? '#c25e33' : 'rgba(122,106,84,.4)') + ';display:flex;align-items:center;justify-content:center;',
-            });
           }
         }
-        const m = this._meta(id);
-        const ponta = idx === 0 || idx === linha.length - 1;
-        linhaCells.push({
-          wrapStyle: 'display:flex;align-items:center;',
-          ehCarta: true, ehGap: false, ehVazio: false,
-          travada: ponta, editavel: false,
-          emoji: m.emoji, nome: m.nome,
-          cardStyle: cardBase + (ponta ? 'background:rgba(250,238,207,.95);' : ''),
-          miniBtn, miniBtnX,
-          mover_esq: () => {}, mover_dir: () => {}, tirar: () => {},
+      } else {
+        // Fase B — peça colocada: reordenar TODO o miolo com ◀ ▶.
+        draft.forEach((id) => {
+          const m = this._meta(id);
+          const ehNovo = id === novoId;
+          linhaCells.push({
+            wrapStyle: 'display:flex;align-items:center;',
+            ehCarta: true, ehGap: false, ehVazio: false,
+            travada: false, editavel: true, podeTirar: ehNovo,
+            emoji: m.emoji, nome: m.nome,
+            cardStyle: cardBase + (ehNovo ? 'outline:3px solid #e8965a;outline-offset:2px;' : ''),
+            miniBtn, miniBtnX,
+            mover_esq: () => this._moverMiolo(id, -1),
+            mover_dir: () => this._moverMiolo(id, +1),
+            tirar: () => this._tirarNovo(),
+          });
         });
-      });
+      }
 
-      bancoChips = (comp.banco || []).map(id => {
-        const m = this._meta(id);
-        const sel = selObj === id;
-        return {
-          emoji: m.emoji, nome: m.nome,
-          onTap: () => this._selecionarObj(id),
-          style: 'width:108px;min-height:104px;border:2px solid ' + (sel ? '#e8965a' : 'rgba(200,156,108,.4)') + ';border-radius:18px;background:' + (sel ? '#fff1e2' : '#fffdf7') + ';box-shadow:0 8px 18px -12px rgba(74,59,44,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;transition:transform .12s ease;cursor:pointer;',
-        };
-      });
+      // Âncora final
+      linhaCells.push(cartaPonta(fim));
 
-      const podeLer = temSel && selSlot != null;
-      lerDisabled = !podeLer;
-      dica = !temSel
-        ? 'Escolha 1 coisa no banco.'
-        : (selSlot == null ? 'Agora toque no “+” no meio da cena.' : 'Prontinho! Toque para ler a história maior.');
+      bancoChips = (comp.banco || [])
+        .filter(id => id !== novoId)
+        .map(id => {
+          const m = this._meta(id);
+          const sel = selObj === id;
+          const bloqueado = colocado;
+          return {
+            emoji: m.emoji, nome: m.nome,
+            onTap: bloqueado ? (() => {}) : (() => this._selecionarObj(id)),
+            style: 'width:108px;min-height:104px;border:2px solid ' + (sel ? '#e8965a' : 'rgba(200,156,108,.4)') + ';border-radius:18px;background:' + (sel ? '#fff1e2' : '#fffdf7') + ';box-shadow:0 8px 18px -12px rgba(74,59,44,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;transition:transform .12s ease;cursor:' + (bloqueado ? 'not-allowed' : 'pointer') + ';' + (bloqueado ? 'opacity:.5;' : ''),
+          };
+        });
+
+      lerDisabled = !colocado;
+      dica = !colocado
+        ? (!temSel ? 'Escolha 1 coisa no banco.' : 'Agora toque no “+” no meio da cena.')
+        : 'Use ◀ ▶ pra deixar o meio do seu jeito. Depois toque para ler a história maior.';
     }
 
     const lerBtnStyle = 'padding:15px 26px;border:none;border-radius:16px;font-family:"Baloo 2",cursive;font-weight:700;font-size:17px;white-space:nowrap;'

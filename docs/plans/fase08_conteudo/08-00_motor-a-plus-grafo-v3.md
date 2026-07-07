@@ -1,6 +1,8 @@
 # fase08 · 08-00 · Motor A+ · Grafo Autoral V3
 
 > 🟢 **STATUS · 2026-07-06 · COMPLETO — passos 1–7** — motor+lint+testes (passos 1–5), oficina de conteúdo com validação humana → `docs/quintal.v3.json` (passo 6) e troca do grafo ativo (passo 7: `_initComposicao` fetcha o v3; bundle regenerado; golden v3 congelado). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+>
+> 🔧 **2026-07 · lapidação da costura** — duas regras de runtime na costura conectivo+texto (rebaixamento da inicial + supressão do conectivo quando a variante já abre por marcador); rng preservado, texto autoral e mecânica inalterados. Golden v3 regenerado (só minúsculas/conectivos suprimidos). Ver `[[_contratos/grafo-autoral-v3]]` §4.1.
 
 ## Identidade
 - id: `fase08-08-00`

@@ -7,6 +7,9 @@
 
 import {
   montar,
+  mioloAtual,
+  podeCompor,
+  compor,
   type CenarioV2,
   type EstadoComp,
   type ModosComp,
@@ -292,10 +295,13 @@ console.log("\n=== BLOCO 6 — Conectivos: só no miolo, sem repetição consecu
         !new RegExp(`(Aí,|Então,) ${ultimo.replace(".", "\\.")}`).test(r),
       `âncoras sem conectivo [${linha.join(",")}]`
     );
-    const miolosOk = linha.slice(1, -1).every((id) =>
-      new RegExp(`(Aí,|Então,) OBJ_${id.toUpperCase()}\\.`).test(r)
-    );
-    assert(miolosOk, `todos os slots de miolo com conectivo [${linha.join(",")}]`);
+    const miolosOk = linha.slice(1, -1).every((id) => {
+      // Regra 1 (§4): com o conectivo à frente, a inicial da variante é rebaixada
+      // (OBJ_X. → oBJ_X.). As âncoras, sem conectivo, mantêm a maiúscula.
+      const rebaixado = "oBJ_" + id.toUpperCase() + "\\.";
+      return new RegExp(`(Aí,|Então,) ${rebaixado}`).test(r);
+    });
+    assert(miolosOk, `todos os slots de miolo com conectivo (inicial rebaixada) [${linha.join(",")}]`);
     const seq = [...r.matchAll(/(Aí,|Então,)/g)].map((m) => m[1]);
     assert(seq.length === linha.length - 2, `um conectivo por slot de miolo [${linha.join(",")}]`);
     assert(seq.every((c, i) => i === 0 || c !== seq[i - 1]), `sem repetição consecutiva [${linha.join(",")}]`);
@@ -381,10 +387,161 @@ console.log("\n=== BLOCO 8 — Golden v3: grafo ativo reproduzido byte a byte + 
     );
   }
   const rV3 = lintGrafoV3(quintalV3, quintalV3Raw.esquema);
+  // Lapidação da costura (§6.7): o aviso "abre por marcador" é ESPERADO no grafo
+  // publicado (variantes como "Agora são duas luzes" fazem o conectivo ser suprimido).
+  // Tolera-se APENAS esse aviso; qualquer outro (func:*, condição desconhecida) falha.
+  const avisosInesperados = rV3.avisos.filter((a) => !a.includes("abre por marcador"));
   assert(
-    rV3.erros.length === 0 && rV3.avisos.length === 0,
-    "quintal.v3.json publicado passa o lint sem erros nem avisos"
+    rV3.erros.length === 0 && avisosInesperados.length === 0,
+    "quintal.v3.json publicado passa o lint sem erros nem avisos inesperados"
   );
+}
+
+// ─── 9. Reposicionar o miolo nas rodadas (compor) ────────────────────────────
+console.log("\n=== BLOCO 9 — Compor R>=2: inserir a peça nova + reordenar o miolo, pontas fixas ===");
+{
+  // Cenário com 2 rodadas: R1 revela [a,b,c,z], R2 revela [d]. reveladosAte(2)
+  // = [a,b,c,z,d]; com a linha [a,b,c] fixada, o banco tem [z,d].
+  const g: CenarioV2 = {
+    id: "compor",
+    moldura: { abertura: celula("ABRE."), desfecho: { convergente: celula("FIM.") } },
+    rodadas: [
+      { n: 1, revela: ["a", "b", "c", "z"], escolhe: 3 },
+      { n: 2, revela: ["d"], escolhe: 1 },
+    ],
+    objetos: {
+      a: { conta: celula("A.") },
+      b: { conta: celula("B.") },
+      c: { conta: celula("C.") },
+      d: { conta: celula("D.") },
+      z: { conta: celula("Z.") },
+    },
+  };
+  // Estado R2 fixado: linha [a,b,c] (a,c âncoras · b miolo), banco [z,d].
+  const est: EstadoComp = {
+    cenarioId: g.id, rodada: 2, banco: ["z", "d"], linha: ["a", "b", "c"],
+    pontasTravadas: true, historiaTexto: "", convergiu: false, cenario: g, modos: {},
+  };
+
+  assertEqual(mioloAtual(est).join(","), "b", "miolo atual = interior entre as âncoras");
+
+  assert(podeCompor(est, "d", ["b", "d"]), "compor válido: nova peça d após o miolo b");
+  assert(podeCompor(est, "d", ["d", "b"]), "compor válido: nova peça d antes do miolo b");
+  assert(!podeCompor(est, "d", ["b"]), "inválido: ordemMiolo sem a peça nova");
+  assert(!podeCompor(est, "d", ["b", "d", "b"]), "inválido: id repetido no miolo");
+  assert(!podeCompor(est, "d", ["a", "b", "d"]), "inválido: âncora não entra no miolo");
+  assert(!podeCompor(est, "z2", ["b", "z2"]), "inválido: peça fora do banco");
+  assert(!podeCompor(est, "a", ["b", "a"]), "inválido: peça já na linha (âncora)");
+  assert(!podeCompor({ ...est, rodada: 1 }, "d", ["b", "d"]), "inválido: R1 não usa compor");
+  assert(!podeCompor({ ...est, pontasTravadas: false }, "d", ["b", "d"]), "inválido: pontas não travadas");
+
+  const r1 = compor(est, "d", ["b", "d"]);
+  assertEqual(r1.linha.join(","), "a,b,d,c", "compor [b,d]: linha = a,b,d,c (pontas fixas)");
+  const r2 = compor(est, "d", ["d", "b"]);
+  assertEqual(r2.linha.join(","), "a,d,b,c", "compor [d,b]: linha = a,d,b,c (pontas fixas)");
+  assertEqual(r1.linha[0], "a", "âncora inicial preservada");
+  assertEqual(r1.linha[r1.linha.length - 1], "c", "âncora final preservada");
+  assertEqual(compor(est, "d", ["b"]).linha.join(","), "a,b,c", "compor inválido devolve estado inalterado");
+  assert(r1.banco.indexOf("d") === -1, "após compor, a peça nova sai do banco");
+
+  // Sensibilidade: permutar o miolo muda o texto tecido.
+  assert(montar(r1, "n2") !== montar(r2, "n2"), "miolo em ordem distinta ⇒ história distinta");
+
+  // Reordenar o miolo já existente (R3): 2 peças no interior, âncoras fixas.
+  const estR3: EstadoComp = {
+    cenarioId: g.id, rodada: 3, banco: ["e"], linha: ["a", "b", "d", "c"],
+    pontasTravadas: true, historiaTexto: "", convergiu: false,
+    cenario: { ...g, rodadas: [...g.rodadas, { n: 3, revela: ["e"], escolhe: 1 }],
+      objetos: { ...g.objetos, e: { conta: celula("E.") } } }, modos: {},
+  };
+  assertEqual(mioloAtual(estR3).join(","), "b,d", "R3 miolo atual = b,d");
+  assert(podeCompor(estR3, "e", ["d", "e", "b"]), "R3: reordenar b,d e inserir e é válido");
+  assertEqual(compor(estR3, "e", ["d", "e", "b"]).linha.join(","), "a,d,e,b,c", "R3: linha final respeita miolo escolhido, pontas fixas");
+}
+
+// ─── 10. Lapidação da costura conectivo+texto (contrato §4, regras 1 e 2) ─────
+console.log("\n=== BLOCO 10 — Costura: rebaixamento pós-conectivo + supressão por marcador ===");
+{
+  // Fábrica: cenário de 1 rodada com 1 conectivo fixo (pool de 1 = 0 rng), linha
+  // [ini, m, fim]. Só o miolo `m` recebe conectivo. `conta` de `m` é parametrizável.
+  const costura = (contaM: string, extra?: Partial<CenarioV2["moldura"]>): CenarioV2 => ({
+    id: "costura",
+    personagem: "a Joana",
+    moldura: {
+      abertura: celula("Abre."),
+      conectivos: { n2: ["Então,"] },
+      desfecho: { convergente: celula("FIM.") },
+      ...(extra || {}),
+    },
+    rodadas: [{ n: 1, revela: ["ini", "m", "fim"], escolhe: 3 }],
+    objetos: {
+      ini: { conta: celula("Ini.") },
+      m: { conta: celula(contaM) },
+      fim: { conta: celula("Fim.") },
+    },
+  });
+  const montarM = (contaM: string, extra?: Partial<CenarioV2["moldura"]>): string =>
+    montar(estadoDe(costura(contaM, extra), ["ini", "m", "fim"], 1, { desfecho: "convergente" }), "n2");
+
+  // Regra 1 — rebaixamento da inicial quando um conectivo precede o miolo.
+  assert(montarM("Uma luz acende.").includes("Então, uma luz acende."), "regra 1: conectivo rebaixa a inicial da variante");
+  // Regra 1 — exceção: primeira palavra é nome próprio (derivado de `personagem`).
+  assert(montarM("Joana corre.").includes("Então, Joana corre."), "regra 1: nome próprio (personagem) NÃO é rebaixado");
+  // Regra 1 — exceção via `moldura.nomes_proprios`.
+  assert(
+    montarM("Tuca voa.", { nomes_proprios: ["Tuca"] }).includes("Então, Tuca voa."),
+    "regra 1: nome próprio declarado em moldura.nomes_proprios NÃO é rebaixado"
+  );
+
+  // Regra 2 — supressão quando a variante já abre por marcador da lista base.
+  {
+    const t = montarM("Agora tudo brilha.");
+    assert(t.includes("Agora tudo brilha.") && !t.includes("Então, Agora") && !t.includes("Então, agora"),
+      "regra 2: variante que abre por marcador base (Agora) suprime o conectivo");
+  }
+  // Regra 2 — supressão quando a variante abre por um item do próprio pool de conectivos.
+  {
+    const t = montarM("Então, dois olhos.");
+    assert(!/Então,\s+Então,/.test(t), "regra 2: variante que abre por conectivo do pool suprime o conectivo (sem duplicar)");
+  }
+  // Regra 2 — marcador de 2 palavras ("de repente").
+  {
+    const t = montarM("De repente, escurece.");
+    assert(t.includes("De repente, escurece.") && !/Então,\s+De repente/.test(t),
+      "regra 2: marcador de 2 palavras (de repente) suprime o conectivo");
+  }
+  // Regra 2 — supressão via `moldura.marcadores_iniciais` custom.
+  {
+    const t = montarM("Enfim, a noite cai.", { marcadores_iniciais: ["Enfim,"] });
+    assert(t.includes("Enfim, a noite cai.") && !t.includes("Então, Enfim"),
+      "regra 2: marcador declarado em moldura.marcadores_iniciais suprime o conectivo");
+  }
+
+  // Determinismo — a supressão de um slot NÃO desloca o rng dos demais: com um pool
+  // >1 e desfecho com variantes, o desfecho sorteado é o MESMO com ou sem supressão.
+  {
+    const base = (contaM: string): CenarioV2 => ({
+      id: "det",
+      moldura: {
+        abertura: celula("Abre."),
+        conectivos: { n2: ["A,", "B,", "C,", "D,"] },
+        desfecho: { convergente: celulaVariantes("D") },
+      },
+      rodadas: [{ n: 1, revela: ["ini", "m1", "m2", "fim"], escolhe: 4 }],
+      objetos: {
+        ini: { conta: celula("Ini.") },
+        m1: { conta: celula(contaM) },
+        m2: { conta: celula("Meio.") },
+        fim: { conta: celula("Fim.") },
+      },
+    });
+    const linha = ["ini", "m1", "m2", "fim"];
+    const tX = montar(estadoDe(base("Corre."), linha, 1, { desfecho: "convergente" }), "n2");
+    const tY = montar(estadoDe(base("Agora corre."), linha, 1, { desfecho: "convergente" }), "n2");
+    assertEqual(tX.split(" ").pop(), tY.split(" ").pop(), "determinismo: conectivo descartado consome rng — desfecho idêntico com/sem supressão");
+    assert(tY.includes("Agora corre.") && !/[A-D],\s+Agora/.test(tY), "determinismo: o slot suprimido de fato perde o conectivo");
+    assert(/[A-D],\s+corre\./.test(tX), "determinismo: o slot não-suprimido mantém conectivo + rebaixamento");
+  }
 }
 
 console.log(`\n${"=".repeat(50)}`);

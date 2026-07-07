@@ -62,6 +62,7 @@ const server = http.createServer((req, res) => {
   }
 
   const filePath = resolverCaminho(urlPath);
+  const servindoLanding = filePath === path.join(__dirname, "landing.html");
 
   fs.readFile(filePath, (err, data) => {
     if (err) {
@@ -72,6 +73,22 @@ const server = http.createServer((req, res) => {
 
     const ext = path.extname(filePath).toLowerCase();
     const contentType = mimeTypes[ext] || "application/octet-stream";
+
+    // O cartão de prévia (Open Graph/Twitter) exige URLs absolutas. Em vez de
+    // fixar um domínio, montamos a origem a partir do pedido — assim funciona
+    // em dev, produção e domínio próprio. WhatsApp/redes leem estas metatags.
+    if (servindoLanding) {
+      const proto = (req.headers["x-forwarded-proto"] || "https").split(",")[0].trim();
+      const host = req.headers.host || "";
+      const origin = host ? `${proto}://${host}` : "";
+      const html = data.toString("utf8").split("%ORIGIN%").join(origin);
+      res.writeHead(200, {
+        "Content-Type": contentType,
+        "Cache-Control": "no-cache",
+      });
+      res.end(html);
+      return;
+    }
 
     res.writeHead(200, {
       "Content-Type": contentType,

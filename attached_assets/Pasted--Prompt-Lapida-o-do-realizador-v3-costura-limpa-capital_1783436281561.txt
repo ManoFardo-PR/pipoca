@@ -1,0 +1,94 @@
+# Prompt · Lapidação do realizador v3 — costura limpa (capitalização + marcadores)
+
+> **Para: Claude Code · Repositório `ManoFardo-PR/pipoca` (main)**
+> **Natureza: CÓDIGO + emenda de contrato.** Escopo fechado: duas regras novas
+> no realizador, lint de aviso, golden v3 regenerado, e2e reancorado.
+> **Fonte da verdade:** `docs/plans/_contratos/grafo-autoral-v3.md` — este
+> prompt EMENDA a §4 do contrato (Tarefa 4). Nenhum texto autoral do
+> `docs/quintal.v3.json` é alterado. Nenhuma mecânica muda.
+
+## Problema (real, observado em produção)
+1. **Capitalização:** `conectivo + " " + txt` produz "De repente, A Joana…",
+   "Foi quando O gato…" — maiúscula no meio da frase, ruído de decodificação
+   no portão de leitura.
+2. **Colisão de marcadores:** variantes que já abrem com marcador temporal
+   próprio ganham conectivo por cima: "Logo depois, Agora são duas luzes…".
+   Dois marcadores discursivos na mesma junta.
+
+## Regra 1 — Minúscula pós-conectivo (com nomes próprios protegidos)
+No realizador (`composicao.ts`), ao prefixar conectivo a um slot de miolo:
+- Rebaixar a PRIMEIRA letra do texto da variante, EXCETO se a primeira
+  palavra (até o primeiro espaço, pontuação removida) estiver na lista de
+  protegidos: `[cenario.personagem?.nome ?? "Joana"]` + campo opcional novo
+  `moldura.nomes_proprios?: string[]` (schema: campo OPCIONAL, aditivo — não
+  quebra grafos v3 existentes; leitor v2 não é afetado).
+- "De repente, A Joana…" → "De repente, a Joana…" ✅ (rebaixa o artigo; o nome
+  na segunda palavra permanece intacto).
+- "Foi quando O gato…" → "Foi quando o gato…" ✅.
+- Variante que começasse com "Joana pisa…" → intocada (protegido).
+- Aplicar SOMENTE quando um conectivo foi de fato prefixado. Âncoras e slots
+  sem conectivo: texto exatamente como autorado.
+
+## Regra 2 — Supressão de conectivo ante marcador temporal inicial
+- Construir em runtime o conjunto `marcadoresIniciais`: a união de TODOS os
+  pools de `moldura.conectivos` (todas as chaves de nível, normalizados: sem
+  vírgula final, casefold) ∪ lista base embutida
+  `["agora", "então", "aí", "depois", "logo", "de repente", "foi quando", "logo depois", "pouco depois", "no fim", "por fim"]`
+  ∪ campo opcional novo `moldura.marcadores_iniciais?: string[]` (aditivo).
+- Antes de prefixar o conectivo a um slot de miolo: normalizar o INÍCIO do
+  texto da variante (casefold, sem pontuação) e testar prefixo contra o
+  conjunto (comparar por palavra(s) — "de repente" tem duas). Se casar:
+  **NÃO prefixar conectivo** naquele slot. A variante carrega a própria
+  transição.
+- **Determinismo/rng:** a decisão de suprimir NÃO pode alterar o consumo de
+  rng dos DEMAIS pontos. Implementação exigida: sortear o conectivo
+  normalmente (consumindo rng como hoje) e então descartá-lo se a supressão
+  se aplicar — assim a sequência de rng permanece idêntica e apenas os slots
+  afetados mudam de texto. Registrar em comentário que o conectivo descartado
+  NÃO conta como "último conectivo" para a regra de não-repetição.
+- Efeito no caso real: "Logo depois, Agora são duas luzes…" →
+  "Agora são duas luzes…".
+
+## Tarefa 3 — Lint (aviso, não erro)
+Em `lint_grafo.ts`: para cada variante de conta/tempero (células elegíveis a
+miolo), se o texto abre com marcador do conjunto base → **aviso**
+("variante abre com marcador temporal; conectivo será suprimido em miolo").
+Aviso, não erro: o comportamento em runtime é correto por construção; o aviso
+orienta a próxima oficina. O gate "lint 0 avisos" da Etapa A NÃO se aplica
+retroativamente — ajustar o teste de lint que exigir zero avisos no
+`quintal.v3.json` para tolerar ESTE aviso específico (os demais continuam 0).
+
+## Tarefa 4 — Emenda do contrato (documentação)
+Em `docs/plans/_contratos/grafo-autoral-v3.md`, §4 (realizador):
+- Acrescentar as duas regras (minúscula pós-conectivo com protegidos;
+  supressão ante marcador inicial) e os dois campos opcionais de moldura.
+- Nota de changelog no topo da seção: `2026-07 · lapidação da costura
+  (pós-implantação; motivada por observação em produção)`.
+- `08-00`: uma linha no selo mencionando a lapidação. Checker 10/10.
+
+## Tarefa 5 — Regenerar gabaritos
+1. `src/core/fixtures/composicao_golden_v3.json`: REGERAR os 32 casos com o
+   realizador lapidado (é para isso que o golden existe). Conferir manualmente
+   no diff: as únicas mudanças são minúsculas pós-conectivo e conectivos
+   suprimidos — qualquer outra diferença é bug, parar e investigar.
+2. `composicao_golden_v2.json`: NÃO regenerar. Os grafos v2 não têm pools de
+   conectivos ⇒ nenhuma das duas regras dispara ⇒ os 28 casos DEVEM passar
+   intocados. Se algum falhar, é bug nas regras novas (elas vazaram para fora
+   da junta conectivo+texto).
+3. Testes novos em `composicao.test.ts` (bloco 9): minúscula aplicada; nome
+   próprio protegido; supressão com marcador de 1 e de 2 palavras; supressão
+   não altera os demais slots (replay: montar 2× idêntico); âncoras intocadas.
+4. E2E: reancorar os asserts que citam texto com conectivo.
+
+## Verificação final
+1. `bun x tsc --noEmit` limpo.
+2. `bun run test` verde (declarar novo total e a diferença).
+3. `bun run test:e2e` verde (ambiente Windows do Manoel).
+4. `node docs/plans/check_plans.mjs` → 10/10.
+5. Fumaça manual: montar a MESMA linha da prova de vida
+   (vagalume → pote → lua → gato → vento → folha, n3) e colar o texto novo no
+   resumo — deve exibir "de repente, a Joana", "foi quando o gato" minúsculos
+   e "Agora são duas luzes" sem conectivo antes.
+6. Resumo: arquivos alterados, diff resumido do golden v3 (contagem de casos
+   alterados por regra), qualquer ambiguidade e a decisão tomada.
+Show less

@@ -5,15 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pipoca — a leitura que acolhe, palavra por palavra</title>
   <meta name="description" content="Pipoca é um app de leitura acolhedora para crianças 2e, com TDAH e autismo. Palavra por palavra, sem pressa e sem erro — a história cresce a cada leitura.">
+
+  <!-- Cartão de prévia (Open Graph + Twitter) para WhatsApp, Instagram, grupos
+       de pais etc. O placeholder %ORIGIN% é substituído pelo server.js pelo
+       endereço real (dev, produção ou domínio próprio), então as URLs absolutas
+       exigidas pelos leitores de link ficam sempre corretas. -->
+  <link rel="canonical" href="%ORIGIN%/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Pipoca">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:url" content="%ORIGIN%/">
+  <meta property="og:title" content="Pipoca — a leitura que acolhe, palavra por palavra">
+  <meta property="og:description" content="Um jeito calmo de ler com crianças 2e, com TDAH e autismo. Palavra por palavra, sem pressa e sem erro — cada leitura acende um vaga-lume.">
+  <meta property="og:image" content="%ORIGIN%/attached_assets/og-pipoca.png">
+  <meta property="og:image:secure_url" content="%ORIGIN%/attached_assets/og-pipoca.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Pipoca — a leitura que acolhe, com um vaga-lume aceso.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Pipoca — a leitura que acolhe, palavra por palavra">
+  <meta name="twitter:description" content="Um jeito calmo de ler com crianças 2e, com TDAH e autismo. Palavra por palavra, sem pressa e sem erro — cada leitura acende um vaga-lume.">
+  <meta name="twitter:image" content="%ORIGIN%/attached_assets/og-pipoca.png">
+  <meta name="twitter:image:alt" content="Pipoca — a leitura que acolhe, com um vaga-lume aceso.">
+
   <!-- Recuperação de senha: o link do e-mail volta para a raiz (esta landing).
        Se chegar com #type=recovery, encaminhamos para o app preservando o hash,
-       para a tela "Escolher nova senha" abrir normalmente. -->
+       para a tela "Escolher nova senha" abrir normalmente.
+
+       Família que já tem conta: se houver sessão de conta ainda válida (o mesmo
+       espelho local `pipoca.sessao-conta.v1` que o app grava no login, tanto no
+       modo local quanto no remoto), encaminhamos direto para /app — sem o clique
+       a mais em "Entrar". Visitante novo (sem sessão) continua na landing. -->
   <script>
     (function () {
       try {
         var h = window.location.hash || "";
         if (h.indexOf("type=recovery") >= 0) {
           window.location.replace("/app" + h);
+          return;
+        }
+        var raw = localStorage.getItem("pipoca.sessao-conta.v1");
+        if (raw) {
+          var s = JSON.parse(raw);
+          if (s && typeof s.expiraEm === "number" && s.expiraEm > Date.now()) {
+            window.location.replace("/app");
+          }
         }
       } catch (_) {}
     })();

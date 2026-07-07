@@ -3,6 +3,12 @@
 > 🟡 **STATUS · 2026-07-06 · PROPOSTA** — evolução do `pipoca.grafo-autoral.v2`
 > (`docs/quintal.v2.json` + `src/core/composicao.ts`). Nada aqui altera a mecânica
 > de rodadas, âncoras ou portão. Ver [[_contratos/schemas-json]].
+>
+> 📝 **Changelog · 2026-07 · lapidação da costura** — §4.1 (novo): duas regras de
+> runtime na costura conectivo+texto (rebaixamento da inicial + supressão do
+> conectivo quando a variante já abre por marcador), rng preservado; campos
+> aditivos `moldura.nomes_proprios?` e `moldura.marcadores_iniciais?`; §6.7 ganha
+> aviso de "abre por marcador". Texto autoral e mecânica inalterados.
 
 ---
 
@@ -195,6 +201,37 @@ montar(estado, nivel):
 Tipos novos: `TextoV3 = Record<NivelKey, string | string[]>`; `CondicaoV3`;
 `se: string | string[]`. Leitor aceita v2 e v3 (normalização na carga).
 
+### 4.1 Lapidação da costura conectivo + texto (2026-07)
+
+Duas regras **puramente de runtime** no `montar`, aplicadas **só quando um conectivo
+é de fato prefixado a um slot de miolo**. Não tocam abertura, âncoras nem desfecho, e
+**não alteram nenhum texto autorado** (`quintal.v3.json` intacto):
+
+1. **Rebaixamento da inicial.** Com o conectivo à frente ("Então, …"), a primeira
+   letra da variante é rebaixada para minúscula ("Então, **u**m pote…"). **Exceção:**
+   se a primeira palavra for um **nome próprio protegido**, o texto fica intacto
+   ("Então, Joana corre."). A lista de protegidos = palavras capitalizadas derivadas de
+   `cenario.personagem` (fallback `Joana`) ∪ o campo novo, opcional,
+   `moldura.nomes_proprios?: string[]`.
+
+2. **Supressão do conectivo.** Se a variante **já abre por um marcador** que faz o
+   papel de conectivo (ex.: "Agora …", "De repente …"), o conectivo é **suprimido**
+   nesse slot — evita "Logo depois, Agora …". O conjunto `marcadoresIniciais` é montado
+   em runtime: união de **todos os pools** de `moldura.conectivos` (todos os níveis,
+   normalizados: sem vírgula, casefold) ∪ lista base
+   `[agora, então, aí, depois, logo, de repente, foi quando, logo depois, pouco depois,
+   no fim, por fim]` ∪ o campo novo, opcional, `moldura.marcadores_iniciais?: string[]`.
+   A comparação é por palavra(s), incluindo marcadores de 2 palavras ("de repente").
+
+**Determinismo (invariante crítico):** o conectivo é **sempre sorteado** (consome o rng
+na ordem fixa da §3) mesmo quando descartado — assim a supressão de um slot **não desloca
+o rng dos demais**. O conectivo descartado **não conta** como "último conectivo" para a
+regra de não-repetição consecutiva (§1.4).
+
+Ambos os campos novos da `moldura` são **aditivos e opcionais** (compat total com grafos
+já publicados). O lint (§6.7) emite **aviso** — nunca erro — para variantes de
+`conta`/`tempera` que abrem por marcador (o conectivo será suprimido ali).
+
 ---
 
 ## 5. Carga autoral e oficina
@@ -225,7 +262,9 @@ validação humana célula a célula é inegociável (é ela que garante "sem er
 6. **Conectivos:** nunca dois iguais consecutivos; ausentes nas âncoras.
 7. **Lint autoral:** toda célula tem os 4 níveis; nenhum array vazio; todo
    objeto declara `genero` e `numero` (§1.5); condição `func:*` gera aviso de
-   namespace reservado; pool de conectivos n1 só aceita entradas de 1 palavra.
+   namespace reservado; pool de conectivos n1 só aceita entradas de 1 palavra;
+   variante de `conta`/`tempera` que **abre por marcador** (§4.1) gera **aviso**
+   (nunca erro) — sinaliza que o conectivo será suprimido naquele slot.
 
 ---
 

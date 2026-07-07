@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "awD-lE_aUuOiah75gC4v6"
+uri = "file://attached_assets/og-pipoca.png"
+type = "image"
+title = "pipoca og preview"

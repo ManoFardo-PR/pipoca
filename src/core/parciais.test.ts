@@ -39,16 +39,11 @@ import { definirVerificacao, definirDesfecho } from "./modos.js";
 import { exportarDados, apagarDados } from "./lgpd.js";
 import { definirBlocoFoco, normalizarLimites } from "./limites.js";
 import { CARDAPIO_PADRAO, normalizarCardapio, normalizarCenariosLiberados } from "./cardapio.js";
-import { criarMotor } from "../motores/fabrica.js";
-import { MotorIA } from "../motores/motor_ia.js";
-import { criarProvedorSimulado } from "../ia/simulado.js";
-import { validarGrafo } from "./grafo/validarGrafo.js";
 import { estadoInicial } from "./estado.js";
 import { criarPerfil } from "./perfil.js";
 import type { Perfil } from "./perfil.js";
 import type { EstadoApp } from "./estado.js";
 import type { RepositorioPersistencia } from "./persistencia/index.js";
-import grafoRaw from "../dados/quintal_grafo.json" with { type: "json" };
 
 let passou = 0;
 let falhou = 0;
@@ -226,24 +221,14 @@ console.log("\n=== Acesso (02-03) — PIN + lockout suave ===");
   assert(depois.ok, "após o lockout expirar, PIN correto volta a abrir");
 }
 
-console.log("\n=== Modos (02-08) — autorizarIA + fábrica respeita a flag ===");
+console.log("\n=== Modos (02-08) — autorizarIA (intenção do cuidador) ===");
 {
+  // A fábrica de motores v1 foi arquivada na implantação do A+ (old/motores/);
+  // a flag segue viva como INTENÇÃO do cuidador, consumida pelas bordas de
+  // flags (aplicarFlagsAosModos) — a IA em runtime volta como realizador v3.
   assert(modosPadrao.iaLigada === false, "default seguro: iaLigada=false");
   const ligado = autorizarIA(modosPadrao, true);
   assert(ligado.iaLigada === true && modosPadrao.iaLigada === false, "autorizarIA liga sem mutar o original");
-
-  const grafo = validarGrafo(grafoRaw);
-  const a = criarMotor(grafo.cenario, modosPadrao);
-  const b = criarMotor(grafo.cenario, ligado);
-  assert(typeof a.motor.abertura === "function" && typeof a.ordem.validar === "function", "fábrica (iaLigada=false) devolve motor+ordem");
-  assert(typeof b.motor.abertura === "function", "fábrica (iaLigada=true, sem provedor) devolve motor (fallback Motor A)");
-  assert(!(b.motor instanceof MotorIA), "sem provedor injetado, o fallback NÃO é Motor B");
-
-  // fase05: com provedor injetado pela borda, a troca acontece SÓ na fábrica.
-  const c = criarMotor(grafo.cenario, ligado, { provedor: criarProvedorSimulado(grafo) });
-  assert(c.motor instanceof MotorIA, "fábrica (iaLigada=true + provedor) instancia o Motor B");
-  const d = criarMotor(grafo.cenario, modosPadrao, { provedor: criarProvedorSimulado(grafo) });
-  assert(!(d.motor instanceof MotorIA), "iaLigada=false ignora o provedor (autorização do cuidador manda)");
 }
 
 console.log("\n=== Migração (06-03) — migrar(de, para) ===");

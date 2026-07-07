@@ -28,20 +28,6 @@
   // A numeração pertence ao app.
   var SUPERFICIES_ADULTAS = [8, 10, 11, 12, 13, 14, 15, 16];
 
-  var FALLBACK_CENARIO = {
-    id: "quintal_anoitecer",
-    nome: "O Quintal",
-    personagem: "a Joana",
-    ordem_canonica: ["vagalume", "frasco", "vento"],
-    abertura: {
-      n1: "É noite. A Joana vai ao quintal.",
-      n2: "A noite chegou no quintal, e a Joana foi ver.",
-      n3: "Quando a noite chegou no quintal, a Joana foi ver o que tinha lá fora.",
-      n4: "A noite chegou devagarinho no quintal. A Joana calçou o chinelo e foi lá fora.",
-    },
-    objetos: [],
-  };
-
   // ─── Estado completo do app ──────────────────────────────────────────────
   var state = {
     tela: 2,
@@ -76,17 +62,11 @@
     comp: null,
     // move autoral pendente (montado em T4, aplicado só na confirmação em T5).
     gatePendente: null,
-    // fase05 · qual motor narrativo está de pé ("A" | "B") — informativo (e2e/painel).
-    motorAtivo: "A",
   };
 
   // ─── Internos ────────────────────────────────────────────────────────────
   var _subs = [];
   var _perfis = [];
-  var _grafo = null;
-  var _cenario = null;
-  var _motor = null;
-  var _ordem = null;
   var _grafoV2 = null;
   var _cenarioV2 = null;
 
@@ -117,12 +97,6 @@
         }
         var R = window.PipocaRoteador;
         if (R) R.irParaTela(state.tela);
-      }
-      // fase05 · borda de remontagem do motor: chaveia por EFETIVO vs ATIVO
-      // (cobre também o kill-switch da plataforma flipado com iaLigada constante).
-      // Síncrona: reusa o grafo já buscado; PipocaApp.motor segue sempre não-nulo.
-      if ("modos" in patch && _grafo && _motorAlvo() !== state.motorAtivo) {
-        _montarMotor(_grafo);
       }
       // UX por perfil · perfil trocado por fora do fluxo (e2e, remoção em T12):
       // invalida a gravação pendente do perfil anterior (nunca contamina o novo)
@@ -568,7 +542,8 @@
   }
 
   // pós-fase06 · kill-switch GLOBAL: puxa as flags do servidor (fire-and-
-  // forget) e, se chegaram, remonta o motor com os modos efetivos novos.
+  // forget). As flags aterrissam na chave local que as bordas de consumo leem
+  // (aplicarFlagsAosModos via Canon.flags — ex.: verificação de fala na T5).
   // Modo local/offline → no-op silencioso (o comportamento atual não muda).
   function _puxarFlagsGlobais() {
     var Canon = window.PipocaCanonico;
@@ -576,7 +551,6 @@
     try {
       Canon.backend.puxarFlagsGlobais().then(function (f) {
         if (!f) return;
-        if (_grafo) { try { _montarMotor(_grafo); } catch (_) {} }
         notify();
       }).catch(function () {});
     } catch (_) {}
@@ -686,79 +660,10 @@
 
   // ─── Motor/validador CANÔNICOS (src/) via window.PipocaCanonico ────────────
 
-  // fase05 · modos EFETIVOS na borda de consumo: state.modos é a INTENÇÃO do
-  // cuidador (persistível, nunca reescrita); o kill-switch global da
-  // plataforma (SA_SAFE) é aplicado só aqui. Fail-closed: sem módulo de
-  // flags/ia no bundle, a IA não sobe.
-  function _modosEfetivos() {
-    var Canon = window.PipocaCanonico;
-    var modos = state.modos || (Canon && Canon.modos ? Canon.modos.modosPadrao : {});
-    if (!Canon || !Canon.flags) return modos;
-    try {
-      return Canon.flags.aplicarFlagsAosModos(modos, Canon.flags.carregarFlags());
-    } catch (_) {
-      return modos;
-    }
-  }
-
-  // Qual motor DEVERIA estar de pé agora ("A" | "B") — decide a remontagem.
-  function _motorAlvo() {
-    var Canon = window.PipocaCanonico;
-    if (!Canon || !Canon.ia || !Canon.flags) return "A";
-    return _modosEfetivos().iaLigada ? "B" : "A";
-  }
-
-  // Monta {motor, ordem} pela fábrica canônica. Com IA efetiva, injeta o
-  // provedor do MVP (simulado → guardrails → orquestrador) e aquece o cache
-  // (fire-and-forget); qualquer falha degrada para o Motor A pela própria
-  // fábrica/motor.
-  function _montarMotor(g) {
-    var Canon = window.PipocaCanonico;
-    if (!Canon || !g) return;
-    var efetivos = _modosEfetivos();
-    var deps;
-    if (efetivos.iaLigada && Canon.ia && Canon.flags) {
-      try { deps = { provedor: Canon.ia.montarProvedorPadrao(g) }; } catch (_) { deps = undefined; }
-    }
-    var par = Canon.criarMotor(g.cenario, efetivos, deps);
-    _motor = par.motor;
-    _ordem = par.ordem;
-    state.motorAtivo = deps && deps.provedor ? "B" : "A";
-    if (state.motorAtivo === "B" && _motor && typeof _motor.aquecer === "function") {
-      var nivel = (state.perfil && state.perfil.nivel) || "n2";
-      try { _motor.aquecer([], nivel).catch(function () {}); } catch (_) {}
-    }
-  }
-
-  function _initMotor() {
-    var Canon = window.PipocaCanonico;
-    fetch("./src/dados/quintal_grafo.json")
-      .then(function (resp) { return resp.json(); })
-      .then(function (grafoRaw) {
-        try {
-          var g = (Canon && grafoRaw) ? Canon.validarGrafo(grafoRaw) : null;
-          if (g) {
-            _grafo = g;
-            _cenario = g.cenario;
-            _montarMotor(g);
-          }
-        } catch (e) {
-          console.warn("[PipocaApp] Falha ao montar o motor canônico:", e);
-        }
-        if (!_cenario) _cenario = FALLBACK_CENARIO;
-        notify();
-      })
-      .catch(function (e) {
-        console.warn("[PipocaApp] Falha ao carregar quintal_grafo.json:", e);
-        if (!_cenario) _cenario = FALLBACK_CENARIO;
-        notify();
-      });
-  }
-
-  // ─── COMPOSIÇÃO AUTORAL v2 (linha verde) via PipocaCanonico.composicao ──────
-  // O grafo v2 (docs/quintal.v2.json) é separado do grafo v1 do motor narrativo.
+  // ─── COMPOSIÇÃO AUTORAL A+ (linha verde) via PipocaCanonico.composicao ──────
+  // O grafo ativo é o v3 (docs/quintal.v3.json, esquema pipoca.grafo-autoral.v3).
   function _initComposicao() {
-    fetch("./docs/quintal.v2.json")
+    fetch("./docs/quintal.v3.json")
       .then(function (resp) { return resp.json(); })
       .then(function (j) {
         _grafoV2 = j || null;
@@ -766,7 +671,7 @@
         notify();
       })
       .catch(function (e) {
-        console.warn("[PipocaApp] Falha ao carregar quintal.v2.json:", e);
+        console.warn("[PipocaApp] Falha ao carregar quintal.v3.json:", e);
       });
   }
 
@@ -1023,9 +928,6 @@
     get estado() { return state; },
     setState: setState,
     subscribe: subscribe,
-    get motor() { return _motor; },
-    get ordem() { return _ordem; },
-    get cenario() { return _cenario; },
     get cenarioV2() { return _cenarioV2; },
     repo: repo,
     selecionarPerfil: selecionarPerfil,
@@ -1059,7 +961,6 @@
 
   // ─── Inicialização (na borda) ─────────────────────────────────────────────
   _migrarPerfisLegado().then(function () { return repo.carregarPerfis(); }); // popula cache _perfis
-  _initMotor();
   _initComposicao();
   // Rota inicial: sem sessão de conta válida → login da família (T9, HH_LOGIN);
   // com sessão → modo criança (T2). O boot navega por _irPara (anterior à guarda).

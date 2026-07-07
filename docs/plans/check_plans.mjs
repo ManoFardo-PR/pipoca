@@ -24,7 +24,8 @@ const motorTs = [
   read(p(ROOT, 'src', 'motores', 'contrato.ts')),
   read(p(ROOT, 'motor_a.ts')),
 ].filter(Boolean).join('\n')
-const grafoJson = read(p(ROOT, 'src', 'dados', 'quintal_grafo.json')) || read(p(ROOT, 'docs', 'quintal_grafo.json')) || ''
+// Grafo ATIVO: v3 desde a implantação do Motor A+ (fase08-08-00); fallback aos layouts antigos.
+const grafoJson = read(p(ROOT, 'docs', 'quintal.v3.json')) || read(p(ROOT, 'src', 'dados', 'quintal_grafo.json')) || read(p(ROOT, 'docs', 'quintal_grafo.json')) || ''
 const gloss = read(p(PLANS, '_contratos', 'glossario.md')) || ''
 
 // nós + classes do mermaid
@@ -166,7 +167,7 @@ const add = (nome, falhas, detalhe = '') => checks.push({ nome, ok: falhas.lengt
   if (!/MotorNarrativa/.test(motorTs)) f.push('CÓDIGO: MotorNarrativa ausente em src/ (tipos/motor)')
   if (!/interface Trecho/.test(motorTs)) f.push('CÓDIGO: Trecho ausente em src/ (tipos/motor)')
   if (!/GrafoAutoral/.test(motorTs)) f.push('CÓDIGO: GrafoAutoral ausente em src/ (tipos/motor)')
-  if (!/pipoca\.grafo-autoral\.v1/.test(grafoJson)) f.push('CÓDIGO: pipoca.grafo-autoral.v1 ausente em quintal_grafo.json')
+  if (!/pipoca\.grafo-autoral\.v3/.test(grafoJson)) f.push('CÓDIGO: pipoca.grafo-autoral.v3 ausente no grafo ativo (docs/quintal.v3.json)')
   add('5. Resolução de nomes', f)
 }
 

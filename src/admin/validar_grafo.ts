@@ -1,20 +1,27 @@
 /**
  * Pipoca — Biblioteca de conteúdo (SA_CONTENT) · doc fase04-04-04
  * ----------------------------------------------------------------
- * Curadoria de grafos autorais (`pipoca.grafo-autoral.v1`): validação DUPLA
- * (schema via núcleo + simulação Motor A/ValidadorOrdem nos 4 níveis) e
- * biblioteca com rascunho → versão → publicação. Publicar cenário de tenant
- * respeita o teto `cenariosCustomizados` do plano (seam 04-03).
+ * Curadoria de grafos autorais (`pipoca.grafo-autoral.v3`): validação DUPLA
+ * (lint autoral do núcleo + fumaça de montagem da composição A+ pela mecânica
+ * real, nos 4 níveis e nos 2 modos de desfecho) e biblioteca com rascunho →
+ * versão → publicação. Publicar cenário de tenant respeita o teto
+ * `cenariosCustomizados` do plano (seam 04-03).
  * Reusa os núcleos canônicos — nada de lógica de grafo duplicada aqui.
  */
 
 import type { StorageLike, TenantId } from "./auth/tiposAdmin.js";
 import type { LimitesPlano } from "./tenant/tiposTenant.js";
-import type { GrafoAutoral, Nivel } from "../core/grafo/tipos.js";
-import { validarGrafo } from "../core/grafo/validarGrafo.js";
-import { criarMotor } from "../motores/fabrica.js";
-import { criarValidadorOrdem } from "../motores/validador_ordem.js";
-import { modosPadrao } from "../core/modos.js";
+import {
+  iniciar,
+  ordenarR1,
+  inserir,
+  abrirProximaRodada,
+  montar,
+  ESQUEMA_COMPOSICAO_V3,
+  type CenarioV2,
+  type NivelKey,
+} from "../core/composicao.js";
+import { lintGrafoV3 } from "../core/lint_grafo.js";
 
 export interface ResultadoValidacaoGrafo {
   ok: boolean;
@@ -22,63 +29,78 @@ export interface ResultadoValidacaoGrafo {
   avisos: string[];
 }
 
-const NIVEIS: Nivel[] = ["n1", "n2", "n3", "n4"];
+const NIVEIS: NivelKey[] = ["n1", "n2", "n3", "n4"];
 
 /**
- * Validação dupla do doc 04-04:
- * 1) schema (validarGrafo do núcleo — motivo vira erro);
- * 2) dependências (ciclo em `tem:` → erro via ValidadorOrdem);
- * 3) simulação Motor A nos 4 níveis: abertura, cada objeto na ordem canônica e
- *    os desfechos convergente E aberto — trecho vazio é erro;
- * 4) desfecho aberto sem ramo para algum objeto → AVISO (degrada p/ convergente).
+ * Validação dupla do doc 04-04 (evoluída para o v3 na implantação do Motor A+):
+ * 1) envelope: `esquema` = pipoca.grafo-autoral.v3 + `cenario` com id/moldura/
+ *    rodadas/objetos — forma errada vira erro;
+ * 2) lint autoral do núcleo (`lintGrafoV3`): células/variantes/metadados/
+ *    conectivos → erros; condições reservadas/desconhecidas → avisos;
+ * 3) fumaça de montagem pela mecânica real (R1 ordena, R2+ insere no miolo):
+ *    montar nos 4 níveis × {convergente, aberto} — texto vazio/replay quebrado
+ *    é erro;
+ * 4) objeto sem eco no desfecho aberto (nem se_comecou_com nem se_terminou_com)
+ *    → AVISO (nesses finais degrada para o convergente).
  */
 export function validarGrafoAutoral(json: unknown): ResultadoValidacaoGrafo {
   const erros: string[] = [];
   const avisos: string[] = [];
 
-  let grafo: GrafoAutoral;
-  try {
-    grafo = validarGrafo(json);
-  } catch (e) {
-    erros.push(e instanceof Error ? e.message : String(e));
+  const env = json as { esquema?: unknown; cenario?: CenarioV2 } | null;
+  if (!env || typeof env !== "object") {
+    return { ok: false, erros: ["o grafo precisa ser um objeto JSON"], avisos };
+  }
+  if (env.esquema !== ESQUEMA_COMPOSICAO_V3) {
+    erros.push(`esquema esperado: "${ESQUEMA_COMPOSICAO_V3}" (recebido: ${JSON.stringify(env.esquema ?? null)})`);
+  }
+  const cenario = env.cenario;
+  if (!cenario || typeof cenario !== "object" || !cenario.id || !cenario.moldura || !Array.isArray(cenario.rodadas) || !cenario.objetos) {
+    erros.push("cenario incompleto: precisa de id, moldura, rodadas e objetos");
     return { ok: false, erros, avisos };
   }
 
-  let ordemIds: string[] = [];
-  try {
-    const ordem = criarValidadorOrdem(grafo.cenario);
-    ordemIds = ordem.ordemCanonica();
-  } catch (e) {
-    erros.push("dependências: " + (e instanceof Error ? e.message : String(e)));
-    return { ok: false, erros, avisos };
-  }
+  const lint = lintGrafoV3(cenario, String(env.esquema ?? ""));
+  erros.push(...lint.erros);
+  avisos.push(...lint.avisos);
 
+  // Fumaça de montagem: percorre as rodadas do cenário pela mecânica real.
   try {
-    const { motor } = criarMotor(grafo.cenario, { ...modosPadrao });
-    for (const nivel of NIVEIS) {
-      if (!motor.abertura(nivel).texto) erros.push(`abertura vazia no nível ${nivel}`);
-      const historia: string[] = [];
-      for (const id of ordemIds) {
-        const t = motor.aoAdicionarObjeto(historia, id, nivel);
-        if (!t.texto) erros.push(`trecho vazio para "${id}" no nível ${nivel}`);
-        historia.push(id);
+    for (const modo of ["convergente", "aberto"] as const) {
+      let est = iniciar(cenario, { desfecho: modo });
+      const rodada1 = cenario.rodadas.find((r) => r.n === 1);
+      const escolhe = (rodada1 && rodada1.escolhe) || 3;
+      est = ordenarR1(est, est.banco.slice(0, escolhe));
+      if (est.linha.length === 0) {
+        erros.push("a rodada 1 não revela objetos suficientes para ordenar");
+        break;
       }
-      if (!motor.desfecho(historia, "convergente", nivel).texto) {
-        erros.push(`desfecho convergente vazio no nível ${nivel}`);
+      for (let r = 2; r <= cenario.rodadas.length; r++) {
+        est = abrirProximaRodada(est);
+        const obj = est.banco[0];
+        if (obj) est = inserir(est, obj, 1);
       }
-      if (!motor.desfecho(historia, "aberto", nivel).texto) {
-        erros.push(`desfecho aberto vazio no nível ${nivel}`);
+      for (const nivel of NIVEIS) {
+        const txt = montar(est, nivel);
+        if (!txt) erros.push(`montagem vazia (${modo}, ${nivel})`);
+        else if (txt.indexOf("undefined") !== -1) erros.push(`"undefined" na montagem (${modo}, ${nivel})`);
+        else if (montar(est, nivel) !== txt) erros.push(`replay quebrado (${modo}, ${nivel})`);
       }
     }
   } catch (e) {
-    erros.push("simulação: " + (e instanceof Error ? e.message : String(e)));
+    erros.push("fumaça de montagem: " + (e instanceof Error ? e.message : String(e)));
   }
 
-  const comRamo = new Set(grafo.cenario.desfechos.aberto.map((d) => d.se_terminou_com));
-  const semRamo = grafo.cenario.objetos.map((o) => o.id).filter((id) => !comRamo.has(id));
-  if (semRamo.length > 0) {
+  const aberto = (cenario.moldura.desfecho && cenario.moldura.desfecho.aberto) || [];
+  const comEco = new Set<string>();
+  for (const a of aberto) {
+    if (a.se_terminou_com) comEco.add(a.se_terminou_com);
+    if (a.se_comecou_com) comEco.add(a.se_comecou_com);
+  }
+  const semEco = Object.keys(cenario.objetos).filter((id) => !comEco.has(id));
+  if (semEco.length > 0) {
     avisos.push(
-      `desfecho aberto sem ramo para: ${semRamo.join(", ")} — nesses finais a história degrada para o desfecho convergente`
+      `desfecho aberto sem eco para: ${semEco.join(", ")} — nesses finais a história degrada para o desfecho convergente`
     );
   }
 

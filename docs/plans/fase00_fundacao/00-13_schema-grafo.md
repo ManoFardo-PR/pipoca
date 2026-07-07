@@ -2,6 +2,15 @@
 
 > 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/core/grafo/{tipos,validarGrafo}.ts` + `src/dados/quintal_grafo.json` (com `ordem_canonica`); validação rejeita esquema/id-dup/papel/regra/ordem inválidos. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
+> 🔄 **SUPERSEDED · 2026-07-06** — O schema v1 deixou de ser o grafo ATIVO na
+> implantação do Motor A+ ([[fase08-08-00]]): o grafo vivo é `docs/quintal.v3.json`
+> (esquema `pipoca.grafo-autoral.v3`, contrato [[_contratos/grafo-autoral-v3]], leitor
+> em `src/core/composicao.ts`). `quintal_grafo.json` e `validarGrafo.ts` foram
+> arquivados em `old/` (ver `old/README.md`); os TIPOS de `src/core/grafo/tipos.ts`
+> (Nivel/Trecho/MotorNarrativa) seguem vivos como vocabulário de core/ia/backend.
+> Este doc permanece como registro histórico da linhagem v1→v2→v3, mas NÃO descreve
+> o grafo vivo. Ver: [[_contratos/schemas-json]] · TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase00-00-13`
 - nó(s) da arquitetura: GRAPH

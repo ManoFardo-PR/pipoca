@@ -116,7 +116,7 @@ class Component extends DCLogic {
 
   async _carregarExemplo() {
     try {
-      const resp = await fetch('./src/dados/quintal_grafo.json');
+      const resp = await fetch('./docs/quintal.v3.json');
       const j = await resp.json();
       this.setState({ grafoTexto: JSON.stringify(j, null, 2), resultado: null, aviso: '' });
     } catch (_) { this.setState({ aviso: 'Não consegui carregar o exemplo agora.' }); }

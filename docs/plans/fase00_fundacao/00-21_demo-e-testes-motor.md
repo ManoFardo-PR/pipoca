@@ -2,6 +2,13 @@
 
 > 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/motores/jogar.ts` + `src/motores/motor.test.ts` (fixtures A convergente / B aberto + degradação + rejeições). **36/36 passam** (`bun`). Nota 2026-07-02: `jogar()` foi inlinado no próprio `motor.test.ts` (era o único consumidor); o arquivo original está em `old/jogar.ts`. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
+> 🔄 **SUPERSEDED · 2026-07-06** — `motor.test.ts` foi ARQUIVADO em `old/motores/` e
+> saiu da cadeia `test` na implantação do Motor A+ ([[fase08-08-00]]), junto com o
+> motor v1 que ele testava. A cobertura viva da narrativa é `src/core/composicao.test.ts`
+> (blocos do contrato v3 + goldens v2≡v3, que preservam a compat do leitor para
+> sempre). Este doc permanece como registro histórico das fixtures originais.
+> Ver: `old/README.md` · [[_contratos/grafo-autoral-v3]].
+
 ## Identidade
 - id: `fase00-00-21`
 - nó(s) da arquitetura: —

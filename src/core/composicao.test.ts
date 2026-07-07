@@ -13,8 +13,15 @@ import {
   type TextoV3,
 } from "./composicao.js";
 import { lintGrafoV3 } from "./lint_grafo.js";
+// Compat v2 AUTOCONTIDA: a fixture golden carrega o grafo v2 integral no campo
+// `grafo` (o quintal.v2.json de runtime foi arquivado em old/dados/ na Etapa D
+// da implantação do A+ — o teste de compat v2≡v3 do leitor existe para sempre
+// sem depender de arquivo de runtime).
 import golden from "./fixtures/composicao_golden_v2.json" with { type: "json" };
-import quintalRaw from "../../docs/quintal.v2.json" with { type: "json" };
+import goldenV3 from "./fixtures/composicao_golden_v3.json" with { type: "json" };
+import quintalV3Raw from "../../docs/quintal.v3.json" with { type: "json" };
+
+const quintalRaw = golden.grafo;
 
 let passou = 0;
 let falhou = 0;
@@ -359,6 +366,25 @@ console.log("\n=== BLOCO 7 — Lint: erros v3, avisos v2/v3 ===");
   const quintal = quintalRaw.cenario as unknown as CenarioV2;
   const rQuintal = lintGrafoV3(quintal, V2);
   assert(rQuintal.erros.length === 0 && rQuintal.avisos.length === 0, "quintal.v2.json publicado passa sem erros nem avisos");
+}
+
+// ─── 8. Golden v3 — o grafo ATIVO (docs/quintal.v3.json) congelado ───────────
+console.log("\n=== BLOCO 8 — Golden v3: grafo ativo reproduzido byte a byte + lint 0/0 ===");
+{
+  const quintalV3 = quintalV3Raw.cenario as unknown as CenarioV2;
+  for (const caso of goldenV3.casos) {
+    const est = estadoDe(quintalV3, caso.linha, caso.rodada, caso.modos as ModosComp);
+    assertEqual(
+      montar(est, caso.nivel),
+      caso.texto,
+      `golden v3 R${caso.rodada} ${caso.nivel} ${(caso.modos as ModosComp).desfecho} [${caso.linha.join(",")}]`
+    );
+  }
+  const rV3 = lintGrafoV3(quintalV3, quintalV3Raw.esquema);
+  assert(
+    rV3.erros.length === 0 && rV3.avisos.length === 0,
+    "quintal.v3.json publicado passa o lint sem erros nem avisos"
+  );
 }
 
 console.log(`\n${"=".repeat(50)}`);

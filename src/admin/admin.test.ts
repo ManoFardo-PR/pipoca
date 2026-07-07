@@ -68,7 +68,7 @@ import {
   normalizarFlags,
 } from "./flags.js";
 import { modosPadrao } from "../core/modos.js";
-import grafoQuintal from "../dados/quintal_grafo.json" with { type: "json" };
+import grafoQuintal from "../../docs/quintal.v3.json" with { type: "json" };
 
 let passou = 0;
 let falhou = 0;
@@ -261,29 +261,34 @@ console.log("\n=== SA_TENANT · tenants, planos e isolamento por escopo ===");
   assert(c1.id === c2.id && c2.tenants.length === 2, "vincularConta agrega tenants na mesma conta (sem PII de criança)");
 }
 
-// ─── conteúdo · validação dupla (04-04) ──────────────────────────────────────
-console.log("\n=== SA_CONTENT · validarGrafoAutoral (schema + simulação) ===");
+// ─── conteúdo · validação dupla (04-04 · evoluída p/ v3 na implantação do A+) ─
+console.log("\n=== SA_CONTENT · validarGrafoAutoral (lint v3 + fumaça de montagem) ===");
 {
   const rOk = validarGrafoAutoral(grafoQuintal);
-  assert(rOk.ok && rOk.erros.length === 0, "grafo do Quintal passa a validação dupla (0 erros)");
+  assert(rOk.ok && rOk.erros.length === 0, "grafo do Quintal v3 passa a validação dupla (0 erros)");
 
   const rEsq = validarGrafoAutoral({ ...grafoQuintal, esquema: "outra.coisa" });
   assert(!rEsq.ok && rEsq.erros.length > 0, "esquema errado é rejeitado com motivo");
 
   assert(!validarGrafoAutoral({}).ok, "objeto vazio é rejeitado");
 
-  const comCiclo = JSON.parse(JSON.stringify(grafoQuintal));
-  delete comCiclo.cenario.ordem_canonica;
-  const [oA, oB] = comCiclo.cenario.objetos;
-  oA.regras = [{ se: "tem:" + oB.id, entao: oA.gatilho }];
-  oB.regras = [{ se: "tem:" + oA.id, entao: oB.gatilho }];
-  const rCiclo = validarGrafoAutoral(comCiclo);
-  assert(!rCiclo.ok && rCiclo.erros.some((e) => /ciclo/i.test(e)), "ciclo de dependência tem: vira erro com diagnóstico");
+  const semNiveis = JSON.parse(JSON.stringify(grafoQuintal));
+  semNiveis.cenario.objetos.vagalume.conta = { n1: "Só um nível." };
+  const rNiveis = validarGrafoAutoral(semNiveis);
+  assert(!rNiveis.ok && rNiveis.erros.some((e) => /n[234]/.test(e)), "célula sem os 4 níveis vira erro de lint com diagnóstico");
+
+  const comFunc = JSON.parse(JSON.stringify(grafoQuintal));
+  comFunc.cenario.objetos.gato.tempera.push({
+    se: "func:chamada",
+    entao: { n1: "T.", n2: "T.", n3: "T.", n4: "T." },
+  });
+  const rFunc = validarGrafoAutoral(comFunc);
+  assert(rFunc.ok && rFunc.avisos.some((a) => /func:/.test(a)), "condição func:* (namespace reservado) vira AVISO, não erro");
 
   const semRamos = JSON.parse(JSON.stringify(grafoQuintal));
-  semRamos.cenario.desfechos.aberto = [];
+  semRamos.cenario.moldura.desfecho.aberto = [];
   const rAviso = validarGrafoAutoral(semRamos);
-  assert(rAviso.ok && rAviso.avisos.some((a) => /degrada/.test(a)), "desfecho aberto sem ramo vira AVISO (degrada p/ convergente), não erro");
+  assert(rAviso.ok && rAviso.avisos.some((a) => /degrada/.test(a)), "objeto sem eco no desfecho aberto vira AVISO (degrada p/ convergente), não erro");
 }
 
 // ─── conteúdo · biblioteca (04-04) ───────────────────────────────────────────
@@ -309,7 +314,7 @@ console.log("\n=== SA_CONTENT · rascunho → versão → publicação com teto 
   assert(listarCenarios(st).length === 2, "…preservando a v1 publicada");
 
   const invalido = JSON.parse(JSON.stringify(grafoQuintal));
-  invalido.cenario.abertura = { n1: "só um nível" };
+  invalido.cenario.moldura.abertura = { n1: "só um nível" };
   salvarRascunho(invalido, "ten_escola", st); // atualiza o rascunho v2
   const pubInv = publicarCenario("quintal_anoitecer", 2, AGORA + 1, limitesDoPlano("familia"), st);
   assert(!pubInv.ok && /inválido/i.test(pubInv.motivo || ""), "grafo inválido não publica (motivo explícito)");

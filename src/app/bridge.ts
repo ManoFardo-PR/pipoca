@@ -3,25 +3,17 @@
  * -------------------------------------------------------------------------------------
  * Empacotado por `bun build --target=browser` em `pipoca.bundle.js`, carregado pelo
  * `index.html` ANTES do script da app. Expõe os módulos canônicos de `src/` em
- * `window.PipocaCanonico` para que o app que roda consuma o seam de verdade
- * (MotorNarrativa / ValidadorOrdem via fábrica), eliminando os stubs inline.
+ * `window.PipocaCanonico` para que o app que roda consuma o seam de verdade.
  *
- * LEI DO CONTRATO: o app fala com `criarMotor` (fábrica) e `validarGrafo`; nunca com
- * MotorGrafoAutoral/MotorIA diretamente.
+ * LEI DO CONTRATO: a narrativa da linha verde é a COMPOSIÇÃO AUTORAL A+
+ * (`composicao` · grafo pipoca.grafo-autoral.v3); o app nunca instancia motor
+ * por conta própria. O stack v1 (MotorGrafoAutoral/fábrica) foi arquivado em
+ * old/ na implantação do v3; a IA em runtime volta como realizador atrás do
+ * mesmo contrato `montar()` (jardim — Motor B).
  */
 
-import { validarGrafo } from "../core/grafo/validarGrafo.js";
-import { criarMotor } from "../motores/fabrica.js";
-import type { GrafoAutoral } from "../core/grafo/tipos.js";
-import type { ProvedorIA } from "../ia/provedor.js";
-import { montarPrompt, PROMPT_BASE } from "../ia/prompt.js";
-import { criarGuardrails, envolverComGuardrails } from "../ia/guardrails.js";
-import { criarProvedorSimulado } from "../ia/simulado.js";
-import { criarOrquestrador } from "../ia/orquestrador.js";
 // fase05: consumo das flags da plataforma pelo runtime da criança (previsto na
 // TRILHA). Módulo puro + storage versionado — NADA do runtime admin vem junto.
-// Os adaptadores reais (claude/gemini/openai/deepseek) ficam FORA do bundle da
-// criança: aqui a IA chega pelo ProxyIA (server-side) ou pelo simulado.
 import { aplicarFlagsAosModos, carregarFlags, killSwitchAtivo } from "../admin/flags.js";
 // fase06: backend trocável (config pública + fachada + sync). O runtime fala
 // SÓ com a fachada — lei do backend.
@@ -35,7 +27,6 @@ import { puxarFlagsGlobais } from "../backend/flags_globais.js";
 // enforcement real). tiposTenant é 100% puro — nada do runtime admin vem junto.
 import { limitesDaFamilia } from "../backend/limites_familia.js";
 import { excedeTetoPerfis } from "../admin/tenant/tiposTenant.js";
-import { provedorViaProxy } from "../backend/proxy_ia.js";
 
 import {
   iniciar as compIniciar,
@@ -46,6 +37,7 @@ import {
   montar as compMontar,
   abrirProximaRodada as compAbrirProximaRodada,
   convergiu as compConvergiu,
+  ESQUEMA_COMPOSICAO_V3,
 } from "../core/composicao.js";
 
 import {
@@ -140,12 +132,9 @@ import {
 } from "../servicos/conta_repo.js";
 
 const PipocaCanonico = {
-  // --- narrativa (eixo 1 / seam) ---
-  validarGrafo,
-  criarMotor,
-
-  // --- composição autoral v2 (linha verde T2→T7) ---
+  // --- composição autoral A+ (linha verde T2→T7 · grafo pipoca.grafo-autoral.v3) ---
   composicao: {
+    esquema: ESQUEMA_COMPOSICAO_V3,
     iniciar: compIniciar,
     bancoDaRodada: compBancoDaRodada,
     podeInserir: compPodeInserir,
@@ -208,38 +197,6 @@ const PipocaCanonico = {
     carregarSessaoConta,
     salvarSessaoConta,
     limparSessaoConta,
-  },
-
-  // --- IA (fase05 · Motor B, MVP local com provedor simulado) ---
-  ia: {
-    montarPrompt,
-    PROMPT_BASE,
-    criarGuardrails,
-    envolverComGuardrails,
-    criarProvedorSimulado,
-    criarOrquestrador,
-    /**
-     * Composição padrão: [ProxyIA (se backend remoto + sessão), simulado],
-     * tudo atrás de guardrails, orquestrado com fallback — qualquer falha do
-     * proxy (sem chave, cota, offline) degrada para o simulado → Motor A.
-     */
-    montarProvedorPadrao(grafo: GrafoAutoral): ProvedorIA {
-      const cadeia: ProvedorIA[] = [];
-      try {
-        const cfg = configDoAmbiente();
-        if (cfg.provedor !== "local") {
-          const b = obterBackend(cfg);
-          if (b.auth.sessaoAtual()) {
-            cadeia.push(envolverComGuardrails(provedorViaProxy(b.proxyIA)) as ProvedorIA);
-          }
-        }
-      } catch {
-        /* fail-soft: sem proxy na cadeia */
-      }
-      const simulado = criarProvedorSimulado(grafo);
-      cadeia.push(envolverComGuardrails(simulado) as ProvedorIA);
-      return criarOrquestrador(cadeia);
-    },
   },
 
   // --- backend trocável (fase06 · lei do backend) ---

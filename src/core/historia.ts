@@ -19,10 +19,19 @@
  */
 
 import type { MotorNarrativa, Trecho, Nivel } from "./grafo/tipos.js";
-import type { ValidadorOrdem } from "../motores/validador_ordem.js";
 
 export type { MotorNarrativa, Trecho, Nivel };
-export type { ValidadorOrdem };
+
+/**
+ * Shape estrutural do validador de ordem da tira. O módulo v1 que o criava
+ * (src/motores/validador_ordem.ts) foi arquivado em old/ na implantação do
+ * A+ v3; estas funções seguem como registro vivo da mecânica SUPERSEDED
+ * (ver fase00-00-20).
+ */
+export interface ValidadorOrdem {
+  ordemCanonica(): string[];
+  validar(ordemJogador: string[]): { ok: boolean; dica?: string };
+}
 
 // --- Estado persistido ---
 export interface HistoriaState {

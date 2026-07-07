@@ -1,6 +1,6 @@
 # fase08 · 08-00 · Motor A+ · Grafo Autoral V3
 
-> 🟡 **STATUS · 2026-07-06 · PARCIAL** — passos 1–5 implementados (motor+lint+testes); passos 6–7 (conteúdo v3 e troca do grafo) pendentes. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+> 🟢 **STATUS · 2026-07-06 · COMPLETO — passos 1–7** — motor+lint+testes (passos 1–5), oficina de conteúdo com validação humana → `docs/quintal.v3.json` (passo 6) e troca do grafo ativo (passo 7: `_initComposicao` fetcha o v3; bundle regenerado; golden v3 congelado). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 ## Identidade
 - id: `fase08-08-00`

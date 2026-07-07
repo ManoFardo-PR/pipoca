@@ -120,9 +120,13 @@ O caminho verde roda **inteiro sobre os módulos canônicos** — a convergênci
   **Teto no app**: `limitesDaFamilia()` lê a própria linha de `tenants` (policy
   `tenants_familia_leitura`) com a MESMA régua do trigger e a tela Perfis recusa a criação acima
   do teto com mensagem acolhedora (editar nunca bloqueia; sem informação, deixa criar).
-- **Dívida conhecida (coexistência v1/v2)** — `_initMotor()` em `src/app/estado.js` ainda carrega
-  `quintal_grafo.json` (v1) em paralelo à v2; o motor narrativo (A ou B desde a fase05) segue
-  instanciado, mas a linha verde usa a composição.
+- ~~Dívida conhecida (coexistência v1/v2)~~ **QUITADA (2026-07-06, implantação do A+ v3)** — a
+  auditoria provou que a saída do motor v1/B não era lida por NENHUMA tela; a fiação
+  (`_initMotor`/`_montarMotor`/`motorAtivo`/exports do bridge) foi removida, a validação do admin
+  migrou para o v3 (`lintGrafoV3` + fumaça de montagem; exemplo carrega `quintal.v3.json`) e o stack
+  v1 (motor_a, motor_ia, contrato, validador_ordem, fabrica, validarGrafo, quintal_grafo.json,
+  motor.test.ts, e2e legados) foi ARQUIVADO em `old/` com selos SUPERSEDED nos docs
+  (00-13/17/18/19/21, 05-01). Bundles regenerados sem strings v1.
 
 ### Pendências reais (2026-07-06)
 - ~~Migrations pós-fase06 pendentes no projeto real~~ **APLICADAS (2026-07-06)** — o usuário
@@ -135,7 +139,9 @@ O caminho verde roda **inteiro sobre os módulos canônicos** — a convergênci
   retomada via `_telaCriancaAnterior` devolve a criança à tela onde estava, mas uma nova Sessao só
   nasce na próxima composição — aceito no MVP, follow-up.
 - Caminho Windows hardcoded (`PW_CORE`) em `tests/e2e/run-linha-verde-canonico.mjs`.
-- Runner legado `tests/e2e/run-linha-verde.mjs` desalinhado das telas canônicas (não é portão; candidato a `old/`).
+- ~~Runner legado `tests/e2e/run-linha-verde.mjs` desalinhado~~ **ARQUIVADO (2026-07-06)** em
+  `old/tests-e2e/` junto com `linha-verde.spec.ts` (ambos 100% seam v1); `test:e2e` agora aponta
+  para o canônico, que roda inteiro sobre a composição v3.
 - ~~Migration da iteração 2 pendente~~ **APLICADA E VERIFICADA AO VIVO (2026-07-06)** —
   tabelas novas respondendo com RLS correta, família lendo a própria linha de `tenants`
   (freemium) e o trigger `fixar_tenant_perfis` corrigindo `tenant_id` forjado (PARIDADE 0b).
@@ -166,7 +172,7 @@ para `/`) e `src/motores/jogar.ts` (inlinado em `motor.test.ts`).
 | 05 IA e fala | 🟢 **completa no app (MVP local)** (2026-07-02) | Motor B (`MotorIA`) atrás da fábrica + `src/ia/*` (prompt/guardrails/orquestrador/simulado; adaptadores testados com transporte fake) + ASR no portão (T5) e "Pela voz" nas Regras; kill-switches consumidos pelo runtime; chamada real de IA = fase06 |
 | 06 Backend | 🟢 **completa no app (Supabase real)** (2026-07-02) | fachada `Backend{auth,repo,proxyIA}` + adaptadores REST puros (`src/backend/*`); projeto real sa-east-1 com RLS aplicado + Edge Function `proxy-ia` deployada (4 provedores via secrets); remoto com fallback local (sem rede, tudo segue); Firebase = stub + PARIDADE.md |
 | 07 QA/A11y/CI | 🔴 não iniciado | `motor.test`/`persistencia.test`; `check_plans.mjs` sem CI |
-| 08 Conteúdo | 🟡 cunha 08-00 (Motor A+/v3) — **executa antes da fase 07** · passos 1–5 implementados (motor+lint+testes); 6–7 (conteúdo v3 e troca do grafo) pendentes | `[[fase08-08-00]]` + contrato `[[_contratos/grafo-autoral-v3]]`; `src/core/composicao.ts` (leitor v3 compat v2) + `src/core/lint_grafo.ts` + `composicao.test.ts` (91 asserts, golden v2≡v3); restante não iniciado |
+| 08 Conteúdo | 🟡 cunha 08-00 (Motor A+/v3) **CONCLUÍDA (2026-07-06, passos 1–7)** — grafo ativo = `docs/quintal.v3.json` | `[[fase08-08-00]]` + contrato `[[_contratos/grafo-autoral-v3]]`; `src/core/composicao.ts` (leitor v3 compat v2) + `src/core/lint_grafo.ts` + `composicao.test.ts` (124 asserts, goldens v2 e v3); 4 cenários restantes não iniciados |
 
 Dívidas de contrato da fase00 (corrigidas no Marco 1): `Economia.objetosCreditados` (fora de `tipos-core`
 `{vagalumes,poupado}`); `spendPct` devolve fração **poupada**, não gasta (`src/core/economia.ts:85`).
@@ -345,7 +351,7 @@ config real commitada.
 PARIDADE.md) e a próxima iteração de código (telas admin sobre PostgREST, vínculo conta↔tenant,
 telemetria remota com retenção, Firebase real).
 
-## Cunha · 08-00 · Motor A+ (antecipado da fase 08) — 🟡 PARCIAL (2026-07-06)
+## Cunha · 08-00 · Motor A+ (antecipado da fase 08) — ✅ CONCLUÍDA (2026-07-06, passos 1–7)
 **O quê:** evolução do Motor A — schema `pipoca.grafo-autoral.v2` → `.v3` (conforme [[_contratos/grafo-autoral-v3]]).
 Variantes por célula, condições de posição, ecos no desfecho, conectivos e replay determinístico — toda a diversidade
 sem IA em runtime. **Por quê:** o teste com a criança ([[fase07-07-03]]) deve rodar sobre o Motor A+; os 4 cenários da
@@ -361,8 +367,11 @@ consumo fixa (replay determinístico). Lint autoral em `src/core/lint_grafo.ts` 
 Testes: `src/core/composicao.test.ts` (91 asserts, na cadeia `bun run test`) cobre os 7 blocos do contrato, incluindo
 28 fixtures golden (`src/core/fixtures/composicao_golden_v2.json`, geradas com o leitor v2 pré-refatoração) que o
 leitor v3 reproduz byte a byte — grafo v2 consome ZERO rng por construção.
-**Pendências (passos 6–7):** oficina de conteúdo → `quintal.v3.json` (validação humana célula a célula) e troca do
-grafo ativo (o app segue rodando o v2; bundle não foi regerado de propósito).
+**Feito (2026-07-06, passos 6–7):** oficina de conteúdo → `docs/quintal.v3.json` (54 variantes novas + 12 temperos
+posicionais + 13 ecos + conectivos + metadados; textos v2 preservados como 1ª variante; validação humana linha a
+linha via `docs/revisao-quintal-v3.md`, APROVADA pelo Manoel) e troca do grafo ativo (`_initComposicao` fetcha o v3;
+bundle regenerado com `ESQUEMA_COMPOSICAO_V3` no seam; golden v3 congelado — 32 casos no bloco 8 do
+`composicao.test.ts`; e2e canônico com prova de vida do v3).
 
 ## Marco 7 — Fase 07 · QA / A11y / CI
 Auditoria de acessibilidade automatizada; `.github/workflows/ci.yml` com `check_plans.mjs` como gate +

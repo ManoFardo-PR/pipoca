@@ -5,6 +5,13 @@
 > Strings `esquema`/`schema` versionadas. Todo doc que persiste ou lê dados deve citar o schema pelo
 > nome exato. Versão nova = sufixo `.vN` novo (nunca mutar um `.vN` já publicado).
 
+> **Nota de linhagem (2026-07-06, implantação do Motor A+):** o grafo ATIVO da composição é o
+> `pipoca.grafo-autoral.v3` (`docs/quintal.v3.json`). Os grafos v1 (`quintal_grafo.json`) e v2
+> (`quintal.v2.json`) foram ARQUIVADOS em `old/dados/` — linhagem preservada (nenhum `.vN` foi
+> mutado), e a compat do leitor v3 com o v2 é garantida PARA SEMPRE pela fixture autocontida
+> `src/core/fixtures/composicao_golden_v2.json` (grafo v2 integral embutido + 28 casos golden
+> reproduzidos byte a byte em `composicao.test.ts`).
+
 | Schema | Dono | Persistido por |
 |--------|------|----------------|
 | `pipoca.grafo-autoral.v1` | [[../fase00/00-13_schema-grafo]] | conteúdo autoral (SA_CONTENT) |

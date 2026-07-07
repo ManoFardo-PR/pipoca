@@ -2,6 +2,14 @@
 
 > 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/motores/motor_a.ts` (`MotorGrafoAutoral`: `abertura`/`aoAdicionarObjeto`/`desfecho`/`avaliaCondicao` tem:/nao_tem:); coberto por `motor.test.ts`. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
+> 🔄 **SUPERSEDED · 2026-07-06** — O motor narrativo v1 foi ARQUIVADO na implantação
+> do Motor A+ ([[fase08-08-00]]): a auditoria provou que sua saída não era lida por
+> nenhuma tela desde a composição autoral (a linha verde vive em
+> `src/core/composicao.ts` sobre `docs/quintal.v3.json`). `motor_a.ts` está em
+> `old/motores/` (ver `old/README.md`); a fiação (`_initMotor`/fábrica no bridge)
+> foi removida. Este doc permanece como registro histórico do Motor A original,
+> mas NÃO descreve o motor vivo. Ver: [[_contratos/grafo-autoral-v3]] · TRILHA.
+
 ## Identidade
 - id: `fase00-00-17`
 - nó(s) da arquitetura: MA

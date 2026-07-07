@@ -1,12 +1,12 @@
 /**
  * Pipoca — Tipos canônicos do grafo autoral (GRAPH)
  * --------------------------------------------------
- * Schema: pipoca.grafo-autoral.v1
- * Fonte da verdade dos tipos. Não renomear nem alterar a forma
- * sem criar um novo esquema (.v2+).
+ * Linhagem: schema v1 (congelado; grafo e leitor arquivados em old/ na
+ * implantação do Motor A+ — o grafo ATIVO é o v3 de src/core/composicao.ts).
+ * Os tipos genéricos daqui (Nivel, ModoDesfecho, Trecho, MotorNarrativa)
+ * seguem sendo o vocabulário vivo de core/ia/backend. Não renomear nem
+ * alterar a forma sem criar um novo esquema.
  */
-
-export const ESQUEMA_GRAFO = "pipoca.grafo-autoral.v1";
 
 export type Nivel = "n1" | "n2" | "n3" | "n4";
 export type ModoDesfecho = "convergente" | "aberto";

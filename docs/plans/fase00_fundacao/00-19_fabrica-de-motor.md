@@ -2,6 +2,13 @@
 
 > 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/motores/fabrica.ts` (`criarMotor`→`{motor,ordem}`, fallback Motor B). Nota: ✅ Marco 1 — `criarMotor` instanciada no runtime (`index.html` via `pipoca.bundle.js`). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
+> 🔄 **SUPERSEDED · 2026-07-06** — A fábrica foi ARQUIVADA em `old/motores/` na
+> implantação do Motor A+ ([[fase08-08-00]]): com a saída do motor v1/B não lida por
+> nenhuma tela, a fiação foi removida do bridge/estado.js e `criarMotor` ficou órfã.
+> A escolha A↔B volta como decisão de REALIZADOR atrás do contrato `montar()` v3
+> quando o Motor B/IA renascer (jardim). Este doc permanece como registro histórico.
+> Ver: `old/README.md` · [[_contratos/grafo-autoral-v3]].
+
 ## Identidade
 - id: `fase00-00-19`
 - nó(s) da arquitetura: —

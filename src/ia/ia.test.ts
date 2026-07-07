@@ -23,11 +23,34 @@ import { criarAdaptadorOpenAI } from "./adaptadores/openai.js";
 import { criarAdaptadorDeepSeek } from "./adaptadores/deepseek.js";
 import { selecionarAdaptador } from "./adaptadores/selecionar.js";
 import { MODELOS_POR_PROVEDOR, type ConfigIaTenant } from "../admin/ia_config.js";
-import { validarGrafo } from "../core/grafo/validarGrafo.js";
-import type { Trecho } from "../core/grafo/tipos.js";
-import grafoRaw from "../dados/quintal_grafo.json" with { type: "json" };
+import type { Fragmento4, GrafoAutoral, Trecho } from "../core/grafo/tipos.js";
 
-const grafo = validarGrafo(grafoRaw);
+// Mini-grafo inline no shape v1 (tipos.ts) — fixture autossuficiente destes
+// testes desde o arquivamento do quintal_grafo.json (implantação do A+ v3).
+// O prompt/simulado/guardrails só leem a ESTRUTURA (nome, objetos, desfechos).
+const f4 = (base: string): Fragmento4 => ({ n1: `${base} n1.`, n2: `${base} n2.`, n3: `${base} n3.`, n4: `${base} n4.` });
+const grafo: GrafoAutoral = {
+  esquema: "pipoca.grafo-autoral.v1",
+  niveis: { n1: "sílabas", n2: "frases curtas", n3: "frases ligadas", n4: "parágrafos" },
+  regra_de_ouro: "Cada leitura no portão abre a próxima rodada.",
+  cenario: {
+    id: "quintal_anoitecer",
+    nome: "O Quintal ao Anoitecer",
+    personagem: "a Joana",
+    paleta: "entardecer",
+    abertura: f4("Abertura do quintal"),
+    ordem_canonica: ["vagalume", "frasco", "coruja"],
+    objetos: [
+      { id: "vagalume", emoji: "🪲", nome: "vaga-lume", papel_no_fim: "nucleo", gatilho: f4("Uma luzinha pisca"), regras: [{ se: "tem:frasco", entao: f4("A luzinha entra no pote") }] },
+      { id: "frasco", emoji: "🫙", nome: "pote de vidro", papel_no_fim: "chave", gatilho: f4("Um pote espera"), regras: [] },
+      { id: "coruja", emoji: "🦉", nome: "coruja", papel_no_fim: "neutro", gatilho: f4("Uma coruja observa"), regras: [] },
+    ],
+    desfechos: {
+      convergente: f4("A noite termina em paz"),
+      aberto: [{ se_terminou_com: "vagalume", fragmento: f4("A luzinha diz tchau") }],
+    },
+  },
+};
 
 let passou = 0;
 let falhou = 0;

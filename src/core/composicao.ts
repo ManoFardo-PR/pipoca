@@ -32,7 +32,9 @@
  * (`cenario`) para que toda função leia o que precisa a partir do próprio estado.
  */
 
-// ─── Tipos do grafo (v2 e v3 — docs/quintal.v2.json · futuro quintal.v3.json) ──
+// ─── Tipos do grafo (v2 e v3 — grafo ativo: docs/quintal.v3.json) ─────────────
+/** Esquema canônico do grafo ativo da composição (linha verde). */
+export const ESQUEMA_COMPOSICAO_V3 = "pipoca.grafo-autoral.v3";
 export type NivelKey = "n1" | "n2" | "n3" | "n4";
 /** v3: cada nível aceita string (compat v2 ≡ array de 1) ou array de variantes. */
 export type TextoV3 = Record<string, string | string[]>;

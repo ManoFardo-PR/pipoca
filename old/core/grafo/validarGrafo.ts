@@ -1,9 +1,13 @@
+// ARQUIVADO (implantação do Motor A+ v3): validador do schema v1. Os tipos
+// vivem em src/core/grafo/tipos.ts; a const do esquema foi inlinada aqui ao
+// arquivar (era o único consumidor).
 import {
-  ESQUEMA_GRAFO,
   type GrafoAutoral,
   type Fragmento4,
   type PapelNoFim,
-} from "./tipos.js";
+} from "../../../src/core/grafo/tipos.js";
+
+const ESQUEMA_GRAFO = "pipoca.grafo-autoral.v1";
 
 const PAPEIS_VALIDOS: PapelNoFim[] = ["nucleo", "chave", "neutro"];
 const NIVEIS = ["n1", "n2", "n3", "n4"] as const;

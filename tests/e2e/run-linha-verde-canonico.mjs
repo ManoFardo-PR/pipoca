@@ -14,6 +14,7 @@
  */
 import { createRequire } from "node:module";
 import { spawn } from "node:child_process";
+import { readFileSync } from "node:fs";
 import net from "node:net";
 
 const require = createRequire(import.meta.url);
@@ -80,48 +81,78 @@ try {
 
   await page.goto(BASE + "/", { waitUntil: "domcontentloaded" });
   await page.waitForFunction(
-    () => !!window.PipocaCanonico && !!window.PipocaApp && !!window.PipocaApp.motor && !!window.PipocaApp.ordem && !!window.PipocaApp.repo,
+    () => !!window.PipocaCanonico && !!window.PipocaApp && !!window.PipocaApp.cenarioV2 && !!window.PipocaApp.repo,
     { timeout: 15000 }
   );
 
-  console.log("\n=== Boot do app canônico (/) + seam ===");
+  console.log("\n=== Boot do app canônico (/) + seam da composição A+ (grafo v3) ===");
   assert(
     (await page.evaluate(() => window.PIPOCA_CONFIG && window.PIPOCA_CONFIG.provedor)) === "local",
     "fase06: backend local forçado no e2e (config injetada vence o pipoca.config.js)"
   );
   const r = await page.evaluate(() => {
-    const motor = window.PipocaApp.motor, ordem = window.PipocaApp.ordem;
+    const Canon = window.PipocaCanonico, App = window.PipocaApp;
+    App.iniciarComposicao();
+    const compR1 = App.estado.comp;
+    const inserirNaR1 = App.podeInserirComposicao(compR1.banco[0], 1);
+    App.ordenarR1Composicao(compR1.banco.slice(0, 3));
+    App.abrirProximaRodadaComposicao(); // R2 revela +1
+    const comp = App.estado.comp;
+    const novo = comp.banco[0];
     return {
-      temCanon: !!window.PipocaCanonico,
-      temRepo: !!window.PipocaApp.repo && typeof window.PipocaApp.repo.carregarPerfis === "function",
-      temDesfecho: typeof motor.desfecho === "function",
-      aberturaN3: motor.abertura("n3").texto,
-      frascoRule: motor.aoAdicionarObjeto(["vagalume"], "frasco", "n3").texto,
-      validarParcial: ordem.validar(["vagalume", "frasco"]).ok,
-      validarForaDeOrdem: ordem.validar(["frasco", "vagalume"]).ok,
+      temCanon: !!Canon,
+      temRepo: !!App.repo && typeof App.repo.carregarPerfis === "function",
+      esquema: Canon.composicao && Canon.composicao.esquema,
+      cenarioId: App.cenarioV2 && App.cenarioV2.id,
+      bancoR1: compR1.banco.length,
+      inserirNaR1,
+      pontasTravadas: comp.pontasTravadas === true,
+      inserirNaPonta: App.podeInserirComposicao(novo, 0),
+      inserirNoMiolo: App.podeInserirComposicao(novo, 1),
+      textoR2: App.montarComposicao("n3"),
     };
   });
   assert(r.temCanon, "window.PipocaCanonico presente (bundle carregado)");
   assert(r.temRepo, "window.PipocaApp.repo exposto (seam de persistência)");
-  assert(r.temDesfecho, "motor.desfecho existe → motor da fábrica canônica (não stub)");
-  assert(/Quando a noite chegou/.test(r.aberturaN3), "abertura n3 sai do grafo");
-  assert(/casinha de vidro/.test(r.frascoRule), "regra tem:vagalume avaliada pelo motor");
-  assert(r.validarParcial === true, "ValidadorOrdem aceita ordem parcial consistente");
-  assert(r.validarForaDeOrdem === false, "ValidadorOrdem rejeita dependência fora de ordem");
+  assert(r.esquema === "pipoca.grafo-autoral.v3", "seam declara o esquema ativo pipoca.grafo-autoral.v3");
+  assert(r.cenarioId === "quintal_anoitecer", "grafo v3 do Quintal fetchado e ativo (cenarioV2)");
+  assert(r.bancoR1 === 4, "R1 revela 4 objetos no banco");
+  assert(r.inserirNaR1 === false, "R1 não aceita inserção avulsa (só ordenar 3)");
+  assert(r.pontasTravadas, "após ordenar R1, as pontas travam (âncoras)");
+  assert(r.inserirNaPonta === false, "R2 recusa inserir na ponta (âncora travada)");
+  assert(r.inserirNoMiolo === true, "R2 aceita inserir no miolo");
+  assert(typeof r.textoR2 === "string" && r.textoR2.length > 0 && !r.textoR2.includes("undefined"), "montar tece texto sem undefined");
 
-  console.log("\n=== Narrativa cresce pelo seam (abertura → 3 objetos → desfecho) ===");
-  const linhas = await page.evaluate(() => {
-    const motor = window.PipocaApp.motor, ordem = window.PipocaApp.ordem;
-    const ids = ordem.ordemCanonica();
-    const out = [motor.abertura("n3").texto];
-    const hist = [];
-    for (const id of ids) { out.push(motor.aoAdicionarObjeto(hist, id, "n3").texto); hist.push(id); }
-    out.push(motor.desfecho(hist, "convergente", "n3").texto);
-    return out;
+  console.log("\n=== Narrativa CRESCE pela composição (R1 → R4 → desfecho) e replay é determinístico ===");
+  const cresce = await page.evaluate(() => {
+    const App = window.PipocaApp;
+    App.iniciarComposicao();
+    App.ordenarR1Composicao(App.estado.comp.banco.slice(0, 3));
+    const tamanhos = [App.montarComposicao("n3").length];
+    let guarda = 0;
+    while (!App.composicaoConvergiu() && guarda++ < 10) {
+      App.abrirProximaRodadaComposicao();
+      if (App.composicaoConvergiu()) break;
+      const comp = App.estado.comp;
+      const objeto = comp.banco[0];
+      let inseriu = false;
+      for (let slot = 1; slot < comp.linha.length && !inseriu; slot++) {
+        if (App.podeInserirComposicao(objeto, slot)) inseriu = App.inserirComposicao(objeto, slot);
+      }
+      if (!inseriu) break;
+      tamanhos.push(App.montarComposicao("n3").length);
+    }
+    const final1 = App.montarComposicao("n3");
+    const final2 = App.montarComposicao("n3");
+    return { tamanhos, linha: App.estado.comp.linha.length, replayIgual: final1 === final2, final: final1 };
   });
-  assert(linhas.length >= 5, `narrativa acumula ${linhas.length} trechos (abertura + 3 + desfecho)`);
-  assert(linhas.every((t) => typeof t === "string" && t.length > 0), "nenhum trecho vazio/undefined");
-  assert(/acendeu a noite toda/.test(linhas[linhas.length - 1]), "última linha é o desfecho convergente");
+  assert(cresce.linha === 6, "linha final com 6 objetos (R1 ordena 3 + R2-R4 inserem 3)");
+  assert(
+    cresce.tamanhos.every((t, i) => i === 0 || t > cresce.tamanhos[i - 1]),
+    `o texto cresce a cada rodada (${cresce.tamanhos.join(" → ")} chars)`
+  );
+  assert(cresce.replayIgual, "replay determinístico: montar 2× devolve o mesmo texto");
+  assert(cresce.final.length > cresce.tamanhos[0], "texto final (com desfecho) maior que o da R1");
 
   console.log("\n=== Telas T2–T7 MONTAM de verdade (componente-irmão) ===");
   // Semeia o estado para as telas renderizarem conteúdo real.
@@ -230,37 +261,35 @@ try {
   await page.waitForTimeout(150);
   assert((await page.evaluate(() => window.PipocaApp.estado.tela)) === 2, "KIDMODE barra acesso direto ao hub adulto (redireciona a T2)");
 
-  // ── fase05 · Motor B (MVP local): fail-closed da plataforma + intenção do cuidador ──
-  // FLAGS_PADRAO tem ia:false (fail-closed): sem seed, o Motor B nunca sobe.
-  const faseMotorB = await page.evaluate(async () => {
-    const App = window.PipocaApp;
-    // cuidador autoriza, plataforma ainda fechada → segue no A
+  // ── fase05 · kill-switches da plataforma: fail-closed + intenção do cuidador ──
+  // O motor v1/B foi arquivado na implantação do A+ v3; o que segue vivo é a
+  // POLÍTICA: flags da plataforma aplicadas na borda de consumo
+  // (Canon.flags.aplicarFlagsAosModos), sem jamais reescrever a intenção.
+  const faseFlags = await page.evaluate(() => {
+    const App = window.PipocaApp, F = window.PipocaCanonico.flags;
+    const efetivos = () => F.aplicarFlagsAosModos(App.estado.modos, F.carregarFlags());
+    // cuidador autoriza, plataforma ainda fechada (FLAGS_PADRAO ia:false) → fail-closed
     App.setState({ modos: Object.assign({}, App.estado.modos, { iaLigada: true }) });
-    const soCuidador = App.estado.motorAtivo;
-    // plataforma libera (SA_SAFE) → a borda remonta na hora, sem reload
+    const soCuidador = efetivos().iaLigada;
+    // plataforma libera (SA_SAFE) → o efetivo liga na hora, sem reload
     localStorage.setItem("pipoca.admin.flags.v1", JSON.stringify({ ia: true, fala: true, conteudoCustomizado: true, telemetria: true }));
-    App.setState({ modos: Object.assign({}, App.estado.modos) });
-    const comFlag = App.estado.motorAtivo;
-    if (App.motor && App.motor.aquecer) await App.motor.aquecer([], "n2");
-    const aberturaB = App.motor ? App.motor.abertura("n2").texto : "";
+    const comFlag = efetivos().iaLigada;
     // kill-switch derruba mesmo com o cuidador autorizando — e NÃO apaga a intenção
     localStorage.setItem("pipoca.admin.flags.v1", JSON.stringify({ ia: false, fala: false, conteudoCustomizado: true, telemetria: true }));
-    App.setState({ modos: Object.assign({}, App.estado.modos) });
     return {
       soCuidador,
       comFlag,
-      aberturaB,
-      aposKill: App.estado.motorAtivo,
-      aberturaA: App.motor ? App.motor.abertura("n2").texto : "",
+      aposKill: efetivos().iaLigada,
       intencaoPreservada: App.estado.modos.iaLigada === true,
     };
   });
-  assert(faseMotorB.soCuidador === "A", "fase05: cuidador autorizou mas plataforma fechada (fail-closed) → Motor A");
-  assert(faseMotorB.comFlag === "B", "fase05: flag da plataforma + autorização do cuidador → Motor B na hora (sem reload)");
-  assert(faseMotorB.aberturaB.indexOf("✨") === 0, "fase05: abertura aquecida vem da IA simulada (texto ≠ grafo)");
-  assert(faseMotorB.aposKill === "A" && faseMotorB.intencaoPreservada, "fase05: kill-switch volta p/ Motor A SEM apagar a intenção do cuidador");
-  assert(faseMotorB.aberturaA.indexOf("✨") !== 0, "fase05: de volta ao Motor A, o texto é o autoral do grafo");
-  await page.evaluate(() => localStorage.removeItem("pipoca.admin.flags.v1"));
+  assert(faseFlags.soCuidador === false, "fase05: cuidador autorizou mas plataforma fechada (fail-closed) → IA efetiva OFF");
+  assert(faseFlags.comFlag === true, "fase05: flag da plataforma + autorização do cuidador → IA efetiva ON na hora (sem reload)");
+  assert(faseFlags.aposKill === false && faseFlags.intencaoPreservada, "fase05: kill-switch derruba a IA efetiva SEM apagar a intenção do cuidador");
+  await page.evaluate(() => {
+    localStorage.removeItem("pipoca.admin.flags.v1");
+    window.PipocaApp.setState({ modos: Object.assign({}, window.PipocaApp.estado.modos, { iaLigada: false }) });
+  });
 
   // ── fase05 · modo fala (ASR): sem reconhecimento no aparelho o portão NÃO quebra ──
   // Removemos a Web Speech API para forçar o caminho real de indisponibilidade.
@@ -570,11 +599,29 @@ try {
       capturada: !!h && typeof h.texto === "string" && h.texto.length > 40 && h.linha.length >= 3,
       idNoEstado: App.estado.ultimaHistoriaSalvaId === (h && h.id),
       titulo: h ? h.titulo : "",
+      texto: h ? h.texto : "",
     };
   });
   assert(uxHist.convergiu, "a composição converge pelo seam (história completa)");
   assert(uxHist.capturada, "história COMPLETA capturada automaticamente na convergência (texto + linha)");
   assert(uxHist.idNoEstado, "ultimaHistoriaSalvaId aponta a captura (coração da T6)");
+
+  // Prova de vida do v3 (grafo ativo = docs/quintal.v3.json): a história capturada
+  // começa por uma variante autorada da abertura e o miolo carrega conectivos.
+  {
+    const grafoV3 = JSON.parse(readFileSync(new URL("../../docs/quintal.v3.json", import.meta.url), "utf8"));
+    const moldura = grafoV3.cenario.moldura;
+    const aberturas = Object.values(moldura.abertura).flatMap((t) => (Array.isArray(t) ? t : [t]));
+    const conectivos = Object.values(moldura.conectivos || {}).flat();
+    assert(
+      aberturas.some((a) => uxHist.texto.startsWith(a)),
+      "v3 vivo: a história começa com uma variante autorada da abertura"
+    );
+    assert(
+      conectivos.some((c) => uxHist.texto.includes(" " + c + " ")),
+      "v3 vivo: o miolo da história carrega conectivo do pool do nível"
+    );
+  }
 
   // T3 mostra a faixa e o cartão; tap abre o leitor com o texto completo
   await page.evaluate(() => { window.PipocaApp.setState({ tela: 3 }); });

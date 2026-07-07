@@ -1,4 +1,227 @@
 {
+  "grafo": {
+    "esquema": "pipoca.grafo-autoral.v2",
+    "niveis": {
+      "n1": "Primeiras palavras — sílabas e palavras soltas",
+      "n2": "Frases curtas — uma linha",
+      "n3": "Pequenos textos — frases ligadas",
+      "n4": "Parágrafos — histórias mais longas"
+    },
+    "regra_de_ouro": "Cada leitura no portão abre a próxima rodada. A moldura (abertura e desfecho) é sempre fixa. Cada objeto é uma micro-cena com a Joana dentro — orbita a mesma noite, nunca os outros objetos — e por isso lê bem em qualquer ordem. A complexidade mora dentro de cada beat, não na costura entre eles.",
+    "cenario": {
+      "id": "quintal_anoitecer",
+      "nome": "O Quintal ao Anoitecer",
+      "personagem": "a Joana",
+      "paleta": "entardecer quente virando azul-noite",
+      "moldura": {
+        "abertura": {
+          "n1": "É noite. A Joana sai.",
+          "n2": "É noite. A Joana pisa na grama fria, sozinha.",
+          "n3": "A última luz do dia some atrás do muro, e a Joana sai pro quintal sem fazer barulho.",
+          "n4": "Quando a última luz do dia se apaga atrás do muro, a Joana abre a porta dos fundos sem fazer barulho. O quintal, que de dia é só o quintal, à noite vira outro lugar — e ela pisa na grama fria de pés descalços, o coração batendo forte."
+        },
+        "desfecho": {
+          "convergente": {
+            "n1": "A Joana guarda a noite. Dorme.",
+            "n2": "A Joana guarda a noite inteira no peito e vai sonhar.",
+            "n3": "Quando o quintal já contou tudo, a Joana guarda a noite inteira no peito e leva ela pros sonhos.",
+            "n4": "Quando o quintal já contou tudo o que tinha pra contar, a Joana fecha os olhos um instante e guarda a noite inteira dentro do peito — cada luz, cada som, cada friozinho — do jeito que a gente guarda vaga-lume num pote, e leva o quintal junto pros sonhos."
+          },
+          "aberto": [
+            {
+              "se_terminou_com": "vagalume",
+              "fragmento": {
+                "n1": "Uma faísca pisca. Boa noite.",
+                "n2": "A última faísca pisca uma vez, como um boa-noite só pra ela.",
+                "n3": "E, bem na porta, a última faísca pisca uma vez só — um boa-noite piscado no escuro, só pra Joana.",
+                "n4": "E, bem na hora de entrar, quando a Joana olha pra trás uma última vez, a faísca lá no fundo pisca uma vez só — devagarinho, um boa-noite secreto piscado no escuro, guardado só pra ela."
+              }
+            },
+            {
+              "se_terminou_com": "lua",
+              "fragmento": {
+                "n1": "A lua fica. De guarda.",
+                "n2": "A lua fica no alto, de guarda, enquanto a Joana entra.",
+                "n3": "E a lua fica lá no alto, de guarda, vendo a Joana entrar sem pressa nenhuma de ir embora.",
+                "n4": "E a lua fica lá no alto, redonda e quieta, montando guarda sobre o quintal vazio e vendo a Joana entrar — sem nenhuma pressa de ir embora, como se fosse esperar por ela a noite toda."
+              }
+            },
+            {
+              "se_terminou_com": "gato",
+              "fragmento": {
+                "n1": "O gato se enrola. Dorme.",
+                "n2": "O gato se enrola numa bolinha e dorme, do jeito dele.",
+                "n3": "E o gato se enrola numa bolinha quentinha e dorme também, o rabo cobrindo o focinho.",
+                "n4": "E o gato, que ficou o tempo todo decidindo se confiava, enfim se enrola numa bolinha quentinha num canto da cerca e dorme também — o rabo cobrindo o focinho, um olho meio aberto, do jeitinho dele."
+              }
+            }
+          ]
+        }
+      },
+      "rodadas": [
+        {
+          "n": 1,
+          "revela": [
+            "vagalume",
+            "frasco",
+            "vento",
+            "folha"
+          ],
+          "escolhe": 3,
+          "ordena": true,
+          "trava_pontas": true
+        },
+        {
+          "n": 2,
+          "revela": [
+            "gato"
+          ],
+          "escolhe": 1,
+          "insere_em": "miolo"
+        },
+        {
+          "n": 3,
+          "revela": [
+            "lua"
+          ],
+          "escolhe": 1,
+          "insere_em": "miolo"
+        },
+        {
+          "n": 4,
+          "revela": [
+            "orvalho"
+          ],
+          "escolhe": 1,
+          "insere_em": "miolo"
+        }
+      ],
+      "_nota_posicao": "As regras de travamento de slot por rodada (pontas na R1, trava tripla na R4) pertencem ao ValidadorOrdem — o proximo passo. Este grafo declara SO o conteudo e o que cada rodada revela/escolhe.",
+      "objetos": {
+        "vagalume": {
+          "emoji": "🪲",
+          "nome": "vaga-lume",
+          "papel_no_fim": "nucleo",
+          "registro": "assombro / segredo",
+          "conta": {
+            "n1": "Uma faísca. Acende. Some.",
+            "n2": "Lá no escuro, uma faísca acende e some.",
+            "n3": "No canto mais escuro, uma faísca acende e some. A Joana prende a respiração e chega na ponta dos pés.",
+            "n4": "Lá no canto onde o escuro é mais fundo, uma faísca minúscula acende e some, acende e some. A Joana prende a respiração e chega mais perto na ponta dos pés: é uma luzinha viva, flutuando no ar, piscando devagar como quem conta um segredo que só ela pode ouvir."
+          },
+          "tempera": [
+            {
+              "se": "tem:frasco",
+              "entao": {
+                "n1": "A faísca no pote. Lanterna!",
+                "n2": "A faísca entra no pote e vira uma lanterninha só dela.",
+                "n3": "A faísca entra no pote de vidro e fica piscando lá dentro — uma lanterninha viva que a Joana carrega.",
+                "n4": "Com todo o cuidado, a faísca entra no pote de vidro e fica piscando lá dentro, presa e livre ao mesmo tempo — uma lanterninha viva que a Joana carrega pelo quintal, iluminando um passinho de cada vez."
+              }
+            }
+          ]
+        },
+        "frasco": {
+          "emoji": "🫙",
+          "nome": "pote de vidro",
+          "papel_no_fim": "chave",
+          "registro": "curiosidade / lente",
+          "conta": {
+            "n1": "Um pote. De vidro.",
+            "n2": "A Joana acha um pote e olha o mundo por dentro dele.",
+            "n3": "A Joana acha um pote de vidro e ergue contra o céu, vendo o quintal ficar todo torto lá dentro.",
+            "n4": "Meio enterrado na grama, a Joana encontra um pote de vidro e o ergue contra o céu com as duas mãos. Fecha um olho e espia por dentro — e o quintal inteiro entorta e brilha ali dentro, pequenininho e curvo, um quintal de bolso só dela."
+          },
+          "tempera": []
+        },
+        "vento": {
+          "emoji": "🍃",
+          "nome": "vento",
+          "papel_no_fim": "neutro",
+          "registro": "aconchego / respiração",
+          "conta": {
+            "n1": "Um vento. Fresco.",
+            "n2": "Um vento fresco passa e mexe no cabelo da Joana.",
+            "n3": "Um vento fresco atravessa o quintal e mexe no cabelo da Joana, fazendo tudo balançar de leve.",
+            "n4": "Um vento fresco atravessa o quintal e bagunça o cabelo da Joana, fazendo as folhas balançarem e a grama toda sussurrar de uma vez. Ela fecha os olhos e respira fundo — cheira a terra molhada e a fim de tarde, como se a noite inteira estivesse respirando junto com ela."
+          },
+          "tempera": []
+        },
+        "folha": {
+          "emoji": "🍂",
+          "nome": "folha",
+          "papel_no_fim": "neutro",
+          "registro": "delicadeza / tempo",
+          "conta": {
+            "n1": "Uma folha. Desce.",
+            "n2": "Uma folha desce rodando devagar no ar.",
+            "n3": "Uma folha se solta lá de cima e desce rodando, sem pressa, até a mão espalmada da Joana.",
+            "n4": "Bem lá em cima, uma folha se solta do galho e começa a descer — rodopiando devagar, sem pressa nenhuma, indo pra um lado e pro outro. A Joana estende a mão aberta embaixo e espera, quietinha, até a folha pousar de leve na palma dela, leve feito um cochicho."
+          },
+          "tempera": []
+        },
+        "gato": {
+          "emoji": "🐈",
+          "nome": "gato",
+          "papel_no_fim": "neutro",
+          "registro": "cautela / mistério",
+          "conta": {
+            "n1": "Um gato. Dois olhos.",
+            "n2": "Na cerca, dois olhos verdes acendem: um gato.",
+            "n3": "Alguma coisa farfalha na cerca, e dois olhos verdes se acendem. Um gato observa a Joana, quieto feito sombra.",
+            "n4": "Alguma coisa farfalha em cima da cerca, e quando a Joana olha, dois olhos verdes já estão acesos ali. Um gato — quieto feito sombra, o rabo balançando bem devagarinho — estuda ela com uma calma antiga, sem pressa nenhuma, decidindo se vale a pena confiar."
+          },
+          "tempera": [
+            {
+              "se": "tem:folha",
+              "entao": {
+                "n1": "O gato pula. Na folha!",
+                "n2": "O gato vê a folha e pula, brincando com ela.",
+                "n3": "O gato vê a folha no chão e não resiste: pula, bate de leve com a patinha, corre atrás.",
+                "n4": "O gato vê a folha caída e, por um segundo, esquece toda a pose de gato sério: abaixa o rabo, mira e pula — batendo de leve com a patinha, correndo atrás quando o vento leva a folha pra longe."
+              }
+            }
+          ]
+        },
+        "lua": {
+          "emoji": "🌙",
+          "nome": "lua",
+          "papel_no_fim": "neutro",
+          "registro": "deslumbre / vastidão",
+          "conta": {
+            "n1": "A lua. Grande. Prateada.",
+            "n2": "A lua sobe grande e pinta o quintal de prata.",
+            "n3": "A lua sobe grande por trás das árvores e acende o quintal todo com uma luz de prata.",
+            "n4": "Devagar, a lua sobe redonda e enorme por trás das árvores, e de repente o quintal inteiro se acende numa luz de prata, macia e quieta. A Joana joga a cabeça pra trás pra ver ela toda, e por um instante o quintal parece grande demais, do tamanho do céu."
+          },
+          "tempera": [
+            {
+              "se": "tem:orvalho",
+              "entao": {
+                "n1": "A lua na grama. Mil luas!",
+                "n2": "A lua se reflete no orvalho: mil luas pequeninhas.",
+                "n3": "A lua se reflete em cada gota de orvalho, e o chão vira mil luas pequeninhas.",
+                "n4": "A luz da lua encontra o orvalho na grama e se parte em mil pedaços: de repente há mil luas pequeninhas espalhadas pelo chão, e a Joana anda no meio delas com medo de pisar em alguma."
+              }
+            }
+          ]
+        },
+        "orvalho": {
+          "emoji": "💧",
+          "nome": "orvalho",
+          "papel_no_fim": "neutro",
+          "registro": "preciosidade minúscula",
+          "conta": {
+            "n1": "Gotinhas. Brilham.",
+            "n2": "O orvalho pousa na grama em gotinhas que brilham.",
+            "n3": "O orvalho pousa na grama em gotinhas miúdas, e cada uma brilha como uma continha de vidro.",
+            "n4": "Sem ninguém ver, o orvalho começa a se juntar na grama em gotinhas miúdas, tão pequenas que quase não dá pra acreditar. A Joana se abaixa bem perto: cada gota é uma continha de vidro, e cada continha guarda um pedacinho de luz lá dentro."
+          },
+          "tempera": []
+        }
+      }
+    }
+  },
   "casos": [
     {
       "linha": [

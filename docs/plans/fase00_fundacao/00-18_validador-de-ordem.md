@@ -2,6 +2,13 @@
 
 > 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `src/motores/validador_ordem.ts` (topo-sort, `ordemCanonica`, `validar` com dicas acolhedoras). Nota: ✅ Marco 1 — `validar` aceita ordem parcial consistente (critério 00-18). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md Nota 2026-07-01: o quebra-cabeça foi superado pela composição autoral v2 (ordenação só na R1, com pontas travadas); `ValidadorOrdem` segue em `src/` a serviço do Motor A/v1 — ver [[fase00-00-20]].
 
+> 🔄 **SUPERSEDED · 2026-07-06** — Com o expurgo do v1 na implantação do Motor A+
+> ([[fase08-08-00]]), `validador_ordem.ts` foi ARQUIVADO em `old/motores/` (ver
+> `old/README.md`) — nada vivo o instanciava. As regras de posição da linha verde
+> vivem na própria composição (`podeInserir`: miolo/âncoras) e nas condições `pos:*`
+> do grafo v3. `src/core/historia.ts` mantém só o shape estrutural do tipo. Este doc
+> permanece como registro histórico, mas NÃO descreve código vivo. Ver: [[fase00-00-20]].
+
 ## Identidade
 - id: `fase00-00-18`
 - nó(s) da arquitetura: —

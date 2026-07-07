@@ -43,642 +43,6 @@
     default: () => bridge_default
   });
 
-  // src/core/grafo/tipos.ts
-  var ESQUEMA_GRAFO = "pipoca.grafo-autoral.v1";
-
-  // src/core/grafo/validarGrafo.ts
-  var PAPEIS_VALIDOS = ["nucleo", "chave", "neutro"];
-  var NIVEIS = ["n1", "n2", "n3", "n4"];
-  var RE_SE = /^(tem|nao_tem):\w+$/;
-  function assertFragmento4(obj, ctx) {
-    if (typeof obj !== "object" || obj === null) {
-      throw new Error(`${ctx}: Fragmento4 deve ser um objeto`);
-    }
-    for (const n of NIVEIS) {
-      const val = obj[n];
-      if (typeof val !== "string" || val.trim() === "") {
-        throw new Error(`${ctx}: campo "${n}" ausente ou vazio no Fragmento4`);
-      }
-    }
-  }
-  function validarGrafo(json) {
-    if (typeof json !== "object" || json === null) {
-      throw new Error("validarGrafo: argumento deve ser um objeto");
-    }
-    const raw = json;
-    if (raw["esquema"] !== ESQUEMA_GRAFO) {
-      throw new Error(`validarGrafo: esquema inválido "${String(raw["esquema"])}" — esperado "${ESQUEMA_GRAFO}"`);
-    }
-    const niveis = raw["niveis"];
-    if (typeof niveis !== "object" || niveis === null) {
-      throw new Error("validarGrafo: campo 'niveis' ausente");
-    }
-    for (const n of NIVEIS) {
-      const v = niveis[n];
-      if (typeof v !== "string" || v.trim() === "") {
-        throw new Error(`validarGrafo: niveis.${n} ausente ou vazio`);
-      }
-    }
-    if (typeof raw["regra_de_ouro"] !== "string") {
-      throw new Error("validarGrafo: campo 'regra_de_ouro' ausente");
-    }
-    const cenario = raw["cenario"];
-    if (typeof cenario !== "object" || cenario === null) {
-      throw new Error("validarGrafo: campo 'cenario' ausente");
-    }
-    const cen = cenario;
-    for (const campo of ["id", "nome", "personagem", "paleta"]) {
-      if (typeof cen[campo] !== "string" || cen[campo].trim() === "") {
-        throw new Error(`validarGrafo: cenario.${campo} ausente ou vazio`);
-      }
-    }
-    assertFragmento4(cen["abertura"], "cenario.abertura");
-    if (!Array.isArray(cen["objetos"])) {
-      throw new Error("validarGrafo: cenario.objetos deve ser array");
-    }
-    const objetos = cen["objetos"];
-    const idsVistos = new Set;
-    let nucleoCount = 0;
-    for (const item of objetos) {
-      if (typeof item !== "object" || item === null) {
-        throw new Error("validarGrafo: cada objeto deve ser um objeto");
-      }
-      const o = item;
-      if (typeof o["id"] !== "string" || o["id"].trim() === "") {
-        throw new Error("validarGrafo: objeto sem 'id'");
-      }
-      const id = o["id"];
-      if (idsVistos.has(id)) {
-        throw new Error(`validarGrafo: id duplicado "${id}"`);
-      }
-      idsVistos.add(id);
-      if (typeof o["emoji"] !== "string" || o["emoji"].trim() === "") {
-        throw new Error(`validarGrafo: objeto "${id}" sem 'emoji'`);
-      }
-      if (typeof o["nome"] !== "string" || o["nome"].trim() === "") {
-        throw new Error(`validarGrafo: objeto "${id}" sem 'nome'`);
-      }
-      const papel = o["papel_no_fim"];
-      if (!PAPEIS_VALIDOS.includes(papel)) {
-        throw new Error(`validarGrafo: objeto "${id}" tem papel_no_fim inválido "${String(papel)}"`);
-      }
-      if (papel === "nucleo")
-        nucleoCount++;
-      assertFragmento4(o["gatilho"], `objeto "${id}".gatilho`);
-      if (!Array.isArray(o["regras"])) {
-        throw new Error(`validarGrafo: objeto "${id}".regras deve ser array`);
-      }
-      for (const regra of o["regras"]) {
-        if (typeof regra !== "object" || regra === null) {
-          throw new Error(`validarGrafo: regra em "${id}" deve ser objeto`);
-        }
-        const r = regra;
-        if (typeof r["se"] !== "string" || !RE_SE.test(r["se"])) {
-          throw new Error(`validarGrafo: regra "${String(r["se"])}" em "${id}" não bate com padrão (tem|nao_tem):id`);
-        }
-        assertFragmento4(r["entao"], `objeto "${id}".regra.entao`);
-      }
-    }
-    if (nucleoCount !== 1) {
-      throw new Error(`validarGrafo: cenário deve ter exatamente 1 objeto nucleo, encontrado ${nucleoCount}`);
-    }
-    const desfechos = cen["desfechos"];
-    if (typeof desfechos !== "object" || desfechos === null) {
-      throw new Error("validarGrafo: cenario.desfechos ausente");
-    }
-    const des = desfechos;
-    assertFragmento4(des["convergente"], "cenario.desfechos.convergente");
-    if (!Array.isArray(des["aberto"])) {
-      throw new Error("validarGrafo: cenario.desfechos.aberto deve ser array");
-    }
-    for (const a of des["aberto"]) {
-      if (typeof a !== "object" || a === null) {
-        throw new Error("validarGrafo: cada desfecho aberto deve ser objeto");
-      }
-      const ab = a;
-      if (typeof ab["se_terminou_com"] !== "string") {
-        throw new Error("validarGrafo: desfecho aberto sem 'se_terminou_com'");
-      }
-      if (!idsVistos.has(ab["se_terminou_com"])) {
-        throw new Error(`validarGrafo: desfecho aberto referencia id desconhecido "${String(ab["se_terminou_com"])}"`);
-      }
-      assertFragmento4(ab["fragmento"], `desfecho aberto "${String(ab["se_terminou_com"])}".fragmento`);
-    }
-    if (cen["ordem_canonica"] !== undefined) {
-      if (!Array.isArray(cen["ordem_canonica"])) {
-        throw new Error("validarGrafo: cenario.ordem_canonica deve ser array");
-      }
-      const ocIds = new Set;
-      for (const ocId of cen["ordem_canonica"]) {
-        if (typeof ocId !== "string") {
-          throw new Error("validarGrafo: ordem_canonica contém item não-string");
-        }
-        if (!idsVistos.has(ocId)) {
-          throw new Error(`validarGrafo: ordem_canonica referencia id desconhecido "${ocId}"`);
-        }
-        if (ocIds.has(ocId)) {
-          throw new Error(`validarGrafo: ordem_canonica tem id duplicado "${ocId}"`);
-        }
-        ocIds.add(ocId);
-      }
-    }
-    return json;
-  }
-
-  // src/motores/motor_a.ts
-  class MotorGrafoAutoral {
-    cen;
-    objIndex;
-    constructor(grafo) {
-      this.cen = grafo.cenario;
-      this.objIndex = new Map(this.cen.objetos.map((o) => [o.id, o]));
-    }
-    abertura(nivel) {
-      return { texto: this.cen.abertura[nivel], ehFinal: false };
-    }
-    aoAdicionarObjeto(historia, objetoId, nivel) {
-      const obj = this.objIndex.get(objetoId);
-      if (!obj)
-        return { texto: "", ehFinal: false, objetoId };
-      const regra = obj.regras.find((r) => this.avaliaCondicao(r.se, historia));
-      const frag = regra ? regra.entao : obj.gatilho;
-      return { texto: frag[nivel], ehFinal: false, objetoId };
-    }
-    desfecho(historia, modo, nivel) {
-      if (modo === "aberto") {
-        const ultimo = historia[historia.length - 1];
-        const aberto = this.cen.desfechos.aberto.find((a) => a.se_terminou_com === ultimo);
-        if (aberto)
-          return { texto: aberto.fragmento[nivel], ehFinal: true };
-      }
-      return { texto: this.cen.desfechos.convergente[nivel], ehFinal: true };
-    }
-    avaliaCondicao(cond, historia) {
-      const colonIdx = cond.indexOf(":");
-      if (colonIdx === -1)
-        return false;
-      const op = cond.slice(0, colonIdx);
-      const alvo = cond.slice(colonIdx + 1);
-      const presente = historia.includes(alvo);
-      if (op === "tem")
-        return presente;
-      if (op === "nao_tem")
-        return !presente;
-      return false;
-    }
-  }
-
-  // src/ia/prompt.ts
-  var descricaoNivel = {
-    n1: "pré-leitor: frases mínimas, palavras curtas e concretas, ritmo de cantiga",
-    n2: "leitor inicial: frases curtas e diretas, vocabulário do dia a dia",
-    n3: "leitor em prática: frases um pouco mais longas, com uma imagem poética simples",
-    n4: "leitor fluente: frases mais ricas, ainda curtas o bastante para o portão de leitura"
-  };
-  var PROMPT_BASE = [
-    "Você é o narrador do Pipoca, um app de leitura para crianças de 3 a 12 anos.",
-    "Sua voz é calma, acolhedora e encantada com as coisas pequenas do mundo.",
-    "",
-    "REGRAS DE SEGURANÇA (obrigatórias, sem exceção):",
-    "- Conteúdo sempre adequado a crianças de 3 a 12 anos.",
-    "- Proibido: violência gráfica, medo extremo, temas adultos, marcas comerciais, links, endereços, telefones ou qualquer dado pessoal.",
-    "- Tom acolhedor, nunca condescendente nem clínico; nunca envergonhe a criança.",
-    "- Se o pedido levar a conteúdo inseguro, recuse e reformule para algo seguro e gentil.",
-    "",
-    "FORMATO DA RESPOSTA:",
-    'Responda SOMENTE com um JSON no formato Trecho: { "texto": string, "ehFinal": boolean }.',
-    "Sem markdown, sem comentários, sem nada fora do JSON."
-  ].join(`
-`);
-  function acharObjeto(grafo, id) {
-    return grafo.cenario.objetos.find((o) => o.id === id);
-  }
-  function nomeLegivel(grafo, id) {
-    const o = acharObjeto(grafo, id);
-    return o ? `${o.emoji} ${o.nome}` : id;
-  }
-  function montarPrompt(ctx) {
-    const { tipo, historia, objetoId, nivel, modoDesfecho, grafo } = ctx;
-    const cen = grafo.cenario;
-    const linhas = [];
-    const personagem = cen.personagem || "uma criança curiosa";
-    const paleta = cen.paleta ? `paleta "${cen.paleta}"` : "tom neutro acolhedor";
-    linhas.push(`CENÁRIO: "${cen.nome}" — personagem: ${personagem}; ${paleta}.`);
-    const bruta = grafo.niveis ? grafo.niveis[nivel] : "";
-    const desc = bruta && bruta !== nivel ? bruta : descricaoNivel[nivel];
-    linhas.push(`NÍVEL DE LEITURA: ${nivel} — ${desc}.`);
-    linhas.push("Escreva o texto SOMENTE neste nível (um único fragmento, nunca os quatro).");
-    linhas.push("O texto precisa ser curto o bastante para a criança ler no portão antes do próximo objeto.");
-    if (historia.length === 0) {
-      linhas.push("HISTÓRIA ATÉ AGORA: nenhuma — este é o comecinho.");
-    } else {
-      linhas.push("HISTÓRIA ATÉ AGORA (objetos na ordem): " + historia.map((id) => nomeLegivel(grafo, id)).join(" → ") + ".");
-    }
-    if (tipo === "abertura") {
-      linhas.push("PEDIDO: escreva a ABERTURA da história, apresentando o cenário e o personagem.");
-      linhas.push('Marque "ehFinal": false.');
-    } else if (tipo === "objeto") {
-      const obj = objetoId ? acharObjeto(grafo, objetoId) : undefined;
-      if (obj) {
-        linhas.push(`PEDIDO: a criança acabou de colocar o objeto ${obj.emoji} "${obj.nome}" na história` + (historia.length === 0 ? " (é o primeiro objeto)" : "") + `. Escreva o trecho que esse objeto desperta, coerente com o papel dele no fim ("${obj.papel_no_fim}").`);
-      } else {
-        linhas.push(`PEDIDO: a criança colocou um objeto novo ("${objetoId || "?"}"). Escreva um trecho gentil que o acolha na história.`);
-      }
-      linhas.push('Marque "ehFinal": false.');
-    } else {
-      const ultimo = historia[historia.length - 1];
-      const temRamo = !!ultimo && cen.desfechos.aberto.some((d) => d.se_terminou_com === ultimo);
-      if (modoDesfecho === "aberto" && temRamo && ultimo) {
-        linhas.push(`PEDIDO: escreva o DESFECHO ABERTO da história, amarrado ao último objeto (${nomeLegivel(grafo, ultimo)}).`);
-      } else if (modoDesfecho === "aberto") {
-        linhas.push("PEDIDO: escreva um DESFECHO convergente e acolhedor — o último objeto não tem ramo próprio, e a história se fecha com o mesmo carinho.");
-      } else {
-        linhas.push("PEDIDO: escreva o DESFECHO CONVERGENTE da história, fechando o dia com aconchego.");
-      }
-      linhas.push('Marque "ehFinal": true.');
-    }
-    linhas.push('Responda SOMENTE com o JSON do Trecho: { "texto": string, "ehFinal": boolean }.');
-    return linhas.join(`
-`);
-  }
-
-  // src/ia/provedor.ts
-  var TRECHO_JSON_SCHEMA = {
-    type: "object",
-    properties: {
-      texto: { type: "string" },
-      ehFinal: { type: "boolean" }
-    },
-    required: ["texto", "ehFinal"],
-    additionalProperties: false
-  };
-  function validarTrechoGerado(bruto) {
-    if (!bruto || typeof bruto !== "object") {
-      throw new Error("Saída do provedor não é um objeto Trecho.");
-    }
-    const r = bruto;
-    const texto = r["texto"];
-    const ehFinal = r["ehFinal"];
-    if (typeof texto !== "string" || texto.trim() === "") {
-      throw new Error("Trecho gerado sem texto.");
-    }
-    if (typeof ehFinal !== "boolean") {
-      throw new Error("Trecho gerado sem ehFinal booleano.");
-    }
-    return { texto, ehFinal };
-  }
-  function transportePadrao() {
-    return (url, init) => fetch(url, init);
-  }
-
-  // src/motores/motor_ia.ts
-  function chaveDe(tipo, nivel, modo, historia, objetoId) {
-    return tipo + "|" + nivel + "|" + modo + "|" + historia.join(",") + "|" + (objetoId || "");
-  }
-
-  class MotorIA {
-    provedor;
-    grafo;
-    modoDesfecho;
-    motorA;
-    cache = new Map;
-    constructor(provedor, grafo, modoDesfecho) {
-      this.provedor = provedor;
-      this.grafo = grafo;
-      this.modoDesfecho = modoDesfecho;
-      this.motorA = new MotorGrafoAutoral(grafo);
-    }
-    abertura(nivel) {
-      return this.servir(chaveDe("abertura", nivel, "", []), () => this.motorA.abertura(nivel));
-    }
-    aoAdicionarObjeto(historia, objetoId, nivel) {
-      return this.servir(chaveDe("objeto", nivel, "", historia, objetoId), () => this.motorA.aoAdicionarObjeto(historia, objetoId, nivel));
-    }
-    desfecho(historia, modo, nivel) {
-      return this.servir(chaveDe("desfecho", nivel, modo, historia), () => this.motorA.desfecho(historia, modo, nivel));
-    }
-    async aquecer(historia, nivel) {
-      const alvos = [];
-      if (historia.length === 0) {
-        alvos.push({ tipo: "abertura", historia: [], modo: this.modoDesfecho });
-      }
-      const ordem = this.grafo.cenario.ordem_canonica || [];
-      const acumulada = historia.slice();
-      for (const id of ordem) {
-        if (acumulada.indexOf(id) >= 0)
-          continue;
-        alvos.push({ tipo: "objeto", historia: acumulada.slice(), objetoId: id, modo: this.modoDesfecho });
-        acumulada.push(id);
-      }
-      alvos.push({ tipo: "desfecho", historia: acumulada.slice(), modo: "convergente" });
-      alvos.push({ tipo: "desfecho", historia: acumulada.slice(), modo: "aberto" });
-      for (const alvo of alvos) {
-        await this.gerarEArmazenar(alvo, nivel);
-      }
-    }
-    servir(chave, deMotorA) {
-      const pronto = this.cache.get(chave);
-      if (pronto)
-        return { ...pronto };
-      const doA = deMotorA();
-      this.cache.set(chave, doA);
-      return { ...doA };
-    }
-    async gerarEArmazenar(alvo, nivel) {
-      const chave = chaveDe(alvo.tipo, nivel, alvo.tipo === "desfecho" ? alvo.modo : "", alvo.historia, alvo.objetoId);
-      if (this.cache.has(chave))
-        return;
-      try {
-        const prompt = montarPrompt({
-          tipo: alvo.tipo,
-          historia: alvo.historia,
-          objetoId: alvo.objetoId,
-          nivel,
-          modoDesfecho: alvo.modo,
-          grafo: this.grafo
-        });
-        const gerado = await this.provedor.gerar(prompt, TRECHO_JSON_SCHEMA, { system: PROMPT_BASE });
-        if (!gerado || typeof gerado.texto !== "string" || gerado.texto.trim() === "")
-          return;
-        const trecho = { texto: gerado.texto, ehFinal: alvo.tipo === "desfecho" };
-        if (alvo.tipo === "objeto" && alvo.objetoId)
-          trecho.objetoId = alvo.objetoId;
-        if (!this.cache.has(chave))
-          this.cache.set(chave, trecho);
-      } catch {}
-    }
-  }
-
-  // src/motores/validador_ordem.ts
-  var RE_TEM = /^tem:(\w+)$/;
-  function topoSort(cenario) {
-    const ids = cenario.objetos.map((o) => o.id);
-    const deps = new Map;
-    for (const id of ids)
-      deps.set(id, new Set);
-    for (const obj of cenario.objetos) {
-      for (const regra of obj.regras) {
-        const m = RE_TEM.exec(regra.se);
-        if (m) {
-          const dependeDe = m[1];
-          if (deps.has(dependeDe)) {
-            deps.get(obj.id).add(dependeDe);
-          }
-        }
-      }
-    }
-    const resultado = [];
-    const visitado = new Set;
-    const emPilha = new Set;
-    function visitar(id) {
-      if (visitado.has(id))
-        return;
-      if (emPilha.has(id)) {
-        throw new Error(`validador_ordem: ciclo de dependência detectado em "${id}"`);
-      }
-      emPilha.add(id);
-      for (const dep of deps.get(id) ?? []) {
-        visitar(dep);
-      }
-      emPilha.delete(id);
-      visitado.add(id);
-      resultado.push(id);
-    }
-    for (const id of ids)
-      visitar(id);
-    return resultado;
-  }
-  function criarValidadorOrdem(cenario) {
-    const _ordemCanonica = cenario.ordem_canonica ? [...cenario.ordem_canonica] : topoSort(cenario);
-    const deps = new Map;
-    for (const obj of cenario.objetos) {
-      const d = new Set;
-      for (const regra of obj.regras) {
-        const m = RE_TEM.exec(regra.se);
-        if (m) {
-          const depId = m[1];
-          if (cenario.objetos.some((o) => o.id === depId)) {
-            d.add(depId);
-          }
-        }
-      }
-      deps.set(obj.id, d);
-    }
-    return {
-      ordemCanonica() {
-        return [..._ordemCanonica];
-      },
-      validar(ordemJogador) {
-        if (ordemJogador.length === 0) {
-          return {
-            ok: false,
-            dica: "Quase! Arraste os quadros para montar a história."
-          };
-        }
-        const colocados = new Set;
-        for (const id of ordemJogador) {
-          const necessarios = deps.get(id);
-          if (necessarios) {
-            for (const dep of necessarios) {
-              if (!colocados.has(dep)) {
-                const objDep = cenario.objetos.find((o) => o.id === dep);
-                const nomeDep = objDep ? objDep.nome : dep;
-                return {
-                  ok: false,
-                  dica: `Quase! O "${nomeDep}" precisa aparecer antes. Tente reorganizar os quadros.`
-                };
-              }
-            }
-          }
-          colocados.add(id);
-        }
-        return { ok: true };
-      }
-    };
-  }
-
-  // src/motores/fabrica.ts
-  function criarMotor(cenario, modos, deps) {
-    const ordem = criarValidadorOrdem(cenario);
-    if (modos.iaLigada) {
-      const provedor = deps ? deps.provedor : undefined;
-      if (provedor) {
-        const motor2 = new MotorIA(provedor, montarGrafoAutoral(cenario), modos.desfecho);
-        return { motor: motor2, ordem };
-      }
-      return criarMotorComFallback(cenario, ordem);
-    }
-    const motor = criarMotorA(cenario);
-    return { motor, ordem };
-  }
-  function montarGrafoAutoral(cenario) {
-    return {
-      esquema: "pipoca.grafo-autoral.v1",
-      niveis: { n1: "n1", n2: "n2", n3: "n3", n4: "n4" },
-      regra_de_ouro: "Todo fragmento novo precisa ser lido no portão antes de soltar o próximo objeto.",
-      cenario
-    };
-  }
-  function criarMotorA(cenario) {
-    return new MotorGrafoAutoral(montarGrafoAutoral(cenario));
-  }
-  function criarMotorComFallback(cenario, ordem) {
-    console.warn("[fabrica] iaLigada=true mas nenhum provedor de IA foi injetado. " + "Usando Motor A como fallback seguro.");
-    const motor = criarMotorA(cenario);
-    return { motor, ordem };
-  }
-
-  // src/ia/guardrails.ts
-  var MAX_CHARS_SAIDA = 700;
-  var RE_TERMOS_BLOQUEADOS = new RegExp("\\b(?:matar|morrer|morte|mortes|sangue|armas?|tiros?|facadas?|" + "terror|pavor|pesadelos?|demonios?|" + "cervejas?|vodka|cigarros?|drogas?|sexo|nudez|apostas?)\\b" + "|\\b(?:assassin|violenc)");
-  var RE_URL = /https?:\/\/|www\./i;
-  var RE_EMAIL = /\S+@\S+\.\S+/;
-  var RE_TELEFONE = /\b\d{4,5}[-\s]\d{4}\b|\d{8,}/;
-  function normalizar(texto) {
-    return texto.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
-  }
-  function categoriaProibida(texto) {
-    if (RE_URL.test(texto))
-      return "link";
-    if (RE_EMAIL.test(texto))
-      return "dado pessoal (e-mail)";
-    if (RE_TELEFONE.test(texto))
-      return "dado pessoal (telefone)";
-    if (RE_TERMOS_BLOQUEADOS.test(normalizar(texto)))
-      return "termo impróprio para crianças";
-    return null;
-  }
-  function criarGuardrails() {
-    return {
-      filtrarEntrada(prompt) {
-        if (!prompt || prompt.trim() === "")
-          return { permitir: false, motivo: "prompt vazio" };
-        const cat = categoriaProibida(prompt);
-        if (cat)
-          return { permitir: false, motivo: cat };
-        return { permitir: true };
-      },
-      filtrarSaida(trecho) {
-        const texto = trecho && typeof trecho.texto === "string" ? trecho.texto : "";
-        if (texto.trim() === "")
-          return { permitir: false, motivo: "texto vazio" };
-        if (texto.length > MAX_CHARS_SAIDA)
-          return { permitir: false, motivo: "texto longo demais para o portão" };
-        const cat = categoriaProibida(texto);
-        if (cat)
-          return { permitir: false, motivo: cat };
-        return { permitir: true };
-      }
-    };
-  }
-  function envolverComGuardrails(provedor, guardrails) {
-    const g = guardrails || criarGuardrails();
-    return {
-      async gerar(prompt, schema, opts) {
-        const entrada = g.filtrarEntrada(prompt);
-        if (!entrada.permitir) {
-          throw new Error("guardrails: entrada bloqueada (" + (entrada.motivo || "regra de segurança") + ")");
-        }
-        const trecho = await provedor.gerar(prompt, schema, opts);
-        const saida = g.filtrarSaida(trecho);
-        if (!saida.permitir) {
-          throw new Error("guardrails: saída bloqueada (" + (saida.motivo || "regra de segurança") + ")");
-        }
-        return saida.trechoReformulado || trecho;
-      }
-    };
-  }
-
-  // src/ia/simulado.ts
-  function fnv(s) {
-    let h = 2166136261;
-    for (let i = 0;i < s.length; i++) {
-      h ^= s.charCodeAt(i);
-      h = Math.imul(h, 16777619);
-    }
-    return h >>> 0;
-  }
-  function escolher(opcoes, semente) {
-    return opcoes[fnv(semente) % opcoes.length];
-  }
-  function criarProvedorSimulado(grafo, opts) {
-    const cen = grafo.cenario;
-    const personagem = cen.personagem || "a criança";
-    return {
-      async gerar(prompt, _schema, _opts) {
-        if (opts && opts.falhar) {
-          throw new Error("Provedor simulado em modo falha (teste de degradação).");
-        }
-        const ehFinal = prompt.indexOf('"ehFinal": true') >= 0;
-        const nivelM = /NÍVEL DE LEITURA: (n[1-4])/.exec(prompt);
-        const nivel = nivelM ? nivelM[1] : "n2";
-        const curto = nivel === "n1" || nivel === "n2";
-        const objetoM = /objeto (\S+) "([^"]+)"/.exec(prompt);
-        const abertura = prompt.indexOf("PEDIDO: escreva a ABERTURA") >= 0;
-        let texto;
-        if (abertura) {
-          texto = curto ? `✨ ${personagem} olha em volta. Hoje tem história nova.` : `✨ ${personagem} olha devagar em volta: alguma coisa pequenina está para acontecer, e hoje a história é novinha.`;
-        } else if (objetoM) {
-          const emoji = objetoM[1];
-          const nome = objetoM[2];
-          const verbo = escolher(["chega", "aparece", "acorda"], prompt);
-          texto = curto ? `✨ ${emoji} ${nome} ${verbo} na história. ${personagem} sorri.` : `✨ ${emoji} ${nome} ${verbo} bem no meio da história, e ${personagem} sorri como quem guarda um segredo bom.`;
-        } else if (ehFinal) {
-          texto = curto ? `✨ A história se aninha. ${personagem} respira fundo. Fim por hoje.` : `✨ A história inteira se aninha como um bicho de estimação, e ${personagem} respira fundo: fim por hoje, com gosto de amanhã.`;
-        } else {
-          texto = `✨ A história continua, um passinho de cada vez.`;
-        }
-        return { texto, ehFinal };
-      }
-    };
-  }
-
-  // src/ia/orquestrador.ts
-  function criarOrquestrador(cadeiaFallback, opts) {
-    const cotaMensal = opts && typeof opts.cotaMensal === "number" ? opts.cotaMensal : 1000;
-    const custoMaxMensal = opts && typeof opts.custoMaxMensal === "number" ? opts.custoMaxMensal : 1000;
-    const custoPorChamada = opts && typeof opts.custoPorChamada === "number" ? opts.custoPorChamada : 1;
-    const aoRegistrarUso = opts ? opts.aoRegistrarUso : undefined;
-    let chamadas = 0;
-    let custoAcumulado = 0;
-    function usoAtual() {
-      return { chamadas, custoAcumulado, cotaRestante: Math.max(0, cotaMensal - chamadas) };
-    }
-    function registrar() {
-      chamadas += 1;
-      custoAcumulado += custoPorChamada;
-      if (aoRegistrarUso) {
-        try {
-          aoRegistrarUso(usoAtual());
-        } catch {}
-      }
-    }
-    return {
-      uso: usoAtual,
-      async gerar(prompt, schema, optsGeracao) {
-        if (!cadeiaFallback.length) {
-          throw new Error("Orquestrador sem provedores na cadeia.");
-        }
-        let ultimoErro = null;
-        for (const provedor of cadeiaFallback) {
-          if (cotaMensal - chamadas <= 0) {
-            throw new Error("Cota de IA esgotada — degradando para o motor autoral.");
-          }
-          if (custoAcumulado + custoPorChamada > custoMaxMensal) {
-            throw new Error("Teto de custo de IA atingido — degradando para o motor autoral.");
-          }
-          try {
-            registrar();
-            return await provedor.gerar(prompt, schema, optsGeracao);
-          } catch (e) {
-            ultimoErro = e;
-          }
-        }
-        throw ultimoErro instanceof Error ? ultimoErro : new Error("Todos os provedores falharam.");
-      }
-    };
-  }
-
   // src/admin/flags.ts
   var FLAGS_PADRAO = {
     ia: false,
@@ -1307,7 +671,7 @@
   var RETENCAO_HISTORIAS_DIAS = 20;
   var MAX_NAO_FAVORITAS = 30;
   var MS_POR_DIA2 = 86400000;
-  var NIVEIS2 = ["n1", "n2", "n3", "n4"];
+  var NIVEIS = ["n1", "n2", "n3", "n4"];
   var DESFECHOS = ["convergente", "aberto"];
   function validarHistoriaSalva(raw) {
     if (typeof raw !== "object" || raw === null)
@@ -1321,7 +685,7 @@
       return null;
     if (!Array.isArray(r["linha"]) || !r["linha"].every((x) => typeof x === "string"))
       return null;
-    if (!NIVEIS2.includes(r["nivel"]))
+    if (!NIVEIS.includes(r["nivel"]))
       return null;
     if (!DESFECHOS.includes(r["desfecho"]))
       return null;
@@ -1832,6 +1196,26 @@
     }
   }
 
+  // src/ia/provedor.ts
+  function validarTrechoGerado(bruto) {
+    if (!bruto || typeof bruto !== "object") {
+      throw new Error("Saída do provedor não é um objeto Trecho.");
+    }
+    const r = bruto;
+    const texto = r["texto"];
+    const ehFinal = r["ehFinal"];
+    if (typeof texto !== "string" || texto.trim() === "") {
+      throw new Error("Trecho gerado sem texto.");
+    }
+    if (typeof ehFinal !== "boolean") {
+      throw new Error("Trecho gerado sem ehFinal booleano.");
+    }
+    return { texto, ehFinal };
+  }
+  function transportePadrao() {
+    return (url, init) => fetch(url, init);
+  }
+
   // src/backend/adaptadores/auth_supabase.ts
   var CHAVE_SESSAO_BACKEND = "pipoca.backend.sessao.v1";
   var ERRO_CONFIRMACAO = "Quase lá! Confirme o e-mail que enviamos e tente entrar de novo.";
@@ -2319,13 +1703,6 @@
       }
     };
   }
-  function provedorViaProxy(proxy) {
-    return {
-      gerar(prompt, schema, opts) {
-        return proxy.gerar({ prompt, schema, ...opts ? { opts } : {} });
-      }
-    };
-  }
 
   // src/backend/tenant.ts
   function escopoTenant(sessao) {
@@ -2636,6 +2013,24 @@
   }
 
   // src/core/composicao.ts
+  var ESQUEMA_COMPOSICAO_V3 = "pipoca.grafo-autoral.v3";
+  function fnv1a(str) {
+    let h = 2166136261;
+    for (let i = 0;i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return function() {
+      a = a + 1831565813 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
   function nivelKey(nivel) {
     const s = String(nivel ?? "").trim().toLowerCase();
     if (s === "n1" || s === "n2" || s === "n3" || s === "n4")
@@ -2644,6 +2039,19 @@
     if (d === "1" || d === "2" || d === "3" || d === "4")
       return "n" + d;
     return "n2";
+  }
+  function variantes(t) {
+    if (t === undefined || t === null)
+      return [];
+    return Array.isArray(t) ? t : [t];
+  }
+  function escolherVariante(t, rng) {
+    const pool = variantes(t);
+    if (pool.length === 0)
+      return "";
+    if (pool.length === 1)
+      return pool[0];
+    return pool[Math.floor(rng() * pool.length)];
   }
   function totalRodadas(cenario) {
     return cenario.rodadas && cenario.rodadas.length || 0;
@@ -2662,33 +2070,87 @@
   function estaNaUltimaRodada(estado) {
     return estado.rodada >= totalRodadas(estado.cenario);
   }
-  function contaComTempera(cenario, objId, linha, nivel) {
+  function avaliarCondicao(cond, objId, linha) {
+    const c = String(cond || "");
+    const i = linha.indexOf(objId);
+    if (c.indexOf("tem:") === 0) {
+      const alvo = c.slice(4);
+      return alvo !== objId && linha.indexOf(alvo) !== -1;
+    }
+    if (c.indexOf("nao_tem:") === 0) {
+      return linha.indexOf(c.slice(8)) === -1;
+    }
+    if (c === "pos:inicio")
+      return i === 0 && linha.length > 0;
+    if (c === "pos:fim")
+      return i !== -1 && i === linha.length - 1;
+    if (c === "pos:miolo")
+      return i > 0 && i < linha.length - 1;
+    if (c.indexOf("antes_de:") === 0) {
+      const j = linha.indexOf(c.slice(9));
+      return i !== -1 && j !== -1 && i < j;
+    }
+    if (c.indexOf("depois_de:") === 0) {
+      const j = linha.indexOf(c.slice(10));
+      return i !== -1 && j !== -1 && i > j;
+    }
+    return false;
+  }
+  function casaSe(se, objId, linha) {
+    const conds = Array.isArray(se) ? se : [se];
+    if (conds.length === 0)
+      return false;
+    for (const c of conds)
+      if (!avaliarCondicao(c, objId, linha))
+        return false;
+    return true;
+  }
+  function contaComTempera(cenario, objId, linha, nivel, rng) {
     const obj = cenario.objetos[objId];
     if (!obj)
       return "";
-    const temperas = obj.tempera || [];
-    for (const t of temperas) {
-      const cond = String(t.se || "");
-      if (cond.indexOf("tem:") === 0) {
-        const alvo = cond.slice(4);
-        if (alvo !== objId && linha.indexOf(alvo) !== -1) {
-          const txt = t.entao && t.entao[nivel];
-          if (txt)
-            return txt;
-        }
+    for (const t of obj.tempera || []) {
+      if (casaSe(t.se, objId, linha)) {
+        const txt = escolherVariante(t.entao && t.entao[nivel], rng);
+        if (txt)
+          return txt;
       }
     }
-    return obj.conta[nivel] || "";
+    return escolherVariante(obj.conta[nivel], rng);
   }
-  function textoDesfecho(estado, nivel) {
+  function escolherConectivo(pool, rng, anterior) {
+    if (pool.length === 0)
+      return "";
+    let idx = pool.length === 1 ? 0 : Math.floor(rng() * pool.length);
+    if (pool.length > 1 && pool[idx] === anterior)
+      idx = (idx + 1) % pool.length;
+    return pool[idx];
+  }
+  function textoDesfecho(estado, nivel, rng) {
     const d = estado.cenario.moldura.desfecho;
     if (estado.modos && estado.modos.desfecho === "aberto" && d.aberto && d.aberto.length) {
+      const primeiro = estado.linha[0];
       const ultimo = estado.linha[estado.linha.length - 1];
-      const match = d.aberto.find((a) => a.se_terminou_com === ultimo);
-      if (match && match.fragmento[nivel])
-        return match.fragmento[nivel];
+      const teto = typeof d.max_ecos === "number" && d.max_ecos > 0 ? d.max_ecos : 1;
+      const partes = [];
+      for (const a of d.aberto) {
+        if (partes.length >= teto)
+          break;
+        const temCondicao = a.se_terminou_com !== undefined || a.se_comecou_com !== undefined;
+        if (!temCondicao)
+          continue;
+        if (a.se_terminou_com !== undefined && a.se_terminou_com !== ultimo)
+          continue;
+        if (a.se_comecou_com !== undefined && a.se_comecou_com !== primeiro)
+          continue;
+        const txt = escolherVariante(a.fragmento && a.fragmento[nivel], rng);
+        if (txt)
+          partes.push(txt);
+      }
+      if (partes.length)
+        return partes.join(" ");
     }
-    return d.convergente[nivel] || "";
+    return escolherVariante(d.convergente[nivel], rng);
   }
   function iniciar(cenario, modos) {
     const estado = {
@@ -2743,17 +2205,29 @@
   }
   function montar(estado, nivel) {
     const nk = nivelKey(nivel);
+    const cenario = estado.cenario;
+    const rng = mulberry32(fnv1a(cenario.id + "|" + estado.linha.join(",") + "|" + nk));
     const partes = [];
-    const abertura = estado.cenario.moldura.abertura[nk];
+    const abertura = escolherVariante(cenario.moldura.abertura[nk], rng);
     if (abertura)
       partes.push(abertura);
-    for (const id of estado.linha) {
-      const conta = contaComTempera(estado.cenario, id, estado.linha, nk);
+    const pool = cenario.moldura.conectivos && cenario.moldura.conectivos[nk] || [];
+    let conectivoAnterior = "";
+    for (let i = 0;i < estado.linha.length; i++) {
+      const id = estado.linha[i];
+      let conta = contaComTempera(cenario, id, estado.linha, nk, rng);
+      const ehMiolo = i > 0 && i < estado.linha.length - 1;
+      if (conta && ehMiolo && pool.length) {
+        const con = escolherConectivo(pool, rng, conectivoAnterior);
+        conectivoAnterior = con;
+        if (con)
+          conta = con + " " + conta;
+      }
       if (conta)
         partes.push(conta);
     }
     if (estaNaUltimaRodada(estado)) {
-      const fim = textoDesfecho(estado, nk);
+      const fim = textoDesfecho(estado, nk, rng);
       if (fim)
         partes.push(fim);
     }
@@ -3296,9 +2770,8 @@
 
   // src/app/bridge.ts
   var PipocaCanonico = {
-    validarGrafo,
-    criarMotor,
     composicao: {
+      esquema: ESQUEMA_COMPOSICAO_V3,
       iniciar,
       bancoDaRodada,
       podeInserir,
@@ -3359,29 +2832,6 @@
       carregarSessaoConta,
       salvarSessaoConta,
       limparSessaoConta
-    },
-    ia: {
-      montarPrompt,
-      PROMPT_BASE,
-      criarGuardrails,
-      envolverComGuardrails,
-      criarProvedorSimulado,
-      criarOrquestrador,
-      montarProvedorPadrao(grafo) {
-        const cadeia = [];
-        try {
-          const cfg = configDoAmbiente();
-          if (cfg.provedor !== "local") {
-            const b = obterBackend(cfg);
-            if (b.auth.sessaoAtual()) {
-              cadeia.push(envolverComGuardrails(provedorViaProxy(b.proxyIA)));
-            }
-          }
-        } catch {}
-        const simulado = criarProvedorSimulado(grafo);
-        cadeia.push(envolverComGuardrails(simulado));
-        return criarOrquestrador(cadeia);
-      }
     },
     backend: {
       obterBackend,

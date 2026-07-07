@@ -1,6 +1,6 @@
 /**
- * Pipoca — Motor de COMPOSIÇÃO AUTORAL v2 (linha verde) · esquema pipoca.grafo-autoral.v2
- * -------------------------------------------------------------------------------------
+ * Pipoca — Motor de COMPOSIÇÃO AUTORAL A+ (linha verde) · esquemas pipoca.grafo-autoral.v2 e .v3
+ * ---------------------------------------------------------------------------------------------
  * Mecânica-coração do produto: a criança COMBINA múltiplos objetos numa cena e a
  * história nasce do arranjo dela. A história É a recompensa — cada leitura no portão
  * destrava uma nova rodada com MAIS DE UMA opção de objeto, e o texto CRESCE.
@@ -14,28 +14,43 @@
  * Invariantes:
  *   • Banco = novas + sobras: objeto revelado e não escolhido segue disponível; nada repete.
  *   • Moldura fixa: história = abertura + contas(na ordem da linha) + desfecho.
- *   • Tempero é SABOR, nunca PORTÃO: `tem:X` enriquece a frase quando X coexiste na linha;
- *     jamais bloqueia uma escolha.
+ *   • Tempero é SABOR, nunca PORTÃO: condições enriquecem a frase quando casam;
+ *     jamais bloqueiam uma escolha.
  *   • Portão perdoador: leitura imperfeita → dica calorosa (fora deste motor); sem punição.
+ *   • Replay determinístico (v3): mesma linha + mesmo nível ⇒ o mesmo texto, sempre.
+ *     Nenhum Math.random() — PRNG semeado por (cenario.id, linha, nível).
+ *
+ * Leitor v3 com compat v2 (contrato: docs/plans/_contratos/grafo-autoral-v3.md):
+ *   • Variantes por célula: cada nível aceita string (≡ array de 1) ou string[].
+ *   • Condições: tem:/nao_tem: (v2) + pos:inicio|miolo|fim, antes_de:/depois_de:,
+ *     func:* (namespace RESERVADO — nunca casa), `se` string ou array (AND).
+ *   • Ecos no desfecho aberto: se_comecou_com / composto / max_ecos (default 1).
+ *   • Conectivos: só nos slots do miolo, sem repetição consecutiva.
+ *   A normalização acontece nos PONTOS DE LEITURA — o grafo nunca é mutado.
  *
  * Funções PURAS: nenhum estado de módulo. O grafo do cenário viaja dentro do EstadoComp
  * (`cenario`) para que toda função leia o que precisa a partir do próprio estado.
  */
 
-// ─── Tipos do grafo v2 (docs/quintal.v2.json) ───────────────────────────────
+// ─── Tipos do grafo (v2 e v3 — docs/quintal.v2.json · futuro quintal.v3.json) ──
 export type NivelKey = "n1" | "n2" | "n3" | "n4";
-type Texto = Record<string, string>;
+/** v3: cada nível aceita string (compat v2 ≡ array de 1) ou array de variantes. */
+export type TextoV3 = Record<string, string | string[]>;
+/** Uma condição da gramática de temperos/ecos (`tem:X`, `pos:fim`, `func:*`, …). */
+export type CondicaoV3 = string;
 
 export interface TemperaV2 {
-  se: string; // ex.: "tem:frasco"
-  entao: Texto;
+  se: CondicaoV3 | CondicaoV3[]; // array = AND (todas precisam casar)
+  entao: TextoV3;
 }
 export interface ObjetoV2 {
   emoji?: string;
   nome?: string;
   papel_no_fim?: string;
   registro?: string;
-  conta: Texto;
+  genero?: "m" | "f"; // v3: declaração obrigatória (lint); consumo futuro
+  numero?: "sg" | "pl"; // v3: declaração obrigatória (lint); consumo futuro
+  conta: TextoV3;
   tempera?: TemperaV2[];
 }
 export interface RodadaV2 {
@@ -47,12 +62,14 @@ export interface RodadaV2 {
   insere_em?: string;
 }
 export interface DesfechoAbertoV2 {
-  se_terminou_com: string;
-  fragmento: Texto;
+  se_terminou_com?: string; // eco da âncora final (v2)
+  se_comecou_com?: string; // eco da âncora inicial (v3); com ambos = AND (composto)
+  fragmento: TextoV3;
 }
 export interface MolduraV2 {
-  abertura: Texto;
-  desfecho: { convergente: Texto; aberto?: DesfechoAbertoV2[] };
+  abertura: TextoV3;
+  conectivos?: Partial<Record<NivelKey, string[]>>; // v3: tecido conjuntivo do miolo
+  desfecho: { convergente: TextoV3; aberto?: DesfechoAbertoV2[]; max_ecos?: number };
 }
 export interface CenarioV2 {
   id: string;
@@ -86,6 +103,30 @@ export interface EstadoComp {
   modos: ModosComp; // desfecho convergente|aberto (interno)
 }
 
+// ─── PRNG semeado (contrato §3 — replay determinístico) ─────────────────────
+/** Hash FNV-1a 32 bits — puro, minúsculo, zero dependências. */
+function fnv1a(str: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+/** PRNG mulberry32 — puro, minúsculo, zero dependências. */
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+type Rng = () => number;
+
 // ─── Helpers internos ───────────────────────────────────────────────────────
 function nivelKey(nivel: unknown): NivelKey {
   const s = String(nivel ?? "").trim().toLowerCase();
@@ -93,6 +134,25 @@ function nivelKey(nivel: unknown): NivelKey {
   const d = s.replace(/[^0-9]/g, "");
   if (d === "1" || d === "2" || d === "3" || d === "4") return ("n" + d) as NivelKey;
   return "n2";
+}
+
+/** Normalização v2→v3 no ponto de leitura: string ≡ array de 1; ausente ≡ []. */
+function variantes(t: string | string[] | undefined): string[] {
+  if (t === undefined || t === null) return [];
+  return Array.isArray(t) ? t : [t];
+}
+
+/**
+ * Sorteia uma variante do pool. REGRA DE CONSUMO (parte do contrato de replay):
+ * só consome rng quando o pool tem MAIS DE UM item. Consequência deliberada:
+ * um grafo v2 (tudo string, sem conectivos) consome ZERO rng — a equivalência
+ * com o texto do leitor v2 (fixtures golden) vale por construção.
+ */
+function escolherVariante(t: string | string[] | undefined, rng: Rng): string {
+  const pool = variantes(t);
+  if (pool.length === 0) return "";
+  if (pool.length === 1) return pool[0];
+  return pool[Math.floor(rng() * pool.length)];
 }
 
 function totalRodadas(cenario: CenarioV2): number {
@@ -114,38 +174,116 @@ function estaNaUltimaRodada(estado: EstadoComp): boolean {
   return estado.rodada >= totalRodadas(estado.cenario);
 }
 
-/** Conta do objeto no nível pedido, aplicando o primeiro tempero satisfeito pela linha. */
+// ─── Gramática de condições (contrato §1.2) ─────────────────────────────────
+/**
+ * Avalia UMA condição da gramática v3 para o objeto `objId` dentro de `linha`.
+ * Nunca lança: condição desconhecida (e o namespace RESERVADO `func:*`) → false.
+ *   tem:X       → X está na linha (preserva a guarda v2: X !== objId)
+ *   nao_tem:X   → X NÃO está na linha
+ *   pos:inicio  → o PRÓPRIO objId é o primeiro da linha
+ *   pos:fim     → o PRÓPRIO objId é o último da linha
+ *   pos:miolo   → o PRÓPRIO objId está no interior (nem primeiro nem último)
+ *   antes_de:X  → objId vem antes de X (só casa se X está na linha)
+ *   depois_de:X → objId vem depois de X (só casa se X está na linha)
+ *   func:*      → RESERVADO para funções dramáticas futuras: aceito, nunca casa
+ * Compat consciente: o runtime v2 só avaliava `tem:` (ignorava `nao_tem:`);
+ * docs/quintal.v2.json não usa `nao_tem:` — as fixtures golden permanecem válidas.
+ */
+function avaliarCondicao(cond: CondicaoV3, objId: string, linha: string[]): boolean {
+  const c = String(cond || "");
+  const i = linha.indexOf(objId);
+  if (c.indexOf("tem:") === 0) {
+    const alvo = c.slice(4);
+    return alvo !== objId && linha.indexOf(alvo) !== -1;
+  }
+  if (c.indexOf("nao_tem:") === 0) {
+    return linha.indexOf(c.slice(8)) === -1;
+  }
+  if (c === "pos:inicio") return i === 0 && linha.length > 0;
+  if (c === "pos:fim") return i !== -1 && i === linha.length - 1;
+  if (c === "pos:miolo") return i > 0 && i < linha.length - 1;
+  if (c.indexOf("antes_de:") === 0) {
+    const j = linha.indexOf(c.slice(9));
+    return i !== -1 && j !== -1 && i < j;
+  }
+  if (c.indexOf("depois_de:") === 0) {
+    const j = linha.indexOf(c.slice(10));
+    return i !== -1 && j !== -1 && i > j;
+  }
+  // func:* (reservado) e qualquer condição desconhecida: nunca casam, nunca lançam.
+  return false;
+}
+
+/** `se` string ou array (AND): todas as condições precisam casar. */
+function casaSe(se: CondicaoV3 | CondicaoV3[], objId: string, linha: string[]): boolean {
+  const conds = Array.isArray(se) ? se : [se];
+  if (conds.length === 0) return false;
+  for (const c of conds) if (!avaliarCondicao(c, objId, linha)) return false;
+  return true;
+}
+
+/**
+ * Conta do objeto no nível pedido, aplicando o PRIMEIRO tempero satisfeito pela
+ * linha (ordem do array; mais específico primeiro, por convenção autoral).
+ * Tempero que casa mas não tem texto no nível → segue para o próximo (regra v2).
+ */
 function contaComTempera(
   cenario: CenarioV2,
   objId: string,
   linha: string[],
-  nivel: NivelKey
+  nivel: NivelKey,
+  rng: Rng
 ): string {
   const obj = cenario.objetos[objId];
   if (!obj) return "";
-  const temperas = obj.tempera || [];
-  for (const t of temperas) {
-    const cond = String(t.se || "");
-    if (cond.indexOf("tem:") === 0) {
-      const alvo = cond.slice(4);
-      if (alvo !== objId && linha.indexOf(alvo) !== -1) {
-        const txt = t.entao && t.entao[nivel];
-        if (txt) return txt;
-      }
+  for (const t of obj.tempera || []) {
+    if (casaSe(t.se, objId, linha)) {
+      const txt = escolherVariante(t.entao && t.entao[nivel], rng);
+      if (txt) return txt;
     }
   }
-  return obj.conta[nivel] || "";
+  return escolherVariante(obj.conta[nivel], rng);
 }
 
-/** Fragmento de desfecho: convergente por padrão; aberto casa com o último objeto da linha. */
-function textoDesfecho(estado: EstadoComp, nivel: NivelKey): string {
+/**
+ * Conectivo do slot de miolo: sorteio semeado no pool do nível, SEM repetição
+ * consecutiva (se sortear o mesmo do slot anterior, avança circular para o
+ * próximo). Pool de 1 item não consome rng (mesma regra de escolherVariante).
+ */
+function escolherConectivo(pool: string[], rng: Rng, anterior: string): string {
+  if (pool.length === 0) return "";
+  let idx = pool.length === 1 ? 0 : Math.floor(rng() * pool.length);
+  if (pool.length > 1 && pool[idx] === anterior) idx = (idx + 1) % pool.length;
+  return pool[idx];
+}
+
+/**
+ * Fragmento de desfecho (contrato §1.3): convergente por padrão; no modo aberto,
+ * ECOS — fragmentos cujas condições declaradas TODAS casam (`se_terminou_com` →
+ * último da linha; `se_comecou_com` → primeiro; ambos = composto), concatenados
+ * na ordem do array até `max_ecos` (default 1). Nenhum eco casa → convergente
+ * (comportamento v2 preservado). Fragmento sem NENHUMA condição declarada é
+ * defensivamente ignorado (não vira eco universal por verdade vazia).
+ */
+function textoDesfecho(estado: EstadoComp, nivel: NivelKey, rng: Rng): string {
   const d = estado.cenario.moldura.desfecho;
   if (estado.modos && estado.modos.desfecho === "aberto" && d.aberto && d.aberto.length) {
+    const primeiro = estado.linha[0];
     const ultimo = estado.linha[estado.linha.length - 1];
-    const match = d.aberto.find((a) => a.se_terminou_com === ultimo);
-    if (match && match.fragmento[nivel]) return match.fragmento[nivel];
+    const teto = typeof d.max_ecos === "number" && d.max_ecos > 0 ? d.max_ecos : 1;
+    const partes: string[] = [];
+    for (const a of d.aberto) {
+      if (partes.length >= teto) break;
+      const temCondicao = a.se_terminou_com !== undefined || a.se_comecou_com !== undefined;
+      if (!temCondicao) continue;
+      if (a.se_terminou_com !== undefined && a.se_terminou_com !== ultimo) continue;
+      if (a.se_comecou_com !== undefined && a.se_comecou_com !== primeiro) continue;
+      const txt = escolherVariante(a.fragmento && a.fragmento[nivel], rng);
+      if (txt) partes.push(txt);
+    }
+    if (partes.length) return partes.join(" ");
   }
-  return d.convergente[nivel] || "";
+  return escolherVariante(d.convergente[nivel], rng);
 }
 
 // ─── API do contrato (consumida pelo app via PipocaCanonico.composicao) ──────
@@ -214,20 +352,40 @@ export function ordenarR1(estado: EstadoComp, ordemIds: string[]): EstadoComp {
 }
 
 /**
- * Tece a história para ler no portão: abertura + contas (na ordem da linha, com tempero)
- * + desfecho (só quando é a última rodada). O texto CRESCE a cada rodada.
+ * Tece a história para ler no portão: abertura + contas (na ordem da linha, com tempero
+ * e conectivos de miolo) + desfecho (só quando é a última rodada). O texto CRESCE a cada
+ * rodada.
+ *
+ * ORDEM DE CONSUMO DO RNG (FIXA — parte do contrato de replay, §3):
+ *   1. variante da abertura;
+ *   2. para cada slot da linha, em ordem: (a) variante da célula resolvida;
+ *      (b) SE o slot é miolo E há pool de conectivos no nível: escolha do conectivo;
+ *   3. desfecho: variante do convergente, OU variante de cada eco selecionado.
+ * Garantias: replay perfeito (mesma linha+nível ⇒ mesmo texto); arranjo diferente ⇒
+ * variantes/conectivos diferentes; preview T4 ≡ commit T5 por construção.
  */
 export function montar(estado: EstadoComp, nivel: unknown): string {
   const nk = nivelKey(nivel);
+  const cenario = estado.cenario;
+  const rng = mulberry32(fnv1a(cenario.id + "|" + estado.linha.join(",") + "|" + nk));
   const partes: string[] = [];
-  const abertura = estado.cenario.moldura.abertura[nk];
+  const abertura = escolherVariante(cenario.moldura.abertura[nk], rng);
   if (abertura) partes.push(abertura);
-  for (const id of estado.linha) {
-    const conta = contaComTempera(estado.cenario, id, estado.linha, nk);
+  const pool = (cenario.moldura.conectivos && cenario.moldura.conectivos[nk]) || [];
+  let conectivoAnterior = "";
+  for (let i = 0; i < estado.linha.length; i++) {
+    const id = estado.linha[i];
+    let conta = contaComTempera(cenario, id, estado.linha, nk, rng);
+    const ehMiolo = i > 0 && i < estado.linha.length - 1;
+    if (conta && ehMiolo && pool.length) {
+      const con = escolherConectivo(pool, rng, conectivoAnterior);
+      conectivoAnterior = con;
+      if (con) conta = con + " " + conta;
+    }
     if (conta) partes.push(conta);
   }
   if (estaNaUltimaRodada(estado)) {
-    const fim = textoDesfecho(estado, nk);
+    const fim = textoDesfecho(estado, nk, rng);
     if (fim) partes.push(fim);
   }
   return partes.join(" ");

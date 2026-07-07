@@ -166,7 +166,7 @@ para `/`) e `src/motores/jogar.ts` (inlinado em `motor.test.ts`).
 | 05 IA e fala | 🟢 **completa no app (MVP local)** (2026-07-02) | Motor B (`MotorIA`) atrás da fábrica + `src/ia/*` (prompt/guardrails/orquestrador/simulado; adaptadores testados com transporte fake) + ASR no portão (T5) e "Pela voz" nas Regras; kill-switches consumidos pelo runtime; chamada real de IA = fase06 |
 | 06 Backend | 🟢 **completa no app (Supabase real)** (2026-07-02) | fachada `Backend{auth,repo,proxyIA}` + adaptadores REST puros (`src/backend/*`); projeto real sa-east-1 com RLS aplicado + Edge Function `proxy-ia` deployada (4 provedores via secrets); remoto com fallback local (sem rede, tudo segue); Firebase = stub + PARIDADE.md |
 | 07 QA/A11y/CI | 🔴 não iniciado | `motor.test`/`persistencia.test`; `check_plans.mjs` sem CI |
-| 08 Conteúdo | 🟡 cunha 08-00 (Motor A+/v3) — **executa antes da fase 07** | `[[fase08-08-00]]` + contrato `[[_contratos/grafo-autoral-v3]]`; restante não iniciado |
+| 08 Conteúdo | 🟡 cunha 08-00 (Motor A+/v3) — **executa antes da fase 07** · passos 1–5 implementados (motor+lint+testes); 6–7 (conteúdo v3 e troca do grafo) pendentes | `[[fase08-08-00]]` + contrato `[[_contratos/grafo-autoral-v3]]`; `src/core/composicao.ts` (leitor v3 compat v2) + `src/core/lint_grafo.ts` + `composicao.test.ts` (91 asserts, golden v2≡v3); restante não iniciado |
 
 Dívidas de contrato da fase00 (corrigidas no Marco 1): `Economia.objetosCreditados` (fora de `tipos-core`
 `{vagalumes,poupado}`); `spendPct` devolve fração **poupada**, não gasta (`src/core/economia.ts:85`).
@@ -345,12 +345,24 @@ config real commitada.
 PARIDADE.md) e a próxima iteração de código (telas admin sobre PostgREST, vínculo conta↔tenant,
 telemetria remota com retenção, Firebase real).
 
-## Cunha · 08-00 · Motor A+ (antecipado da fase 08)
+## Cunha · 08-00 · Motor A+ (antecipado da fase 08) — 🟡 PARCIAL (2026-07-06)
 **O quê:** evolução do Motor A — schema `pipoca.grafo-autoral.v2` → `.v3` (conforme [[_contratos/grafo-autoral-v3]]).
 Variantes por célula, condições de posição, ecos no desfecho, conectivos e replay determinístico — toda a diversidade
 sem IA em runtime. **Por quê:** o teste com a criança ([[fase07-07-03]]) deve rodar sobre o Motor A+; os 4 cenários da
 fase 08 nascem direto no v3, evitando dupla autoria. **Paralelo:** telemetria (pendente da fase03) corre em paralelo,
 antes da sessão real com a criança.
+
+**Feito (2026-07-06, passos 1–5):** `src/core/composicao.ts` evoluiu para leitor v3 com compat v2 (normalização nos
+pontos de leitura, grafo nunca mutado; API pública INALTERADA — bridge intocado): variantes por célula
+(string ≡ array de 1), gramática de condições (`tem:`/`nao_tem:`/`pos:*`/`antes_de:`/`depois_de:`; `func:*` reservado
+nunca casa; `se` array = AND), ecos no desfecho (`se_comecou_com`, composto, `max_ecos` default 1, fallback
+convergente), conectivos só no miolo sem repetição consecutiva, e PRNG semeado `fnv1a`+`mulberry32` com ordem de
+consumo fixa (replay determinístico). Lint autoral em `src/core/lint_grafo.ts` (erros só p/ `.v3`; avisos v2/v3).
+Testes: `src/core/composicao.test.ts` (91 asserts, na cadeia `bun run test`) cobre os 7 blocos do contrato, incluindo
+28 fixtures golden (`src/core/fixtures/composicao_golden_v2.json`, geradas com o leitor v2 pré-refatoração) que o
+leitor v3 reproduz byte a byte — grafo v2 consome ZERO rng por construção.
+**Pendências (passos 6–7):** oficina de conteúdo → `quintal.v3.json` (validação humana célula a célula) e troca do
+grafo ativo (o app segue rodando o v2; bundle não foi regerado de propósito).
 
 ## Marco 7 — Fase 07 · QA / A11y / CI
 Auditoria de acessibilidade automatizada; `.github/workflows/ci.yml` com `check_plans.mjs` como gate +

@@ -1,0 +1,416 @@
+{
+  "casos": [
+    {
+      "linha": [
+        "vagalume",
+        "frasco",
+        "vento"
+      ],
+      "rodada": 1,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n1",
+      "texto": "É noite. A Joana sai. A faísca no pote. Lanterna! Um pote. De vidro. Um vento. Fresco."
+    },
+    {
+      "linha": [
+        "vagalume",
+        "frasco",
+        "vento"
+      ],
+      "rodada": 1,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n2",
+      "texto": "É noite. A Joana pisa na grama fria, sozinha. A faísca entra no pote e vira uma lanterninha só dela. A Joana acha um pote e olha o mundo por dentro dele. Um vento fresco passa e mexe no cabelo da Joana."
+    },
+    {
+      "linha": [
+        "vagalume",
+        "frasco",
+        "vento"
+      ],
+      "rodada": 1,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n3",
+      "texto": "A última luz do dia some atrás do muro, e a Joana sai pro quintal sem fazer barulho. A faísca entra no pote de vidro e fica piscando lá dentro — uma lanterninha viva que a Joana carrega. A Joana acha um pote de vidro e ergue contra o céu, vendo o quintal ficar todo torto lá dentro. Um vento fresco atravessa o quintal e mexe no cabelo da Joana, fazendo tudo balançar de leve."
+    },
+    {
+      "linha": [
+        "vagalume",
+        "frasco",
+        "vento"
+      ],
+      "rodada": 1,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n4",
+      "texto": "Quando a última luz do dia se apaga atrás do muro, a Joana abre a porta dos fundos sem fazer barulho. O quintal, que de dia é só o quintal, à noite vira outro lugar — e ela pisa na grama fria de pés descalços, o coração batendo forte. Com todo o cuidado, a faísca entra no pote de vidro e fica piscando lá dentro, presa e livre ao mesmo tempo — uma lanterninha viva que a Joana carrega pelo quintal, iluminando um passinho de cada vez. Meio enterrado na grama, a Joana encontra um pote de vidro e o ergue contra o céu com as duas mãos. Fecha um olho e espia por dentro — e o quintal inteiro entorta e brilha ali dentro, pequenininho e curvo, um quintal de bolso só dela. Um vento fresco atravessa o quintal e bagunça o cabelo da Joana, fazendo as folhas balançarem e a grama toda sussurrar de uma vez. Ela fecha os olhos e respira fundo — cheira a terra molhada e a fim de tarde, como se a noite inteira estivesse respirando junto com ela."
+    },
+    {
+      "linha": [
+        "frasco",
+        "folha",
+        "vagalume"
+      ],
+      "rodada": 1,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n1",
+      "texto": "É noite. A Joana sai. Um pote. De vidro. Uma folha. Desce. A faísca no pote. Lanterna!"
+    },
+    {
+      "linha": [
+        "frasco",
+        "folha",
+        "vagalume"
+      ],
+      "rodada": 1,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n2",
+      "texto": "É noite. A Joana pisa na grama fria, sozinha. A Joana acha um pote e olha o mundo por dentro dele. Uma folha desce rodando devagar no ar. A faísca entra no pote e vira uma lanterninha só dela."
+    },
+    {
+      "linha": [
+        "frasco",
+        "folha",
+        "vagalume"
+      ],
+      "rodada": 1,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n3",
+      "texto": "A última luz do dia some atrás do muro, e a Joana sai pro quintal sem fazer barulho. A Joana acha um pote de vidro e ergue contra o céu, vendo o quintal ficar todo torto lá dentro. Uma folha se solta lá de cima e desce rodando, sem pressa, até a mão espalmada da Joana. A faísca entra no pote de vidro e fica piscando lá dentro — uma lanterninha viva que a Joana carrega."
+    },
+    {
+      "linha": [
+        "frasco",
+        "folha",
+        "vagalume"
+      ],
+      "rodada": 1,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n4",
+      "texto": "Quando a última luz do dia se apaga atrás do muro, a Joana abre a porta dos fundos sem fazer barulho. O quintal, que de dia é só o quintal, à noite vira outro lugar — e ela pisa na grama fria de pés descalços, o coração batendo forte. Meio enterrado na grama, a Joana encontra um pote de vidro e o ergue contra o céu com as duas mãos. Fecha um olho e espia por dentro — e o quintal inteiro entorta e brilha ali dentro, pequenininho e curvo, um quintal de bolso só dela. Bem lá em cima, uma folha se solta do galho e começa a descer — rodopiando devagar, sem pressa nenhuma, indo pra um lado e pro outro. A Joana estende a mão aberta embaixo e espera, quietinha, até a folha pousar de leve na palma dela, leve feito um cochicho. Com todo o cuidado, a faísca entra no pote de vidro e fica piscando lá dentro, presa e livre ao mesmo tempo — uma lanterninha viva que a Joana carrega pelo quintal, iluminando um passinho de cada vez."
+    },
+    {
+      "linha": [
+        "folha",
+        "vento",
+        "frasco"
+      ],
+      "rodada": 1,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n1",
+      "texto": "É noite. A Joana sai. Uma folha. Desce. Um vento. Fresco. Um pote. De vidro."
+    },
+    {
+      "linha": [
+        "folha",
+        "vento",
+        "frasco"
+      ],
+      "rodada": 1,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n2",
+      "texto": "É noite. A Joana pisa na grama fria, sozinha. Uma folha desce rodando devagar no ar. Um vento fresco passa e mexe no cabelo da Joana. A Joana acha um pote e olha o mundo por dentro dele."
+    },
+    {
+      "linha": [
+        "folha",
+        "vento",
+        "frasco"
+      ],
+      "rodada": 1,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n3",
+      "texto": "A última luz do dia some atrás do muro, e a Joana sai pro quintal sem fazer barulho. Uma folha se solta lá de cima e desce rodando, sem pressa, até a mão espalmada da Joana. Um vento fresco atravessa o quintal e mexe no cabelo da Joana, fazendo tudo balançar de leve. A Joana acha um pote de vidro e ergue contra o céu, vendo o quintal ficar todo torto lá dentro."
+    },
+    {
+      "linha": [
+        "folha",
+        "vento",
+        "frasco"
+      ],
+      "rodada": 1,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n4",
+      "texto": "Quando a última luz do dia se apaga atrás do muro, a Joana abre a porta dos fundos sem fazer barulho. O quintal, que de dia é só o quintal, à noite vira outro lugar — e ela pisa na grama fria de pés descalços, o coração batendo forte. Bem lá em cima, uma folha se solta do galho e começa a descer — rodopiando devagar, sem pressa nenhuma, indo pra um lado e pro outro. A Joana estende a mão aberta embaixo e espera, quietinha, até a folha pousar de leve na palma dela, leve feito um cochicho. Um vento fresco atravessa o quintal e bagunça o cabelo da Joana, fazendo as folhas balançarem e a grama toda sussurrar de uma vez. Ela fecha os olhos e respira fundo — cheira a terra molhada e a fim de tarde, como se a noite inteira estivesse respirando junto com ela. Meio enterrado na grama, a Joana encontra um pote de vidro e o ergue contra o céu com as duas mãos. Fecha um olho e espia por dentro — e o quintal inteiro entorta e brilha ali dentro, pequenininho e curvo, um quintal de bolso só dela."
+    },
+    {
+      "linha": [
+        "frasco",
+        "gato",
+        "lua",
+        "orvalho",
+        "vento",
+        "vagalume"
+      ],
+      "rodada": 4,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n1",
+      "texto": "É noite. A Joana sai. Um pote. De vidro. Um gato. Dois olhos. A lua na grama. Mil luas! Gotinhas. Brilham. Um vento. Fresco. A faísca no pote. Lanterna! A Joana guarda a noite. Dorme."
+    },
+    {
+      "linha": [
+        "frasco",
+        "gato",
+        "lua",
+        "orvalho",
+        "vento",
+        "vagalume"
+      ],
+      "rodada": 4,
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "nivel": "n1",
+      "texto": "É noite. A Joana sai. Um pote. De vidro. Um gato. Dois olhos. A lua na grama. Mil luas! Gotinhas. Brilham. Um vento. Fresco. A faísca no pote. Lanterna! Uma faísca pisca. Boa noite."
+    },
+    {
+      "linha": [
+        "frasco",
+        "gato",
+        "lua",
+        "orvalho",
+        "vento",
+        "vagalume"
+      ],
+      "rodada": 4,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n2",
+      "texto": "É noite. A Joana pisa na grama fria, sozinha. A Joana acha um pote e olha o mundo por dentro dele. Na cerca, dois olhos verdes acendem: um gato. A lua se reflete no orvalho: mil luas pequeninhas. O orvalho pousa na grama em gotinhas que brilham. Um vento fresco passa e mexe no cabelo da Joana. A faísca entra no pote e vira uma lanterninha só dela. A Joana guarda a noite inteira no peito e vai sonhar."
+    },
+    {
+      "linha": [
+        "frasco",
+        "gato",
+        "lua",
+        "orvalho",
+        "vento",
+        "vagalume"
+      ],
+      "rodada": 4,
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "nivel": "n2",
+      "texto": "É noite. A Joana pisa na grama fria, sozinha. A Joana acha um pote e olha o mundo por dentro dele. Na cerca, dois olhos verdes acendem: um gato. A lua se reflete no orvalho: mil luas pequeninhas. O orvalho pousa na grama em gotinhas que brilham. Um vento fresco passa e mexe no cabelo da Joana. A faísca entra no pote e vira uma lanterninha só dela. A última faísca pisca uma vez, como um boa-noite só pra ela."
+    },
+    {
+      "linha": [
+        "frasco",
+        "gato",
+        "lua",
+        "orvalho",
+        "vento",
+        "vagalume"
+      ],
+      "rodada": 4,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n3",
+      "texto": "A última luz do dia some atrás do muro, e a Joana sai pro quintal sem fazer barulho. A Joana acha um pote de vidro e ergue contra o céu, vendo o quintal ficar todo torto lá dentro. Alguma coisa farfalha na cerca, e dois olhos verdes se acendem. Um gato observa a Joana, quieto feito sombra. A lua se reflete em cada gota de orvalho, e o chão vira mil luas pequeninhas. O orvalho pousa na grama em gotinhas miúdas, e cada uma brilha como uma continha de vidro. Um vento fresco atravessa o quintal e mexe no cabelo da Joana, fazendo tudo balançar de leve. A faísca entra no pote de vidro e fica piscando lá dentro — uma lanterninha viva que a Joana carrega. Quando o quintal já contou tudo, a Joana guarda a noite inteira no peito e leva ela pros sonhos."
+    },
+    {
+      "linha": [
+        "frasco",
+        "gato",
+        "lua",
+        "orvalho",
+        "vento",
+        "vagalume"
+      ],
+      "rodada": 4,
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "nivel": "n3",
+      "texto": "A última luz do dia some atrás do muro, e a Joana sai pro quintal sem fazer barulho. A Joana acha um pote de vidro e ergue contra o céu, vendo o quintal ficar todo torto lá dentro. Alguma coisa farfalha na cerca, e dois olhos verdes se acendem. Um gato observa a Joana, quieto feito sombra. A lua se reflete em cada gota de orvalho, e o chão vira mil luas pequeninhas. O orvalho pousa na grama em gotinhas miúdas, e cada uma brilha como uma continha de vidro. Um vento fresco atravessa o quintal e mexe no cabelo da Joana, fazendo tudo balançar de leve. A faísca entra no pote de vidro e fica piscando lá dentro — uma lanterninha viva que a Joana carrega. E, bem na porta, a última faísca pisca uma vez só — um boa-noite piscado no escuro, só pra Joana."
+    },
+    {
+      "linha": [
+        "frasco",
+        "gato",
+        "lua",
+        "orvalho",
+        "vento",
+        "vagalume"
+      ],
+      "rodada": 4,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n4",
+      "texto": "Quando a última luz do dia se apaga atrás do muro, a Joana abre a porta dos fundos sem fazer barulho. O quintal, que de dia é só o quintal, à noite vira outro lugar — e ela pisa na grama fria de pés descalços, o coração batendo forte. Meio enterrado na grama, a Joana encontra um pote de vidro e o ergue contra o céu com as duas mãos. Fecha um olho e espia por dentro — e o quintal inteiro entorta e brilha ali dentro, pequenininho e curvo, um quintal de bolso só dela. Alguma coisa farfalha em cima da cerca, e quando a Joana olha, dois olhos verdes já estão acesos ali. Um gato — quieto feito sombra, o rabo balançando bem devagarinho — estuda ela com uma calma antiga, sem pressa nenhuma, decidindo se vale a pena confiar. A luz da lua encontra o orvalho na grama e se parte em mil pedaços: de repente há mil luas pequeninhas espalhadas pelo chão, e a Joana anda no meio delas com medo de pisar em alguma. Sem ninguém ver, o orvalho começa a se juntar na grama em gotinhas miúdas, tão pequenas que quase não dá pra acreditar. A Joana se abaixa bem perto: cada gota é uma continha de vidro, e cada continha guarda um pedacinho de luz lá dentro. Um vento fresco atravessa o quintal e bagunça o cabelo da Joana, fazendo as folhas balançarem e a grama toda sussurrar de uma vez. Ela fecha os olhos e respira fundo — cheira a terra molhada e a fim de tarde, como se a noite inteira estivesse respirando junto com ela. Com todo o cuidado, a faísca entra no pote de vidro e fica piscando lá dentro, presa e livre ao mesmo tempo — uma lanterninha viva que a Joana carrega pelo quintal, iluminando um passinho de cada vez. Quando o quintal já contou tudo o que tinha pra contar, a Joana fecha os olhos um instante e guarda a noite inteira dentro do peito — cada luz, cada som, cada friozinho — do jeito que a gente guarda vaga-lume num pote, e leva o quintal junto pros sonhos."
+    },
+    {
+      "linha": [
+        "frasco",
+        "gato",
+        "lua",
+        "orvalho",
+        "vento",
+        "vagalume"
+      ],
+      "rodada": 4,
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "nivel": "n4",
+      "texto": "Quando a última luz do dia se apaga atrás do muro, a Joana abre a porta dos fundos sem fazer barulho. O quintal, que de dia é só o quintal, à noite vira outro lugar — e ela pisa na grama fria de pés descalços, o coração batendo forte. Meio enterrado na grama, a Joana encontra um pote de vidro e o ergue contra o céu com as duas mãos. Fecha um olho e espia por dentro — e o quintal inteiro entorta e brilha ali dentro, pequenininho e curvo, um quintal de bolso só dela. Alguma coisa farfalha em cima da cerca, e quando a Joana olha, dois olhos verdes já estão acesos ali. Um gato — quieto feito sombra, o rabo balançando bem devagarinho — estuda ela com uma calma antiga, sem pressa nenhuma, decidindo se vale a pena confiar. A luz da lua encontra o orvalho na grama e se parte em mil pedaços: de repente há mil luas pequeninhas espalhadas pelo chão, e a Joana anda no meio delas com medo de pisar em alguma. Sem ninguém ver, o orvalho começa a se juntar na grama em gotinhas miúdas, tão pequenas que quase não dá pra acreditar. A Joana se abaixa bem perto: cada gota é uma continha de vidro, e cada continha guarda um pedacinho de luz lá dentro. Um vento fresco atravessa o quintal e bagunça o cabelo da Joana, fazendo as folhas balançarem e a grama toda sussurrar de uma vez. Ela fecha os olhos e respira fundo — cheira a terra molhada e a fim de tarde, como se a noite inteira estivesse respirando junto com ela. Com todo o cuidado, a faísca entra no pote de vidro e fica piscando lá dentro, presa e livre ao mesmo tempo — uma lanterninha viva que a Joana carrega pelo quintal, iluminando um passinho de cada vez. E, bem na hora de entrar, quando a Joana olha pra trás uma última vez, a faísca lá no fundo pisca uma vez só — devagarinho, um boa-noite secreto piscado no escuro, guardado só pra ela."
+    },
+    {
+      "linha": [
+        "vagalume",
+        "gato",
+        "lua",
+        "orvalho",
+        "vento",
+        "folha"
+      ],
+      "rodada": 4,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n1",
+      "texto": "É noite. A Joana sai. Uma faísca. Acende. Some. O gato pula. Na folha! A lua na grama. Mil luas! Gotinhas. Brilham. Um vento. Fresco. Uma folha. Desce. A Joana guarda a noite. Dorme."
+    },
+    {
+      "linha": [
+        "vagalume",
+        "gato",
+        "lua",
+        "orvalho",
+        "vento",
+        "folha"
+      ],
+      "rodada": 4,
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "nivel": "n1",
+      "texto": "É noite. A Joana sai. Uma faísca. Acende. Some. O gato pula. Na folha! A lua na grama. Mil luas! Gotinhas. Brilham. Um vento. Fresco. Uma folha. Desce. A Joana guarda a noite. Dorme."
+    },
+    {
+      "linha": [
+        "vagalume",
+        "gato",
+        "lua",
+        "orvalho",
+        "vento",
+        "folha"
+      ],
+      "rodada": 4,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n2",
+      "texto": "É noite. A Joana pisa na grama fria, sozinha. Lá no escuro, uma faísca acende e some. O gato vê a folha e pula, brincando com ela. A lua se reflete no orvalho: mil luas pequeninhas. O orvalho pousa na grama em gotinhas que brilham. Um vento fresco passa e mexe no cabelo da Joana. Uma folha desce rodando devagar no ar. A Joana guarda a noite inteira no peito e vai sonhar."
+    },
+    {
+      "linha": [
+        "vagalume",
+        "gato",
+        "lua",
+        "orvalho",
+        "vento",
+        "folha"
+      ],
+      "rodada": 4,
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "nivel": "n2",
+      "texto": "É noite. A Joana pisa na grama fria, sozinha. Lá no escuro, uma faísca acende e some. O gato vê a folha e pula, brincando com ela. A lua se reflete no orvalho: mil luas pequeninhas. O orvalho pousa na grama em gotinhas que brilham. Um vento fresco passa e mexe no cabelo da Joana. Uma folha desce rodando devagar no ar. A Joana guarda a noite inteira no peito e vai sonhar."
+    },
+    {
+      "linha": [
+        "vagalume",
+        "gato",
+        "lua",
+        "orvalho",
+        "vento",
+        "folha"
+      ],
+      "rodada": 4,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n3",
+      "texto": "A última luz do dia some atrás do muro, e a Joana sai pro quintal sem fazer barulho. No canto mais escuro, uma faísca acende e some. A Joana prende a respiração e chega na ponta dos pés. O gato vê a folha no chão e não resiste: pula, bate de leve com a patinha, corre atrás. A lua se reflete em cada gota de orvalho, e o chão vira mil luas pequeninhas. O orvalho pousa na grama em gotinhas miúdas, e cada uma brilha como uma continha de vidro. Um vento fresco atravessa o quintal e mexe no cabelo da Joana, fazendo tudo balançar de leve. Uma folha se solta lá de cima e desce rodando, sem pressa, até a mão espalmada da Joana. Quando o quintal já contou tudo, a Joana guarda a noite inteira no peito e leva ela pros sonhos."
+    },
+    {
+      "linha": [
+        "vagalume",
+        "gato",
+        "lua",
+        "orvalho",
+        "vento",
+        "folha"
+      ],
+      "rodada": 4,
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "nivel": "n3",
+      "texto": "A última luz do dia some atrás do muro, e a Joana sai pro quintal sem fazer barulho. No canto mais escuro, uma faísca acende e some. A Joana prende a respiração e chega na ponta dos pés. O gato vê a folha no chão e não resiste: pula, bate de leve com a patinha, corre atrás. A lua se reflete em cada gota de orvalho, e o chão vira mil luas pequeninhas. O orvalho pousa na grama em gotinhas miúdas, e cada uma brilha como uma continha de vidro. Um vento fresco atravessa o quintal e mexe no cabelo da Joana, fazendo tudo balançar de leve. Uma folha se solta lá de cima e desce rodando, sem pressa, até a mão espalmada da Joana. Quando o quintal já contou tudo, a Joana guarda a noite inteira no peito e leva ela pros sonhos."
+    },
+    {
+      "linha": [
+        "vagalume",
+        "gato",
+        "lua",
+        "orvalho",
+        "vento",
+        "folha"
+      ],
+      "rodada": 4,
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "nivel": "n4",
+      "texto": "Quando a última luz do dia se apaga atrás do muro, a Joana abre a porta dos fundos sem fazer barulho. O quintal, que de dia é só o quintal, à noite vira outro lugar — e ela pisa na grama fria de pés descalços, o coração batendo forte. Lá no canto onde o escuro é mais fundo, uma faísca minúscula acende e some, acende e some. A Joana prende a respiração e chega mais perto na ponta dos pés: é uma luzinha viva, flutuando no ar, piscando devagar como quem conta um segredo que só ela pode ouvir. O gato vê a folha caída e, por um segundo, esquece toda a pose de gato sério: abaixa o rabo, mira e pula — batendo de leve com a patinha, correndo atrás quando o vento leva a folha pra longe. A luz da lua encontra o orvalho na grama e se parte em mil pedaços: de repente há mil luas pequeninhas espalhadas pelo chão, e a Joana anda no meio delas com medo de pisar em alguma. Sem ninguém ver, o orvalho começa a se juntar na grama em gotinhas miúdas, tão pequenas que quase não dá pra acreditar. A Joana se abaixa bem perto: cada gota é uma continha de vidro, e cada continha guarda um pedacinho de luz lá dentro. Um vento fresco atravessa o quintal e bagunça o cabelo da Joana, fazendo as folhas balançarem e a grama toda sussurrar de uma vez. Ela fecha os olhos e respira fundo — cheira a terra molhada e a fim de tarde, como se a noite inteira estivesse respirando junto com ela. Bem lá em cima, uma folha se solta do galho e começa a descer — rodopiando devagar, sem pressa nenhuma, indo pra um lado e pro outro. A Joana estende a mão aberta embaixo e espera, quietinha, até a folha pousar de leve na palma dela, leve feito um cochicho. Quando o quintal já contou tudo o que tinha pra contar, a Joana fecha os olhos um instante e guarda a noite inteira dentro do peito — cada luz, cada som, cada friozinho — do jeito que a gente guarda vaga-lume num pote, e leva o quintal junto pros sonhos."
+    },
+    {
+      "linha": [
+        "vagalume",
+        "gato",
+        "lua",
+        "orvalho",
+        "vento",
+        "folha"
+      ],
+      "rodada": 4,
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "nivel": "n4",
+      "texto": "Quando a última luz do dia se apaga atrás do muro, a Joana abre a porta dos fundos sem fazer barulho. O quintal, que de dia é só o quintal, à noite vira outro lugar — e ela pisa na grama fria de pés descalços, o coração batendo forte. Lá no canto onde o escuro é mais fundo, uma faísca minúscula acende e some, acende e some. A Joana prende a respiração e chega mais perto na ponta dos pés: é uma luzinha viva, flutuando no ar, piscando devagar como quem conta um segredo que só ela pode ouvir. O gato vê a folha caída e, por um segundo, esquece toda a pose de gato sério: abaixa o rabo, mira e pula — batendo de leve com a patinha, correndo atrás quando o vento leva a folha pra longe. A luz da lua encontra o orvalho na grama e se parte em mil pedaços: de repente há mil luas pequeninhas espalhadas pelo chão, e a Joana anda no meio delas com medo de pisar em alguma. Sem ninguém ver, o orvalho começa a se juntar na grama em gotinhas miúdas, tão pequenas que quase não dá pra acreditar. A Joana se abaixa bem perto: cada gota é uma continha de vidro, e cada continha guarda um pedacinho de luz lá dentro. Um vento fresco atravessa o quintal e bagunça o cabelo da Joana, fazendo as folhas balançarem e a grama toda sussurrar de uma vez. Ela fecha os olhos e respira fundo — cheira a terra molhada e a fim de tarde, como se a noite inteira estivesse respirando junto com ela. Bem lá em cima, uma folha se solta do galho e começa a descer — rodopiando devagar, sem pressa nenhuma, indo pra um lado e pro outro. A Joana estende a mão aberta embaixo e espera, quietinha, até a folha pousar de leve na palma dela, leve feito um cochicho. Quando o quintal já contou tudo o que tinha pra contar, a Joana fecha os olhos um instante e guarda a noite inteira dentro do peito — cada luz, cada som, cada friozinho — do jeito que a gente guarda vaga-lume num pote, e leva o quintal junto pros sonhos."
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # fase08 · 08-00 · Motor A+ · Grafo Autoral V3
 
+> 🟡 **STATUS · 2026-07-06 · PARCIAL** — passos 1–5 implementados (motor+lint+testes); passos 6–7 (conteúdo v3 e troca do grafo) pendentes. Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
+
 ## Identidade
 - id: `fase08-08-00`
 - nó(s) da arquitetura: MA, GRAPH (evolução; não cria nó novo)

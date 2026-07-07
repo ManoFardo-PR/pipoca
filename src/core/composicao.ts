@@ -71,6 +71,12 @@ export interface DesfechoAbertoV2 {
 export interface MolduraV2 {
   abertura: TextoV3;
   conectivos?: Partial<Record<NivelKey, string[]>>; // v3: tecido conjuntivo do miolo
+  // v3 (lapidação da costura): nomes próprios que NÃO devem ser rebaixados quando
+  // um conectivo os precede (§4, regra 1). Além dos derivados de `personagem`.
+  nomes_proprios?: string[];
+  // v3 (lapidação da costura): marcadores extras que suprimem o conectivo quando a
+  // variante já começa por eles (§4, regra 2). Somam-se aos pools + à lista base.
+  marcadores_iniciais?: string[];
   desfecho: { convergente: TextoV3; aberto?: DesfechoAbertoV2[]; max_ecos?: number };
 }
 export interface CenarioV2 {
@@ -259,6 +265,85 @@ function escolherConectivo(pool: string[], rng: Rng, anterior: string): string {
   return pool[idx];
 }
 
+// ─── Lapidação da costura conectivo+texto (contrato §4, regras 1 e 2) ────────
+// Estas regras só atuam quando um conectivo É DE FATO prefixado a um slot de
+// miolo. Não tocam abertura, âncoras nem desfecho, e não alteram o texto autorado.
+
+/** Casefold + remoção de pontuação/vírgula p/ comparar marcador com início de texto. */
+function normMarcador(s: string): string {
+  return s
+    .normalize("NFC")
+    .toLowerCase()
+    .replace(/[.,;:!?…"'()]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Lista base de marcadores iniciais (§4, regra 2): expressões que já fazem o papel
+// de conectivo. Se a variante começa por uma delas, o conectivo é suprimido.
+const MARCADORES_BASE = [
+  "agora", "então", "aí", "depois", "logo", "de repente",
+  "foi quando", "logo depois", "pouco depois", "no fim", "por fim",
+];
+
+/**
+ * Conjunto de marcadores iniciais para supressão: união de TODOS os pools de
+ * conectivos (todos os níveis) + lista base + `moldura.marcadores_iniciais`.
+ * Todos normalizados (sem vírgula/pontuação, casefold).
+ */
+export function marcadoresIniciais(cenario: CenarioV2): Set<string> {
+  const set = new Set<string>();
+  const conectivos = cenario.moldura.conectivos;
+  if (conectivos) {
+    for (const k of Object.keys(conectivos)) {
+      for (const c of conectivos[k as NivelKey] || []) set.add(normMarcador(c));
+    }
+  }
+  for (const m of MARCADORES_BASE) set.add(normMarcador(m));
+  for (const m of cenario.moldura.marcadores_iniciais || []) set.add(normMarcador(m));
+  set.delete("");
+  return set;
+}
+
+/** true se a variante já começa por um marcador (compara por palavra(s), inclui "de repente"). */
+export function comecaComMarcador(texto: string, marcadores: Set<string>): boolean {
+  const alvo = normMarcador(texto);
+  for (const m of marcadores) {
+    if (alvo === m || alvo.startsWith(m + " ")) return true;
+  }
+  return false;
+}
+
+/**
+ * Nomes próprios protegidos do rebaixamento (§4, regra 1): derivados de
+ * `cenario.personagem` (palavras capitalizadas, ex.: "a Joana" → "Joana"; fallback
+ * "Joana") + `moldura.nomes_proprios`. Guardados casefolded p/ comparação.
+ */
+function nomesProtegidos(cenario: CenarioV2): Set<string> {
+  const nomes: string[] = [];
+  const p = cenario.personagem;
+  if (typeof p === "string" && p.trim()) {
+    for (const w of p.split(/\s+/)) if (/^\p{Lu}/u.test(w)) nomes.push(w);
+  }
+  if (nomes.length === 0) nomes.push("Joana");
+  for (const n of cenario.moldura.nomes_proprios || []) nomes.push(n);
+  return new Set(nomes.map((n) => n.normalize("NFC").toLowerCase().replace(/[^\p{L}]/gu, "")));
+}
+
+/**
+ * Rebaixa a inicial da variante (§4, regra 1) — a primeira letra vira minúscula
+ * quando um conectivo a precede. EXCEÇÃO: se a primeira palavra for um nome próprio
+ * protegido, o texto é devolvido intacto.
+ */
+function rebaixarInicial(texto: string, protegidos: Set<string>): string {
+  if (!texto) return texto;
+  const primeira = (texto.split(/\s+/)[0] || "").normalize("NFC").toLowerCase().replace(/[^\p{L}]/gu, "");
+  if (primeira && protegidos.has(primeira)) return texto;
+  const i = texto.search(/\p{L}/u);
+  if (i < 0) return texto;
+  return texto.slice(0, i) + texto[i].toLowerCase() + texto.slice(i + 1);
+}
+
 /**
  * Fragmento de desfecho (contrato §1.3): convergente por padrão; no modo aberto,
  * ECOS — fragmentos cujas condições declaradas TODAS casam (`se_terminou_com` →
@@ -423,15 +508,25 @@ export function montar(estado: EstadoComp, nivel: unknown): string {
   const abertura = escolherVariante(cenario.moldura.abertura[nk], rng);
   if (abertura) partes.push(abertura);
   const pool = (cenario.moldura.conectivos && cenario.moldura.conectivos[nk]) || [];
+  const marcadores = marcadoresIniciais(cenario);
+  const protegidos = nomesProtegidos(cenario);
   let conectivoAnterior = "";
   for (let i = 0; i < estado.linha.length; i++) {
     const id = estado.linha[i];
     let conta = contaComTempera(cenario, id, estado.linha, nk, rng);
     const ehMiolo = i > 0 && i < estado.linha.length - 1;
     if (conta && ehMiolo && pool.length) {
+      // O conectivo é SEMPRE sorteado (consome rng na ordem fixa do §3), mesmo que
+      // seja descartado — assim a supressão de um slot não desloca o rng dos demais.
       const con = escolherConectivo(pool, rng, conectivoAnterior);
-      conectivoAnterior = con;
-      if (con) conta = con + " " + conta;
+      // Regra 2 (§4): se a variante já abre por um marcador, suprime o conectivo.
+      // O conectivo descartado NÃO conta como "último conectivo" (não atualiza
+      // conectivoAnterior), então não interfere na regra de não-repetição.
+      if (con && !comecaComMarcador(conta, marcadores)) {
+        // Regra 1 (§4): com conectivo à frente, rebaixa a inicial (exceto nome próprio).
+        conta = con + " " + rebaixarInicial(conta, protegidos);
+        conectivoAnterior = con;
+      }
     }
     if (conta) partes.push(conta);
   }

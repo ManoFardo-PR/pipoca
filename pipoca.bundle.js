@@ -2116,6 +2116,71 @@
       idx = (idx + 1) % pool.length;
     return pool[idx];
   }
+  function normMarcador(s) {
+    return s.normalize("NFC").toLowerCase().replace(/[.,;:!?…"'()]/g, " ").replace(/\s+/g, " ").trim();
+  }
+  var MARCADORES_BASE = [
+    "agora",
+    "então",
+    "aí",
+    "depois",
+    "logo",
+    "de repente",
+    "foi quando",
+    "logo depois",
+    "pouco depois",
+    "no fim",
+    "por fim"
+  ];
+  function marcadoresIniciais(cenario) {
+    const set = new Set;
+    const conectivos = cenario.moldura.conectivos;
+    if (conectivos) {
+      for (const k of Object.keys(conectivos)) {
+        for (const c of conectivos[k] || [])
+          set.add(normMarcador(c));
+      }
+    }
+    for (const m of MARCADORES_BASE)
+      set.add(normMarcador(m));
+    for (const m of cenario.moldura.marcadores_iniciais || [])
+      set.add(normMarcador(m));
+    set.delete("");
+    return set;
+  }
+  function comecaComMarcador(texto, marcadores) {
+    const alvo = normMarcador(texto);
+    for (const m of marcadores) {
+      if (alvo === m || alvo.startsWith(m + " "))
+        return true;
+    }
+    return false;
+  }
+  function nomesProtegidos(cenario) {
+    const nomes = [];
+    const p = cenario.personagem;
+    if (typeof p === "string" && p.trim()) {
+      for (const w of p.split(/\s+/))
+        if (/^\p{Lu}/u.test(w))
+          nomes.push(w);
+    }
+    if (nomes.length === 0)
+      nomes.push("Joana");
+    for (const n of cenario.moldura.nomes_proprios || [])
+      nomes.push(n);
+    return new Set(nomes.map((n) => n.normalize("NFC").toLowerCase().replace(/[^\p{L}]/gu, "")));
+  }
+  function rebaixarInicial(texto, protegidos) {
+    if (!texto)
+      return texto;
+    const primeira = (texto.split(/\s+/)[0] || "").normalize("NFC").toLowerCase().replace(/[^\p{L}]/gu, "");
+    if (primeira && protegidos.has(primeira))
+      return texto;
+    const i = texto.search(/\p{L}/u);
+    if (i < 0)
+      return texto;
+    return texto.slice(0, i) + texto[i].toLowerCase() + texto.slice(i + 1);
+  }
   function textoDesfecho(estado, nivel, rng) {
     const d = estado.cenario.moldura.desfecho;
     if (estado.modos && estado.modos.desfecho === "aberto" && d.aberto && d.aberto.length) {
@@ -2244,6 +2309,8 @@
     if (abertura)
       partes.push(abertura);
     const pool = cenario.moldura.conectivos && cenario.moldura.conectivos[nk] || [];
+    const marcadores = marcadoresIniciais(cenario);
+    const protegidos = nomesProtegidos(cenario);
     let conectivoAnterior = "";
     for (let i = 0;i < estado.linha.length; i++) {
       const id = estado.linha[i];
@@ -2251,9 +2318,10 @@
       const ehMiolo = i > 0 && i < estado.linha.length - 1;
       if (conta && ehMiolo && pool.length) {
         const con = escolherConectivo(pool, rng, conectivoAnterior);
-        conectivoAnterior = con;
-        if (con)
-          conta = con + " " + conta;
+        if (con && !comecaComMarcador(conta, marcadores)) {
+          conta = con + " " + rebaixarInicial(conta, protegidos);
+          conectivoAnterior = con;
+        }
       }
       if (conta)
         partes.push(conta);

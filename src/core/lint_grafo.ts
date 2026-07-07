@@ -14,6 +14,7 @@
  *   • condição desconhecida (nunca casa no runtime).
  */
 
+import { comecaComMarcador, marcadoresIniciais } from "./composicao.js";
 import type { CenarioV2, CondicaoV3, NivelKey, TextoV3 } from "./composicao.js";
 
 export interface ResultadoLint {
@@ -36,6 +37,29 @@ function lintCelula(celula: TextoV3 | undefined, onde: string, erros: string[]):
     const pool = Array.isArray(t) ? t : [t];
     if (pool.length === 0) erros.push(`${onde}.${nk}: array de variantes vazio`);
     else if (pool.some((v) => !String(v || "").trim())) erros.push(`${onde}.${nk}: variante vazia`);
+  }
+}
+
+/**
+ * AVISO da lapidação da costura (§4/§6.7): variante de conta/tempera que ABRE por um
+ * marcador inicial. No runtime o conectivo é suprimido nesse slot (regra 2), então é
+ * um sinal ao autor — não um erro. Só faz sentido para células de miolo (conta/tempera).
+ */
+function avisarMarcadorInicial(
+  celula: TextoV3 | undefined,
+  marcadores: Set<string>,
+  onde: string,
+  avisos: string[],
+): void {
+  for (const nk of NIVEIS) {
+    const t = celula && celula[nk];
+    if (t === undefined || t === null) continue;
+    const pool = Array.isArray(t) ? t : [t];
+    for (const v of pool) {
+      if (comecaComMarcador(String(v || ""), marcadores)) {
+        avisos.push(`${onde}.${nk}: variante \`${v}\` abre por marcador — o conectivo será suprimido no miolo`);
+      }
+    }
   }
 }
 
@@ -75,12 +99,15 @@ export function lintGrafoV3(cenario: CenarioV2, esquema?: string): ResultadoLint
   }
 
   // Objetos: conta + temperas (células) · genero/numero (metadados) · condições.
+  const marcadores = marcadoresIniciais(cenario);
   for (const [id, obj] of Object.entries(cenario.objetos || {})) {
     lintCelula(obj.conta, `objetos.${id}.conta`, errosV3);
+    avisarMarcadorInicial(obj.conta, marcadores, `objetos.${id}.conta`, avisos);
     if (obj.genero !== "m" && obj.genero !== "f") errosV3.push(`objetos.${id}: falta \`genero\` ("m"|"f")`);
     if (obj.numero !== "sg" && obj.numero !== "pl") errosV3.push(`objetos.${id}: falta \`numero\` ("sg"|"pl")`);
     (obj.tempera || []).forEach((t, i) => {
       lintCelula(t.entao, `objetos.${id}.tempera[${i}].entao`, errosV3);
+      avisarMarcadorInicial(t.entao, marcadores, `objetos.${id}.tempera[${i}].entao`, avisos);
       const conds = Array.isArray(t.se) ? t.se : [t.se];
       for (const c of conds) lintCondicao(c, `objetos.${id}.tempera[${i}].se`, avisos);
     });

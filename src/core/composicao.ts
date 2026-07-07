@@ -72,6 +72,10 @@ export interface MolduraV2 {
   abertura: TextoV3;
   conectivos?: Partial<Record<NivelKey, string[]>>; // v3: tecido conjuntivo do miolo
   desfecho: { convergente: TextoV3; aberto?: DesfechoAbertoV2[]; max_ecos?: number };
+  /** Lapidação 2026-07 (aditivo): 1ªs palavras que NÃO são rebaixadas pós-conectivo. */
+  nomes_proprios?: string[];
+  /** Lapidação 2026-07 (aditivo): marcadores extras que suprimem o conectivo do slot. */
+  marcadores_iniciais?: string[];
 }
 export interface CenarioV2 {
   id: string;
@@ -245,6 +249,83 @@ function contaComTempera(
     }
   }
   return escolherVariante(obj.conta[nivel], rng);
+}
+
+// ─── Costura conectivo+texto (lapidação 2026-07 — contrato §4) ──────────────
+
+/**
+ * Marcadores temporais que uma variante pode carregar como transição própria.
+ * Base embutida da supressão de conectivo (Regra 2) e do aviso do lint autoral.
+ */
+export const MARCADORES_TEMPORAIS_BASE = [
+  "agora",
+  "então",
+  "aí",
+  "depois",
+  "logo",
+  "de repente",
+  "foi quando",
+  "logo depois",
+  "pouco depois",
+  "no fim",
+  "por fim",
+];
+
+/** Casefold + pontuação → espaço + split em palavras ("E, sem aviso," → ["e","sem","aviso"]). */
+function palavrasNormalizadas(s: string): string[] {
+  return String(s || "")
+    .toLowerCase()
+    .replace(/[.,;:!?…"'“”‘’()\[\]—–]/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+/** true se o INÍCIO de `txt` casa com algum marcador (comparação palavra a palavra). */
+export function comecaComMarcador(txt: string, marcadores: string[]): boolean {
+  const palavras = palavrasNormalizadas(txt);
+  if (palavras.length === 0) return false;
+  return marcadores.some((m) => {
+    const alvo = palavrasNormalizadas(m);
+    return alvo.length > 0 && alvo.every((p, i) => palavras[i] === p);
+  });
+}
+
+/**
+ * Conjunto de marcadores iniciais da montagem (Regra 2): união de TODOS os pools
+ * de `moldura.conectivos` (todas as chaves de nível) ∪ base embutida ∪
+ * `moldura.marcadores_iniciais` (campo aditivo). Normalização fica a cargo de
+ * `comecaComMarcador` (casefold, sem pontuação — a vírgula final dos pools cai lá).
+ */
+function marcadoresIniciaisDe(moldura: MolduraV2): string[] {
+  const pools = Object.values(moldura.conectivos || {}).flat() as string[];
+  return pools.concat(MARCADORES_TEMPORAIS_BASE, moldura.marcadores_iniciais || []);
+}
+
+/**
+ * 1ªs palavras protegidas do rebaixamento (Regra 1): as palavras capitalizadas de
+ * `cenario.personagem` ("a Joana" → "Joana"; ausente → "Joana") ∪
+ * `moldura.nomes_proprios` (campo aditivo).
+ */
+function nomesProtegidosDe(cenario: CenarioV2): string[] {
+  const doPersonagem = String(cenario.personagem || "")
+    .split(/\s+/)
+    .filter((p) => /^[A-ZÀ-Ý]/.test(p));
+  const base = doPersonagem.length ? doPersonagem : ["Joana"];
+  return base.concat((cenario.moldura && cenario.moldura.nomes_proprios) || []);
+}
+
+/**
+ * Regra 1 — minúscula pós-conectivo: rebaixa a PRIMEIRA letra da variante, EXCETO
+ * se a primeira palavra (até o primeiro espaço, pontuação removida) está protegida
+ * (comparação exata, case-sensitive). Chamada SOMENTE quando um conectivo foi de
+ * fato prefixado — âncoras e slots sem conectivo ficam exatamente como autorados.
+ */
+function rebaixarInicial(txt: string, protegidos: string[]): string {
+  if (!txt) return txt;
+  const primeira = txt.split(/\s+/)[0].replace(/[.,;:!?…"'“”‘’()\[\]—–]/g, "");
+  if (protegidos.indexOf(primeira) !== -1) return txt;
+  return txt.charAt(0).toLowerCase() + txt.slice(1);
 }
 
 /**

@@ -11,7 +11,8 @@
     "test": "bun run src/core/composicao.test.ts && bun run src/core/persistencia/persistencia.test.ts && bun run src/core/parciais.test.ts && bun run src/ia/ia.test.ts && bun run src/backend/backend.test.ts && bun run src/admin/admin.test.ts",
     "test:e2e": "node tests/e2e/run-linha-verde-canonico.mjs",
     "test:e2e:canonico": "node tests/e2e/run-linha-verde-canonico.mjs",
-    "test:e2e:admin": "node tests/e2e/run-admin.mjs"
+    "test:e2e:admin": "node tests/e2e/run-admin.mjs",
+    "test:e2e:reordenar": "node tests/e2e/run-reordenar-miolo.mjs"
   },
   "engines": {
     "node": ">=18"

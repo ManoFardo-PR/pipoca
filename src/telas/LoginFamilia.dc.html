@@ -94,7 +94,14 @@ class Component extends DCLogic {
           this.setState({ modo: 'novaSenha', tokenRecuperacao: token });
           // limpa o hash (o token não deve sobreviver na barra de endereço)
           try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch (_) {}
+          return;
         }
+      }
+      // Deep-link da landing: /app?modo=criar abre direto no cadastro (senão, entrar).
+      const params = new URLSearchParams(window.location.search || '');
+      const modo = params.get('modo');
+      if (modo === 'criar' || modo === 'recuperar') {
+        this.setState({ modo });
       }
     } catch (_) {}
   }

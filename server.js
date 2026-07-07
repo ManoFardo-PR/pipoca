@@ -43,7 +43,21 @@ function resolverCaminho(urlPath) {
 const server = http.createServer((req, res) => {
   let urlPath = req.url.split("?")[0];
 
+  // /app/ (com barra final) quebraria os assets relativos do app (resolveriam
+  // sob /app/…). Redireciona para a forma canônica /app, preservando a query.
+  if (urlPath === "/app/") {
+    const query = req.url.slice(req.url.indexOf("?"));
+    res.writeHead(301, { Location: "/app" + (req.url.includes("?") ? query : "") });
+    res.end();
+    return;
+  }
+
+  // A raiz mostra a landing (marketing). O app da criança vive em /app —
+  // mesmo entry (index.html), mantido num caminho claro para os CTAs e para
+  // o encaminhamento do link de recuperação de senha (#type=recovery).
   if (urlPath === "/" || urlPath === "") {
+    urlPath = "/landing.html";
+  } else if (urlPath === "/app") {
     urlPath = "/index.html";
   }
 

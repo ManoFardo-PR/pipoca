@@ -7,13 +7,26 @@
   <meta name="description" content="Pipoca é um app de leitura acolhedora para crianças 2e, com TDAH e autismo. Palavra por palavra, sem pressa e sem erro — a história cresce a cada leitura.">
   <!-- Recuperação de senha: o link do e-mail volta para a raiz (esta landing).
        Se chegar com #type=recovery, encaminhamos para o app preservando o hash,
-       para a tela "Escolher nova senha" abrir normalmente. -->
+       para a tela "Escolher nova senha" abrir normalmente.
+
+       Família que já tem conta: se houver sessão de conta ainda válida (o mesmo
+       espelho local `pipoca.sessao-conta.v1` que o app grava no login, tanto no
+       modo local quanto no remoto), encaminhamos direto para /app — sem o clique
+       a mais em "Entrar". Visitante novo (sem sessão) continua na landing. -->
   <script>
     (function () {
       try {
         var h = window.location.hash || "";
         if (h.indexOf("type=recovery") >= 0) {
           window.location.replace("/app" + h);
+          return;
+        }
+        var raw = localStorage.getItem("pipoca.sessao-conta.v1");
+        if (raw) {
+          var s = JSON.parse(raw);
+          if (s && typeof s.expiraEm === "number" && s.expiraEm > Date.now()) {
+            window.location.replace("/app");
+          }
         }
       } catch (_) {}
     })();

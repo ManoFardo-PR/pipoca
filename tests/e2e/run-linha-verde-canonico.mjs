@@ -1,7 +1,8 @@
 /**
  * Runner e2e da LINHA VERDE CANÔNICA (TRILHA Marco M-A).
  * --------------------------------------------------------
- * Aponta para "/" (index.html): entry fino que carrega pipoca.bundle.js +
+ * Aponta para "/app" (index.html — a raiz "/" virou a landing pública, Task #18):
+ * entry fino que carrega pipoca.bundle.js +
  * src/app/estado.js e compõe Shell + TELAS CANÔNICAS (src/telas/*.dc.html)
  * por componente-irmão (fetch on-demand). O antigo entry duplicado app.html
  * foi aposentado (old/app.html).
@@ -79,7 +80,8 @@ try {
   const http404 = [];
   page.on("response", (r) => { if (r.status() >= 400) http404.push(r.status() + " " + r.url()); });
 
-  await page.goto(BASE + "/", { waitUntil: "domcontentloaded" });
+  // O app da criança vive em /app (a raiz é a landing pública desde a Task #18).
+  await page.goto(BASE + "/app", { waitUntil: "domcontentloaded" });
   await page.waitForFunction(
     () => !!window.PipocaCanonico && !!window.PipocaApp && !!window.PipocaApp.cenarioV2 && !!window.PipocaApp.repo,
     { timeout: 15000 }

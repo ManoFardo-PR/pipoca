@@ -11,7 +11,10 @@
  *   • conectivo de n1 com mais de 1 palavra (alta decodificabilidade — §1.4).
  * AVISOS (v2 e v3):
  *   • condição `func:*` (namespace RESERVADO — aceita, nunca casa);
- *   • condição desconhecida (nunca casa no runtime).
+ *   • condição desconhecida (nunca casa no runtime);
+ *   • variante de conta/tempero que ABRE por marcador inicial (pools + lista base +
+ *     `moldura.marcadores_iniciais`) — o realizador suprime o conectivo no miolo
+ *     (§4, regra 2); o aviso orienta a próxima oficina, não bloqueia.
  */
 
 import { comecaComMarcador, marcadoresIniciais } from "./composicao.js";

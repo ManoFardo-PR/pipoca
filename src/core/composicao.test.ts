@@ -1,7 +1,8 @@
 /**
  * Pipoca — Testes do motor de composição A+ (composicao.test.ts)
  * ---------------------------------------------------------------
- * Os 7 blocos do contrato grafo-autoral-v3 §6. Rodam sem IA, ASR ou UI.
+ * Os blocos do contrato grafo-autoral-v3 §6 (1–7) + golden v3 (8), compor (9) e
+ * lapidação da costura §4.1 (10). Rodam sem IA, ASR ou UI.
  * Execute com: bun run src/core/composicao.test.ts
  */
 

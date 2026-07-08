@@ -388,13 +388,12 @@ console.log("\n=== BLOCO 8 — Golden v3: grafo ativo reproduzido byte a byte + 
     );
   }
   const rV3 = lintGrafoV3(quintalV3, quintalV3Raw.esquema);
-  // Lapidação da costura (§6.7): o aviso "abre por marcador" é ESPERADO no grafo
-  // publicado (variantes como "Agora são duas luzes" fazem o conectivo ser suprimido).
-  // Tolera-se APENAS esse aviso; qualquer outro (func:*, condição desconhecida) falha.
-  const avisosInesperados = rV3.avisos.filter((a) => !a.includes("abre por marcador"));
+  // Oficina A2 (régua do centro gravitacional): nenhuma variante do grafo
+  // publicado abre por marcador temporal — a supressão da lapidação (§6.7)
+  // existe como rede, não como hábito. Lint exige 0 erros e 0 avisos.
   assert(
-    rV3.erros.length === 0 && avisosInesperados.length === 0,
-    "quintal.v3.json publicado passa o lint sem erros nem avisos inesperados"
+    rV3.erros.length === 0 && rV3.avisos.length === 0,
+    "quintal.v3.json publicado passa o lint sem erros nem avisos"
   );
 }
 

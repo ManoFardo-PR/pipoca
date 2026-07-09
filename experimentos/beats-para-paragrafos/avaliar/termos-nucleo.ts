@@ -53,8 +53,15 @@ function normalizar(s: string): string {
   return s.toLowerCase();
 }
 
-/** Mesmo tokenizador de tests/fumaca-presenca-v3.ts:40 — split por não-letra. */
-function palavrasDe(texto: string): string[] {
+/**
+ * Mesmo tokenizador de tests/fumaca-presenca-v3.ts:40 — split por não-letra.
+ * Exportado porque `\b` do regex JS NÃO reconhece letras acentuadas como
+ * `\w` (ex.: em "então joana", o `\b` enxerga um limite de palavra depois do
+ * "ã", tratando o "o" final como palavra isolada — `/\bo joana\b/` casaria
+ * ali por engano). Qualquer checagem de palavra/bigrama deste experimento
+ * deve tokenizar com esta função, nunca `\b` cru sobre texto em português.
+ */
+export function palavrasDe(texto: string): string[] {
   return normalizar(texto)
     .split(/[^\p{L}-]+/u)
     .filter((p) => p.length > 0);

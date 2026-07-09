@@ -22,11 +22,13 @@ export function transportePadrao(): Transporte {
   return (url, init) => fetch(url, init) as unknown as Promise<RespostaTransporte>;
 }
 
+// O responseSchema do Gemini é um subconjunto do OpenAPI 3.0 (não JSON Schema
+// puro) — "additionalProperties" não existe nesse dialeto e a API rejeita a
+// requisição inteira com HTTP 400 se o campo estiver presente.
 export const SCHEMA_TEXTO_LIMPO = {
   type: "object",
   properties: { texto_limpo: { type: "string" } },
   required: ["texto_limpo"],
-  additionalProperties: false,
 } as const;
 
 const DESCRICAO_NIVEL: Record<NivelKey, string> = {

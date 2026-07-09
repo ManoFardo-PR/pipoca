@@ -148,6 +148,18 @@ console.log("\n=== camada1-fidelidade — nome/gênero ===");
     veredito2.motivos.some((m) => m.includes("gênero")),
     "motivo cita indício de troca de gênero"
   );
+
+  // Regressão: achado real no smoke test — `\b` do regex JS não reconhece
+  // acento como \w, então em "então joana" ele via um limite de palavra
+  // depois do "ã" e /\bo joana\b/ casava por engano no "o" final de "então".
+  const naoTrocado = respostaFake({
+    textoLimpo: "É noite e o quintal chama, então Joana vem ver a faísca, o pote de vidro e a folha.",
+  });
+  const veredito3 = avaliarCamada1({ base, resposta: naoTrocado });
+  assert(
+    !veredito3.motivos.some((m) => m.includes("gênero")),
+    '"então Joana" NÃO é falso positivo de troca de gênero (regressão do smoke test real)'
+  );
 }
 
 console.log("\n=== camada1-fidelidade — aviso de nome próprio fora do elenco ===");

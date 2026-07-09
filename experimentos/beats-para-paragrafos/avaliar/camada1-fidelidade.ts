@@ -4,7 +4,7 @@
  * fidelidade; a Camada 2 (juiz LLM) só roda em cima do que passa aqui.
  */
 
-import { ANCORAS_POR_OBJETO, contemAncora, fracaoSentencasComProtagonista } from "./termos-nucleo.js";
+import { ANCORAS_POR_OBJETO, contemAncora, fracaoSentencasComProtagonista, palavrasDe } from "./termos-nucleo.js";
 import type { Par, VereditoCamada1 } from "../tipos.js";
 
 const LIMIAR_PRESENCA = 0.6;
@@ -48,13 +48,20 @@ export function avaliarCamada1(par: Par): VereditoCamada1 {
     motivos.push(`presença da protagonista em ${Math.round(presenca * 100)}% das sentenças (limiar ${LIMIAR_PRESENCA * 100}%)`);
   }
 
-  // Nome/gênero.
-  const textoNormalizado = textoLimpo.toLowerCase();
-  const nomePresente = /\bjoana\b/.test(textoNormalizado);
+  // Nome/gênero. Tokenizado (não `\b` cru): `\b` do regex JS não reconhece
+  // letras acentuadas como \w, então em "então joana" ele enxerga um limite
+  // de palavra depois do "ã" e `/\bo joana\b/` casaria por engano no "o"
+  // final de "então" — falso positivo real, visto no smoke test em produção.
+  const palavrasLimpoTokens = palavrasDe(textoLimpo);
+  const nomePresente = palavrasLimpoTokens.includes("joana");
   if (!nomePresente) {
     motivos.push('nome da protagonista ("Joana") ausente do texto realizado');
   }
-  if (/\bo joana\b/.test(textoNormalizado) || /\bmenino\b/.test(textoNormalizado)) {
+  const temMenino = palavrasLimpoTokens.includes("menino");
+  const temArtigoMasculinoAntesDoNome = palavrasLimpoTokens.some(
+    (p, i) => p === "o" && palavrasLimpoTokens[i + 1] === "joana"
+  );
+  if (temArtigoMasculinoAntesDoNome || temMenino) {
     motivos.push("indício de troca de gênero da protagonista");
   }
 

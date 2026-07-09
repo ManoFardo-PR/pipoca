@@ -8,8 +8,8 @@
 
 | Fase | Status | Onde |
 |------|--------|------|
-| 10 Modelo de fichas | 🟡 em detalhamento | `fase10_modelo_de_fichas/` — 6 docs preenchidos no gabarito |
-| 11 A+ compositor | ⚪ esqueleto | `fase11_a_mais_compositor/` — 4 docs só-H1 |
+| 10 Modelo de fichas | 🟢 detalhada (implementação pendente; portão = validação em escala do 10-04) | `fase10_modelo_de_fichas/` — 6 docs preenchidos no gabarito |
+| 11 A+ compositor | 🟢 detalhada (implementação pendente) | `fase11_a_mais_compositor/` — 4 docs preenchidos no gabarito |
 | 12 B1.5 realizador | ⚪ esqueleto | `fase12_b1_5_realizador/` — 6 docs só-H1 |
 | 13 Integração & modularização | ⚪ esqueleto | `fase13_integracao_modularizacao/` — 4 docs só-H1 |
 | 14 Aposentar banco de frases | ⚪ esqueleto | `fase14_aposentar_banco_de_frases/` — 3 docs só-H1 |

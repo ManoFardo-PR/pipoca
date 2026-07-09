@@ -1,18 +1,25 @@
 /**
  * Experimento B1.5 — Script 2 (avaliador). Lê historias-base + respostas-llm,
  * junta por id em pares, roda Camada 1 (gate factual, sempre) e Camada 2
- * (juiz LLM, só nos pares que passaram a Camada 1). Execute com:
- * OPENAI_API_KEY=xxx OPENAI_MODEL=xxx bun run avaliar/avaliar-pares.ts
+ * (juiz LLM, só nos pares que passaram a Camada 1). Lê OPENAI_API_KEY/
+ * OPENAI_MODEL do .env da RAIZ do repo (ver carregar-env.ts) ou do shell.
+ * Execute com: bun run avaliar/avaliar-pares.ts
  */
 
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { ArquivoHistoriasBase, ArquivoRespostasLLM, HistoriaBase, Par, ParAvaliado, RespostaLLM } from "../tipos.js";
+import { carregarEnv } from "../carregar-env.js";
 import { avaliarCamada1 } from "./camada1-fidelidade.js";
 import { julgarPar } from "./camada2-juiz.js";
 import { montarGrade, montarParaLeitura, montarReprovados } from "./relatorios.js";
 
+carregarEnv(join(import.meta.dir, "..", "..", "..", ".env"));
+
 const RAIZ_SAIDA = join(import.meta.dir, "..", "saida");
+// gpt-5.4-mini — confirmado em developers.openai.com/api/docs/models (jul/2026):
+// modelo mini atual, custo-benefício bom pra avaliação com schema JSON.
+const OPENAI_MODEL_PADRAO = "gpt-5.4-mini";
 
 async function lerHistoriasBase(dir: string): Promise<HistoriaBase[]> {
   const arquivos = (await readdir(dir)).filter((f) => f.endsWith(".json")).sort();
@@ -59,13 +66,7 @@ async function main(): Promise<void> {
   }
   const chave: string = chaveEnv;
 
-  const modeloEnv = process.env.OPENAI_MODEL;
-  if (!modeloEnv) {
-    console.error("OPENAI_MODEL não definida — confirme o id exato do modelo antes de rodar (ver README: não há default validado contra a API real).");
-    process.exit(1);
-    return;
-  }
-  const modelo: string = modeloEnv;
+  const modelo = process.env.OPENAI_MODEL ?? OPENAI_MODEL_PADRAO;
   const temperatura = Number(process.env.OPENAI_TEMPERATURE ?? 0.1);
 
   const historias = await lerHistoriasBase(join(RAIZ_SAIDA, "historias-base"));

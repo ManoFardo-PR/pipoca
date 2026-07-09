@@ -7,6 +7,27 @@ combinações de rodada×nível isso é confiável. Não altera o runtime do app
 Ver o plano completo em `docs/` do repositório (histórico da conversa) para o
 contexto e as decisões de design. Resumo operacional abaixo.
 
+## Configuração (.env)
+
+`.env` e `.env.example` vivem na **raiz do repositório** (não dentro desta
+pasta) — são globais ao projeto, não específicos deste experimento.
+
+```
+cp .env.example .env
+```
+
+Preencha `GEMINI_API_KEY` e `OPENAI_API_KEY` reais no `.env` da raiz
+(gitignored via `.gitignore` da raiz — nunca commitado). Os dois scripts
+carregam esse arquivo sozinhos (`carregar-env.ts`, resolvido a partir do
+diretório do próprio script até a raiz do repo — funciona rodando de dentro
+desta pasta ou da raiz) — não depende de nenhum pacote novo nem de
+`bun --env-file`. Uma variável já exportada no shell sempre tem prioridade
+sobre o `.env`.
+
+Os modelos default do `.env.example` (`gemini-2.5-flash` e `gpt-5.4-mini`)
+foram confirmados nas docs oficiais de cada provedor (jul/2026) — troque se
+quiser outro tier; ver comentários no próprio arquivo e nos entrypoints.
+
 ## Script 1 — Gerador
 
 Gera ~97 estados (matriz 4 rodadas × 4 níveis, ~6 por célula, + 1
@@ -14,7 +35,7 @@ estado-testemunha) a partir do motor real (`src/core/composicao.ts`) e manda
 cada um pro Gemini para "realizar" o texto em prosa fluida.
 
 ```
-GEMINI_API_KEY=xxx bun run gerar-historias.ts
+bun run gerar-historias.ts
 ```
 
 Variáveis de ambiente:
@@ -22,7 +43,7 @@ Variáveis de ambiente:
 | Variável | Obrigatória | Default | Uso |
 |---|---|---|---|
 | `GEMINI_API_KEY` | sim (exceto testes) | — | chave da API Gemini |
-| `GEMINI_MODEL` | não | `gemini-2.5-flash` | confirme que é um id real e válido antes de rodar |
+| `GEMINI_MODEL` | não | `gemini-2.5-flash` | best price-performance da Gemini API (ver .env.example) |
 | `GEMINI_TEMPERATURE` | não | `0.4` | registrada em `saida/monitoramento/meta.json` |
 | `PLAYTHROUGHS_POR_NIVEL` | não | `6` | 4 níveis × N partidas × 4 rodadas = total de estados |
 | `TAMANHO_LOTE` | não | `10` | histórias por arquivo de saída |
@@ -49,13 +70,14 @@ roda:
   fluidez/adequação/naturalidade, 0-5 cada.
 
 ```
-OPENAI_API_KEY=xxx bun run avaliar/avaliar-pares.ts
+bun run avaliar/avaliar-pares.ts
 ```
 
 | Variável | Obrigatória | Default |
 |---|---|---|
 | `OPENAI_API_KEY` | sim (exceto testes) | — |
-| `OPENAI_MODEL` | não | **confirme o id exato antes de rodar** — não há default validado contra a API real neste projeto |
+| `OPENAI_MODEL` | não | `gpt-5.4-mini` — mini atual da OpenAI, bom custo-benefício com schema JSON (ver .env.example) |
+| `OPENAI_TEMPERATURE` | não | `0.1` |
 
 Saída em `saida/avaliacao/`: `grade.json` (matriz de decisão),
 `para-leitura.md` (pares aprovados, piores primeiro), `reprovados.md`

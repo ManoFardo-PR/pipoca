@@ -2,12 +2,14 @@
  * Experimento B1.5 — Script 1 (gerador). Monta a matriz de amostragem
  * (rodada×nível) via a mecânica real do motor A+, planta o
  * estado-testemunha, e manda cada história pro Gemini "realizar" o texto.
- * Execute com: GEMINI_API_KEY=xxx bun run gerar-historias.ts
+ * Lê GEMINI_API_KEY/GEMINI_MODEL do .env da RAIZ do repo (ver
+ * carregar-env.ts) ou do shell. Execute com: bun run gerar-historias.ts
  */
 
 import { join } from "node:path";
 import quintalRaw from "../../docs/quintal.v3.json" with { type: "json" };
 import type { CenarioV2 } from "../../src/core/composicao.js";
+import { carregarEnv } from "./carregar-env.js";
 import { criarRng } from "./rng.js";
 import { montarMatriz, ID_TESTEMUNHA } from "./matriz-amostragem.js";
 import { gerarPartida, gerarTestemunha, TEXTO_ESPERADO_TESTEMUNHA } from "./linha-aleatoria.js";
@@ -23,10 +25,15 @@ import {
 } from "./persistencia.js";
 import type { HistoriaBase, RespostaLLM, TempoHistoriaLote } from "./tipos.js";
 
+carregarEnv(join(import.meta.dir, "..", "..", ".env"));
+
 const cenario = (quintalRaw as unknown as { cenario: CenarioV2 }).cenario;
 
 const PLAYTHROUGHS_POR_NIVEL = Number(process.env.PLAYTHROUGHS_POR_NIVEL ?? 6);
 const TAMANHO_LOTE = Number(process.env.TAMANHO_LOTE ?? 10);
+// gemini-2.5-flash — confirmado em ai.google.dev/gemini-api/docs/models
+// (jul/2026): "best price-performance model for low-latency, high-volume
+// tasks", exatamente o perfil deste script (~97 chamadas simples de reescrita).
 const MODELO = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
 const TEMPERATURA = Number(process.env.GEMINI_TEMPERATURE ?? 0.4);
 const SEED_BASE = process.env.SEED_BASE ?? String(Date.now());

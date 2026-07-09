@@ -24,7 +24,7 @@ Especificar o lint determinístico das fichas — as regras-erro e os avisos que
 - Regras nomeadas: `E1`–`E5` (erros), `A1` (aviso) — vocabulário deste doc, a confirmar na implementação.
 
 ## Interfaces / contratos
-Entrada: os três arquivos de fichas propostos em [[fase10-10-00]]. Saída: lista de erros e avisos por ficha/campo; **0 erros** é condição de aceite de lote; avisos exigem olhar humano, não bloqueiam.
+Entrada: os três arquivos de fichas fixados em [[fase10-10-00]]. Saída: lista de erros e avisos por ficha/campo; **0 erros** é condição de aceite de lote; avisos exigem olhar humano, não bloqueiam.
 
 ### Regras-ERRO
 
@@ -52,12 +52,13 @@ Checagem irmã da E5 na camada 2: toda relação referencia ids existentes no ca
 
 ### Regra-AVISO
 
-**A1 · Palavra de decodificação difícil no n1 da `descricao`** — lista inicial curta e EXPANSÍVEL de palavras longas/de encontros consonantais duros para leitores de sílabas.
-- Lista inicial proposta (DECISÃO ABERTA — validar com o Manoel e expandir com o uso): `rodopiando`, `atravessa`, `silhueta`, `reluzente`, `esvoaçante`.
-- Dispara: `"n1": "uma folha esvoaçante"`.
+**A1 · Palavra de decodificação difícil no n1** — cobre `descricao.n1` E `sensacao.corpo.n1`, por duas vias:
+- **Lista-semente APROVADA** (decisão fixada, 2026-07-09; expansível pela leitura em voz alta do Manoel): `rodopiando`, `atravessa`, `silhueta`, `reluzente`, `esvoaçante`.
+- **Regra de dígrafo:** dispara também para QUALQUER palavra com dígrafo `nh`/`lh`/`ch` — cobre casos não enumerados pela lista.
+- Dispara: `"n1": "uma folha esvoaçante"` (lista) · `"n1": "um vento fresquinho"` (dígrafo `nh`).
 - Passa: `"n1": "uma folha que desce rodando"`.
 
-Candidato a aviso futuro (registrado em [[fase10-10-01]] e [[fase10-10-03]], sem regra ainda): teto de tamanho da descrição n4; gesto de `corpo` repetido entre objetos.
+Regra PLANEJADA (decisão fixada em [[fase10-10-02]], sem implementação ainda): coerência `alvo` × condição `se` na camada 2 — o objeto citado na condição deve ser o declarado em `alvo`. Candidatos a aviso futuro (registrados em [[fase10-10-01]] e [[fase10-10-03]], sem regra ainda): teto de tamanho da descrição n4; gesto de `corpo` repetido entre objetos.
 
 ## Regras de negócio
 1. **Lint é gate, não juiz:** 0 erros libera o lote para a validação humana célula a célula — nunca a substitui (parada dura de [[fase10-10-04]]).
@@ -66,10 +67,9 @@ Candidato a aviso futuro (registrado em [[fase10-10-01]] e [[fase10-10-03]], sem
 4. **Heurísticas são iniciais:** E4 (sem `;`) e A1 (lista de palavras) nascem simples e evoluem com evidência; endurecer só com caso real.
 
 ## Passos de implementação
-1. Fechar a DECISÃO ABERTA da lista A1 com o Manoel.
-2. Implementar `src/core/fichas/lint_fichas.ts` com E1–E5 + A1, seguindo o precedente de `src/core/lint_grafo.ts`.
-3. Testes: para CADA regra, um caso que dispara e um que passa (os exemplos deste doc viram fixtures).
-4. Encadear no fluxo de lote da migração ([[fase10-10-04]]): lint verde → validação humana.
+1. Implementar `src/core/fichas/lint_fichas.ts` com E1–E5 + A1 (lista-semente + dígrafos), seguindo o precedente de `src/core/lint_grafo.ts`.
+2. Testes: para CADA regra, um caso que dispara e um que passa (os exemplos deste doc viram fixtures).
+3. Encadear no fluxo de lote da migração ([[fase10-10-04]]): lint verde → validação humana.
 
 ## Estados / edge-cases
 - Arquivo de fichas com `esquema` desconhecido → ERRO imediato (não valida campo a campo).
@@ -80,7 +80,7 @@ Candidato a aviso futuro (registrado em [[fase10-10-01]] e [[fase10-10-03]], sem
 ## Critérios de aceitação / verificação
 - [ ] Cada regra (E1–E5, A1) especificada com exemplo que dispara e exemplo que passa, embutidos.
 - [ ] Mapeamento invariante→regra fechado com [[fase10-10-00]] (invariantes 2, 3 e 4 cobertos por E2, E1 e E5).
-- [ ] DECISÃO ABERTA da lista A1 registrada.
+- [ ] A1 com lista-semente aprovada (2026-07-09) + regra de dígrafo `nh`/`lh`/`ch` registradas; regra planejada de coerência `alvo` × `se` anotada.
 - [ ] Arquivo planejado e precedente da geração 1 citados.
 
 ## Relações com outros docs

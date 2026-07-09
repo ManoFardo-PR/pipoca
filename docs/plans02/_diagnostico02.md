@@ -24,7 +24,7 @@ Sem problemas.
 ## C3. Ordem de dependências (sem forward, sem ciclo) — PASS _(13 arestas)_
 Sem problemas.
 
-## C4. Nomes canônicos (grafia idêntica) — PASS _(39 nomes declarados)_
+## C4. Nomes canônicos (grafia idêntica) — PASS _(40 nomes declarados)_
 Sem problemas.
 
 ## C5. Ids e nomes de arquivo coerentes — PASS

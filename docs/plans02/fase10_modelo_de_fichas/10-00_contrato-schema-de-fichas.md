@@ -20,7 +20,7 @@ Todos **PLANEJADOS** — criar somente na implementação, guiada por este doc (
 - `docs/fichas/relacoes.quintal.v1.json` — fichas de relação do cenário quintal (camada 2).
 - `docs/fichas/cenarios.v1.json` — fichas de cenário (camada 3).
 
-**DECISÃO ABERTA:** os três caminhos acima e o id de esquema `pipoca.fichas.v1` são PROPOSTAS deste doc; confirmar (ou renomear) antes da implementação.
+**Decisão fixada (2026-07-09):** os três caminhos acima e o id de esquema `pipoca.fichas.v1` estão CONFIRMADOS como o contrato desta geração.
 
 ## Nomes & variáveis
 - `pipoca.fichas.v1` — id do esquema (campo `esquema` de cada arquivo de fichas), no padrão dos esquemas da geração 1.
@@ -31,7 +31,7 @@ Todos **PLANEJADOS** — criar somente na implementação, guiada por este doc (
 
 ## Interfaces / contratos
 
-### Camada 1 — `FichaIdentidade` (arquivo proposto: `docs/fichas/objetos.v1.json`)
+### Camada 1 — `FichaIdentidade` (arquivo: `docs/fichas/objetos.v1.json`)
 Base canônica **validada na prova de conceito** — o vagalume completo:
 
 ```jsonc
@@ -75,30 +75,27 @@ Campos da camada 1:
 | `sensacao.registro` | string | sim | tom emocional (ex.: "encanto silencioso") |
 | `sensacao.corpo` | objeto com os 4 níveis (string cada) | sim (os 4 níveis) | n1 = UMA sensação (sem `;`) |
 
-### Camada 2 — `FichaRelacao` (arquivo proposto: `docs/fichas/relacoes.quintal.v1.json`)
-Chaveada pelas condições da gramática v3 (`tem:`, `depois_de:`, `antes_de:`, `pos:`). Descreve **interação** para o realizador — nunca frase pronta. Shape proposto (detalhamento e exemplos completos em [[fase10-10-02]]):
+### Camada 2 — `FichaRelacao` (arquivo: `docs/fichas/relacoes.quintal.v1.json`)
+Chaveada pelas condições da gramática v3 (`tem:`, `depois_de:`, `antes_de:`, `pos:`). Descreve **interação** para o realizador — nunca frase pronta. Shape (detalhamento e exemplos completos em [[fase10-10-02]]):
 
 ```jsonc
 {
   "esquema": "pipoca.fichas.v1",
   "cenario": "quintal_anoitecer",
   "objeto_x_objeto": [
-    { "se": "depois_de:vento", "objeto": "folha",
+    { "se": "antes_de:folha", "objeto": "vento", "alvo": "folha",
       "interacao": { "n1": "…", "n2": "…", "n3": "…", "n4": "…" } }
   ],
   "objeto_x_cenario": [
     { "objeto": "vagalume",
       "manifestacao": { "n1": "…", "n2": "…", "n3": "…", "n4": "…" } }
-  ],
-  "cenario_x_personagem": {
-    "sensacao": { "n1": "…", "n2": "…", "n3": "…", "n4": "…" }
-  }
+  ]
 }
 ```
 
-**DECISÃO ABERTA:** onde vive a relação cenário×personagem — no arquivo de relações (como acima) ou dentro da ficha de cenário (camada 3). A proposta acima a mantém junto das demais relações do cenário.
+**Decisão fixada (2026-07-09):** a relação cenário×personagem vive na **ficha de cenário** (camada 3) — o arquivo de relações fica só com objeto×objeto e objeto×cenário. E o campo `alvo` entra no contrato da relação: os dois lados são declarados explicitamente; o realizador nunca deriva o alvo parseando a condição `se` (o porquê e o detalhe em [[fase10-10-02]]).
 
-### Camada 3 — `FichaCenario` (arquivo proposto: `docs/fichas/cenarios.v1.json`)
+### Camada 3 — `FichaCenario` (arquivo: `docs/fichas/cenarios.v1.json`)
 
 ```jsonc
 {
@@ -106,14 +103,15 @@ Chaveada pelas condições da gramática v3 (`tem:`, `depois_de:`, `antes_de:`, 
   "cenarios": {
     "quintal_anoitecer": {
       "nome": "o quintal ao anoitecer",
-      "descricao": { "n1": "…", "n2": "…", "n3": "…", "n4": "…" },
-      "voz_do_contador": "o quintal fala baixinho, como quem sussurra segredos só pra ela"
+      "descricao": "…",
+      "voz_do_contador": "o quintal fala baixinho, como quem sussurra segredos só pra ela",
+      "sensacao_no_personagem": { "n1": "…", "n2": "…", "n3": "…", "n4": "…" }
     }
   }
 }
 ```
 
-**DECISÃO ABERTA:** se a `descricao` do cenário é por nível (como acima) ou string única — a voz-do-contador (Lei 2) sugere por nível, mas a prova de conceito não testou este campo.
+**Decisão fixada (2026-07-09):** a `descricao` do cenário é **string única** — não é por nível. Nota de jardim: variações futuras de cenário serão TEMÁTICAS (ex.: temas de época), não por nível de leitura — quando vierem, entram como NOVAS fichas de cenário, não como campos por nível. A ficha de cenário também hospeda a relação cenário×personagem (`sensacao_no_personagem`, por nível — o shape veio da camada 2; a decisão moveu ONDE vive, não o formato) e a `voz_do_contador` (Lei 2).
 
 ## Regras de negócio
 1. **Versionamento:** `.vN` publicado nunca é mutado; substituído vai a `old/` com selo — mesma disciplina da geração 1.
@@ -126,11 +124,10 @@ Chaveada pelas condições da gramática v3 (`tem:`, `depois_de:`, `antes_de:`, 
 
 ## Passos de implementação
 Ordem para quando a implementação começar (este doc só planeja):
-1. Resolver as DECISÕES ABERTAS deste doc com o Manoel.
-2. Criar `docs/fichas/` com os três arquivos, cada um só com o campo `esquema` preenchido.
-3. Autorar as fichas na ordem: identidade ([[fase10-10-01]]) com sensação ([[fase10-10-03]]) → relações ([[fase10-10-02]]) — minerando o quintal conforme [[fase10-10-04]].
-4. Rodar o lint ([[fase10-10-05]]) a cada lote autorado.
-5. Rodar a validação em escala ([[fase10-10-04]], critério-portão) antes de dar a fase 10 por aceita.
+1. Criar `docs/fichas/` com os três arquivos, cada um só com o campo `esquema` preenchido.
+2. Autorar as fichas na ordem: identidade ([[fase10-10-01]]) com sensação ([[fase10-10-03]]) → relações ([[fase10-10-02]]) — minerando o quintal conforme [[fase10-10-04]].
+3. Rodar o lint ([[fase10-10-05]]) a cada lote autorado.
+4. Rodar a validação em escala ([[fase10-10-04]], critério-portão) antes de dar a fase 10 por aceita.
 
 ## Estados / edge-cases
 - Objeto pedido pelo compositor sem ficha no catálogo → erro explícito de composição; nunca inventar conteúdo.
@@ -143,7 +140,7 @@ Ordem para quando a implementação começar (este doc só planeja):
 - [ ] Schema exemplificado por um objeto real completo (vagalume) na camada 1 e presente nos shapes das camadas 2 e 3.
 - [ ] Todos os campos com tipo e obrigatoriedade declarados (tabelas/shapes acima).
 - [ ] Os 7 invariantes de "Regras de negócio" registrados; os mecanizáveis mapeados para regras de lint em [[fase10-10-05]].
-- [ ] DECISÕES ABERTAS listadas e visíveis (3 neste doc).
+- [ ] Decisões fixadas em 2026-07-09 registradas no corpo: caminhos/esquema confirmados; cenário×personagem na ficha de cenário; `descricao` do cenário string única.
 
 ## Relações com outros docs
 - Depende de: —

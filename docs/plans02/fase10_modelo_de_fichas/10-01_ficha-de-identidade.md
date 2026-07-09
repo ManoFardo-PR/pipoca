@@ -13,7 +13,7 @@ Especificar a camada 1 do modelo de fichas: a ficha de identidade — o que o ob
 - `[[fase10-10-00]]` — o contrato `pipoca.fichas.v1` que esta camada obedece.
 
 ## Arquivos afetados
-- `docs/fichas/objetos.v1.json` — PLANEJADO (proposta de [[fase10-10-00]]); criado só na implementação.
+- `docs/fichas/objetos.v1.json` — PLANEJADO (caminho fixado em [[fase10-10-00]]); criado só na implementação.
 
 ## Nomes & variáveis
 - `FichaIdentidade` — reaproveitado de [[fase10-10-00]].

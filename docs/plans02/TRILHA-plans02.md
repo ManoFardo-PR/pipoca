@@ -14,6 +14,8 @@
 | 13 Integração & modularização | ⚪ esqueleto | `fase13_integracao_modularizacao/` — 4 docs só-H1 |
 | 14 Aposentar banco de frases | ⚪ esqueleto | `fase14_aposentar_banco_de_frases/` — 3 docs só-H1 |
 
+Nota: as decisões abertas da fase 10 foram **fechadas em 2026-07-09** — registradas nos próprios docs como "Decisão fixada" (caminhos/esquema; cenário×personagem na ficha de cenário; descrição de cenário string única; campo alvo no contrato; teto de 2 relações por Pacote; lista A1 + regra de dígrafo).
+
 ## Nota de sequência (portão da fase 11)
 
 A validação em escala do modelo de fichas (experimento existente adaptado para fichas) deve

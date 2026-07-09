@@ -1,0 +1,196 @@
+{
+  "lote": 5,
+  "tamanho": 10,
+  "respostas": [
+    {
+      "historiaId": "n2-p05-r1",
+      "ok": true,
+      "textoLimpo": "A noite chegou e o quintal começou a contar, então Joana saiu na ponta dos pés para ouvir. A primeira coisa que ela viu foi uma luzinha piscando. Depois, uma folha desceu rodando devagar e o dedo dela acompanhou no ar. Um vento fresco balançou a grama toda e a barra da roupa dela.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 56,
+        "limpo": 54,
+        "razaoCrescimento": -0.03571428571428571,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:54:34.841Z",
+        "fim": "2026-07-09T14:54:38.079Z",
+        "duracaoMs": 3237.4616999999853
+      }
+    },
+    {
+      "historiaId": "n2-p05-r2",
+      "ok": true,
+      "textoLimpo": "O céu escureceu, e o quintal guarda um segredo novo. Joana pisa na grama fria pra descobrir, e então uma faísca entra no pote, virando uma lanterninha só dela. Depois, Joana acha um pote e sopra a poeira dele. De repente, uma folha cai devagar e pousa na mão de Joana, enquanto um vento fresco balança a grama toda e a barra da roupa dela.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 65,
+        "limpo": 65,
+        "razaoCrescimento": 0,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:54:38.081Z",
+        "fim": "2026-07-09T14:54:53.066Z",
+        "duracaoMs": 14985.373699999996
+      }
+    },
+    {
+      "historiaId": "n2-p05-r3",
+      "ok": true,
+      "textoLimpo": "É noite, e o quintal tem coisas pra mostrar, então Joana pisa na grama fria, sozinha, pra ver. Uma faísca entra no pote e vira uma lanterninha só dela. De repente, são duas luzes: a lua no alto e a faísca embaixo, e ela fica no meio das duas. Na grama, um pote de vidro espera pela mão dela. Depois, uma folha se solta e desce dançando, e os olhos dela dançam junto, enquanto um vento fresco balança a grama toda e a barra da roupa dela.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 86,
+        "limpo": 87,
+        "razaoCrescimento": 0.011627906976744186,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:54:53.070Z",
+        "fim": "2026-07-09T14:55:03.046Z",
+        "duracaoMs": 9976.040799999959
+      }
+    },
+    {
+      "historiaId": "n2-p05-r4",
+      "ok": true,
+      "textoLimpo": "É noite, e o quintal tem coisas pra mostrar, então a Joana pisa na grama fria, sozinha, para ver. A faísca entra no pote e vira uma lanterninha só dela. Depois, o orvalho pousa na grama em gotinhas que brilham, e o pé dela sente o frio. De repente, são duas luzes: a lua no alto e a faísca embaixo, e ela no meio das duas. Logo depois, a Joana acha um pote e sopra a poeira dele, e então uma folha se solta e desce dançando, e os olhos dela dançam junto. O vento passa de mansinho e arrepia a Joana. Ela guarda a noite inteira no peito e vai sonhar.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 112,
+        "limpo": 112,
+        "razaoCrescimento": 0,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:55:03.048Z",
+        "fim": "2026-07-09T14:55:13.933Z",
+        "duracaoMs": 10884.662699999986
+      }
+    },
+    {
+      "historiaId": "n2-p06-r1",
+      "ok": true,
+      "textoLimpo": "A noite chegou e o quintal começou a contar, então Joana saiu na ponta dos pés para ouvir. Uma faísca entrou no pote e virou uma lanterninha só dela, e um vento fresco passou e mexeu no cabelo de Joana. Na mão dela, o pote guardava um pedacinho da noite.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 52,
+        "limpo": 50,
+        "razaoCrescimento": -0.038461538461538464,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:55:13.935Z",
+        "fim": "2026-07-09T14:55:19.231Z",
+        "duracaoMs": 5295.5299999999115
+      }
+    },
+    {
+      "historiaId": "n2-p06-r2",
+      "ok": true,
+      "textoLimpo": "Era noite e o quintal tinha coisas para mostrar, então Joana pisou na grama fria, sozinha, para ver. Uma faísca entrou no pote e virou uma lanterninha só dela. Depois, o vento passou de mansinho e arrepiou Joana. De repente, o gato olhou a luzinha que piscava e piscou de volta, e ela segurou o riso. Na mão de Joana, o pote guardava um pedacinho da noite.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 69,
+        "limpo": 67,
+        "razaoCrescimento": -0.028985507246376812,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:55:19.234Z",
+        "fim": "2026-07-09T14:55:24.812Z",
+        "duracaoMs": 5578.239700000035
+      }
+    },
+    {
+      "historiaId": "n2-p06-r3",
+      "ok": true,
+      "textoLimpo": "O céu escureceu, e o quintal guarda um segredo novo, então Joana pisa na grama fria para descobrir. A faísca entra no pote e vira uma lanterninha só dela. Logo depois, são duas luzes: a lua no alto, a faísca embaixo, e ela no meio das duas. O vento passa de mansinho e arrepia Joana, e então o gato olha a luzinha que pisca e pisca de volta, e ela segura o riso. Na mão de Joana, o pote guarda um pedacinho da noite.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 86,
+        "limpo": 84,
+        "razaoCrescimento": -0.023255813953488372,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:55:24.813Z",
+        "fim": "2026-07-09T14:55:34.308Z",
+        "duracaoMs": 9494.941099999938
+      }
+    },
+    {
+      "historiaId": "n2-p06-r4",
+      "ok": true,
+      "textoLimpo": "O céu escureceu e o quintal guardava um segredo novo. Joana pisou na grama fria para descobrir. Uma faísca entrou no pote e virou uma lanterninha só dela. Então, havia duas luzes: a lua lá no alto, a faísca lá embaixo, e Joana estava no meio das duas. Foi quando o vento sacudiu o galho lá em cima, e ela esticou o pescoço porque alguma coisa se soltou. Então, uma folha caiu devagar e pousou na mão de Joana. Logo depois, o gato olhou a luzinha que piscava e piscou de volta, e ela segurou o riso. Na mão de Joana, o pote guardava um pedacinho da noite. Joana guardou a noite inteira no peito e foi sonhar.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 116,
+        "limpo": 118,
+        "razaoCrescimento": 0.017241379310344827,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:55:34.309Z",
+        "fim": "2026-07-09T14:55:43.229Z",
+        "duracaoMs": 8920.339299999992
+      }
+    },
+    {
+      "historiaId": "n3-p01-r1",
+      "ok": true,
+      "textoLimpo": "O dia foi dormir atrás do muro, e o quintal acorda cheio de segredos. Então, a Joana sai devagarinho, só ela e a noite, para descobrir um por um. O vento sobe e sacode os galhos lá no alto, e quando ela olha para cima, alguma coisinha se solta e começa a descer rodando. De repente, uma folha desce rodopiando do galho mais alto, e a Joana acompanha ela com os olhos até pousar na grama. Depois, a Joana ergue o pote uma última vez, e lá dentro um pedacinho da noite ficou guardado para ela.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 91,
+        "limpo": 96,
+        "razaoCrescimento": 0.054945054945054944,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:55:43.231Z",
+        "fim": "2026-07-09T14:55:51.092Z",
+        "duracaoMs": 7861.555300000007
+      }
+    },
+    {
+      "historiaId": "n3-p01-r2",
+      "ok": true,
+      "textoLimpo": "A última luz do dia some atrás do muro, e o quintal começa a sussurrar, então a Joana sai sem fazer barulho, pra ver o que ele esconde de noite. O vento sobe e sacode os galhos lá no alto, e ela olha pra cima, e alguma coisinha se solta e começa a descer rodando. Pouco depois, uma folha se solta lá de cima e desce rodando, sem pressa, até a mão espalmada da Joana. Foi então que a faísca entra no pote de vidro e fica piscando lá dentro — uma lanterninha viva que a Joana carrega. A Joana ergue o pote uma última vez, e lá dentro, um pedacinho da noite ficou guardado pra ela.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 113,
+        "limpo": 117,
+        "razaoCrescimento": 0.035398230088495575,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:55:51.093Z",
+        "fim": "2026-07-09T14:56:00.045Z",
+        "duracaoMs": 8952.236000000034
+      }
+    }
+  ]
+}

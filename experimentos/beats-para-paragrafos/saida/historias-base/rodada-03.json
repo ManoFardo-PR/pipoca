@@ -1,0 +1,229 @@
+{
+  "lote": 3,
+  "tamanho": 10,
+  "historias": [
+    {
+      "id": "n1-p06-r1",
+      "seed": 4262139093,
+      "partidaId": "n1-p06",
+      "objetosDaLinha": [
+        "folha",
+        "vento",
+        "frasco"
+      ],
+      "rodada": 1,
+      "nivel": "n1",
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "texto": "É noite. O quintal chama. A Joana vem. Uma folha abre a noite. Ela acompanha. Aí, um vento bate nela. Fresquinho. O pote guarda a noite. Ela tampa.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.049Z",
+        "fim": "2026-07-09T14:41:03.049Z",
+        "duracaoMs": 0.05277500000000046
+      }
+    },
+    {
+      "id": "n1-p06-r2",
+      "seed": 4262139093,
+      "partidaId": "n1-p06",
+      "objetosDaLinha": [
+        "folha",
+        "vagalume",
+        "vento",
+        "frasco"
+      ],
+      "rodada": 2,
+      "nivel": "n1",
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "texto": "A noite veio. O quintal tem segredo. A Joana quer ver. Uma folha abre a noite. Ela acompanha. Então, a faísca no pote. Lanterna na mão dela! Aí, um vento bate nela. Fresquinho. O pote guarda a noite. Ela tampa.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.049Z",
+        "fim": "2026-07-09T14:41:03.049Z",
+        "duracaoMs": 0.05277500000000046
+      }
+    },
+    {
+      "id": "n1-p06-r3",
+      "seed": 4262139093,
+      "partidaId": "n1-p06",
+      "objetosDaLinha": [
+        "folha",
+        "vagalume",
+        "gato",
+        "vento",
+        "frasco"
+      ],
+      "rodada": 3,
+      "nivel": "n1",
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "texto": "É noite. O quintal chama. A Joana vem. Uma folha abre a noite. Ela acompanha. Aí, a faísca no pote. Lanterna na mão dela! Daí, o gato olha a luz. Pisca também. Ela segura o riso. Então, um vento bate nela. Fresquinho. O pote guarda a noite. Ela tampa.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.049Z",
+        "fim": "2026-07-09T14:41:03.049Z",
+        "duracaoMs": 0.05277500000000046
+      }
+    },
+    {
+      "id": "n1-p06-r4",
+      "seed": 4262139093,
+      "partidaId": "n1-p06",
+      "objetosDaLinha": [
+        "folha",
+        "vagalume",
+        "lua",
+        "gato",
+        "vento",
+        "frasco"
+      ],
+      "rodada": 4,
+      "nivel": "n1",
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "texto": "É noite. A Joana vai pro quintal. Quer ver tudo. Uma folha abre a noite. Ela acompanha. Aí, a faísca no pote. Lanterna na mão dela! Daí, a lua e a faísca. Duas luzes. Ela no meio. Então, o gato olha a luz. Pisca também. Ela segura o riso. Daí, um vento. Fresco na pele. O pote guarda a noite. Ela tampa. A folha do começo dorme na grama. Ela cochicha boa-noite.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.049Z",
+        "fim": "2026-07-09T14:41:03.049Z",
+        "duracaoMs": 0.05277500000000046
+      }
+    },
+    {
+      "id": "n2-p01-r1",
+      "seed": 347102137,
+      "partidaId": "n2-p01",
+      "objetosDaLinha": [
+        "vagalume",
+        "frasco",
+        "vento"
+      ],
+      "rodada": 1,
+      "nivel": "n2",
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "texto": "É noite, e o quintal tem coisas pra mostrar. A Joana pisa na grama fria, sozinha, pra ver. A faísca entra no pote e vira uma lanterninha só dela. Então, a Joana acha um pote e sopra a poeira dele. Um vento fresco balança a grama toda e a barra da roupa dela.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.049Z",
+        "fim": "2026-07-09T14:41:03.050Z",
+        "duracaoMs": 0.05307499999999976
+      }
+    },
+    {
+      "id": "n2-p01-r2",
+      "seed": 347102137,
+      "partidaId": "n2-p01",
+      "objetosDaLinha": [
+        "vagalume",
+        "gato",
+        "frasco",
+        "vento"
+      ],
+      "rodada": 2,
+      "nivel": "n2",
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "texto": "É noite, e o quintal tem coisas pra mostrar. A Joana pisa na grama fria, sozinha, pra ver. A faísca entra no pote e vira uma lanterninha só dela. Então, o gato olha a luzinha que pisca e pisca de volta, e ela segura o riso. De repente, a Joana acha um pote e olha o mundo por dentro dele. Um vento fresco passa e mexe no cabelo da Joana.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.049Z",
+        "fim": "2026-07-09T14:41:03.050Z",
+        "duracaoMs": 0.05307499999999976
+      }
+    },
+    {
+      "id": "n2-p01-r3",
+      "seed": 347102137,
+      "partidaId": "n2-p01",
+      "objetosDaLinha": [
+        "vagalume",
+        "gato",
+        "folha",
+        "frasco",
+        "vento"
+      ],
+      "rodada": 3,
+      "nivel": "n2",
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "texto": "A noite chegou, e o quintal começa a contar. A Joana sai na ponta dos pés, pra ouvir. A faísca entra no pote e vira uma lanterninha só dela. Logo depois, o gato olha a luzinha que pisca e pisca de volta, e ela segura o riso. De repente, a folha desce bem na frente do gato, e ele arregala os olhos. A Joana espia, quietinha. Logo depois, a Joana acha um pote e olha o mundo por dentro dele. O vento passa de mansinho e arrepia a Joana.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.049Z",
+        "fim": "2026-07-09T14:41:03.050Z",
+        "duracaoMs": 0.05307499999999976
+      }
+    },
+    {
+      "id": "n2-p01-r4",
+      "seed": 347102137,
+      "partidaId": "n2-p01",
+      "objetosDaLinha": [
+        "vagalume",
+        "orvalho",
+        "gato",
+        "folha",
+        "frasco",
+        "vento"
+      ],
+      "rodada": 4,
+      "nivel": "n2",
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "texto": "É noite, e o quintal tem coisas pra mostrar. A Joana pisa na grama fria, sozinha, pra ver. A faísca entra no pote e vira uma lanterninha só dela. Foi quando o orvalho chega de mansinho, enfeita a grama e deixa o pé dela geladinho. De repente, o gato olha a luzinha que pisca e pisca de volta, e ela segura o riso. Logo depois, a folha desce bem na frente do gato, e ele arregala os olhos. A Joana espia, quietinha. Foi quando na grama, um pote de vidro espera pela mão dela. Um vento fresco balança a grama toda e a barra da roupa dela. A Joana guarda a noite inteira no peito e vai sonhar.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.049Z",
+        "fim": "2026-07-09T14:41:03.050Z",
+        "duracaoMs": 0.05307499999999976
+      }
+    },
+    {
+      "id": "n2-p02-r1",
+      "seed": 296769280,
+      "partidaId": "n2-p02",
+      "objetosDaLinha": [
+        "vento",
+        "frasco",
+        "folha"
+      ],
+      "rodada": 1,
+      "nivel": "n2",
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "texto": "A noite chegou, e o quintal começa a contar. A Joana sai na ponta dos pés, pra ouvir. O vento sacode o galho lá em cima, e ela estica o pescoço: alguma coisa se soltou. Foi quando a Joana acha um pote e sopra a poeira dele. Uma folha cai devagar e pousa na mão da Joana.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.050Z",
+        "fim": "2026-07-09T14:41:03.050Z",
+        "duracaoMs": 0.06457500000000138
+      }
+    },
+    {
+      "id": "n2-p02-r2",
+      "seed": 296769280,
+      "partidaId": "n2-p02",
+      "objetosDaLinha": [
+        "vento",
+        "frasco",
+        "vagalume",
+        "folha"
+      ],
+      "rodada": 2,
+      "nivel": "n2",
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "texto": "A noite chegou, e o quintal começa a contar. A Joana sai na ponta dos pés, pra ouvir. O vento sacode o galho lá em cima, e ela estica o pescoço: alguma coisa se soltou. Foi quando o pote na mão dela está vazio. Parece esperar uma luzinha. De repente, a faísca acha o pote que a Joana carregava e entra nele. Uma folha se solta e desce dançando, e os olhos dela dançam junto.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.050Z",
+        "fim": "2026-07-09T14:41:03.050Z",
+        "duracaoMs": 0.06457500000000138
+      }
+    }
+  ]
+}

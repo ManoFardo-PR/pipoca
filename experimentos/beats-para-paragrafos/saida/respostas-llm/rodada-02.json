@@ -1,0 +1,196 @@
+{
+  "lote": 2,
+  "tamanho": 10,
+  "respostas": [
+    {
+      "historiaId": "n1-p03-r3",
+      "ok": true,
+      "textoLimpo": "É noite e Joana vai pro quintal. Ela quer ver tudo, a faísca no pote. Ela tem uma lanterna na mão e pega um pote de vidro, que é frio na mão. Depois, uma folha cai e roda, roda, e os olhos dela rodam junto. Então, a lua e a faísca são duas luzes e ela fica no meio. O vento veio e mexeu no cabelo dela.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 55,
+        "limpo": 67,
+        "razaoCrescimento": 0.21818181818181817,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:42:31.801Z",
+        "fim": "2026-07-09T14:42:36.612Z",
+        "duracaoMs": 4810.7837
+      }
+    },
+    {
+      "historiaId": "n1-p03-r4",
+      "ok": true,
+      "textoLimpo": "É noite e o quintal chama, então a Joana vem. Ela tem a faísca no pote e a lanterna na mão. O gato olha a luz e pisca também, e ela segura o riso. Depois, ela pega um pote de vidro, frio na mão. Então, uma folha cai perto do gato e ele olha, e ela ri. A lua e a faísca são duas luzes, e ela está no meio. O vento veio e mexeu no cabelo dela. A noite cabe no peito e a Joana dorme.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 73,
+        "limpo": 87,
+        "razaoCrescimento": 0.1917808219178082,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:42:36.617Z",
+        "fim": "2026-07-09T14:42:43.667Z",
+        "duracaoMs": 7049.922300000006
+      }
+    },
+    {
+      "historiaId": "n1-p04-r1",
+      "ok": true,
+      "textoLimpo": "É noite e o quintal chama. Joana vem e acha um pote na grama. Depois, uma folha vem no ar e ela estica a mão. Um vento fresquinho bate nela.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 30,
+        "limpo": 30,
+        "razaoCrescimento": 0,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:42:43.670Z",
+        "fim": "2026-07-09T14:42:48.525Z",
+        "duracaoMs": 4854.579599999997
+      }
+    },
+    {
+      "historiaId": "n1-p04-r2",
+      "ok": true,
+      "textoLimpo": "É noite e o quintal chama. A Joana vem com um pote vazio na mão e espera algo. Então, a faísca acha o pote dela e entra. Depois, uma folha cai e roda, roda, e os olhos dela rodam junto. Um vento fresquinho bate nela.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 39,
+        "limpo": 45,
+        "razaoCrescimento": 0.15384615384615385,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:42:48.527Z",
+        "fim": "2026-07-09T14:42:52.546Z",
+        "duracaoMs": 4018.5447999999888
+      }
+    },
+    {
+      "historiaId": "n1-p04-r3",
+      "ok": true,
+      "textoLimpo": "É noite e a Joana vai pro quintal. Ela quer ver tudo, com um pote vazio na mão, e espera algo. Então, a lua grande brilha prata no rosto dela. Depois, uma faísca acha o pote dela e entra! Aí, uma folha cai, roda, roda, e os olhos dela rodam junto. Então, o vento veio e mexeu no cabelo dela.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 51,
+        "limpo": 60,
+        "razaoCrescimento": 0.17647058823529413,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:42:52.547Z",
+        "fim": "2026-07-09T14:46:49.224Z",
+        "duracaoMs": 236676.06459999998
+      }
+    },
+    {
+      "historiaId": "n1-p04-r4",
+      "ok": true,
+      "textoLimpo": "A noite veio e o quintal tem segredo. Joana quer ver e tem um pote vazio na mão. Ela espera algo, então a lua sobe e ela ergue o queixo: que grande! Depois, uma faísca acha o pote dela e entra. O gato olha a luz e pisca também. Joana segura o riso, mas uma folha cai perto do gato. Ele olha e ela ri. O vento veio e mexeu no cabelo dela. O pote do começo foi junto, na mão, cheio de noite.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 77,
+        "limpo": 84,
+        "razaoCrescimento": 0.09090909090909091,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:46:49.227Z",
+        "fim": "2026-07-09T14:46:58.595Z",
+        "duracaoMs": 9368.850899999961
+      }
+    },
+    {
+      "historiaId": "n1-p05-r1",
+      "ok": true,
+      "textoLimpo": "A noite veio e o quintal tem segredo. Joana quer ver, então a noite abre com uma luz e ela vai ver. Depois, uma folha vem vindo no ar. Ela estica a mão e um vento bate nela, fresquinho.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 36,
+        "limpo": 39,
+        "razaoCrescimento": 0.08333333333333333,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:46:58.601Z",
+        "fim": "2026-07-09T14:47:04.249Z",
+        "duracaoMs": 5648.035199999984
+      }
+    },
+    {
+      "historiaId": "n1-p05-r2",
+      "ok": true,
+      "textoLimpo": "É noite e o quintal chama, então Joana vem. Ela tem uma lanterna na mão e vê a faísca no pote. Aí, um pote de vidro, e ela espia dentro. Uma folha cai, roda, roda. Os olhos dela rodam junto e um vento fresquinho bate nela.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 40,
+        "limpo": 46,
+        "razaoCrescimento": 0.15,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:47:04.254Z",
+        "fim": "2026-07-09T14:47:14.671Z",
+        "duracaoMs": 10417.694200000027
+      }
+    },
+    {
+      "historiaId": "n1-p05-r3",
+      "ok": true,
+      "textoLimpo": "A noite veio e o quintal tem um segredo que Joana quer ver. Ela pega a lanterna e um pote de vidro para espiar a faísca lá dentro. A lua e a faísca são duas luzes, e Joana está no meio. Depois, uma folha cai e roda, roda, e os olhos dela rodam junto. Um vento fresco toca a pele.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 54,
+        "limpo": 60,
+        "razaoCrescimento": 0.1111111111111111,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:47:14.674Z",
+        "fim": "2026-07-09T14:47:23.998Z",
+        "duracaoMs": 9324.099400000006
+      }
+    },
+    {
+      "historiaId": "n1-p05-r4",
+      "ok": true,
+      "textoLimpo": "A noite veio e o quintal tem segredo. A Joana quer ver a faísca no pote. Ela tem a lanterna na mão e um pote de vidro, frio na mão. Então, a lua e a faísca são duas luzes, e Joana fica no meio. Depois, o gato olha a luz e pisca também. Ela segura o riso, mas uma folha cai perto do gato. Ele olha e ela ri. O vento veio e mexeu no cabelo dela. A noite cabe no peito, e a Joana dorme.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 76,
+        "limpo": 86,
+        "razaoCrescimento": 0.13157894736842105,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:47:24.000Z",
+        "fim": "2026-07-09T14:47:30.723Z",
+        "duracaoMs": 6722.15989999997
+      }
+    }
+  ]
+}

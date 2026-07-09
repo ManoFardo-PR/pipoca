@@ -1,0 +1,8 @@
+{
+  "seedBase": "1783608063040",
+  "totalHistorias": 97,
+  "tamanhoLote": 10,
+  "modelo": "gemini-2.5-flash",
+  "temperatura": 0.4,
+  "iniciadoEm": "2026-07-09T14:41:03.053Z"
+}

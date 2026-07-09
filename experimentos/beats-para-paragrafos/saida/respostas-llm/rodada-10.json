@@ -1,0 +1,139 @@
+{
+  "lote": 10,
+  "tamanho": 7,
+  "respostas": [
+    {
+      "historiaId": "n4-p05-r3",
+      "ok": true,
+      "textoLimpo": "A noite descia devagar sobre o quintal, apagando as cores uma por uma, e era assim que ele chamava. Joana abriu a porta dos fundos e parou um instante na soleira, sentindo o cheiro de grama fria, e então entrou na noite de pés descalços, como quem entrava num segredo que seria contado só para ela. A noite começou do jeito mais quietinho que existe, com uma folha solta descendo em círculos lentos no ar que escurecia, como se o quintal estivesse ensaiando o primeiro segredo da noite, e Joana parou no meio do passo só para ver. Sem que ninguém esperasse, o pote estava vazio, mas não parecia abandonado, e sim à espera, então Joana o segurou contra o peito e olhou em volta no escuro, com a certeza esquisita e boa de que a noite ainda mandaria uma coisinha brilhante para morar ali. Pouco depois, o gato viu a folha caída e, por um segundo, esqueceu toda a pose de gato sério: ele abaixou o rabo, mirou e pulou, batendo de leve com a patinha e correndo atrás quando o vento levou a folha para longe. Joana riu baixinho, pensando que até gato sério virava filhote de noite. Sem que ninguém esperasse, o quintal inteiro respirou de uma vez, pois um vento fresco chegou rolando por cima do muro, balançando as folhas, arrepiando a grama e bagunçando o cabelo de Joana. Ela abriu os braços e deixou o vento passar por ela, como se por um instante também fosse feita de noite. A faísca rodou no ar uma, duas vezes, e então encontrou o pote de vidro que Joana carregava desde cedo, entrando devagarinho e ficando lá dentro, piscando quentinha, como quem finalmente chegava em casa.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 290,
+        "limpo": 288,
+        "razaoCrescimento": -0.006896551724137931,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T15:03:01.399Z",
+        "fim": "2026-07-09T15:03:12.274Z",
+        "duracaoMs": 10875.688599999994
+      }
+    },
+    {
+      "historiaId": "n4-p05-r4",
+      "ok": true,
+      "textoLimpo": "A noite desce devagar sobre o quintal, apagando as cores uma por uma, e Joana abre a porta dos fundos, parando um instante na soleira para sentir o cheiro de grama fria, e então entra na noite de pés descalços, como quem entra num segredo que vai ser contado só para ela. A noite começa do jeito mais quietinho que existe, com uma folha solta descendo em círculos lentos no ar que escurece, como se o quintal estivesse ensaiando o primeiro segredo da noite, e Joana para no meio do passo só para ver. Foi então que o muro ganhou uma coroa, pois a lua subiu devagar, redonda e enorme, maior do que Joana lembrava, e a luz prateada escorreu pelo quintal todo, pela cerca, pela grama e pelos ombros de Joana, e por um momento parecia que alguém tinha acendido uma lâmpada gigante e mansa no céu. Sem que ninguém esperasse, o pote estava vazio, mas não parecia abandonado, parecia à espera, e Joana o segurou contra o peito, olhando em volta no escuro com a certeza esquisita e boa de que a noite ainda mandaria uma coisinha brilhante para morar ali. Foi então que a luz da lua encontrou o gato em cima da cerca e acendeu os pelos dele um por um, até virarem fios de prata, e ele nem se mexeu, pois gato sabe quando está bonito, deixando a noite inteira admirar, e Joana admirou junto, paradinha. Pouco depois, o quintal inteiro respirou de uma vez, quando um vento fresco chegou rolando por cima do muro, balançando as folhas, arrepiando a grama e bagunçando o cabelo de Joana, e ela abriu os braços, deixando o vento passar por ela, como se por um instante também fosse feita de noite. Então, uma faísca rodou no ar uma, duas vezes, e encontrou o pote de vidro que Joana carregava desde cedo, entrando devagarinho e ficando lá dentro, piscando quentinha, como quem finalmente chegava em casa. E, bem na hora de entrar, quando Joana olhou para trás uma última vez, a faísca lá no fundo piscou uma vez só, devagarinho, um boa-noite secreto piscado no escuro, guardado só para ela.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 373,
+        "limpo": 361,
+        "razaoCrescimento": -0.032171581769437,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T15:03:12.275Z",
+        "fim": "2026-07-09T15:03:20.978Z",
+        "duracaoMs": 8702.496600000188
+      }
+    },
+    {
+      "historiaId": "n4-p06-r1",
+      "ok": true,
+      "textoLimpo": "Quando a última luz do dia se apagou atrás do muro, Joana abriu a porta dos fundos sem fazer barulho. O quintal, que de dia era só um quintal comum, à noite virava um lugar diferente, cheio de segredos que só contava para quem vinha ver, então ela pisou na grama fria de pés descalços, com o coração batendo forte de vontade de descobrir. A noite começou bem quietinha, com uma folha solta descendo em círculos lentos no ar que escurecia, como se o quintal estivesse ensaiando o primeiro segredo da noite, e Joana parou no meio do passo só para observar. De repente, sem que ninguém esperasse, mas com muito cuidado, uma faísca entrou no pote de vidro e ficou piscando lá dentro, parecendo presa e livre ao mesmo tempo. Era uma lanterninha viva que Joana carregava pelo quintal, iluminando um passinho de cada vez. Depois, Joana ergueu o pote de vidro contra o céu escuro e sorriu, pois lá dentro, misturado com o cheiro de grama, estava guardado um pedacinho inteirinho da noite, que era dela, só dela, para levar para dentro de casa.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 191,
+        "limpo": 186,
+        "razaoCrescimento": -0.02617801047120419,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T15:03:20.981Z",
+        "fim": "2026-07-09T15:03:30.322Z",
+        "duracaoMs": 9341.638599999947
+      }
+    },
+    {
+      "historiaId": "n4-p06-r2",
+      "ok": true,
+      "textoLimpo": "A noite começou a descer devagar sobre o quintal, apagando as cores uma por uma, e era assim que ele chamava. Joana abriu a porta dos fundos e parou um instante na soleira, sentindo o cheiro de grama fria, e então entrou na noite de pés descalços, como quem entrava num segredo que seria contado só para ela. A noite começou do jeito mais quietinho que existe, com uma folha solta descendo em círculos lentos no ar que escurecia, como se o quintal estivesse ensaiando o primeiro segredo da noite, e Joana parou no meio do passo, só para ver. Foi então que, com todo o cuidado, uma faísca entrou no pote de vidro e ficou piscando lá dentro, presa e livre ao mesmo tempo, como uma lanterninha viva que Joana carregava pelo quintal, iluminando um passinho de cada vez. Pouco depois, um vento fresco atravessou o quintal e bagunçou o cabelo de Joana, fazendo as folhas balançarem e a grama toda sussurrar de uma vez. Ela fechou os olhos e respirou fundo, pois cheirava a terra molhada e a fim de tarde, como se a noite inteira estivesse respirando junto com ela. Joana ergueu o pote de vidro contra o céu escuro e sorriu, porque lá dentro, misturado com o cheiro de grama, ficou guardado um pedacinho inteirinho da noite, e era dela, só dela, para levar para dentro de casa.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 234,
+        "limpo": 232,
+        "razaoCrescimento": -0.008547008547008548,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T15:03:30.326Z",
+        "fim": "2026-07-09T15:03:38.227Z",
+        "duracaoMs": 7900.790099999867
+      }
+    },
+    {
+      "historiaId": "n4-p06-r3",
+      "ok": true,
+      "textoLimpo": "A noite desce devagar sobre o quintal, apagando as cores uma por uma, e Joana chama isso de 'o jeito que a noite apaga as cores'. Ela abre a porta dos fundos e para um instante na soleira, sentindo o cheiro de grama fria, então entra na noite de pés descalços, como quem entra num segredo que vai ser contado só para ela. A noite começa do jeito mais quietinho que existe, com uma folha solta descendo em círculos lentos no ar que escurece, como se o quintal estivesse ensaiando o primeiro segredo da noite, e Joana para no meio do passo, só para ver. Pouco depois, com todo o cuidado, uma faísca entra no pote de vidro e fica piscando lá dentro, presa e livre ao mesmo tempo, como uma lanterninha viva que Joana carrega pelo quintal, iluminando um passinho de cada vez. Então, sem que ninguém esperasse, o gato encontra a luzinha que pisca no escuro e não entende, pois sua cabeça vai de um lado para o outro, com os olhos enormes seguindo a faísca. Depois, devagarinho, ele pisca também, como quem resolve conversar na língua dela, e Joana assiste paradinha, para não interromper. Foi então que um vento fresco atravessa o quintal e bagunça o cabelo de Joana, fazendo as folhas balançarem e a grama toda sussurrar de uma vez. Ela fecha os olhos e respira fundo, sentindo o cheiro de terra molhada e de fim de tarde, como se a noite inteira estivesse respirando junto com ela. Joana ergue o pote de vidro contra o céu escuro e sorri, porque lá dentro, misturado com o cheiro de grama, ficou guardado um pedacinho inteirinho da noite que é dela, só dela, para levar para dentro de casa.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 284,
+        "limpo": 291,
+        "razaoCrescimento": 0.02464788732394366,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T15:03:38.231Z",
+        "fim": "2026-07-09T15:03:48.510Z",
+        "duracaoMs": 10279.264200000092
+      }
+    },
+    {
+      "historiaId": "n4-p06-r4",
+      "ok": true,
+      "textoLimpo": "A noite desce devagar sobre o quintal, apagando as cores uma por uma, e Joana abre a porta dos fundos para sentir o cheiro de grama fria, então ela entra na noite de pés descalços, como quem entra num segredo que vai ser contado só pra ela. A noite começa do jeito mais quietinho que existe, com uma folha solta descendo em círculos lentos no ar que escurece, como se o quintal estivesse ensaiando o primeiro segredo da noite, e Joana para no meio do passo, só pra ver. Pouco depois, com todo o cuidado, uma faísca entra no pote de vidro e fica piscando lá dentro, presa e livre ao mesmo tempo, como uma lanterninha viva que Joana carrega pelo quintal, iluminando um passinho de cada vez. Foi então que o gato encontra a luzinha que pisca no escuro e não entende, a cabeça vai de um lado, do outro, os olhos enormes seguindo a faísca, e depois, devagarinho, ele pisca também, como quem resolve conversar na língua dela, enquanto Joana assiste paradinha, pra não interromper. Sem que ninguém esperasse, uma gotinha de orvalho escolhe justo a folha caída pra morar, pousa na beiradinha, escorrega até o meio e fica ali, gordinha e brilhante, como uma joia que a noite deu de presente pra folha, e Joana espia agachada, o queixo quase na grama. Foi então que um vento fresco atravessa o quintal e bagunça o cabelo da Joana, fazendo as folhas balançarem e a grama toda sussurrar de uma vez, então ela fecha os olhos e respira fundo, pois cheira a terra molhada e a fim de tarde, como se a noite inteira estivesse respirando junto com ela. Joana ergue o pote de vidro contra o céu escuro e sorri, porque lá dentro, misturado com o cheiro de grama, ficou guardado um pedacinho inteirinho da noite, e é dela, só dela, pra levar pra dentro de casa. E a folha que começou a noite continua exatamente onde pousou, quietinha na grama fria, mas Joana olha pra ela antes de entrar e faz um trato silencioso: a folha guarda o quintal até de manhã, e amanhã as duas continuam essa história.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 374,
+        "limpo": 362,
+        "razaoCrescimento": -0.03208556149732621,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T15:03:48.512Z",
+        "fim": "2026-07-09T15:03:58.270Z",
+        "duracaoMs": 9758.454799999949
+      }
+    },
+    {
+      "historiaId": "testemunha-r4-n3",
+      "ok": true,
+      "textoLimpo": "A última luz do dia some atrás do muro, e o quintal começa a sussurrar. Então, a Joana sai sem fazer barulho, pra ver o que ele esconde de noite. Uma faísca entra no pote de vidro e fica piscando lá dentro, uma lanterninha viva que a Joana carrega. De repente, a Joana acha um pote de vidro e o ergue contra o céu, vendo o quintal ficar todo torto lá dentro. Pouco depois, a noite tem duas luzes: a lua enorme lá no alto e a faísca pequenininha aqui embaixo, piscando uma pra outra, e a Joana está bem no meio da conversa. Foi então que o gato encontra a luzinha piscando no escuro e fica espiando, com a cabeça indo de um lado pro outro, enquanto a Joana espia os dois. E, sem aviso, o vento sobe e sacode os galhos lá no alto, e ela olha pra cima, pois alguma coisinha se solta e começa a descer rodando. A folha desce rodando bem na frente do gato, e ele acompanha cada volta com os olhos arregalados, enquanto a Joana prende o riso, quietinha. O quintal contou tudo o que sabia, e a Joana guarda cada pedacinho no peito, pra sonhar com eles a noite toda.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 203,
+        "limpo": 208,
+        "razaoCrescimento": 0.024630541871921183,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T15:03:58.274Z",
+        "fim": "2026-07-09T15:04:14.409Z",
+        "duracaoMs": 16135.118899999885
+      }
+    }
+  ]
+}

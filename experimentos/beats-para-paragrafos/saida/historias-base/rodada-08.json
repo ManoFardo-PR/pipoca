@@ -1,0 +1,233 @@
+{
+  "lote": 8,
+  "tamanho": 10,
+  "historias": [
+    {
+      "id": "n3-p06-r3",
+      "seed": 2440907251,
+      "partidaId": "n3-p06",
+      "objetosDaLinha": [
+        "frasco",
+        "folha",
+        "vagalume",
+        "gato",
+        "vento"
+      ],
+      "rodada": 3,
+      "nivel": "n3",
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "texto": "A última luz do dia some atrás do muro, e o quintal começa a sussurrar. A Joana sai sem fazer barulho, pra ver o que ele esconde de noite. O pote está vazio e limpinho, e a Joana sente que ele espera alguma coisa — uma coisinha pequena e brilhante. E, sem aviso, uma folha se solta lá de cima e desce rodando, sem pressa, até a mão espalmada da Joana. Foi então que a faísca roda no ar, acha o pote que a Joana já carregava e entra devagarinho, como quem chega em casa. De repente, o gato encontra a luzinha piscando no escuro e fica espiando, a cabeça indo de um lado pro outro, enquanto a Joana espia os dois. Um vento fresco atravessa o quintal e mexe no cabelo da Joana, fazendo tudo balançar de leve.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.052Z",
+        "fim": "2026-07-09T14:41:03.052Z",
+        "duracaoMs": 0.04039999999999999
+      }
+    },
+    {
+      "id": "n3-p06-r4",
+      "seed": 2440907251,
+      "partidaId": "n3-p06",
+      "objetosDaLinha": [
+        "frasco",
+        "orvalho",
+        "folha",
+        "vagalume",
+        "gato",
+        "vento"
+      ],
+      "rodada": 4,
+      "nivel": "n3",
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "texto": "A última luz do dia some atrás do muro, e o quintal começa a sussurrar. A Joana sai sem fazer barulho, pra ver o que ele esconde de noite. O pote está vazio e limpinho, e a Joana sente que ele espera alguma coisa — uma coisinha pequena e brilhante. De repente, o orvalho pousa na grama em gotinhas miúdas, cada uma brilhando como uma continha de vidro, e a Joana encosta o dedo numa, devagarinho. Pouco depois, uma folha desce rodopiando do galho mais alto, e a Joana acompanha ela com os olhos até pousar na grama. Foi então que a faísca roda no ar, acha o pote que a Joana já carregava e entra devagarinho, como quem chega em casa. Pouco depois, o gato encontra a luzinha piscando no escuro e fica espiando, a cabeça indo de um lado pro outro, enquanto a Joana espia os dois. Um vento fresco chega de longe, passa arrepiando os braços da Joana e vai embora, deixando a grama sussurrando. Quando o quintal já contou tudo, a Joana guarda a noite inteira no peito e leva ela pros sonhos.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.052Z",
+        "fim": "2026-07-09T14:41:03.052Z",
+        "duracaoMs": 0.04039999999999999
+      }
+    },
+    {
+      "id": "n4-p01-r1",
+      "seed": 1848914083,
+      "partidaId": "n4-p01",
+      "objetosDaLinha": [
+        "vento",
+        "vagalume",
+        "folha"
+      ],
+      "rodada": 1,
+      "nivel": "n4",
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "texto": "Quando a última luz do dia se apaga atrás do muro, a Joana abre a porta dos fundos sem fazer barulho. O quintal, que de dia é só o quintal, à noite vira outro lugar — um lugar que só conta os segredos dele pra quem vem ver — e ela pisa na grama fria de pés descalços, o coração batendo forte de vontade de saber. O vento sobe pelos galhos e sacode a árvore inteira, de leve, como quem acorda alguém. Lá no alto, alguma coisinha se solta do galho e começa a descer rodando, sem pressa — um presentinho que o vento mandou pra Joana, e ela acompanha de queixo erguido. Foi então que lá no canto onde o escuro é mais fundo, uma faísca minúscula acende e some, acende e some. A Joana prende a respiração e chega mais perto na ponta dos pés: é uma luzinha viva, flutuando no ar, piscando devagar como quem conta um segredo que só ela pode ouvir. Do galho mais alto, uma folha se despede da árvore e vem descendo em espiral, de um lado pro outro, sem pressa nenhuma de chegar. A Joana fica embaixo, com a mão aberta feito um ninho, esperando — e a folha, depois de pensar um pouquinho, escolhe exatamente a mão dela pra pousar.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.052Z",
+        "fim": "2026-07-09T14:41:03.052Z",
+        "duracaoMs": 0.06455000000000055
+      }
+    },
+    {
+      "id": "n4-p01-r2",
+      "seed": 1848914083,
+      "partidaId": "n4-p01",
+      "objetosDaLinha": [
+        "vento",
+        "vagalume",
+        "frasco",
+        "folha"
+      ],
+      "rodada": 2,
+      "nivel": "n4",
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "texto": "A noite desce devagar sobre o quintal, apagando as cores uma por uma — é assim que ele chama. A Joana abre a porta dos fundos e para um instante na soleira, sentindo o cheiro de grama fria, então entra na noite de pés descalços, como quem entra num segredo que vai ser contado só pra ela. O vento sobe pelos galhos e sacode a árvore inteira, de leve, como quem acorda alguém. Lá no alto, alguma coisinha se solta do galho e começa a descer rodando, sem pressa — um presentinho que o vento mandou pra Joana, e ela acompanha de queixo erguido. Sem que ninguém esperasse, com todo o cuidado, a faísca entra no pote de vidro e fica piscando lá dentro, presa e livre ao mesmo tempo — uma lanterninha viva que a Joana carrega pelo quintal, iluminando um passinho de cada vez. Pouco depois, meio enterrado na grama, a Joana encontra um pote de vidro e o ergue contra o céu com as duas mãos. Fecha um olho e espia por dentro — e o quintal inteiro entorta e brilha ali dentro, pequenininho e curvo, um quintal de bolso só dela. Bem lá em cima, uma folha se solta do galho e começa a descer — rodopiando devagar, sem pressa nenhuma, indo pra um lado e pro outro. A Joana estende a mão aberta embaixo e espera, quietinha, até a folha pousar de leve na palma dela, leve feito um cochicho.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.052Z",
+        "fim": "2026-07-09T14:41:03.052Z",
+        "duracaoMs": 0.06455000000000055
+      }
+    },
+    {
+      "id": "n4-p01-r3",
+      "seed": 1848914083,
+      "partidaId": "n4-p01",
+      "objetosDaLinha": [
+        "vento",
+        "vagalume",
+        "lua",
+        "frasco",
+        "folha"
+      ],
+      "rodada": 3,
+      "nivel": "n4",
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "texto": "Quando a última luz do dia se apaga atrás do muro, a Joana abre a porta dos fundos sem fazer barulho. O quintal, que de dia é só o quintal, à noite vira outro lugar — um lugar que só conta os segredos dele pra quem vem ver — e ela pisa na grama fria de pés descalços, o coração batendo forte de vontade de saber. O vento sobe pelos galhos e sacode a árvore inteira, de leve, como quem acorda alguém. Lá no alto, alguma coisinha se solta do galho e começa a descer rodando, sem pressa — um presentinho que o vento mandou pra Joana, e ela acompanha de queixo erguido. Foi então que com todo o cuidado, a faísca entra no pote de vidro e fica piscando lá dentro, presa e livre ao mesmo tempo — uma lanterninha viva que a Joana carrega pelo quintal, iluminando um passinho de cada vez. Sem que ninguém esperasse, a noite tem duas luzes acesas: a lua enorme e parada lá no alto, e a faísca minúscula e dançante aqui embaixo. A Joana olha de uma pra outra e sorri — parece que a grande e a pequena se conhecem de algum lugar. Pouco depois, meio enterrado na grama, a Joana encontra um pote de vidro e o ergue contra o céu com as duas mãos. Fecha um olho e espia por dentro — e o quintal inteiro entorta e brilha ali dentro, pequenininho e curvo, um quintal de bolso só dela. Bem lá em cima, uma folha se solta do galho e começa a descer — rodopiando devagar, sem pressa nenhuma, indo pra um lado e pro outro. A Joana estende a mão aberta embaixo e espera, quietinha, até a folha pousar de leve na palma dela, leve feito um cochicho.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.052Z",
+        "fim": "2026-07-09T14:41:03.052Z",
+        "duracaoMs": 0.06455000000000055
+      }
+    },
+    {
+      "id": "n4-p01-r4",
+      "seed": 1848914083,
+      "partidaId": "n4-p01",
+      "objetosDaLinha": [
+        "vento",
+        "vagalume",
+        "lua",
+        "frasco",
+        "gato",
+        "folha"
+      ],
+      "rodada": 4,
+      "nivel": "n4",
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "texto": "Quando a última luz do dia se apaga atrás do muro, a Joana abre a porta dos fundos sem fazer barulho. O quintal, que de dia é só o quintal, à noite vira outro lugar — um lugar que só conta os segredos dele pra quem vem ver — e ela pisa na grama fria de pés descalços, o coração batendo forte de vontade de saber. O vento sobe pelos galhos e sacode a árvore inteira, de leve, como quem acorda alguém. Lá no alto, alguma coisinha se solta do galho e começa a descer rodando, sem pressa — um presentinho que o vento mandou pra Joana, e ela acompanha de queixo erguido. Sem que ninguém esperasse, com todo o cuidado, a faísca entra no pote de vidro e fica piscando lá dentro, presa e livre ao mesmo tempo — uma lanterninha viva que a Joana carrega pelo quintal, iluminando um passinho de cada vez. Pouco depois, a noite tem duas luzes acesas: a lua enorme e parada lá no alto, e a faísca minúscula e dançante aqui embaixo. A Joana olha de uma pra outra e sorri — parece que a grande e a pequena se conhecem de algum lugar. Sem que ninguém esperasse, meio enterrado na grama, a Joana encontra um pote de vidro e o ergue contra o céu com as duas mãos. Fecha um olho e espia por dentro — e o quintal inteiro entorta e brilha ali dentro, pequenininho e curvo, um quintal de bolso só dela. Foi então que o gato encontra a luzinha que pisca no escuro e não entende — a cabeça vai de um lado, do outro, os olhos enormes seguindo a faísca. Depois, devagarinho, ele pisca também, como quem resolve conversar na língua dela. A Joana assiste paradinha, pra não interromper. A folha desce rodando devagar bem na frente do gato — e ele esquece de tudo, o rabo parado no ar, acompanhando cada volta dela com os olhos enormes, como se o mundo inteiro coubesse naquela folha caindo. A Joana olha os dois de longe, segurando o riso pra não estragar. E a Joana entende, na hora de entrar: aquela última folha veio viajando desde o começo, montada no vento que abriu a noite — atravessou o escuro inteirinho só pra pousar na mão dela e dizer boa-noite.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.052Z",
+        "fim": "2026-07-09T14:41:03.052Z",
+        "duracaoMs": 0.06455000000000055
+      }
+    },
+    {
+      "id": "n4-p02-r1",
+      "seed": 1865691702,
+      "partidaId": "n4-p02",
+      "objetosDaLinha": [
+        "frasco",
+        "folha",
+        "vagalume"
+      ],
+      "rodada": 1,
+      "nivel": "n4",
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "texto": "Quando a última luz do dia se apaga atrás do muro, a Joana abre a porta dos fundos sem fazer barulho. O quintal, que de dia é só o quintal, à noite vira outro lugar — um lugar que só conta os segredos dele pra quem vem ver — e ela pisa na grama fria de pés descalços, o coração batendo forte de vontade de saber. O pote está vazio, mas não parece abandonado — parece à espera. A Joana segura ele contra o peito e olha em volta no escuro, com a certeza esquisita e boa de que a noite ainda vai mandar uma coisinha brilhante pra morar ali. Foi então que do galho mais alto, uma folha se despede da árvore e vem descendo em espiral, de um lado pro outro, sem pressa nenhuma de chegar. A Joana fica embaixo, com a mão aberta feito um ninho, esperando — e a folha, depois de pensar um pouquinho, escolhe exatamente a mão dela pra pousar. A faísca roda no ar uma, duas vezes — e então encontra o pote de vidro que a Joana carregava desde cedo. Entra devagarinho e fica lá dentro, piscando quentinha, como quem finalmente chega em casa.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.052Z",
+        "fim": "2026-07-09T14:41:03.052Z",
+        "duracaoMs": 0.06312499999999943
+      }
+    },
+    {
+      "id": "n4-p02-r2",
+      "seed": 1865691702,
+      "partidaId": "n4-p02",
+      "objetosDaLinha": [
+        "frasco",
+        "folha",
+        "vento",
+        "vagalume"
+      ],
+      "rodada": 2,
+      "nivel": "n4",
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "texto": "Quando a última luz do dia se apaga atrás do muro, a Joana abre a porta dos fundos sem fazer barulho. O quintal, que de dia é só o quintal, à noite vira outro lugar — um lugar que só conta os segredos dele pra quem vem ver — e ela pisa na grama fria de pés descalços, o coração batendo forte de vontade de saber. O pote está vazio, mas não parece abandonado — parece à espera. A Joana segura ele contra o peito e olha em volta no escuro, com a certeza esquisita e boa de que a noite ainda vai mandar uma coisinha brilhante pra morar ali. Foi então que do galho mais alto, uma folha se despede da árvore e vem descendo em espiral, de um lado pro outro, sem pressa nenhuma de chegar. A Joana fica embaixo, com a mão aberta feito um ninho, esperando — e a folha, depois de pensar um pouquinho, escolhe exatamente a mão dela pra pousar. Pouco depois, o quintal inteiro respira de uma vez: um vento fresco chega rolando por cima do muro, balança as folhas, arrepia a grama e bagunça o cabelo da Joana. Ela abre os braços e deixa o vento passar por ela, como se por um instante também fosse feita de noite. A faísca roda no ar uma, duas vezes — e então encontra o pote de vidro que a Joana carregava desde cedo. Entra devagarinho e fica lá dentro, piscando quentinha, como quem finalmente chega em casa.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.052Z",
+        "fim": "2026-07-09T14:41:03.052Z",
+        "duracaoMs": 0.06312499999999943
+      }
+    },
+    {
+      "id": "n4-p02-r3",
+      "seed": 1865691702,
+      "partidaId": "n4-p02",
+      "objetosDaLinha": [
+        "frasco",
+        "lua",
+        "folha",
+        "vento",
+        "vagalume"
+      ],
+      "rodada": 3,
+      "nivel": "n4",
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "texto": "A noite desce devagar sobre o quintal, apagando as cores uma por uma — é assim que ele chama. A Joana abre a porta dos fundos e para um instante na soleira, sentindo o cheiro de grama fria, então entra na noite de pés descalços, como quem entra num segredo que vai ser contado só pra ela. O pote está vazio, mas não parece abandonado — parece à espera. A Joana segura ele contra o peito e olha em volta no escuro, com a certeza esquisita e boa de que a noite ainda vai mandar uma coisinha brilhante pra morar ali. Pouco depois, devagar, a lua sobe redonda e enorme por trás das árvores, e de repente o quintal inteiro se acende numa luz de prata, macia e quieta. A Joana joga a cabeça pra trás pra ver ela toda, e por um instante o quintal parece grande demais, do tamanho do céu. Foi então que do galho mais alto, uma folha se despede da árvore e vem descendo em espiral, de um lado pro outro, sem pressa nenhuma de chegar. A Joana fica embaixo, com a mão aberta feito um ninho, esperando — e a folha, depois de pensar um pouquinho, escolhe exatamente a mão dela pra pousar. Sem que ninguém esperasse, um vento fresco atravessa o quintal e bagunça o cabelo da Joana, fazendo as folhas balançarem e a grama toda sussurrar de uma vez. Ela fecha os olhos e respira fundo — cheira a terra molhada e a fim de tarde, como se a noite inteira estivesse respirando junto com ela. A faísca roda no ar uma, duas vezes — e então encontra o pote de vidro que a Joana carregava desde cedo. Entra devagarinho e fica lá dentro, piscando quentinha, como quem finalmente chega em casa.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.052Z",
+        "fim": "2026-07-09T14:41:03.052Z",
+        "duracaoMs": 0.06312499999999943
+      }
+    },
+    {
+      "id": "n4-p02-r4",
+      "seed": 1865691702,
+      "partidaId": "n4-p02",
+      "objetosDaLinha": [
+        "frasco",
+        "gato",
+        "lua",
+        "folha",
+        "vento",
+        "vagalume"
+      ],
+      "rodada": 4,
+      "nivel": "n4",
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "texto": "A noite desce devagar sobre o quintal, apagando as cores uma por uma — é assim que ele chama. A Joana abre a porta dos fundos e para um instante na soleira, sentindo o cheiro de grama fria, então entra na noite de pés descalços, como quem entra num segredo que vai ser contado só pra ela. O pote está vazio, mas não parece abandonado — parece à espera. A Joana segura ele contra o peito e olha em volta no escuro, com a certeza esquisita e boa de que a noite ainda vai mandar uma coisinha brilhante pra morar ali. Pouco depois, o gato vê a folha caída e, por um segundo, esquece toda a pose de gato sério: abaixa o rabo, mira e pula — batendo de leve com a patinha, correndo atrás quando o vento leva a folha pra longe. A Joana ri baixinho: até gato sério vira filhote de noite. Foi então que devagar, a lua sobe redonda e enorme por trás das árvores, e de repente o quintal inteiro se acende numa luz de prata, macia e quieta. A Joana joga a cabeça pra trás pra ver ela toda, e por um instante o quintal parece grande demais, do tamanho do céu. Sem que ninguém esperasse, a folha desce rodando devagar bem na frente do gato — e ele esquece de tudo, o rabo parado no ar, acompanhando cada volta dela com os olhos enormes, como se o mundo inteiro coubesse naquela folha caindo. A Joana olha os dois de longe, segurando o riso pra não estragar. Foi então que o quintal inteiro respira de uma vez: um vento fresco chega rolando por cima do muro, balança as folhas, arrepia a grama e bagunça o cabelo da Joana. Ela abre os braços e deixa o vento passar por ela, como se por um instante também fosse feita de noite. A faísca roda no ar uma, duas vezes — e então encontra o pote de vidro que a Joana carregava desde cedo. Entra devagarinho e fica lá dentro, piscando quentinha, como quem finalmente chega em casa. Quando o quintal termina de contar suas histórias, a Joana fica mais um instante parada no meio da grama, guardando tudo — cada brilho, cada sussurro, cada friozinho bom — num cantinho quente do peito. Depois entra, fecha a porta devagar, e leva o quintal inteiro adormecido junto com ela pros sonhos.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.052Z",
+        "fim": "2026-07-09T14:41:03.052Z",
+        "duracaoMs": 0.06312499999999943
+      }
+    }
+  ]
+}

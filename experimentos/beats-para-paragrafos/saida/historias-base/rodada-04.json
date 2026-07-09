@@ -1,0 +1,233 @@
+{
+  "lote": 4,
+  "tamanho": 10,
+  "historias": [
+    {
+      "id": "n2-p02-r3",
+      "seed": 296769280,
+      "partidaId": "n2-p02",
+      "objetosDaLinha": [
+        "vento",
+        "frasco",
+        "gato",
+        "vagalume",
+        "folha"
+      ],
+      "rodada": 3,
+      "nivel": "n2",
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "texto": "O céu escureceu, e o quintal guarda um segredo novo. A Joana pisa na grama fria pra descobrir. O vento sacode o galho lá em cima, e ela estica o pescoço: alguma coisa se soltou. Foi quando o pote na mão dela está vazio. Parece esperar uma luzinha. Logo depois, o gato vê a folha e pula, brincando, e a Joana ri de mansinho. Foi quando a faísca acha o pote que a Joana carregava e entra nele. A folha desce bem na frente do gato, e ele arregala os olhos. A Joana espia, quietinha.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.050Z",
+        "fim": "2026-07-09T14:41:03.050Z",
+        "duracaoMs": 0.06457500000000138
+      }
+    },
+    {
+      "id": "n2-p02-r4",
+      "seed": 296769280,
+      "partidaId": "n2-p02",
+      "objetosDaLinha": [
+        "vento",
+        "orvalho",
+        "frasco",
+        "gato",
+        "vagalume",
+        "folha"
+      ],
+      "rodada": 4,
+      "nivel": "n2",
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "texto": "É noite, e o quintal tem coisas pra mostrar. A Joana pisa na grama fria, sozinha, pra ver. O vento sacode o galho lá em cima, e ela estica o pescoço: alguma coisa se soltou. Então, o orvalho pousa na grama em gotinhas que brilham, e o pé dela sente o frio. De repente, o pote na mão dela está vazio. Parece esperar uma luzinha. Logo depois, o gato vê a folha e pula, brincando, e a Joana ri de mansinho. De repente, a faísca acha o pote que a Joana carregava e entra nele. A folha desce bem na frente do gato, e ele arregala os olhos. A Joana espia, quietinha. A última folha veio voando no vento do começo e pousou na mão dela.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.050Z",
+        "fim": "2026-07-09T14:41:03.050Z",
+        "duracaoMs": 0.06457500000000138
+      }
+    },
+    {
+      "id": "n2-p03-r1",
+      "seed": 313546899,
+      "partidaId": "n2-p03",
+      "objetosDaLinha": [
+        "vento",
+        "vagalume",
+        "frasco"
+      ],
+      "rodada": 1,
+      "nivel": "n2",
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "texto": "O céu escureceu, e o quintal guarda um segredo novo. A Joana pisa na grama fria pra descobrir. A noite começa com um vento fresquinho na pele dela. Logo depois, a faísca entra no pote e vira uma lanterninha só dela. Na mão da Joana, o pote guarda um pedacinho da noite.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.050Z",
+        "fim": "2026-07-09T14:41:03.050Z",
+        "duracaoMs": 0.054375000000000284
+      }
+    },
+    {
+      "id": "n2-p03-r2",
+      "seed": 313546899,
+      "partidaId": "n2-p03",
+      "objetosDaLinha": [
+        "vento",
+        "vagalume",
+        "gato",
+        "frasco"
+      ],
+      "rodada": 2,
+      "nivel": "n2",
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "texto": "O céu escureceu, e o quintal guarda um segredo novo. A Joana pisa na grama fria pra descobrir. A noite começa com um vento fresquinho na pele dela. Foi quando a faísca entra no pote e vira uma lanterninha só dela. Então, o gato olha a luzinha que pisca e pisca de volta, e ela segura o riso. Na mão da Joana, o pote guarda um pedacinho da noite.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.050Z",
+        "fim": "2026-07-09T14:41:03.050Z",
+        "duracaoMs": 0.054375000000000284
+      }
+    },
+    {
+      "id": "n2-p03-r3",
+      "seed": 313546899,
+      "partidaId": "n2-p03",
+      "objetosDaLinha": [
+        "vento",
+        "vagalume",
+        "gato",
+        "folha",
+        "frasco"
+      ],
+      "rodada": 3,
+      "nivel": "n2",
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "texto": "A noite chegou, e o quintal começa a contar. A Joana sai na ponta dos pés, pra ouvir. O vento sacode o galho lá em cima, e ela estica o pescoço: alguma coisa se soltou. Então, a faísca entra no pote e vira uma lanterninha só dela. Logo depois, o gato olha a luzinha que pisca e pisca de volta, e ela segura o riso. Foi quando a folha desce bem na frente do gato, e ele arregala os olhos. A Joana espia, quietinha. Na mão da Joana, o pote guarda um pedacinho da noite.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.050Z",
+        "fim": "2026-07-09T14:41:03.050Z",
+        "duracaoMs": 0.054375000000000284
+      }
+    },
+    {
+      "id": "n2-p03-r4",
+      "seed": 313546899,
+      "partidaId": "n2-p03",
+      "objetosDaLinha": [
+        "vento",
+        "orvalho",
+        "vagalume",
+        "gato",
+        "folha",
+        "frasco"
+      ],
+      "rodada": 4,
+      "nivel": "n2",
+      "modos": {
+        "desfecho": "convergente"
+      },
+      "texto": "É noite, e o quintal tem coisas pra mostrar. A Joana pisa na grama fria, sozinha, pra ver. O vento sacode o galho lá em cima, e ela estica o pescoço: alguma coisa se soltou. Logo depois, gotinhas de orvalho brilham na ponta da grama, e ela encosta o dedo numa. De repente, a faísca entra no pote e vira uma lanterninha só dela. Logo depois, o gato olha a luzinha que pisca e pisca de volta, e ela segura o riso. Foi quando a folha desce bem na frente do gato, e ele arregala os olhos. A Joana espia, quietinha. Na mão da Joana, o pote guarda um pedacinho da noite. A noite inteira coube no peito da Joana. Agora é só sonhar.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.050Z",
+        "fim": "2026-07-09T14:41:03.050Z",
+        "duracaoMs": 0.054375000000000284
+      }
+    },
+    {
+      "id": "n2-p04-r1",
+      "seed": 397434994,
+      "partidaId": "n2-p04",
+      "objetosDaLinha": [
+        "folha",
+        "frasco",
+        "vento"
+      ],
+      "rodada": 1,
+      "nivel": "n2",
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "texto": "É noite, e o quintal tem coisas pra mostrar. A Joana pisa na grama fria, sozinha, pra ver. A noite começa com uma folha caindo devagarinho, e o olhar dela desce junto. Foi quando a Joana acha um pote e sopra a poeira dele. O vento passa de mansinho e arrepia a Joana.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.050Z",
+        "fim": "2026-07-09T14:41:03.050Z",
+        "duracaoMs": 0.03742500000000071
+      }
+    },
+    {
+      "id": "n2-p04-r2",
+      "seed": 397434994,
+      "partidaId": "n2-p04",
+      "objetosDaLinha": [
+        "folha",
+        "gato",
+        "frasco",
+        "vento"
+      ],
+      "rodada": 2,
+      "nivel": "n2",
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "texto": "A noite chegou, e o quintal começa a contar. A Joana sai na ponta dos pés, pra ouvir. A noite começa com uma folha caindo devagarinho, e o olhar dela desce junto. Foi quando o gato vê a folha e pula, brincando, e a Joana ri de mansinho. Então, a Joana acha um pote e olha o mundo por dentro dele. O vento passa de mansinho e arrepia a Joana.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.050Z",
+        "fim": "2026-07-09T14:41:03.050Z",
+        "duracaoMs": 0.03742500000000071
+      }
+    },
+    {
+      "id": "n2-p04-r3",
+      "seed": 397434994,
+      "partidaId": "n2-p04",
+      "objetosDaLinha": [
+        "folha",
+        "gato",
+        "frasco",
+        "lua",
+        "vento"
+      ],
+      "rodada": 3,
+      "nivel": "n2",
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "texto": "O céu escureceu, e o quintal guarda um segredo novo. A Joana pisa na grama fria pra descobrir. A noite começa com uma folha caindo devagarinho, e o olhar dela desce junto. Foi quando o gato vê a folha e pula, brincando, e a Joana ri de mansinho. Então, na grama, um pote de vidro espera pela mão dela. De repente, a lua aparece por cima do muro, enorme, e o queixo dela sobe junto. Um vento fresco balança a grama toda e a barra da roupa dela.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.050Z",
+        "fim": "2026-07-09T14:41:03.050Z",
+        "duracaoMs": 0.03742500000000071
+      }
+    },
+    {
+      "id": "n2-p04-r4",
+      "seed": 397434994,
+      "partidaId": "n2-p04",
+      "objetosDaLinha": [
+        "folha",
+        "gato",
+        "frasco",
+        "orvalho",
+        "lua",
+        "vento"
+      ],
+      "rodada": 4,
+      "nivel": "n2",
+      "modos": {
+        "desfecho": "aberto"
+      },
+      "texto": "É noite, e o quintal tem coisas pra mostrar. A Joana pisa na grama fria, sozinha, pra ver. A noite começa com uma folha caindo devagarinho, e o olhar dela desce junto. De repente, o gato vê a folha e pula, brincando, e a Joana ri de mansinho. Logo depois, a Joana acha um pote e sopra a poeira dele. Foi quando uma gotinha pousa bem na folha caída, pertinho do pé dela. De repente, a lua se reflete no orvalho: mil luas pequeninhas em volta dos pés dela. Um vento fresco passa e mexe no cabelo da Joana. O vento passa e leva a folha do começo pra passear, e ela acena tchau.",
+      "geracaoLocal": {
+        "inicio": "2026-07-09T14:41:03.050Z",
+        "fim": "2026-07-09T14:41:03.050Z",
+        "duracaoMs": 0.03742500000000071
+      }
+    }
+  ]
+}

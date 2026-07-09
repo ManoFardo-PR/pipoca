@@ -1,0 +1,196 @@
+{
+  "lote": 3,
+  "tamanho": 10,
+  "respostas": [
+    {
+      "historiaId": "n1-p06-r1",
+      "ok": true,
+      "textoLimpo": "É noite e o quintal chama. Joana vem. Uma folha abre a noite e ela acompanha. Então, um vento fresquinho bate nela. Depois, o pote guarda a noite e ela tampa.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 28,
+        "limpo": 31,
+        "razaoCrescimento": 0.10714285714285714,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:47:30.740Z",
+        "fim": "2026-07-09T14:47:45.064Z",
+        "duracaoMs": 14323.19140000001
+      }
+    },
+    {
+      "historiaId": "n1-p06-r2",
+      "ok": true,
+      "textoLimpo": "A noite veio e o quintal tem segredo. A Joana quer ver. Uma folha abre a noite e ela acompanha. Então, a faísca no pote! Lanterna na mão dela! Aí, um vento bate nela, fresquinho. O pote guarda a noite e ela tampa.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 40,
+        "limpo": 43,
+        "razaoCrescimento": 0.075,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:47:45.067Z",
+        "fim": "2026-07-09T14:51:46.316Z",
+        "duracaoMs": 241249.60209999996
+      }
+    },
+    {
+      "historiaId": "n1-p06-r3",
+      "ok": true,
+      "textoLimpo": "É noite e o quintal chama, então Joana vem. Uma folha abre a noite e ela acompanha. Depois, uma faísca está no pote, e ela tem a lanterna na mão! O gato olha a luz e pisca também. Ela segura o riso. Então, um vento fresquinho bate nela. O pote guarda a noite e ela tampa.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 49,
+        "limpo": 56,
+        "razaoCrescimento": 0.14285714285714285,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:51:46.319Z",
+        "fim": "2026-07-09T14:51:53.395Z",
+        "duracaoMs": 7076.707500000019
+      }
+    },
+    {
+      "historiaId": "n1-p06-r4",
+      "ok": true,
+      "textoLimpo": "É noite e Joana vai pro quintal ver tudo. Uma folha abre a noite e ela acompanha. Aí, uma faísca no pote e ela tem a lanterna na mão. Então, a lua e a faísca, duas luzes, e ela no meio. O gato olha a luz e pisca, e ela segura o riso. Depois, um vento fresco na pele. O pote guarda a noite e ela tampa. A folha dorme na grama e ela cochicha boa-noite.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 72,
+        "limpo": 76,
+        "razaoCrescimento": 0.05555555555555555,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:51:53.399Z",
+        "fim": "2026-07-09T14:52:05.851Z",
+        "duracaoMs": 12452.108900000108
+      }
+    },
+    {
+      "historiaId": "n2-p01-r1",
+      "ok": true,
+      "textoLimpo": "É noite, e o quintal tem coisas para mostrar. Joana pisa na grama fria, sozinha, para ver, e uma faísca entra no pote e vira uma lanterninha só dela. Então, Joana acha um pote e sopra a poeira dele, e um vento fresco balança a grama toda e a barra da roupa dela.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 53,
+        "limpo": 53,
+        "razaoCrescimento": 0,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:52:05.854Z",
+        "fim": "2026-07-09T14:52:11.989Z",
+        "duracaoMs": 6135.237199999974
+      }
+    },
+    {
+      "historiaId": "n2-p01-r2",
+      "ok": true,
+      "textoLimpo": "Era noite e o quintal tinha coisas pra mostrar, então Joana pisou na grama fria, sozinha, para ver. Uma faísca entrou no pote e virou uma lanterninha só dela. Então, o gato olhou a luzinha que piscava e piscou de volta, e ela segurou o riso. Depois, de repente, Joana achou um pote e olhou o mundo por dentro dele. E um vento fresco passou, mexendo no cabelo da Joana.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 70,
+        "limpo": 70,
+        "razaoCrescimento": 0,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:52:11.991Z",
+        "fim": "2026-07-09T14:52:16.507Z",
+        "duracaoMs": 4516.680700000026
+      }
+    },
+    {
+      "historiaId": "n2-p01-r3",
+      "ok": true,
+      "textoLimpo": "A noite chegou e o quintal começa a contar, então Joana sai na ponta dos pés para ouvir. A faísca entra no pote e vira uma lanterninha só dela. Logo depois, o gato olha a luzinha que pisca e pisca de volta, e ela segura o riso. De repente, a folha desce bem na frente do gato, e ele arregala os olhos. Joana espia, quietinha, e depois acha um pote para olhar o mundo por dentro dele. O vento passa de mansinho e arrepia Joana.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 89,
+        "limpo": 85,
+        "razaoCrescimento": -0.0449438202247191,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:52:16.511Z",
+        "fim": "2026-07-09T14:52:34.309Z",
+        "duracaoMs": 17798.664099999936
+      }
+    },
+    {
+      "historiaId": "n2-p01-r4",
+      "ok": true,
+      "textoLimpo": "É noite, e o quintal tem coisas para mostrar, então Joana pisa na grama fria, sozinha, para ver. A faísca entra no pote e vira uma lanterninha só dela, e depois o orvalho chega de mansinho, enfeita a grama e deixa o pé dela geladinho. De repente, o gato olha a luzinha que pisca e pisca de volta, e ela segura o riso. Logo depois, a folha desce bem na frente do gato, e ele arregala os olhos, enquanto Joana espia, quietinha. Então, na grama, um pote de vidro espera pela mão dela, e um vento fresco balança a grama toda e a barra da roupa dela. Joana guarda a noite inteira no peito e vai sonhar.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 118,
+        "limpo": 117,
+        "razaoCrescimento": -0.00847457627118644,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:52:34.313Z",
+        "fim": "2026-07-09T14:52:43.002Z",
+        "duracaoMs": 8689.199400000041
+      }
+    },
+    {
+      "historiaId": "n2-p02-r1",
+      "ok": true,
+      "textoLimpo": "A noite chegou e o quintal começa a contar, então Joana sai na ponta dos pés para ouvir. O vento sacode o galho lá em cima, e ela estica o pescoço, pois alguma coisa se soltou. Foi quando Joana acha um pote e sopra a poeira dele. Uma folha cai devagar e pousa na mão da Joana.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 57,
+        "limpo": 57,
+        "razaoCrescimento": 0,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:52:43.025Z",
+        "fim": "2026-07-09T14:52:51.779Z",
+        "duracaoMs": 8754.900999999954
+      }
+    },
+    {
+      "historiaId": "n2-p02-r2",
+      "ok": true,
+      "textoLimpo": "A noite chegou e o quintal começou a contar. Então Joana saiu na ponta dos pés para ouvir. O vento sacudiu o galho lá em cima, e ela esticou o pescoço, pois alguma coisa se soltou. Nesse momento, o pote na mão dela estava vazio e parecia esperar uma luzinha. De repente, uma faísca achou o pote que Joana carregava e entrou nele. Uma folha se soltou e desceu dançando, e os olhos dela dançaram junto.",
+      "modelo": "gemini-2.5-flash",
+      "temperatura": 0.4,
+      "tentativas": 1,
+      "palavras": {
+        "original": 75,
+        "limpo": 76,
+        "razaoCrescimento": 0.013333333333333334,
+        "excedeuTeto": false
+      },
+      "chamadaLLM": {
+        "inicio": "2026-07-09T14:52:51.781Z",
+        "fim": "2026-07-09T14:52:59.586Z",
+        "duracaoMs": 7804.921699999948
+      }
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "lote": 3,
+  "geradoEm": "2026-07-09T14:52:59.588Z",
+  "historias": [
+    {
+      "historiaId": "n1-p06-r1",
+      "geracaoLocalMs": 0.05277500000000046,
+      "chamadaLLMMs": 14323.19140000001,
+      "ok": true,
+      "excedeuTeto": false
+    },
+    {
+      "historiaId": "n1-p06-r2",
+      "geracaoLocalMs": 0.05277500000000046,
+      "chamadaLLMMs": 241249.60209999996,
+      "ok": true,
+      "excedeuTeto": false
+    },
+    {
+      "historiaId": "n1-p06-r3",
+      "geracaoLocalMs": 0.05277500000000046,
+      "chamadaLLMMs": 7076.707500000019,
+      "ok": true,
+      "excedeuTeto": false
+    },
+    {
+      "historiaId": "n1-p06-r4",
+      "geracaoLocalMs": 0.05277500000000046,
+      "chamadaLLMMs": 12452.108900000108,
+      "ok": true,
+      "excedeuTeto": false
+    },
+    {
+      "historiaId": "n2-p01-r1",
+      "geracaoLocalMs": 0.05307499999999976,
+      "chamadaLLMMs": 6135.237199999974,
+      "ok": true,
+      "excedeuTeto": false
+    },
+    {
+      "historiaId": "n2-p01-r2",
+      "geracaoLocalMs": 0.05307499999999976,
+      "chamadaLLMMs": 4516.680700000026,
+      "ok": true,
+      "excedeuTeto": false
+    },
+    {
+      "historiaId": "n2-p01-r3",
+      "geracaoLocalMs": 0.05307499999999976,
+      "chamadaLLMMs": 17798.664099999936,
+      "ok": true,
+      "excedeuTeto": false
+    },
+    {
+      "historiaId": "n2-p01-r4",
+      "geracaoLocalMs": 0.05307499999999976,
+      "chamadaLLMMs": 8689.199400000041,
+      "ok": true,
+      "excedeuTeto": false
+    },
+    {
+      "historiaId": "n2-p02-r1",
+      "geracaoLocalMs": 0.06457500000000138,
+      "chamadaLLMMs": 8754.900999999954,
+      "ok": true,
+      "excedeuTeto": false
+    },
+    {
+      "historiaId": "n2-p02-r2",
+      "geracaoLocalMs": 0.06457500000000138,
+      "chamadaLLMMs": 7804.921699999948,
+      "ok": true,
+      "excedeuTeto": false
+    }
+  ]
+}

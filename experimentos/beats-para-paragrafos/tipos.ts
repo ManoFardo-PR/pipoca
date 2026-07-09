@@ -137,3 +137,23 @@ export interface Grade {
   geradoEm: string;
   celulas: CelulaGrade[];
 }
+
+/**
+ * Uma história com TUDO junto: o registro original do gerador, a resposta
+ * do LLM, e o veredito do avaliador — pensado pra leitura humana direta
+ * (não é consumido por nenhum outro script), um arquivo por lote, na mesma
+ * numeração de historias-base/respostas-llm (saida/historias-base/agregados/).
+ */
+export interface AgregadoHistoria extends HistoriaBase {
+  respostaLLM: RespostaLLM;
+  avaliacao: {
+    camada1: VereditoCamada1;
+    camada2?: VereditoCamada2;
+  };
+}
+
+export interface ArquivoAgregados {
+  lote: number;
+  tamanho: number;
+  historias: AgregadoHistoria[];
+}

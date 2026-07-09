@@ -1,5 +1,5 @@
 {
-  "geradoEm": "2026-07-09T15:12:06.337Z",
+  "geradoEm": "2026-07-09T16:04:35.023Z",
   "celulas": [
     {
       "rodada": 1,
@@ -8,7 +8,7 @@
       "passCamada1": 5,
       "percentualPass": 0.8333333333333334,
       "mediaCamada2": {
-        "fluidez": 4.25,
+        "fluidez": 4.125,
         "adequacao": 4.25,
         "naturalidade": 3.625
       }
@@ -20,9 +20,9 @@
       "passCamada1": 6,
       "percentualPass": 1,
       "mediaCamada2": {
-        "fluidez": 4.25,
-        "adequacao": 3.9166666666666665,
-        "naturalidade": 3.733333333333333
+        "fluidez": 4.333333333333333,
+        "adequacao": 4,
+        "naturalidade": 3.933333333333333
       }
     },
     {
@@ -33,8 +33,8 @@
       "percentualPass": 1,
       "mediaCamada2": {
         "fluidez": 4.6000000000000005,
-        "adequacao": 4.2,
-        "naturalidade": 4.316666666666666
+        "adequacao": 4.166666666666667,
+        "naturalidade": 4.233333333333333
       }
     },
     {
@@ -44,9 +44,9 @@
       "passCamada1": 6,
       "percentualPass": 1,
       "mediaCamada2": {
-        "fluidez": 4.683333333333334,
+        "fluidez": 4.716666666666666,
         "adequacao": 4.233333333333333,
-        "naturalidade": 4.183333333333333
+        "naturalidade": 4.333333333333333
       }
     },
     {
@@ -56,9 +56,9 @@
       "passCamada1": 6,
       "percentualPass": 1,
       "mediaCamada2": {
-        "fluidez": 4.166666666666667,
-        "adequacao": 4.25,
-        "naturalidade": 3.5
+        "fluidez": 4.2,
+        "adequacao": 4.3,
+        "naturalidade": 3.6
       }
     },
     {
@@ -68,8 +68,8 @@
       "passCamada1": 6,
       "percentualPass": 1,
       "mediaCamada2": {
-        "fluidez": 4.5,
-        "adequacao": 4,
+        "fluidez": 4.516666666666667,
+        "adequacao": 4.033333333333333,
         "naturalidade": 4.133333333333333
       }
     },
@@ -80,9 +80,9 @@
       "passCamada1": 6,
       "percentualPass": 1,
       "mediaCamada2": {
-        "fluidez": 4.566666666666666,
-        "adequacao": 4.166666666666667,
-        "naturalidade": 4.133333333333334
+        "fluidez": 4.616666666666666,
+        "adequacao": 4.233333333333333,
+        "naturalidade": 4.216666666666666
       }
     },
     {
@@ -93,8 +93,8 @@
       "percentualPass": 0.8333333333333334,
       "mediaCamada2": {
         "fluidez": 4.8,
-        "adequacao": 4.28,
-        "naturalidade": 4.4
+        "adequacao": 4.24,
+        "naturalidade": 4.360000000000001
       }
     },
     {
@@ -104,9 +104,9 @@
       "passCamada1": 6,
       "percentualPass": 1,
       "mediaCamada2": {
-        "fluidez": 4.166666666666667,
-        "adequacao": 4.166666666666667,
-        "naturalidade": 3.4499999999999997
+        "fluidez": 4.2,
+        "adequacao": 4.183333333333334,
+        "naturalidade": 3.5500000000000003
       }
     },
     {
@@ -128,9 +128,9 @@
       "passCamada1": 6,
       "percentualPass": 1,
       "mediaCamada2": {
-        "fluidez": 4.583333333333333,
-        "adequacao": 4.166666666666667,
-        "naturalidade": 4.3
+        "fluidez": 4.633333333333334,
+        "adequacao": 4.266666666666667,
+        "naturalidade": 4.333333333333333
       }
     },
     {
@@ -140,9 +140,9 @@
       "passCamada1": 5,
       "percentualPass": 0.8333333333333334,
       "mediaCamada2": {
-        "fluidez": 4.76,
+        "fluidez": 4.779999999999999,
         "adequacao": 4.32,
-        "naturalidade": 4.32
+        "naturalidade": 4.4399999999999995
       }
     },
     {
@@ -152,9 +152,9 @@
       "passCamada1": 6,
       "percentualPass": 1,
       "mediaCamada2": {
-        "fluidez": 4.366666666666666,
-        "adequacao": 4.183333333333334,
-        "naturalidade": 3.8333333333333335
+        "fluidez": 4.3999999999999995,
+        "adequacao": 4.1000000000000005,
+        "naturalidade": 3.85
       }
     },
     {
@@ -166,7 +166,7 @@
       "mediaCamada2": {
         "fluidez": 4.5,
         "adequacao": 4,
-        "naturalidade": 3.8166666666666664
+        "naturalidade": 3.9
       }
     },
     {
@@ -176,9 +176,9 @@
       "passCamada1": 7,
       "percentualPass": 1,
       "mediaCamada2": {
-        "fluidez": 4.628571428571428,
-        "adequacao": 4.228571428571429,
-        "naturalidade": 4.1
+        "fluidez": 4.642857142857143,
+        "adequacao": 4.257142857142858,
+        "naturalidade": 4.142857142857143
       }
     },
     {
@@ -189,8 +189,8 @@
       "percentualPass": 1,
       "mediaCamada2": {
         "fluidez": 4.733333333333333,
-        "adequacao": 4.233333333333333,
-        "naturalidade": 4.183333333333334
+        "adequacao": 4.2,
+        "naturalidade": 4.233333333333334
       }
     }
   ]

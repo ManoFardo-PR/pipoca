@@ -83,6 +83,12 @@ Saída em `saida/avaliacao/`: `grade.json` (matriz de decisão),
 `para-leitura.md` (pares aprovados, piores primeiro), `reprovados.md`
 (motivos de reprovação — insumo para endurecer o prompt do gerador).
 
+Além disso, grava `saida/historias-base/agregados/rodada-XX.json` — mesma
+numeração de lote de `historias-base/`/`respostas-llm/`, mas cada história
+já vem com TUDO junto (o registro original do gerador + `respostaLLM` +
+`avaliacao.camada1`/`.camada2`), pensado só pra leitura humana direta sem
+precisar cruzar três pastas na mão.
+
 ## Loop de melhoria
 
 1. Rodar gerador → avaliador.

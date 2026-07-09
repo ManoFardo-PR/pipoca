@@ -1,15 +1,19 @@
 /**
- * Experimento B1.5 — Script 2 (avaliador). Lê historias-base + respostas-llm,
- * junta por id em pares, roda Camada 1 (gate factual, sempre) e Camada 2
- * (juiz LLM, só nos pares que passaram a Camada 1). Lê OPENAI_API_KEY/
- * OPENAI_MODEL do .env da RAIZ do repo (ver carregar-env.ts) ou do shell.
- * Execute com: bun run avaliar/avaliar-pares.ts
+ * Experimento B1.5 — Script 2 (avaliador). Lê historias-base + respostas-llm
+ * LOTE A LOTE (mesmo nome de arquivo nas duas pastas), roda Camada 1 (gate
+ * factual, sempre) e Camada 2 (juiz LLM, só nos pares que passaram a Camada
+ * 1), e grava um arquivo agregado por lote — história-base + resposta do
+ * LLM + veredito do avaliador juntos, pra leitura humana direta — em
+ * saida/historias-base/agregados/, além da grade/relatórios de sempre em
+ * saida/avaliacao/. Lê OPENAI_API_KEY/OPENAI_MODEL do .env da RAIZ do repo
+ * (ver carregar-env.ts) ou do shell. Execute com: bun run avaliar/avaliar-pares.ts
  */
 
-import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { ArquivoHistoriasBase, ArquivoRespostasLLM, HistoriaBase, Par, ParAvaliado, RespostaLLM } from "../tipos.js";
+import type { AgregadoHistoria, ArquivoHistoriasBase, ArquivoRespostasLLM, Par, ParAvaliado } from "../tipos.js";
 import { carregarEnv } from "../carregar-env.js";
+import { escreverAgregados, garantirDiretorios, resolverCaminhos } from "../persistencia.js";
 import { avaliarCamada1 } from "./camada1-fidelidade.js";
 import { julgarPar } from "./camada2-juiz.js";
 import { montarGrade, montarParaLeitura, montarReprovados } from "./relatorios.js";
@@ -20,42 +24,6 @@ const RAIZ_SAIDA = join(import.meta.dir, "..", "saida");
 // gpt-5.4-mini — confirmado em developers.openai.com/api/docs/models (jul/2026):
 // modelo mini atual, custo-benefício bom pra avaliação com schema JSON.
 const OPENAI_MODEL_PADRAO = "gpt-5.4-mini";
-
-async function lerHistoriasBase(dir: string): Promise<HistoriaBase[]> {
-  const arquivos = (await readdir(dir)).filter((f) => f.endsWith(".json")).sort();
-  const historias: HistoriaBase[] = [];
-  for (const arquivo of arquivos) {
-    const bruto = await readFile(join(dir, arquivo), "utf8");
-    const parsed = JSON.parse(bruto) as ArquivoHistoriasBase;
-    historias.push(...parsed.historias);
-  }
-  return historias;
-}
-
-async function lerRespostasLLM(dir: string): Promise<RespostaLLM[]> {
-  const arquivos = (await readdir(dir)).filter((f) => f.endsWith(".json")).sort();
-  const respostas: RespostaLLM[] = [];
-  for (const arquivo of arquivos) {
-    const bruto = await readFile(join(dir, arquivo), "utf8");
-    const parsed = JSON.parse(bruto) as ArquivoRespostasLLM;
-    respostas.push(...parsed.respostas);
-  }
-  return respostas;
-}
-
-function montarPares(historias: HistoriaBase[], respostas: RespostaLLM[]): Par[] {
-  const porId = new Map(respostas.map((r) => [r.historiaId, r]));
-  const pares: Par[] = [];
-  for (const base of historias) {
-    const resposta = porId.get(base.id);
-    if (!resposta) {
-      console.warn(`[avaliar-pares] história "${base.id}" sem resposta correspondente — pulando`);
-      continue;
-    }
-    pares.push({ base, resposta });
-  }
-  return pares;
-}
 
 async function main(): Promise<void> {
   const chaveEnv = process.env.OPENAI_API_KEY;
@@ -69,39 +37,68 @@ async function main(): Promise<void> {
   const modelo = process.env.OPENAI_MODEL ?? OPENAI_MODEL_PADRAO;
   const temperatura = Number(process.env.OPENAI_TEMPERATURE ?? 0.1);
 
-  const historias = await lerHistoriasBase(join(RAIZ_SAIDA, "historias-base"));
-  const respostas = await lerRespostasLLM(join(RAIZ_SAIDA, "respostas-llm"));
-  const pares = montarPares(historias, respostas);
-  console.log(`[avaliar-pares] ${pares.length} pares carregados.`);
+  const caminhos = resolverCaminhos(RAIZ_SAIDA);
+  await garantirDiretorios(caminhos);
 
-  const avaliados: ParAvaliado[] = [];
-  let julgados = 0;
-  for (const par of pares) {
-    const camada1 = avaliarCamada1(par);
-    if (!camada1.pass) {
-      avaliados.push({ par, camada1 });
-      console.log(`[avaliar-pares] ${par.base.id}: reprovado na Camada 1 (${camada1.motivos.length} motivo(s))`);
+  const arquivosBase = (await readdir(caminhos.historiasBase)).filter((f) => f.endsWith(".json")).sort();
+  const todosAvaliados: ParAvaliado[] = [];
+
+  for (const arquivo of arquivosBase) {
+    const dadosBase = JSON.parse(await readFile(join(caminhos.historiasBase, arquivo), "utf8")) as ArquivoHistoriasBase;
+
+    let dadosResp: ArquivoRespostasLLM;
+    try {
+      dadosResp = JSON.parse(await readFile(join(caminhos.respostasLlm, arquivo), "utf8")) as ArquivoRespostasLLM;
+    } catch {
+      console.warn(`[avaliar-pares] sem respostas-llm/${arquivo} correspondente — pulando lote ${dadosBase.lote}`);
       continue;
     }
+    const porId = new Map(dadosResp.respostas.map((r) => [r.historiaId, r]));
 
-    const resultado = await julgarPar(par.base.nivel, par.base.texto, par.resposta.textoLimpo ?? "", {
-      modelo,
-      chave,
-      temperatura,
-    });
-    if (!resultado.ok || !resultado.veredito) {
-      console.warn(`[avaliar-pares] juiz falhou em "${par.base.id}": ${resultado.erro}`);
-      avaliados.push({ par, camada1 });
-      continue;
+    const agregadosDoLote: AgregadoHistoria[] = [];
+    for (const base of dadosBase.historias) {
+      const resposta = porId.get(base.id);
+      if (!resposta) {
+        console.warn(`[avaliar-pares] história "${base.id}" sem resposta correspondente — pulando`);
+        continue;
+      }
+      const par: Par = { base, resposta };
+      const camada1 = avaliarCamada1(par);
+      let avaliado: ParAvaliado = { par, camada1 };
+
+      if (camada1.pass) {
+        const resultado = await julgarPar(par.base.nivel, par.base.texto, par.resposta.textoLimpo ?? "", {
+          modelo,
+          chave,
+          temperatura,
+        });
+        if (resultado.ok && resultado.veredito) {
+          avaliado = { par, camada1, camada2: resultado.veredito };
+          console.log(`[avaliar-pares] ${base.id}: Camada 1 ok, julgado pela Camada 2`);
+        } else {
+          console.warn(`[avaliar-pares] juiz falhou em "${base.id}": ${resultado.erro}`);
+        }
+      } else {
+        console.log(`[avaliar-pares] ${base.id}: reprovado na Camada 1 (${camada1.motivos.length} motivo(s))`);
+      }
+
+      todosAvaliados.push(avaliado);
+      agregadosDoLote.push({
+        ...base,
+        respostaLLM: resposta,
+        avaliacao: { camada1: avaliado.camada1, camada2: avaliado.camada2 },
+      });
     }
-    avaliados.push({ par, camada1, camada2: resultado.veredito });
-    julgados++;
-    console.log(`[avaliar-pares] ${par.base.id}: Camada 1 ok, julgado pela Camada 2 (${julgados} até agora)`);
+
+    await escreverAgregados(caminhos, { lote: dadosBase.lote, tamanho: agregadosDoLote.length, historias: agregadosDoLote });
+    console.log(`[avaliar-pares] lote ${dadosBase.lote}: agregado gravado (${agregadosDoLote.length} histórias).`);
   }
 
-  const grade = montarGrade(avaliados);
-  const paraLeitura = montarParaLeitura(avaliados);
-  const reprovados = montarReprovados(avaliados);
+  console.log(`[avaliar-pares] ${todosAvaliados.length} pares avaliados no total.`);
+
+  const grade = montarGrade(todosAvaliados);
+  const paraLeitura = montarParaLeitura(todosAvaliados);
+  const reprovados = montarReprovados(todosAvaliados);
 
   const dirAvaliacao = join(RAIZ_SAIDA, "avaliacao");
   await mkdir(dirAvaliacao, { recursive: true });
@@ -109,7 +106,7 @@ async function main(): Promise<void> {
   await writeFile(join(dirAvaliacao, "para-leitura.md"), paraLeitura, "utf8");
   await writeFile(join(dirAvaliacao, "reprovados.md"), reprovados, "utf8");
 
-  console.log(`[avaliar-pares] concluído: ${avaliados.length} pares avaliados. Ver saida/avaliacao/.`);
+  console.log("[avaliar-pares] concluído. Ver saida/avaliacao/ e saida/historias-base/agregados/.");
 }
 
 main().catch((e) => {

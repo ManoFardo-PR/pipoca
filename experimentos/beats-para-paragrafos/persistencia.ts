@@ -10,6 +10,7 @@
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type {
+  ArquivoAgregados,
   ArquivoHistoriasBase,
   ArquivoRespostasLLM,
   ConsolidadoMonitoramento,
@@ -26,6 +27,7 @@ export interface CaminhosSaida {
   historiasBase: string;
   respostasLlm: string;
   monitoramento: string;
+  agregados: string;
 }
 
 export function resolverCaminhos(raiz: string): CaminhosSaida {
@@ -34,6 +36,7 @@ export function resolverCaminhos(raiz: string): CaminhosSaida {
     historiasBase: join(raiz, "historias-base"),
     respostasLlm: join(raiz, "respostas-llm"),
     monitoramento: join(raiz, "monitoramento"),
+    agregados: join(raiz, "historias-base", "agregados"),
   };
 }
 
@@ -41,6 +44,7 @@ export async function garantirDiretorios(caminhos: CaminhosSaida): Promise<void>
   await mkdir(caminhos.historiasBase, { recursive: true });
   await mkdir(caminhos.respostasLlm, { recursive: true });
   await mkdir(caminhos.monitoramento, { recursive: true });
+  await mkdir(caminhos.agregados, { recursive: true });
 }
 
 function nomeArquivoRodada(lote: number): string {
@@ -71,6 +75,10 @@ export async function escreverRespostasLLM(
 ): Promise<void> {
   const arquivo: ArquivoRespostasLLM = { lote, tamanho: respostas.length, respostas };
   await writeFile(join(caminhos.respostasLlm, nomeArquivoRodada(lote)), JSON.stringify(arquivo, null, 2), "utf8");
+}
+
+export async function escreverAgregados(caminhos: CaminhosSaida, arquivo: ArquivoAgregados): Promise<void> {
+  await writeFile(join(caminhos.agregados, nomeArquivoRodada(arquivo.lote)), JSON.stringify(arquivo, null, 2), "utf8");
 }
 
 export async function escreverMonitoramentoLote(caminhos: CaminhosSaida, lote: MonitoramentoLote): Promise<void> {

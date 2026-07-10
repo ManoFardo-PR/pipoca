@@ -2,8 +2,8 @@
 
 Gerado por `node docs/plans02/check_plans02.mjs` — **nunca editar à mão**.
 
-- Docs detalhados (no gate): **16**
-- Docs esqueleto (só H1, fora do gate): **7**
+- Docs detalhados (no gate): **20**
+- Docs esqueleto (só H1, fora do gate): **3**
 - Checagens: **5/5 PASS**
 - Resultado: ✅ **TUDO VERDE**
 
@@ -21,20 +21,16 @@ Sem problemas.
 ## C2. Resolução de [[links]] (escopo plans02) — PASS
 Sem problemas.
 
-## C3. Ordem de dependências (sem forward, sem ciclo) — PASS _(38 arestas)_
+## C3. Ordem de dependências (sem forward, sem ciclo) — PASS _(49 arestas)_
 Sem problemas.
 
-## C4. Nomes canônicos (grafia idêntica) — PASS _(107 nomes declarados)_
+## C4. Nomes canônicos (grafia idêntica) — PASS _(145 nomes declarados)_
 Sem problemas.
 
 ## C5. Ids e nomes de arquivo coerentes — PASS
 Sem problemas.
 
 ## Esqueleto (pendente de detalhamento)
-- fase13-13-00
-- fase13-13-01
-- fase13-13-02
-- fase13-13-03
 - fase14-14-00
 - fase14-14-01
 - fase14-14-02

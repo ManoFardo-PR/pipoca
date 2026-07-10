@@ -83,6 +83,8 @@ Valores da prova de conceito; calibráveis pela validação em escala (portão d
 | n3 | 2 | 55 |
 | n4 | 2 | 70 |
 
+Nota de costura (2026-07-09, decisão D-12.1 da fase 12): `paragrafos` é DERIVADO DA RODADA pelo compositor (semente: R1≈1 · R2≈1–2 · R3≈2 · R4≈2 — tabela em [[fase12-12-01]]); a coluna acima permanece válida como teto de palavras por parágrafo por nível. A segmentação em parágrafos é feita pelo LLM por instrução, e o validador registra desvios no veredito.
+
 ### Exemplo REAL completo — linha vagalume→frasco→vento, n2
 Tradução do exemplo validado na prova de conceito. Células do **vagalume** = ficha canônica de [[fase10-10-00]]; células de frasco/vento e do cenário = ILUSTRATIVAS (a autoria real vem na migração, [[fase10-10-04]]). A relação usada é a candidata `tem:frasco` (linhagem: tempera do vagalume no `docs/quintal.v3.json`) — nesta linha `depois_de:frasco` NÃO casa, pois o vagalume vem ANTES do frasco (semântica verificada em `src/core/composicao.ts:217-220`); `tem:frasco` casa em qualquer ordem.
 

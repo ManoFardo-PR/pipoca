@@ -64,7 +64,7 @@ A prosa abaixo é ILUSTRATIVA (escrita à mão no formato que o LLM deve produzi
 
 Note o que o exemplo demonstra: os 3 beats na ordem; `corpo` de cada objeto virando gesto (olhos/ponta dos pés; duas mãos/espiar; pele/cabelo); a relação vagalume×frasco realizada; o `eco` honrado (fecha com a luzinha do objeto de abertura); 2 parágrafos ≤ 40 palavras (restrições do n2); gênero feminino correto.
 
-**DECISÃO ABERTA:** `paragrafos` é segmentado pelo LLM (instrução no prompt: "devolva N parágrafos") ou por um segmentador determinístico pós-LLM (o LLM devolve texto contínuo; código divide por sentenças/balanço)? A favor do LLM: parágrafos com unidade narrativa. A favor do determinístico: garantia dura de `restricoes.paragrafos` sem depender de obediência. Registrar as duas opções; a validação em escala informa a escolha.
+**Decisão fixada (2026-07-09):** `paragrafos` é segmentado PELO LLM, por instrução no prompt ("devolva N parágrafos") — não há segmentador determinístico pós-LLM. O número-alvo de parágrafos é CRESCENTE por rodada (história mais curta na R1, mais longa na R4); a tabela-semente vive em [[fase12-12-01]] e o `restricoes.paragrafos` do Pacote passa a ser derivado da rodada pelo compositor (nota de costura em [[fase11-11-00]]). A garantia dura fica com o validador: desvio do número de parágrafos entra no `veredito`.
 
 ## Regras de negócio
 1. **Realizador, nunca autor:** decide COMO contar; O QUE acontece já veio decidido no Pacote — não inventa, não remove, não reordena, não troca nome/gênero (regras operacionais no prompt, [[fase12-12-01]]).
@@ -83,7 +83,7 @@ Ordem para quando a implementação começar (este doc só planeja):
 ## Estados / edge-cases
 - Pacote com esquema desconhecido → erro explícito antes de qualquer chamada de LLM.
 - `veredito.pass === false` em todas as tentativas → o resultado da cascata é o fallback A+ v3 ([[fase12-12-04]]); `realizar` sinaliza a origem do texto.
-- LLM devolve número errado de parágrafos → tratado conforme a DECISÃO ABERTA (instrução vs segmentador); em ambos os casos o veredito registra o desvio.
+- LLM devolve número errado de parágrafos → o `veredito` registra o desvio (segmentação é do LLM por instrução — decisão fixada; não há resegmentação pós-LLM); a política de falha ([[fase12-12-04]]) decide a reação.
 - Sem rede → sem geração (decisão de produto adiada, registrada em [[fase12-12-04]]); o realizador falha explícito, o app decide a experiência.
 
 ## Critérios de aceitação / verificação
@@ -91,7 +91,7 @@ Ordem para quando a implementação começar (este doc só planeja):
 - [ ] Fronteira declarada: Pacote autossuficiente; sem fichas/grafo/gramática/BD; sem condição `se`.
 - [ ] Exemplo real embutido (Pacote do 11-00 → saída ilustrativa) com o que ele demonstra listado.
 - [ ] Contrato de honestidade (nunca entregar FAIL como sucesso) registrado.
-- [ ] DECISÃO ABERTA da segmentação registrada com as duas opções.
+- [ ] Decisão fixada da segmentação (pelo LLM, parágrafos crescentes por rodada) registrada.
 
 ## Relações com outros docs
 - Depende de: `[[fase11-11-00]]`, `[[fase10-10-00]]`

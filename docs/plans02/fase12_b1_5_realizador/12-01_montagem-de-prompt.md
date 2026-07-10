@@ -55,12 +55,21 @@ O runtime troca "reescreva os trechos" por "realize o Pacote". Mapa campo→inst
 | `nivel` | a régua `DESCRICAO_NIVEL` + as instruções específicas do nível ([[fase12-12-05]] para o n1) |
 | `beats[]` na ordem | um bloco por beat: `descricao` (o que é) + `corpo` (o gesto — injeção por beat, extensão da PoC de fichas) + `relacoes` (interações a realizar) |
 | `beats[].papel` | abertura planta o desejo (Lei 3); fecho colhe no corpo |
-| `restricoes` | "N parágrafos; máx. M palavras por parágrafo" (substitui o teto único do semente) |
+| `restricoes` | "escreva em N parágrafos; máx. M palavras por parágrafo" — a SEGMENTAÇÃO é do LLM, por instrução (decisão fixada, 2026-07-09); N cresce com a rodada (tabela-semente abaixo) e substitui o teto único do semente |
 | `eco` | "termine ecoando <abre_com> com as próprias palavras" (quando não-nulo) |
+
+Tabela-semente de `paragrafos` por rodada (decisão fixada em 2026-07-09; calibrável pela validação em escala — o compositor deriva `restricoes.paragrafos` da rodada, nota de costura em [[fase11-11-00]]):
+
+| rodada | parágrafos-alvo |
+|---|---|
+| R1 | 1 |
+| R2 | 1–2 |
+| R3 | 2 |
+| R4 | 2 |
 
 As linhas do semente marcadas como EXTENSÃO (não estavam no prompt verificado; vêm da PoC de fichas narrada na fase 10, a materializar na validação em escala): a injeção de `corpo` por beat e a regra do n1 (UMA sensação por beat — [[fase10-10-03]]).
 
-**DECISÃO ABERTA:** few-shot (exemplo de entrada→saída dentro do prompt) fixo no template ou por nível? Fixo é mais simples; por nível permite calibrar o n1 sem contaminar o n4. A validação em escala ([[fase10-10-04]]) mede as duas variantes.
+**Decisão fixada (2026-07-09):** few-shot **POR NÍVEL** — cada nível (n1..n4) tem seus próprios exemplos de entrada→saída no template, selecionados por `nivel` (o registro do n1 e o do n4 são opostos; exemplo de um envenena o outro). Os exemplos são AUTORAIS/validados, nunca gerados; os textos concretos são materializados na implementação/calibração ([[fase12-12-05]]), não neste doc.
 
 ## Regras de negócio
 1. **Método aqui, matéria no Pacote** (princípio de [[fase11-11-00]]): o template nunca acrescenta fatos — só regras de redação.
@@ -73,7 +82,7 @@ As linhas do semente marcadas como EXTENSÃO (não estavam no prompt verificado;
 1. Materializar o template de runtime (semente + mapa campo→instrução + leis) em `src/core/realizador/prompt_template.ts`.
 2. Parametrizar nome/gênero (remover o "Joana" fixo do semente).
 3. Adicionar a injeção de `corpo` por beat e a regra do n1.
-4. Rodar a validação em escala com as duas variantes de few-shot (DECISÃO ABERTA) e fixar a vencedora.
+4. Autorar os few-shots por nível (decisão fixada) e validá-los na validação em escala.
 
 ## Estados / edge-cases
 - `eco` nulo → a instrução de eco é omitida (não "eco opcional" no texto do prompt — instrução ausente é mais segura que instrução condicional).
@@ -86,7 +95,7 @@ As linhas do semente marcadas como EXTENSÃO (não estavam no prompt verificado;
 - [ ] Prompt-semente embutido verbatim com caminho:linha; extensões da PoC marcadas como a materializar.
 - [ ] Mapa campo-do-Pacote→instrução completo (incluindo `sensacao_no_personagem` — D-11.2).
 - [ ] As quatro proibições parametrizadas (nome do perfil, não hardcoded).
-- [ ] DECISÃO ABERTA do few-shot registrada com as duas opções.
+- [ ] Few-shot por nível (decisão fixada) registrado, com os exemplos concretos marcados como a materializar; tabela-semente de parágrafos por rodada embutida.
 
 ## Relações com outros docs
 - Depende de: `[[fase12-12-00]]`, `[[fase11-11-00]]`

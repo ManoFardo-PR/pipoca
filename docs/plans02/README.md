@@ -17,4 +17,4 @@ determinístico), e o conteúdo vira **fichas** reaproveitáveis em três camada
 - Checker: `node docs/plans02/check_plans02.mjs` — valida os docs detalhados (template, links,
   dependências, nomes canônicos, ids); docs só-H1 são listados como esqueleto, fora do gate.
   Relatório gerado: `_diagnostico02.md` (nunca editar à mão).
-- Estado: fases 10–12 detalhadas; fases 13–14 ainda esqueleto (detalhamento vem em prompts posteriores).
+- Estado: fases 10–13 detalhadas; fase 14 ainda esqueleto (detalhamento vem em prompt posterior).

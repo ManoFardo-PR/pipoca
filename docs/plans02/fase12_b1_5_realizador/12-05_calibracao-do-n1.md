@@ -40,7 +40,7 @@ Nenhum arquivo novo próprio — a calibração itera `src/core/realizador/promp
 3. **Ler em voz alta: o juiz final é o Manoel.** A nota do juiz LLM é sinal auxiliar, NUNCA alvo de otimização — otimizar contra o juiz LLM é overfitting ao gosto de um modelo (e o juiz já se mostrou sistematicamente mais severo com o n1: 3.5–3.9).
 4. Iterar o prompt-template ([[fase12-12-01]], versionado) contra Camada 1 + ouvido; parar quando a grade do n1 fechar.
 
-**DECISÃO ABERTA:** se a calibração não fechar, o n1 usa realizador ou cai para o A+ cru? O critério (registrado, não decidido): a **grade 4×4 por nível** da validação em escala decide — célula n1 consistentemente abaixo do padrão das demais (Camada 1 + veto do ouvido) ⇒ n1 fica no A+ v3 e os demais níveis usam o realizador; grade fechada ⇒ realizador em todos. Nenhum número de corte é fixado antes de existirem os dados.
+**CRITÉRIO (decidido pela validação em escala):** se a calibração não fechar, o n1 usa realizador ou cai para o A+ cru? Não é decisão pendente de pessoa — a **grade 4×4 por nível** da validação em escala decide: célula n1 consistentemente abaixo do padrão das demais (Camada 1 + veto do ouvido) ⇒ n1 fica no A+ v3 e os demais níveis usam o realizador; grade fechada ⇒ realizador em todos. Nenhum número de corte é fixado antes de existirem os dados (confirmado em 2026-07-09).
 
 ## Regras de negócio
 1. **Otimizar contra Camada 1 + ouvido, nunca contra a nota do juiz LLM** (o juiz reporta, não governa).
@@ -53,19 +53,19 @@ Nenhum arquivo novo próprio — a calibração itera `src/core/realizador/promp
 1. Materializar as instruções n1 no template (UMA sensação; teto por frase; fusão limitada).
 2. Rodar a matriz da validação em escala; extrair a grade por nível.
 3. Sessão de leitura em voz alta (Manoel) sobre as amostras do n1 (e contra-amostras do A+ cru).
-4. Fechar a DECISÃO ABERTA com a grade em mãos; registrar na TRILHA.
+4. Aplicar o CRITÉRIO com a grade em mãos; registrar o resultado na TRILHA.
 
 ## Estados / edge-cases
 - n1 passa na Camada 1 mas soa mecânico ao ouvido → o ouvido veta (o gate é necessário, não suficiente).
 - n1 reprova só no ritmo-gate com texto bom → suspeitar do limiar antes do prompt (12/2 são sementes) — mas mudar limiar exige dados, não caso único.
-- Regressão nos outros níveis ao calibrar o n1 → few-shot por nível ([[fase12-12-01]], DECISÃO ABERTA de lá) é o antídoto natural; a matriz completa roda a cada iteração justamente para pegar isso.
+- Regressão nos outros níveis ao calibrar o n1 → few-shot por nível ([[fase12-12-01]], decisão fixada de lá) é o antídoto natural; a matriz completa roda a cada iteração justamente para pegar isso.
 - A+ cru escolhido para o n1 → o app compõe: n1 via `montar` v3, n2–n4 via realizador — a costura vive na orquestração (fase 13, texto simples).
 
 ## Critérios de aceitação / verificação
 - [ ] Requisitos do n1 registrados (UMA sensação; teto por frase; ≤12 pontos; ≤2 frases/beat) com origem verificada.
 - [ ] Correção do "15 → 12" registrada explicitamente.
 - [ ] Método fechado: Camada 1 + voz alta; juiz LLM como sinal, nunca alvo.
-- [ ] DECISÃO ABERTA registrada como CRITÉRIO (grade 4×4 decide), sem decidir agora.
+- [ ] CRITÉRIO da grade 4×4 registrado (realizador vs A+ cru no n1), sem número de corte antecipado.
 
 ## Relações com outros docs
 - Depende de: `[[fase12-12-00]]`, `[[fase12-12-01]]`, `[[fase12-12-03]]`

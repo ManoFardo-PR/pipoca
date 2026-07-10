@@ -9,8 +9,8 @@
 | Fase | Status | Onde |
 |------|--------|------|
 | 10 Modelo de fichas | 🟢 CONCLUÍDA (2026-07-10; 3 pendências herdadas pela fase 12 — ver "Fechamento da fase 10") | `fase10_modelo_de_fichas/` — 6 docs com selo de status |
-| 11 A+ compositor | 🟡 EM IMPLEMENTAÇÃO (2026-07-10; portão aberto — ver "Fechamento da fase 10") | `fase11_a_mais_compositor/` — 4 docs preenchidos no gabarito |
-| 12 B1.5 realizador | 🟢 detalhada (decisões fechadas em 2026-07-09; implementação pendente) | `fase12_b1_5_realizador/` — 6 docs preenchidos no gabarito |
+| 11 A+ compositor | 🟢 IMPLEMENTADA (2026-07-10 — `src/core/compositor/`, compor() determinístico + golden; PR da fase 11) | `fase11_a_mais_compositor/` — 4 docs com selo de status |
+| 12 B1.5 realizador | ⚪ próxima — primeiras entregas: as 3 pendências herdadas da fase 10 (ver "Fechamento da fase 10") | `fase12_b1_5_realizador/` — 6 docs preenchidos no gabarito |
 | 13 Integração & modularização | 🟢 detalhada (decisões fechadas em 2026-07-09; implementação pendente) | `fase13_integracao_modularizacao/` — 4 docs preenchidos no gabarito |
 | 14 Aposentar banco de frases | 🟢 detalhada (execução condicionada ao gatilho triplo do 14-01) | `fase14_aposentar_banco_de_frases/` — 3 docs preenchidos no gabarito |
 

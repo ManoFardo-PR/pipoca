@@ -1,5 +1,7 @@
 # fase11 · 11-00 · Contrato do Pacote de Composição
 
+> ✅ **STATUS · 2026-07-10 · IMPLEMENTADA** — contrato vivo em `src/core/compositor/pacote.ts` (grafia idêntica ao doc); exemplo congelado como golden em `src/core/fixtures/pacote_golden_v1.json` (gerado pelo compor real, conferido à mão contra este doc). Suíte: 48 asserts verdes. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase11-11-00`
 - nó(s) da arquitetura: —

@@ -1,0 +1,50 @@
+{
+  "esquema": "pipoca.pacote-composicao.v1",
+  "cenario": {
+    "id": "quintal_anoitecer",
+    "descricao": "um quintal de casa ao cair da noite: muro baixo, grama, uma árvore e a primeira estrela",
+    "voz_do_contador": "o quintal fala baixinho, como quem sussurra segredos só pra ela",
+    "sensacao_no_personagem": "o friozinho bom de estar acordada na hora em que o quintal acorda"
+  },
+  "personagem": {
+    "nome": "Joana",
+    "genero": "f"
+  },
+  "nivel": "n2",
+  "beats": [
+    {
+      "objeto": "vagalume",
+      "papel": "abertura",
+      "descricao": "um vaga-lume que acende e apaga",
+      "corpo": "os olhos seguem a pisca; chegar perto na ponta dos pés",
+      "relacoes": [
+        {
+          "alvo": "frasco",
+          "interacao": "a faísca entra no pote e vira uma lanterninha só dela"
+        }
+      ]
+    },
+    {
+      "objeto": "frasco",
+      "papel": "miolo",
+      "descricao": "um pote de vidro limpinho, que deixa ver o que mora dentro",
+      "corpo": "segurar o pote com as duas mãos; espiar através do vidro",
+      "relacoes": []
+    },
+    {
+      "objeto": "vento",
+      "papel": "fecho",
+      "descricao": "um vento fresco que passa e mexe em tudo de leve",
+      "corpo": "a pele dos braços arrepia; o cabelo mexe",
+      "relacoes": []
+    }
+  ],
+  "eco": {
+    "abre_com": "vagalume",
+    "fecha_com": "vento"
+  },
+  "restricoes": {
+    "paragrafos": 2,
+    "palavras_max_por_paragrafo": 40
+  }
+}

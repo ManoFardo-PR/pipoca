@@ -1,5 +1,7 @@
 # fase11 · 11-03 · Testes de determinismo do Pacote
 
+> ✅ **STATUS · 2026-07-10 · IMPLEMENTADA** — `src/core/compositor/compositor.test.ts` (48 asserts, os 6 blocos obrigatórios); golden congelado em `src/core/fixtures/pacote_golden_v1.json` (política "nunca regenerar para passar" comentada no teste); suíte encadeada no script `test` do package.json. Cadeia completa verde. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase11-11-03`
 - nó(s) da arquitetura: —

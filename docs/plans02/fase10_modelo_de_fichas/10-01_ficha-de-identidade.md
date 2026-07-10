@@ -1,5 +1,7 @@
 # fase10 · 10-01 · Ficha de identidade (objeto: o que é)
 
+> ✅ **STATUS · 2026-07-10 · IMPLEMENTADA** — identidades dos 7 objetos em `docs/fichas/objetos.v1.json` (`descricao` nos 4 níveis); tipos em `src/core/fichas/tipos.ts`; lint verde. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase10-10-01`
 - nó(s) da arquitetura: —

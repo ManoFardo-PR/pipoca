@@ -1,5 +1,7 @@
 # fase10 · 10-00 · Contrato do schema de fichas
 
+> ✅ **STATUS · 2026-07-10 · IMPLEMENTADA** — contrato `pipoca.fichas.v1` vivo em `src/core/fichas/tipos.ts`; catálogos em `docs/fichas/` (cenarios/objetos/relacoes.quintal `.v1.json`); coberto por `src/core/fichas/fichas.test.ts`. Validação em escala: ver selo do [[fase10-10-04]]. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase10-10-00`
 - nó(s) da arquitetura: —

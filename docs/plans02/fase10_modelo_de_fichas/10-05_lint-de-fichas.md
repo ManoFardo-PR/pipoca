@@ -1,5 +1,7 @@
 # fase10 · 10-05 · Lint de fichas
 
+> ✅ **STATUS · 2026-07-10 · IMPLEMENTADA** — `lint_fichas` em `src/core/fichas/lint_fichas.ts` (0 erros · 4 avisos A1 nos catálogos vivos); coberto por `src/core/fichas/fichas.test.ts`. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase10-10-05`
 - nó(s) da arquitetura: —

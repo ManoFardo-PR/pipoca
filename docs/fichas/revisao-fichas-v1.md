@@ -264,3 +264,5 @@ O campo `sensacao_no_personagem` em si é NOVO (D-11.2 — o v3 não tinha essa 
 - **Não migrou (por contrato):** ecos (13 fragmentos, :65-189 — arranjo do compositor, fase 11) · temperas `pos:*` (4 — viraram matéria das manifestações) · moldura abertura/desfecho/conectivos (fase 11/realizador).
 
 > Gate desta etapa: `lint_fichas` = **0 erros** · 4 avisos A1 (tabela no topo) · suíte completa verde.
+
+> **Fase 10 encerrada em 2026-07-10** — validação em escala executada (PR #21 mesclado); pendências de calibração herdadas pela fase 12 (ver `docs/plans02/TRILHA-plans02.md`, "Fechamento da fase 10").

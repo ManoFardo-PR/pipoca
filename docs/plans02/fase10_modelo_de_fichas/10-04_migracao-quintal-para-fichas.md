@@ -1,5 +1,7 @@
 # fase10 · 10-04 · Migração do quintal (frases → fichas)
 
+> 🟢 **STATUS · 2026-07-10 · IMPLEMENTADA COM PENDÊNCIAS HERDADAS** — mineração ✅ (168 células, `docs/fichas/revisao-fichas-v1.md`) · validação em escala executada ✅ (291 casos, fidelidade 93% em regime fidelidade-pura — PR #21) · calibração de comprimento + few-shot + veredito de voz ⏳ → fase 12 ([[fase12-12-01]], [[fase12-12-05]]). Detalhe das 3 pendências: TRILHA-plans02, "Fechamento da fase 10". Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase10-10-04`
 - nó(s) da arquitetura: —

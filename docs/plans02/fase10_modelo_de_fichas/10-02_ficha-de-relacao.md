@@ -1,5 +1,7 @@
 # fase10 · 10-02 · Ficha de relação (objeto × objeto / objeto × cenário)
 
+> ✅ **STATUS · 2026-07-10 · IMPLEMENTADA** — relações em `docs/fichas/relacoes.quintal.v1.json` (campo `alvo` explícito — D4; seleção D5 exercitada na validação em escala); tipos em `src/core/fichas/tipos.ts`. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase10-10-02`
 - nó(s) da arquitetura: —

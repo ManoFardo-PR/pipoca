@@ -1,5 +1,11 @@
 # Experimento · Fichas → Histórias (validação em escala da fase 10)
 
+> ✅ **STATUS · 2026-07-10 · EXECUTADO** — validação em escala executada (291 casos, 3
+> temperaturas; artefatos em `saida/avaliacao/`; PR #21 mesclado — fidelidade 93% em regime
+> fidelidade-pura). Ciclo 1 de calibração aplicado (orçamento proporcional ao material +
+> tempo presente); ciclo 2 (tabela canônica de comprimento + few-shot + veredito de voz)
+> herdado pela fase 12 — ver `docs/plans02/TRILHA-plans02.md`, "Fechamento da fase 10".
+
 > **O portão do `docs/plans02/fase10_modelo_de_fichas/10-04`**: o LLM realiza
 > histórias a partir das FICHAS (`docs/fichas/*.v1.json`) — não mais dos beats
 > do motor — e a Camada 1 determinística mede fidelidade/gênero/nível. A fase 11

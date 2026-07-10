@@ -15,7 +15,43 @@ export type Transporte = (
 ) => Promise<RespostaTransporte>;
 
 export function transportePadrao(): Transporte {
+  // No ambiente remoto (Claude Code Web) o egress passa por um proxy que
+  // re-termina TLS; o fetch do Bun fecha o socket no handshake mesmo com
+  // `tls.ca` explícito, enquanto o curl (CURL_CA_BUNDLE/https_proxy já
+  // configurados pelo ambiente) atravessa. Fora do ambiente remoto, fetch.
+  if (process.env["CCR_AGENT_PROXY_ENABLED"] === "1") return transporteCurl();
   return (url, init) => fetch(url, init) as unknown as Promise<RespostaTransporte>;
+}
+
+export function transporteCurl(): Transporte {
+  return async (url, init) => {
+    const args = ["curl", "-sS", "--max-time", "180", "-X", init.method, "-w", "%{stderr}%{http_code}", url];
+    for (const [nome, valor] of Object.entries(init.headers)) args.push("-H", `${nome}: ${valor}`);
+    if (init.body !== undefined) args.push("--data-binary", "@-");
+    const proc = Bun.spawn(args, {
+      stdin: init.body !== undefined ? new TextEncoder().encode(init.body) : undefined,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const [corpo, stderr, codigo] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ]);
+    if (codigo !== 0) throw new Error(`curl saiu com ${codigo}: ${stderr.trim().slice(0, 200)}`);
+    const m = /(\d{3})\s*$/.exec(stderr);
+    if (!m) throw new Error(`curl sem status na saída: ${stderr.trim().slice(0, 200)}`);
+    return {
+      status: Number(m[1]),
+      json: async () => {
+        try {
+          return JSON.parse(corpo) as unknown;
+        } catch {
+          return {};
+        }
+      },
+    };
+  };
 }
 
 // Dialeto OpenAPI 3.0 do Gemini — sem additionalProperties (rejeita com 400).

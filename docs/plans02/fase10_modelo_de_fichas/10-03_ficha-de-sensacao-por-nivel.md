@@ -1,5 +1,7 @@
 # fase10 · 10-03 · Ficha de sensação (corpo, por nível de leitura)
 
+> ✅ **STATUS · 2026-07-10 · IMPLEMENTADA** — bloco `sensacao` (`dominante`/`registro`/`corpo` por nível) nas fichas de `docs/fichas/objetos.v1.json`; `sensacao_no_personagem` no cenário (`docs/fichas/cenarios.v1.json`). Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase10-10-03`
 - nó(s) da arquitetura: —

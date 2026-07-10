@@ -1,5 +1,7 @@
 # fase11 · 11-02 · Gramática de decisão reaproveitada (posição · tem · depois_de · ecos · rotação)
 
+> ✅ **STATUS · 2026-07-10 · IMPLEMENTADA** — `src/core/compositor/gramatica.ts`: semântica reimplementada idêntica ao v3 (não importada), seleção D5 (especificidade + ordem + teto 2 por Pacote) e derivação de `eco` (aberto/convergente). Cobertura nos blocos 3 e 6 da suíte (48 asserts verdes). Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase11-11-02`
 - nó(s) da arquitetura: —

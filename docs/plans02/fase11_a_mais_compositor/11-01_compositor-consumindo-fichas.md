@@ -1,5 +1,7 @@
 # fase11 · 11-01 · Compositor consumindo fichas
 
+> ✅ **STATUS · 2026-07-10 · IMPLEMENTADA** — `src/core/compositor/compor.ts`: pura, determinística, zero rng; falha explícita (objeto/nível/cenário/esquema); tipo do estado = `EstadoCompositor` próprio mínimo (decisão do passo 1 registrada em pacote.ts e no PR da fase 11). Suíte: 48 asserts verdes. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase11-11-01`
 - nó(s) da arquitetura: —

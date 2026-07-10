@@ -36,7 +36,8 @@ Nenhum arquivo de dados novo: o Pacote é estrutura trafegada entre compositor e
 ```jsonc
 {
   "esquema": "pipoca.pacote-composicao.v1",
-  "cenario":    { "id": "quintal_anoitecer", "descricao": "…", "voz_do_contador": "…" },
+  "cenario":    { "id": "quintal_anoitecer", "descricao": "…", "voz_do_contador": "…",
+                  "sensacao_no_personagem": "…" },          // RESOLVIDA no nível (D-11.2)
   "personagem": { "nome": "…", "genero": "m|f" },          // vem do perfil (cadastro), nunca de ficha
   "nivel": "n1|n2|n3|n4",
   "beats": [                                                // ordem = ordem da linha da criança
@@ -60,7 +61,7 @@ Campos:
 | campo | tipo | obrigatório | nota |
 |---|---|---|---|
 | `esquema` | string fixa | sim | `pipoca.pacote-composicao.v1` |
-| `cenario.id` / `cenario.descricao` / `cenario.voz_do_contador` | string | sim | da ficha de cenário; `descricao` é string única (D3) |
+| `cenario.id` / `cenario.descricao` / `cenario.voz_do_contador` / `cenario.sensacao_no_personagem` | string | sim | da ficha de cenário; `descricao` é string única (D3); `sensacao_no_personagem` chega RESOLVIDA no nível (D-11.2) |
 | `personagem.nome` / `personagem.genero` | string / `"m"`\|`"f"` | sim | do perfil — invariante de [[fase10-10-00]] |
 | `nivel` | `NivelKey` | sim | nível de leitura do perfil |
 | `beats[]` | lista, mínimo 1 | sim | ordem ≡ ordem da linha; nunca reordenar |
@@ -91,7 +92,8 @@ Tradução do exemplo validado na prova de conceito. Células do **vagalume** = 
   "cenario": {
     "id": "quintal_anoitecer",
     "descricao": "um quintal de casa ao cair da noite: muro baixo, grama, uma árvore e a primeira estrela",
-    "voz_do_contador": "o quintal fala baixinho, como quem sussurra segredos só pra ela"
+    "voz_do_contador": "o quintal fala baixinho, como quem sussurra segredos só pra ela",
+    "sensacao_no_personagem": "o friozinho bom de estar acordada na hora em que o quintal acorda"
   },
   "personagem": { "nome": "Joana", "genero": "f" },
   "nivel": "n2",
@@ -125,9 +127,9 @@ Tradução do exemplo validado na prova de conceito. Células do **vagalume** = 
 }
 ```
 
-**DECISÃO ABERTA:** as 3 leis editoriais (corpo como centro; cenário como contador; desejo plantado/colhido) entram no Pacote como instrução textual fixa, ou vivem no prompt-template do realizador (fase 12, esqueleto)? O shape acima NÃO as carrega.
+**Decisão fixada (2026-07-09):** as 3 leis editoriais (corpo como centro; cenário como contador; desejo plantado/colhido) **NÃO entram no Pacote** — vivem no prompt-template do realizador ([[fase12-12-01]]). As leis são instruções de COMO redigir (método, não matéria); colocá-las no Pacote sujaria a fronteira (o compositor passaria a "saber" de regras de redação) e repetiria texto de instrução em todo Pacote. Ver o princípio matéria/método nas Regras de negócio.
 
-**DECISÃO ABERTA:** o bloco `cenario` do Pacote inclui a `sensacao_no_personagem` da ficha de cenário? O shape-base não a traz — sem ela o realizador não recebe a sensação que o lugar provoca (Lei 2 sensorial), só a voz do contador.
+**Decisão fixada (2026-07-09):** o bloco `cenario` **INCLUI `sensacao_no_personagem`** — a Lei 2 na dimensão sensorial (o que o lugar faz o personagem sentir) é MATÉRIA factual sobre o cenário, não método. No Pacote entra como string já RESOLVIDA no nível (na ficha de cenário o campo é por nível — [[fase10-10-00]]); sem ela o realizador teria a voz do contador mas não a sensação do lugar, e a base empírica da fase 10 mostrou que sensação corporal explícita é o que expulsa o clichê contemplativo.
 
 ## Regras de negócio
 1. **Autossuficiência:** o Pacote basta ao realizador — quem o recebe não precisa de acesso a fichas, grafo ou gramática (fronteira entre módulos).
@@ -137,6 +139,7 @@ Tradução do exemplo validado na prova de conceito. Células do **vagalume** = 
 5. **Ordem sagrada:** `beats` na ordem da linha da criança; o contrato proíbe reordenação em qualquer ponto a jusante.
 6. **Versionamento `.vN`:** esquema publicado nunca é mutado; evolução = `pipoca.pacote-composicao.v2` (invariante da casa, como em [[fase10-10-00]]).
 7. **Personagem do perfil:** `personagem` vem do cadastro; nenhum campo de personagem em ficha.
+8. **Matéria vs método (princípio, fixado em 2026-07-09):** o Pacote carrega MATÉRIA (fatos e sensações); o prompt-template do realizador carrega MÉTODO (as regras de como escrever). Toda dúvida de fronteira se resolve por este princípio — foi ele que fixou as duas decisões deste doc (leis editoriais fora do Pacote; `sensacao_no_personagem` dentro).
 
 ## Passos de implementação
 Ordem para quando a implementação começar (este doc só planeja):
@@ -155,9 +158,9 @@ Ordem para quando a implementação começar (este doc só planeja):
 - [ ] Tabela de `restricoes` por nível registrada como semente calibrável (portão do 10-04).
 - [ ] Exemplo REAL completo embutido (linha vagalume→frasco→vento, n2), com células canônicas e ilustrativas marcadas.
 - [ ] Regras D4/D5 da fase 10 aplicadas e visíveis no shape.
-- [ ] DECISÕES ABERTAS registradas (2 neste doc).
+- [ ] Decisões fixadas em 2026-07-09 registradas: leis editoriais fora do Pacote (método, no prompt-template — [[fase12-12-01]]); `sensacao_no_personagem` dentro do bloco `cenario` (matéria, resolvida no nível).
 
 ## Relações com outros docs
 - Depende de: `[[fase10-10-00]]`, `[[fase10-10-01]]`, `[[fase10-10-02]]`, `[[fase10-10-03]]`
-- É consumido por: `[[fase11-11-01]]`, `[[fase11-11-02]]`, `[[fase11-11-03]]` (e pela fase 12 — o realizador — quando for detalhada)
+- É consumido por: `[[fase11-11-01]]`, `[[fase11-11-02]]`, `[[fase11-11-03]]`, `[[fase12-12-00]]`, `[[fase12-12-01]]` (o realizador)
 - Reconcilia / conserta: —

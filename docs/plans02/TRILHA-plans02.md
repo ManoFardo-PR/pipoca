@@ -9,12 +9,14 @@
 | Fase | Status | Onde |
 |------|--------|------|
 | 10 Modelo de fichas | 🟢 detalhada (implementação pendente; portão = validação em escala do 10-04) | `fase10_modelo_de_fichas/` — 6 docs preenchidos no gabarito |
-| 11 A+ compositor | 🟢 detalhada (implementação pendente) | `fase11_a_mais_compositor/` — 4 docs preenchidos no gabarito |
-| 12 B1.5 realizador | ⚪ esqueleto | `fase12_b1_5_realizador/` — 6 docs só-H1 |
+| 11 A+ compositor | 🟢 detalhada (decisões fechadas em 2026-07-09; implementação pendente) | `fase11_a_mais_compositor/` — 4 docs preenchidos no gabarito |
+| 12 B1.5 realizador | 🟢 detalhada (implementação pendente) | `fase12_b1_5_realizador/` — 6 docs preenchidos no gabarito |
 | 13 Integração & modularização | ⚪ esqueleto | `fase13_integracao_modularizacao/` — 4 docs só-H1 |
 | 14 Aposentar banco de frases | ⚪ esqueleto | `fase14_aposentar_banco_de_frases/` — 3 docs só-H1 |
 
 Nota: as decisões abertas da fase 10 foram **fechadas em 2026-07-09** — registradas nos próprios docs como "Decisão fixada" (caminhos/esquema; cenário×personagem na ficha de cenário; descrição de cenário string única; campo alvo no contrato; teto de 2 relações por Pacote; lista A1 + regra de dígrafo).
+
+Nota: as decisões abertas da fase 11 foram **fechadas em 2026-07-09** sob o princípio **Pacote = matéria · prompt-template = método**: as 3 leis editoriais vivem no prompt-template do realizador (não no Pacote); o bloco de cenário do Pacote inclui a sensação do lugar no personagem, resolvida no nível.
 
 ## Nota de sequência (portão da fase 11)
 

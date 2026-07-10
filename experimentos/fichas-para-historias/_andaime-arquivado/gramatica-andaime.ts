@@ -7,8 +7,8 @@
  * Semântica espelhada de src/core/composicao.ts:200-231 (verificada).
  */
 
-import type { FichaRelacao } from "../../src/core/fichas/tipos.js";
-import type { RelacaoAtiva } from "./tipos.js";
+import type { FichaRelacao } from "../../../src/core/fichas/tipos.js";
+import type { RelacaoAtiva } from "../tipos.js";
 
 export function avaliarCondicao(cond: string, objId: string, linha: string[]): boolean {
   const c = String(cond || "");

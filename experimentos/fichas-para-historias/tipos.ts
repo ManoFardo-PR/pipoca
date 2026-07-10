@@ -78,6 +78,44 @@ export interface VereditoCamada1Fichas {
   presencaPorBeat: Record<string, boolean>;
 }
 
+// ---------- Ciclo 2 (fase 12): o experimento consome compor() + realizar() reais ----------
+
+/** Resposta da realização real (ciclo 2) — origem/veredito vêm do realizador. */
+export interface RespostaRealizacao {
+  estadoId: string;
+  /** true = houve texto (mesmo que o veredito seja FAIL); false = falha de provedor. */
+  ok: boolean;
+  texto?: string;
+  erro?: string;
+  modelo: string;
+  temperatura: number;
+  /** Chamadas de LLM feitas pela cascata nesta realização. */
+  chamadas: number;
+  duracaoMs: number;
+  tokens?: { entrada: number; saida: number };
+}
+
+export interface RegistroRealizacao {
+  estado: EstadoExperimento;
+  pacote: {
+    /** Máximo canônico de palavras (tabela da herança 1, nível×rodada derivada). */
+    maximoPalavras: number;
+    paragrafos: number;
+    relacoes: Array<{ objeto: string; alvo: string }>;
+  };
+  resposta: RespostaRealizacao;
+  /** Veredito do validador de produção (12-03); ausente em falha de provedor. */
+  veredito?: VereditoCamada1Fichas;
+  origem?: { fonte: "llm" | "fallback-a-mais"; provedor?: string; modelo?: string };
+}
+
+export interface ArquivoLoteRealizacao {
+  lote: number;
+  temperatura: number;
+  tamanho: number;
+  registros: RegistroRealizacao[];
+}
+
 export interface CelulaGrade {
   rodada: number;
   nivel: NivelKey;

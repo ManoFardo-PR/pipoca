@@ -1,4 +1,4 @@
 # Respostas brutas dos lotes novos não precisam ser versionadas (PD2 usa os
 # artefatos de saida/avaliacao/). Não afeta _pre-recalibracao/ (já tracked,
 # evidência do artefato da C-1) nem _micro/ nem saida/avaliacao/.
-saida/geracao/*.json
+

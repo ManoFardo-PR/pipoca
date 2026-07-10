@@ -1,0 +1,195 @@
+{
+  "lote": 0,
+  "temperatura": 0.4,
+  "tamanho": 4,
+  "registros": [
+    {
+      "estado": {
+        "id": "r1-n1-f-p01",
+        "seed": 1728827461,
+        "rodada": 1,
+        "nivel": "n1",
+        "genero": "f",
+        "personagem": "Joana",
+        "linha": [
+          "folha",
+          "vagalume",
+          "vento"
+        ],
+        "temperatura": 0.4
+      },
+      "material": {
+        "palavrasMaterial": 103,
+        "alvoPalavras": 46,
+        "paragrafosAlvo": [
+          1,
+          1
+        ],
+        "palavrasPorParagrafo": 25,
+        "relacoes": []
+      },
+      "resposta": {
+        "estadoId": "r1-n1-f-p01",
+        "ok": true,
+        "texto": "O quintal sussurra segredos. Joana vem ver. A grama fria no pé. Uma folha cai do galho, desce rodando. O dedo de Joana segue no ar. Uma luz pisca no fundo. Os olhos de Joana seguem a pisca. O vento pula o muro, um fresco passa. A pele de Joana sente o fresco. O quintal conta tudo.",
+        "modelo": "gemini-2.5-flash",
+        "temperatura": 0.4,
+        "tentativas": 1,
+        "duracaoMs": 12997,
+        "tokens": {
+          "entrada": 503,
+          "saida": 98
+        }
+      }
+    },
+    {
+      "estado": {
+        "id": "r1-n1-f-p03",
+        "seed": 1695272223,
+        "rodada": 1,
+        "nivel": "n1",
+        "genero": "f",
+        "personagem": "Joana",
+        "linha": [
+          "frasco",
+          "vento",
+          "folha"
+        ],
+        "temperatura": 0.4
+      },
+      "material": {
+        "palavrasMaterial": 114,
+        "alvoPalavras": 51,
+        "paragrafosAlvo": [
+          1,
+          1
+        ],
+        "palavrasPorParagrafo": 25,
+        "relacoes": [
+          {
+            "objeto": "vento",
+            "alvo": "folha",
+            "se": [
+              "tem:folha",
+              "antes_de:folha"
+            ]
+          }
+        ]
+      },
+      "resposta": {
+        "estadoId": "r1-n1-f-p03",
+        "ok": true,
+        "texto": "O quintal sussurra segredos. Joana sente a grama fria no pé. Ela quer saber. Joana segura o pote frio com as duas mãos. O vento pula o muro. Sua pele sente o fresco. O vento sacode o galho; algo se solta. Uma folha cai, desce rodando. O dedo de Joana segue no ar. O quintal contou.",
+        "modelo": "gemini-2.5-flash",
+        "temperatura": 0.4,
+        "tentativas": 1,
+        "duracaoMs": 7724,
+        "tokens": {
+          "entrada": 526,
+          "saida": 95
+        }
+      }
+    },
+    {
+      "estado": {
+        "id": "r1-n1-m-p02",
+        "seed": 2747629789,
+        "rodada": 1,
+        "nivel": "n1",
+        "genero": "m",
+        "personagem": "Pietro",
+        "linha": [
+          "folha",
+          "frasco",
+          "vagalume"
+        ],
+        "temperatura": 0.4
+      },
+      "material": {
+        "palavrasMaterial": 117,
+        "alvoPalavras": 53,
+        "paragrafosAlvo": [
+          1,
+          1
+        ],
+        "palavrasPorParagrafo": 25,
+        "relacoes": [
+          {
+            "objeto": "vagalume",
+            "alvo": "frasco",
+            "se": [
+              "tem:frasco",
+              "depois_de:frasco"
+            ]
+          },
+          {
+            "objeto": "frasco",
+            "alvo": "vagalume",
+            "se": [
+              "tem:vagalume",
+              "antes_de:vagalume"
+            ]
+          }
+        ]
+      },
+      "resposta": {
+        "estadoId": "r1-n1-m-p02",
+        "ok": true,
+        "texto": "O quintal sussurra seus segredos, um por um. Pietro sente a grama fria no pé. Uma folha desce rodando, o dedo de Pietro segue no ar. Ele segura o pote de vidro, liso e frio, com as duas mãos. O pote vazio espera. Uma luzinha pisca no fundo. Os olhos de Pietro seguem a pisca. A faísca acha o pote, entra. O quintal contou seu segredo.",
+        "modelo": "gemini-2.5-flash",
+        "temperatura": 0.4,
+        "tentativas": 1,
+        "duracaoMs": 7116,
+        "tokens": {
+          "entrada": 544,
+          "saida": 109
+        }
+      }
+    },
+    {
+      "estado": {
+        "id": "r1-n1-m-p04",
+        "seed": 2646964075,
+        "rodada": 1,
+        "nivel": "n1",
+        "genero": "m",
+        "personagem": "Pietro",
+        "linha": [
+          "vagalume",
+          "vento",
+          "frasco"
+        ],
+        "temperatura": 0.4
+      },
+      "material": {
+        "palavrasMaterial": 114,
+        "alvoPalavras": 51,
+        "paragrafosAlvo": [
+          1,
+          1
+        ],
+        "palavrasPorParagrafo": 25,
+        "relacoes": [
+          {
+            "objeto": "vagalume",
+            "alvo": "frasco",
+            "se": "tem:frasco"
+          }
+        ]
+      },
+      "resposta": {
+        "estadoId": "r1-n1-m-p04",
+        "ok": true,
+        "texto": "O quintal fala baixinho, sussurra segredos. A grama fria no pé. Pietro vê uma luz no fundo do quintal, uma luzinha que pisca. Os olhos seguem a pisca. A faísca está no pote, uma lanterninha na mão. O vento pula o muro, um vento fresco que passa. A pele sente o fresco. Pietro segura o pote de vidro, frio e liso, com as duas mãos.",
+        "modelo": "gemini-2.5-flash",
+        "temperatura": 0.4,
+        "tentativas": 1,
+        "duracaoMs": 10296,
+        "tokens": {
+          "entrada": 525,
+          "saida": 106
+        }
+      }
+    }
+  ]
+}

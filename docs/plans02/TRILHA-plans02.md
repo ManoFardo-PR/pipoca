@@ -32,3 +32,13 @@ A validação em escala do modelo de fichas (experimento existente adaptado para
 ocorrer ao fim da fase 10, **ANTES** de comprometer a fase 11. O critério vive em
 [[fase10-10-04]] (Critérios de aceitação / verificação — validação em escala com Camada 1,
 juiz e leitura em voz alta do Manoel).
+
+## Validação em escala recalibrada (2026-07-10)
+
+Validação em escala (recalibrada) executada em 2026-07-10; artefatos no PR #21;
+aguardando veredito da 🛑 Parada Dura 2 (leitura em voz alta do autor, incluindo o
+CRITÉRIO do [[fase12-12-05]] — n1: realizador ou A+ cru). A recalibração (orçamento de
+palavras proporcional ao material + tempo presente) corrigiu o telegrama do n1; a grade
+nova (22/291 PASS na Camada 1) aponta a próxima calibração para o fator 0,45 vs a
+instrução branda de alvo e para o gate de ritmo n1 — decisão do autor no portão
+[[fase10-10-04]].

@@ -76,3 +76,37 @@ export const PALAVRAS_POR_PARAGRAFO: Record<string, number> = {
   n3: 55,
   n4: 70,
 };
+
+/**
+ * Orçamento de palavras PROPORCIONAL ao material (C-1 da recalibração).
+ * O alvo fixo por célula estrangulava o realizador (R1-n1: ~110 palavras de
+ * material contra 1×25 ⇒ compressão 4–5× ⇒ telegrama). Tabela-SEMENTE,
+ * calibrável após a leitura da Parada Dura 2.
+ */
+export const FATOR_MATERIAL = 0.45;
+
+/** Piso de palavras por nível (tabela-semente calibrável). */
+export const PISO_PALAVRAS: Record<string, number> = {
+  n1: 35,
+  n2: 50,
+  n3: 65,
+  n4: 80,
+};
+
+/** Teto de palavras por nível × rodada — índices 0..3 = R1..R4 (tabela-semente calibrável). */
+export const TETO_PALAVRAS: Record<string, [number, number, number, number]> = {
+  n1: [60, 75, 90, 110],
+  n2: [80, 100, 120, 145],
+  n3: [100, 125, 150, 180],
+  n4: [120, 150, 185, 220],
+};
+
+/** alvo = clamp(round(material × FATOR_MATERIAL), piso[nivel], teto[nivel][rodada]). */
+export function alvoPalavras(palavrasMaterial: number, nivel: string, rodada: 1 | 2 | 3 | 4): number {
+  const piso = PISO_PALAVRAS[nivel];
+  const tetos = TETO_PALAVRAS[nivel];
+  if (piso === undefined || !tetos) throw new Error(`nível sem orçamento de palavras: ${nivel}`);
+  const teto = tetos[rodada - 1];
+  const proporcional = Math.round(palavrasMaterial * FATOR_MATERIAL);
+  return Math.min(Math.max(proporcional, piso), teto);
+}

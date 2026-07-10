@@ -12,7 +12,17 @@ import type { EstadoExperimento, VereditoCamada1Fichas } from "../tipos.js";
 
 const LIMIAR_PONTOS_FINAIS_N1 = 12;
 const LIMIAR_MEDIA_FRASES_POR_BEAT_N1 = 2;
+// Tolerância sobre o ALVO calculado (C-1/C-3 da recalibração): o texto pode
+// passar até 25% do alvoPalavras registrado na geração — não mais sobre o
+// material bruto, que estrangulava as células de material grande.
 const TETO_CRESCIMENTO = 0.25;
+
+// AVISO (não gate) de tempo verbal (C-3): sufixos comuns de pretérito
+// perfeito/imperfeito. Limiar-semente calibrável; stop-list mínima para
+// presentes que terminam em "ou".
+const SUFIXOS_PRETERITO = /(ava|avam|iam|ou|aram)$/;
+const PRESENTES_EM_OU = new Set(["sou", "vou", "estou", "dou"]);
+const LIMIAR_MARCAS_PRETERITO = 2;
 
 // Termos-âncora por objeto (linhagem: termos-nucleo.ts:11-19 do experimento-beats;
 // origem futura possível: derivar das próprias fichas — registrado no 12-03).
@@ -79,6 +89,7 @@ function flexoesPredicativasOpostas(texto: string, genero: "f" | "m"): string[] 
 export function avaliarCamada1Fichas(
   estado: EstadoExperimento,
   palavrasMaterial: number,
+  alvoPalavras: number,
   paragrafosAlvo: [number, number],
   texto: string | undefined
 ): VereditoCamada1Fichas {
@@ -128,11 +139,15 @@ export function avaliarCamada1Fichas(
     motivos.push(`flexão predicativa do gênero oposto ("${flexao}")`);
   }
 
-  // 3. Teto de crescimento — base = material textual do prompt (fichas resolvidas)
+  // 3. Teto de crescimento — base = ALVO registrado na geração (C-3; era o
+  // material bruto antes da recalibração). Tolerância de +25% sobre o alvo.
   const palavrasTexto = contarPalavras(texto);
-  const razao = palavrasMaterial > 0 ? (palavrasTexto - palavrasMaterial) / palavrasMaterial : 0;
+  const base = alvoPalavras > 0 ? alvoPalavras : palavrasMaterial;
+  const razao = base > 0 ? (palavrasTexto - base) / base : 0;
   if (razao > TETO_CRESCIMENTO) {
-    motivos.push(`crescimento de ${Math.round(razao * 100)}% sobre o material (teto ${TETO_CRESCIMENTO * 100}%)`);
+    motivos.push(
+      `crescimento de ${Math.round(razao * 100)}% sobre o alvo de ${base} palavras (teto ${TETO_CRESCIMENTO * 100}%)`
+    );
   }
 
   // 4. Parágrafos (D-12.1: instrução ao LLM; desvio é AVISO para calibração)
@@ -142,7 +157,14 @@ export function avaliarCamada1Fichas(
     avisos.push(`parágrafos fora do alvo: ${paragrafos.length} (alvo ${minPar}–${maxPar})`);
   }
 
-  // 5. Ritmo n1 — GATE no runtime da geração 2 (12-03, evolução deliberada)
+  // 5. Tempo verbal — AVISO (C-3): o registro do produto é PRESENTE; marcas
+  // de pretérito acima do limiar entram no relatório para a leitura decidir.
+  const marcasPreterito = toks.filter((tk) => SUFIXOS_PRETERITO.test(tk) && !PRESENTES_EM_OU.has(tk)).length;
+  if (marcasPreterito >= LIMIAR_MARCAS_PRETERITO) {
+    avisos.push(`tempo passado: ${marcasPreterito} marcas de pretérito (limiar ${LIMIAR_MARCAS_PRETERITO})`);
+  }
+
+  // 6. Ritmo n1 — GATE no runtime da geração 2 (12-03, evolução deliberada)
   let ritmoN1: VereditoCamada1Fichas["ritmoN1"];
   if (estado.nivel === "n1") {
     const pontosFinais = (texto.match(/\./g) || []).length;

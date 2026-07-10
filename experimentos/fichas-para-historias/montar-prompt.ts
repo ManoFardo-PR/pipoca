@@ -16,6 +16,7 @@ import type {
 import type { EstadoExperimento, MaterialPrompt } from "./tipos.js";
 import {
   PALAVRAS_POR_PARAGRAFO,
+  alvoPalavras,
   derivarPapel,
   paragrafosPorRodada,
   selecionarRelacoes,
@@ -49,31 +50,9 @@ export function montarPromptFichas(estado: EstadoExperimento, catalogos: Catalog
 
   const relacoesAtivas = selecionarRelacoes(catalogos.relacoes.objeto_x_objeto, estado.linha);
 
-  // ---------- system (MÉTODO — as 3 leis vivem aqui, D-11.1) ----------
-  const paragrafosTxt = minPar === maxPar ? `${minPar} parágrafo(s)` : `${minPar} ou ${maxPar} parágrafos`;
-  const linhasSystem = [
-    "Escreva uma história infantil curta a partir do MATERIAL abaixo.",
-    `O corpo de ${estado.personagem} guia cada cena: use os gestos dados em CORPO, não invente emoções abstratas.`,
-    "O lugar é o contador: a voz do lugar abre e costura a história.",
-    "Plante a vontade na abertura; feche colhendo essa vontade no corpo.",
-    "NÃO invente acontecimentos, objetos, personagens ou falas.",
-    "NÃO remova nenhum elemento. NÃO mude a ordem dos elementos.",
-    `NÃO troque o nome (${estado.personagem}), o gênero (${artigoGenero}) ou a idade.`,
-    `Mantenha o vocabulário do nível ${nivel} (${DESCRICAO_NIVEL[nivel]}) — nem mais simples, nem mais difícil.`,
-  ];
-  if (nivel === "n1") {
-    linhasSystem.push(
-      "Nível n1: frases bem curtas, UMA sensação de corpo por elemento, poucos pontos finais — mas nunca texto picado sem ligação."
-    );
-  } else {
-    linhasSystem.push('Uma frase pode unir-se à outra com "e", "mas", "então", "depois". Menos pontos finais, sem frases picadas.');
-  }
-  linhasSystem.push(
-    `Escreva em ${paragrafosTxt} (separados por uma linha em branco). Máx. ${palavrasPar} palavras por parágrafo.`,
-    "Devolva só o texto final."
-  );
-
   // ---------- user (MATÉRIA — só células de ficha, resolvidas no nível) ----------
+  // Montado ANTES do system: o orçamento de palavras é proporcional ao
+  // material (C-1), então palavrasMaterial precisa existir primeiro.
   const materialTextos: string[] = [];
   const linhasUser: string[] = [];
   linhasUser.push(`LUGAR: ${cenario.descricao}`);
@@ -103,14 +82,41 @@ export function montarPromptFichas(estado: EstadoExperimento, catalogos: Catalog
     }
   });
 
-  const system = linhasSystem.join("\n");
   const user = linhasUser.join("\n");
   const palavrasMaterial = contarPalavras(materialTextos.join(" "));
+  const alvo = alvoPalavras(palavrasMaterial, nivel, estado.rodada);
+
+  // ---------- system (MÉTODO — as 3 leis vivem aqui, D-11.1) ----------
+  const paragrafosTxt = minPar === maxPar ? `${minPar} parágrafo(s)` : `${minPar} ou ${maxPar} parágrafos`;
+  const linhasSystem = [
+    "Escreva uma história infantil curta a partir do MATERIAL abaixo.",
+    `O corpo de ${estado.personagem} guia cada cena: use os gestos dados em CORPO, não invente emoções abstratas.`,
+    "O lugar é o contador: a voz do lugar abre e costura a história.",
+    "Plante a vontade na abertura; feche colhendo essa vontade no corpo.",
+    "NÃO invente acontecimentos, objetos, personagens ou falas.",
+    "NÃO remova nenhum elemento. NÃO mude a ordem dos elementos.",
+    `NÃO troque o nome (${estado.personagem}), o gênero (${artigoGenero}) ou a idade.`,
+    "Escreva no tempo PRESENTE (a história acontece agora), como nos exemplos do produto.",
+    `Mantenha o vocabulário do nível ${nivel} (${DESCRICAO_NIVEL[nivel]}) — nem mais simples, nem mais difícil.`,
+  ];
+  if (nivel === "n1") {
+    linhasSystem.push(
+      "Nível n1: frases bem curtas, UMA sensação de corpo por elemento, poucos pontos finais — mas nunca texto picado sem ligação."
+    );
+  } else {
+    linhasSystem.push('Uma frase pode unir-se à outra com "e", "mas", "então", "depois". Menos pontos finais, sem frases picadas.');
+  }
+  linhasSystem.push(
+    `Escreva em ${paragrafosTxt} (separados por uma linha em branco). Alvo: cerca de ${alvo} palavras no total.`,
+    "Devolva só o texto final."
+  );
+  const system = linhasSystem.join("\n");
 
   return {
     system,
     user,
     palavrasMaterial,
+    alvoPalavras: alvo,
     relacoesAtivas,
     paragrafosAlvo: [minPar, maxPar],
     palavrasPorParagrafo: palavrasPar,

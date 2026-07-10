@@ -75,11 +75,14 @@ export interface ResultadoGeracao {
   texto?: string;
   erro?: string;
   tentativas: number;
+  /** usageMetadata do Gemini, quando presente (monitoramento de custo). */
+  tokens?: { entrada: number; saida: number };
 }
 
 interface RespostaGeminiJson {
   promptFeedback?: { blockReason?: string };
   candidates?: Array<{ finishReason?: string; content?: { parts?: Array<{ text?: string }> } }>;
+  usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };
 }
 
 const MAX_TENTATIVAS = 2;
@@ -124,13 +127,18 @@ export async function gerarComGemini(system: string, user: string, opts: OpcoesG
     if (json.promptFeedback?.blockReason) {
       return { ok: false, erro: `bloqueio_seguranca:${json.promptFeedback.blockReason}`, tentativas };
     }
+    const uso = json.usageMetadata;
+    const tokens =
+      uso && typeof uso.promptTokenCount === "number" && typeof uso.candidatesTokenCount === "number"
+        ? { entrada: uso.promptTokenCount, saida: uso.candidatesTokenCount }
+        : undefined;
     const cand = Array.isArray(json.candidates) ? json.candidates[0] : undefined;
     if (cand?.finishReason === "SAFETY") return { ok: false, erro: "recusa_seguranca", tentativas };
     const textoJson = typeof cand?.content?.parts?.[0]?.text === "string" ? cand.content.parts[0].text : "";
     try {
       const parsed = textoJson ? (JSON.parse(textoJson) as Record<string, unknown>) : null;
       const texto = parsed ? parsed["texto_limpo"] : undefined;
-      if (typeof texto === "string" && texto.trim() !== "") return { ok: true, texto, tentativas };
+      if (typeof texto === "string" && texto.trim() !== "") return { ok: true, texto, tentativas, tokens };
     } catch {
       // JSON malformado — não é transiente
     }

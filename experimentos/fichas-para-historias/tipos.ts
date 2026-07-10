@@ -28,11 +28,13 @@ export interface RelacaoAtiva {
 export interface MaterialPrompt {
   system: string;
   user: string;
-  /** Base do teto de crescimento: palavras do material textual injetado no prompt. */
+  /** Palavras do material textual injetado no prompt (base do orçamento C-1). */
   palavrasMaterial: number;
+  /** Orçamento proporcional: clamp(material×0.45, piso[nivel], teto[nivel][rodada]) — C-1. */
+  alvoPalavras: number;
   relacoesAtivas: RelacaoAtiva[];
   paragrafosAlvo: [number, number]; // [min, max] por rodada (D-12.1)
-  palavrasPorParagrafo: number; // por nível (11-00)
+  palavrasPorParagrafo: number; // por nível (11-00) — mantido para transparência histórica
 }
 
 export interface RespostaGeracao {
@@ -44,12 +46,16 @@ export interface RespostaGeracao {
   temperatura: number;
   tentativas: number;
   duracaoMs: number;
+  /** usageMetadata do Gemini, quando presente (monitoramento de custo). */
+  tokens?: { entrada: number; saida: number };
 }
 
 export interface RegistroGeracao {
   estado: EstadoExperimento;
   material: {
     palavrasMaterial: number;
+    /** Orçamento proporcional calculado no momento da geração (C-1). */
+    alvoPalavras: number;
     paragrafosAlvo: [number, number];
     palavrasPorParagrafo: number;
     relacoes: Array<{ objeto: string; alvo: string; se: string | string[] }>;

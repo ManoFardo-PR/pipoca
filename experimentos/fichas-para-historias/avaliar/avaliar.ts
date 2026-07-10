@@ -30,6 +30,8 @@ async function main(): Promise<void> {
 
   let nomes: string[] = [];
   try {
+    // readdir NÃO recursivo por design: subpastas (_pre-recalibracao/, _micro/)
+    // não terminam em .json e ficam fora da grade (C-4 da recalibração).
     nomes = (await readdir(dirGeracao)).filter((f) => f.endsWith(".json")).sort();
   } catch {
     console.error("Nada em saida/geracao/ — rode o gerador primeiro.");
@@ -45,6 +47,7 @@ async function main(): Promise<void> {
         ? avaliarCamada1Fichas(
             registro.estado,
             registro.material.palavrasMaterial,
+            registro.material.alvoPalavras ?? 0,
             registro.material.paragrafosAlvo,
             registro.resposta.texto
           )
@@ -171,7 +174,52 @@ async function main(): Promise<void> {
     "utf8"
   );
 
-  console.log(`Artefatos da Parada Dura 2 em saida/avaliacao/: grade.json · para-leitura.md · reprovados.md`);
+  // ---------- consolidado.md (monitoramento: chamadas, erros, duração, tokens, custo) ----------
+  // Preços-SEMENTE do gemini-2.5-flash (USD por 1M tokens) — calibráveis.
+  const PRECO_ENTRADA_USD_1M = 0.3;
+  const PRECO_SAIDA_USD_1M = 2.5;
+  const porTemperatura = new Map<number, RegistroGeracao[]>();
+  for (const a of avaliados) {
+    const t = a.registro.resposta.temperatura;
+    (porTemperatura.get(t) ?? porTemperatura.set(t, []).get(t)!).push(a.registro);
+  }
+  const linhaMonitor = (rotulo: string, grupo: RegistroGeracao[]): string => {
+    const erros = grupo.filter((r) => !r.resposta.ok).length;
+    const tentativas = grupo.reduce((s, r) => s + r.resposta.tentativas, 0);
+    const duracaoMin = grupo.reduce((s, r) => s + r.resposta.duracaoMs, 0) / 60000;
+    const comTokens = grupo.filter((r) => r.resposta.tokens);
+    const entrada = comTokens.reduce((s, r) => s + r.resposta.tokens!.entrada, 0);
+    const saida = comTokens.reduce((s, r) => s + r.resposta.tokens!.saida, 0);
+    const custo = (entrada / 1e6) * PRECO_ENTRADA_USD_1M + (saida / 1e6) * PRECO_SAIDA_USD_1M;
+    const tokensTxt =
+      comTokens.length > 0
+        ? `${entrada} entrada · ${saida} saída${comTokens.length < grupo.length ? ` (${grupo.length - comTokens.length} sem usageMetadata)` : ""} | ~US$ ${custo.toFixed(4)}`
+        : "indisponíveis | custo n/d";
+    return `| ${rotulo} | ${grupo.length} | ${erros} (${Math.round((erros / Math.max(grupo.length, 1)) * 100)}%) | ${tentativas} | ${duracaoMin.toFixed(1)} min | ${tokensTxt} |`;
+  };
+  const todos = avaliados.map((a) => a.registro);
+  await writeFile(
+    join(dirAvaliacao, "consolidado.md"),
+    [
+      "# Consolidado de monitoramento — geração recalibrada",
+      "",
+      `Gerado em ${new Date().toISOString()}. Lotes de \`_pre-recalibracao/\` fora (C-4).`,
+      `Custo estimado com preços-semente do gemini-2.5-flash (US$ ${PRECO_ENTRADA_USD_1M}/1M entrada · US$ ${PRECO_SAIDA_USD_1M}/1M saída).`,
+      "",
+      "| grupo | chamadas | erros | tentativas | duração | tokens / custo |",
+      "|---|---|---|---|---|---|",
+      ...[...porTemperatura.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([t, grupo]) => linhaMonitor(`t=${t}`, grupo)),
+      linhaMonitor("TOTAL", todos),
+      "",
+    ].join("\n"),
+    "utf8"
+  );
+
+  console.log(
+    `Artefatos da Parada Dura 2 em saida/avaliacao/: grade.json · para-leitura.md · reprovados.md · consolidado.md`
+  );
 }
 
 main().catch((e) => {

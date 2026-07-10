@@ -25,6 +25,10 @@ import { montarMatriz } from "./matriz.js";
 import type { ArquivoLoteGeracao, RegistroGeracao } from "./tipos.js";
 
 const TAMANHO_LOTE = 10;
+// Disjuntor: erro de provedor acima deste limiar nos 2 primeiros lotes NOVOS
+// da execução ⇒ parar (retomável: lotes já salvos ficam em disco).
+const LIMIAR_DISJUNTOR = 0.2;
+const LOTES_DISJUNTOR = 2;
 
 async function main(): Promise<void> {
   carregarEnv(join(import.meta.dir, "..", "..", ".env"));
@@ -53,6 +57,8 @@ async function main(): Promise<void> {
 
   const inicioTotal = Date.now();
   let chamadas = 0;
+  let erros = 0;
+  let lotesNovos = 0;
   for (const temperatura of temperaturas) {
     const estados = montarMatriz(temperatura, seedBase);
     const totalLotes = Math.ceil(estados.length / TAMANHO_LOTE);
@@ -71,11 +77,13 @@ async function main(): Promise<void> {
         const inicio = Date.now();
         const r = await gerarComGemini(material.system, material.user, { modelo, chave, temperatura });
         chamadas++;
+        if (!r.ok) erros++;
         const duracaoMs = Date.now() - inicio;
         registros.push({
           estado,
           material: {
             palavrasMaterial: material.palavrasMaterial,
+            alvoPalavras: material.alvoPalavras,
             paragrafosAlvo: material.paragrafosAlvo,
             palavrasPorParagrafo: material.palavrasPorParagrafo,
             relacoes: material.relacoesAtivas.map((a) => ({
@@ -93,12 +101,20 @@ async function main(): Promise<void> {
             temperatura,
             tentativas: r.tentativas,
             duracaoMs,
+            tokens: r.tokens,
           },
         });
         // Persistência incremental: o arquivo do lote é reescrito a cada resposta.
         const arquivo: ArquivoLoteGeracao = { lote, temperatura, tamanho: registros.length, registros };
         await writeFile(join(dirGeracao, nomeLote), JSON.stringify(arquivo, null, 2), "utf8");
         console.log(`   ${estado.id}: ${r.ok ? "ok" : `ERRO ${r.erro}`} (${duracaoMs}ms)`);
+      }
+      lotesNovos++;
+      if (lotesNovos <= LOTES_DISJUNTOR && chamadas > 0 && erros / chamadas > LIMIAR_DISJUNTOR) {
+        console.error(
+          `\nDISJUNTOR: ${erros}/${chamadas} erros de provedor (${Math.round((erros / chamadas) * 100)}% > ${LIMIAR_DISJUNTOR * 100}%) nos ${lotesNovos} primeiros lotes novos. Parando — lotes salvos ficam em disco (retomada barata).`
+        );
+        process.exit(1);
       }
     }
   }

@@ -294,9 +294,8 @@ console.log("\nBLOCO 10 — A1 (avisos: semente + dígrafos; nunca bloqueiam)");
 }
 {
   const f = base();
-  f.objetos.objetos.gota.sensacao.corpo.n1 = "os olhos seguem a pisca";
+  f.objetos.objetos.gota.descricao.n1 = "um vento fresquinho";
   const r = rodar(f);
-  assert(temAviso(r, "dígrafo lh"), '"olhos" no corpo.n1 dispara A1 (dígrafo lh)');
   assertEqual(r.erros.length, 0, "A1 é aviso: não gera erro (gate = 0 ERROS)");
 }
 {
@@ -305,16 +304,57 @@ console.log("\nBLOCO 10 — A1 (avisos: semente + dígrafos; nunca bloqueiam)");
   const r = rodar(f);
   assert(!temAviso(r, "descricao.n2"), "A1 só olha o n1 (n2 com dígrafo não avisa)");
 }
+{
+  // Allow-list NOMINAL (veredito da Parada Dura 1): imagens canônicas não avisam;
+  // palavra NOVA com dígrafo continua avisando (a regra segue viva).
+  const f = base();
+  f.objetos.objetos.gota.descricao.n1 = "uma luzinha na folha";
+  f.objetos.objetos.gota.sensacao.corpo.n1 = "os olhos seguem a gota";
+  const r = rodar(f);
+  assertEqual(r.avisos.length, 0, "allow-list A1: luzinha/folha/olhos não avisam");
+}
 
-console.log("\nBLOCO 11 — fichas REAIS (docs/fichas/*.v1.json): gate = 0 ERROS");
+console.log("\nBLOCO 10b — A2 (flexão de gênero da protagonista; aviso, não bloqueia)");
+{
+  const f = base();
+  f.objetos.objetos.gota.sensacao.corpo.n1 = "ficar quieta tambem";
+  const r = rodar(f);
+  assert(temAviso(r, "posição predicativa"), '"ficar quieta também" dispara A2');
+  assertEqual(r.erros.length, 0, "A2 é aviso: não gera erro");
+}
+{
+  const f = base();
+  f.objetos.objetos.gota.sensacao.corpo.n2 = "o pe sente os pes descalços na grama";
+  const r = rodar(f);
+  assert(!temAviso(r, "A2"), '"pés descalços" passa (flexiona com o substantivo)');
+}
+{
+  const f = base();
+  f.objetos.objetos.gota.descricao.n3 = "uma luz de prata macia e quieta";
+  const r = rodar(f);
+  assert(!temAviso(r, "A2"), '"luz de prata macia e quieta" passa (qualifica a luz)');
+}
+{
+  const f = base();
+  f.relacoes.objeto_x_objeto[0].interacao.n2 = "a gota pousa na pedra, so pra ela";
+  const r = rodar(f);
+  assert(temAviso(r, 'referência com gênero à protagonista ("pra ela")'), '"pra ela" em interação dispara A2');
+}
+{
+  const f = base();
+  f.cenarios.cenarios.quintal_teste.sensacao_no_personagem.n2 = "um frio bom, presente dela";
+  const r = rodar(f);
+  assert(temAviso(r, '"dela"'), '"dela" no cenário dispara A2');
+}
+
+console.log("\nBLOCO 11 — fichas REAIS (docs/fichas/*.v1.json): gate pós-veredito = 0 ERROS · 0 AVISOS");
 {
   const r = lintFichas(objetosReais, relacoesReais, cenariosReais);
   for (const e of r.erros) console.error(`    ERRO: ${e}`);
-  assertEqual(r.erros.length, 0, "fichas reais: 0 erros (gate da Etapa 2)");
-  // Avisos A1 NÃO bloqueiam (decisão do Manoel, 2026-07-09): vão à validação humana.
-  // Este assert congela o conjunto esperado — mudou o conteúdo, muda aqui junto.
-  for (const a of r.avisos) console.log(`    aviso: ${a}`);
-  assertEqual(r.avisos.length, 4, "fichas reais: 4 avisos A1 conhecidos (luzinha/olhos/folha/olhos)");
+  for (const a of r.avisos) console.error(`    AVISO: ${a}`);
+  assertEqual(r.erros.length, 0, "fichas reais: 0 erros");
+  // Pós-veredito da Parada Dura 1 (2026-07-10): A1 canônicos allow-listed; A2 zerado.
+  assertEqual(r.avisos.length, 0, "fichas reais: 0 avisos (A1 allow-listed; A2 zerado)");
   assert(Object.keys((objetosReais as { objetos: Record<string, unknown> }).objetos).length === 7, "catálogo com os 7 objetos do quintal");
 }
 

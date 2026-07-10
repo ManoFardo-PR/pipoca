@@ -15,11 +15,31 @@ const NIVEIS = ["n1", "n2", "n3", "n4"] as const;
 const SEMENTE_A1 = ["rodopiando", "atravessa", "silhueta", "reluzente", "esvoaçante"];
 // A1 — regra de dígrafo (D6): qualquer palavra com nh/lh/ch em descricao.n1 e corpo.n1.
 const DIGRAFOS_A1 = ["nh", "lh", "ch"];
+// A1 — allow-list NOMINAL (veredito da Parada Dura 1, 2026-07-10): imagens canônicas da PoC
+// ("luzinha", "olhos" — vocabulário-núcleo do mapa sensorial) e "folha" (o próprio nome do
+// objeto). A regra de dígrafo segue VIVA para palavras novas; isto não a desliga.
+const ALLOW_A1 = ["luzinha", "olhos", "folha"];
+
+// A2 — flexão de gênero da protagonista (veredito da Parada Dura 1, 2026-07-10): a ficha é
+// NEUTRA; gênero vem do personagem e quem flexiona é o realizador. Lista-semente expansível.
+// Formas adjetivas: só acusam em posição PREDICATIVA (após verbo/gerúndio ou no início) —
+// "ficar quieta" acusa; "gato quieto" e "pés descalços" flexionam com o substantivo e passam.
+const ADJETIVOS_A2 = [
+  "quieta", "quieto", "quietas", "quietos",
+  "sozinha", "sozinho", "sozinhas", "sozinhos",
+  "descalça", "descalço", "descalças", "descalços",
+  "atenta", "atento", "atentas", "atentos",
+  "agachada", "agachado", "agachadas", "agachados",
+];
+// Pronomes de posse/referência pessoal: acusam sempre (não há leitura neutra).
+const PRONOMES_A2 = ["pra ela", "pra ele", "dela", "dele"];
 
 const norm = (s: string): string =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 const SEMENTE_NORM = SEMENTE_A1.map(norm);
+const ALLOW_A1_NORM = ALLOW_A1.map(norm);
+const ADJ_A2_NORM = ADJETIVOS_A2.map(norm);
 
 const ehVazio = (v: unknown): boolean => typeof v !== "string" || v.trim() === "";
 
@@ -40,12 +60,35 @@ function checarNiveis(obj: unknown, rotulo: string, erros: string[]): void {
 
 function avisosA1(texto: string, rotulo: string, avisos: string[]): void {
   for (const p of palavrasDe(texto)) {
+    if (ALLOW_A1_NORM.includes(p)) continue;
     if (SEMENTE_NORM.includes(p)) {
       avisos.push(`A1: ${rotulo}: palavra da lista-semente ("${p}")`);
       continue;
     }
     const d = DIGRAFOS_A1.find((dg) => p.includes(dg));
     if (d) avisos.push(`A1: ${rotulo}: palavra com dígrafo ${d} ("${p}")`);
+  }
+}
+
+// Palavra "verbal" para a heurística do A2: infinitivo (-ar/-er/-ir) ou gerúndio (-ndo).
+const pareceVerbo = (p: string): boolean => /(ar|er|ir|ndo)$/.test(p) && p.length > 3;
+
+function avisosA2(texto: string, rotulo: string, avisos: string[]): void {
+  const t = norm(texto);
+  for (const pron of PRONOMES_A2) {
+    if (new RegExp(`(^|[^a-z0-9-])${norm(pron)}($|[^a-z0-9-])`).test(t)) {
+      avisos.push(`A2: ${rotulo}: referência com gênero à protagonista ("${pron}")`);
+    }
+  }
+  const palavras = palavrasDe(texto);
+  for (let i = 0; i < palavras.length; i++) {
+    if (!ADJ_A2_NORM.includes(palavras[i])) continue;
+    const anterior = i > 0 ? palavras[i - 1] : "";
+    // Posição predicativa: início de texto ou após palavra verbal ("ficar quieta",
+    // "esperando quieto"). Após substantivo ("gato quieto", "pés descalços"), passa.
+    if (anterior === "" || pareceVerbo(anterior)) {
+      avisos.push(`A2: ${rotulo}: flexão de gênero em posição predicativa ("${palavras[i]}")`);
+    }
   }
 }
 
@@ -119,6 +162,11 @@ export function lintFichas(
     // A1 — decodificação difícil no n1 (aviso, não bloqueia)
     if (typeof descricao.n1 === "string") avisosA1(descricao.n1, `objetos.${id}.descricao.n1`, avisos);
     if (typeof corpo.n1 === "string") avisosA1(corpo.n1, `objetos.${id}.sensacao.corpo.n1`, avisos);
+    // A2 — flexão de gênero da protagonista (aviso; ficha é neutra)
+    for (const n of NIVEIS) {
+      if (typeof descricao[n] === "string") avisosA2(descricao[n] as string, `objetos.${id}.descricao.${n}`, avisos);
+      if (typeof corpo[n] === "string") avisosA2(corpo[n] as string, `objetos.${id}.sensacao.corpo.${n}`, avisos);
+    }
   }
 
   // ---------- cenarios.v1 (camada 3) ----------
@@ -137,6 +185,12 @@ export function lintFichas(
     if (ehVazio(c.descricao)) erros.push(`E3: cenarios.${cid}.descricao: campo vazio`);
     if (ehVazio(c.voz_do_contador)) erros.push(`E3: cenarios.${cid}.voz_do_contador: campo vazio`);
     checarNiveis(c.sensacao_no_personagem, `cenarios.${cid}.sensacao_no_personagem`, erros);
+    if (typeof c.descricao === "string") avisosA2(c.descricao, `cenarios.${cid}.descricao`, avisos);
+    if (typeof c.voz_do_contador === "string") avisosA2(c.voz_do_contador, `cenarios.${cid}.voz_do_contador`, avisos);
+    const snp = (c.sensacao_no_personagem ?? {}) as Record<string, unknown>;
+    for (const n of NIVEIS) {
+      if (typeof snp[n] === "string") avisosA2(snp[n] as string, `cenarios.${cid}.sensacao_no_personagem.${n}`, avisos);
+    }
   }
 
   // ---------- relacoes.<cenario>.v1 (camada 2) ----------
@@ -171,6 +225,10 @@ export function lintFichas(
         erros.push(`${rot}: objeto e alvo idênticos (a guarda do tem: proíbe auto-relação)`);
       }
       checarNiveis(rr.interacao, `${rot}.interacao`, erros);
+      const inter = (rr.interacao ?? {}) as Record<string, unknown>;
+      for (const n of NIVEIS) {
+        if (typeof inter[n] === "string") avisosA2(inter[n] as string, `${rot}.interacao.${n}`, avisos);
+      }
     });
     const oxc = Array.isArray(r.objeto_x_cenario) ? r.objeto_x_cenario : [];
     if (!Array.isArray(r.objeto_x_cenario)) erros.push("relacoes.objeto_x_cenario: lista ausente ou malformada");
@@ -184,6 +242,10 @@ export function lintFichas(
       if (ehVazio(mm.objeto)) erros.push(`${rot}: "objeto" ausente`);
       else if (!ids.includes(String(mm.objeto))) erros.push(`${rot}: objeto "${String(mm.objeto)}" fora do catálogo`);
       checarNiveis(mm.manifestacao, `${rot}.manifestacao`, erros);
+      const man = (mm.manifestacao ?? {}) as Record<string, unknown>;
+      for (const n of NIVEIS) {
+        if (typeof man[n] === "string") avisosA2(man[n] as string, `${rot}.manifestacao.${n}`, avisos);
+      }
     });
   }
 

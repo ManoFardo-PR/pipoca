@@ -19,7 +19,7 @@
       "alvo": "frasco",
       "interacao": {
         "n1": "a faísca no pote; uma lanterninha na mão",
-        "n2": "a faísca entra no pote e vira uma lanterninha só dela",
+        "n2": "a faísca entra no pote e vira uma lanterninha só sua",
         "n3": "a faísca entra no pote de vidro e fica piscando lá dentro — uma lanterninha viva pra carregar",
         "n4": "a faísca entra no pote de vidro com todo o cuidado e fica piscando lá dentro, presa e livre ao mesmo tempo — uma lanterninha viva que ilumina um passinho de cada vez"
       }
@@ -65,7 +65,7 @@
         "n1": "o gato olha a luz e pisca também",
         "n2": "o gato olha a luzinha que pisca e pisca de volta",
         "n3": "o gato espia a luzinha piscando, a cabeça indo de um lado pro outro",
-        "n4": "o gato encontra a luzinha que pisca e não entende — a cabeça vai de um lado, do outro, os olhos enormes seguindo a faísca; depois pisca também, devagarinho, como quem resolve conversar na língua dela"
+        "n4": "o gato encontra a luzinha que pisca e não entende — a cabeça vai de um lado, do outro, os olhos enormes seguindo a faísca; depois pisca também, devagarinho, como quem resolve conversar na mesma língua"
       }
     },
     {
@@ -76,7 +76,7 @@
         "n1": "o gato na luz da lua, brilhando",
         "n2": "a luz da lua acende os pelos do gato",
         "n3": "debaixo da lua, os pelos do gato viram fios de prata",
-        "n4": "a luz da lua encontra o gato e acende os pelos dele um por um, até virarem fios de prata; ele nem se mexe — gato sabe quando está bonito"
+        "n4": "a luz da lua encontra o gato e acende os pelos, um por um, até virarem fios de prata; ele nem se mexe — gato sabe quando está bonito"
       }
     },
     {
@@ -140,7 +140,7 @@
         "n1": "um pote na grama",
         "n2": "um pote de vidro esperando na grama",
         "n3": "um pote de vidro meio escondido na grama, esperando deitado",
-        "n4": "um pote de vidro meio enterrado na grama do quintal, esperando quieto — desses achados que a noite deixa pra quem procura"
+        "n4": "um pote de vidro meio enterrado na grama do quintal, à espera — desses achados que a noite deixa pra quem procura"
       }
     },
     {

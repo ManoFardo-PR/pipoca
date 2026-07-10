@@ -88,16 +88,16 @@
         "n1": "um gato quieto, dois olhos acesos",
         "n2": "um gato quieto feito sombra, dois olhos verdes acesos",
         "n3": "um gato que aparece sem barulho nenhum, quieto feito sombra, os olhos verdes acesos feito lanternas",
-        "n4": "um gato que ninguém viu chegar — quieto feito sombra, o rabo balançando devagarinho, os olhos verdes acesos — estudando tudo com uma calma antiga, decidindo se vale a pena confiar"
+        "n4": "um gato quieto feito sombra, que ninguém viu chegar — o rabo balançando devagarinho, os olhos verdes acesos — estudando tudo com uma calma antiga, decidindo se vale a pena confiar"
       },
       "sensacao": {
         "dominante": "quietude / olhar trocado",
         "registro": "cautela / mistério",
         "corpo": {
-          "n1": "ficar quieta também",
-          "n2": "ficar quieta também; prender a respiração",
-          "n3": "ficar quieta também, prendendo a respiração; trocar um olhar demorado",
-          "n4": "ficar quieta também, prendendo a respiração; trocar um olhar demorado e piscar devagar de volta — piscada lenta é o jeito de gato dizer que gosta"
+          "n1": "ficar em silêncio também",
+          "n2": "ficar em silêncio também; prender a respiração",
+          "n3": "ficar em silêncio também, prendendo a respiração; trocar um olhar demorado",
+          "n4": "ficar em silêncio também, prendendo a respiração; trocar um olhar demorado e piscar devagar de volta — piscada lenta é o jeito de gato dizer que gosta"
         }
       }
     },

@@ -1,5 +1,14 @@
 # Revisão autoral — fichas v1 (Parada Dura 1 da fase 10)
 
+> ✅ **APROVADO COM CORREÇÕES · 2026-07-10 · itens A-1..A-5 aplicados; divergências 1–3 mantidas.**
+> Correções aplicadas sobre as células abaixo (o corpo da tabela permanece como registro do estado revisado):
+> - **A-1** (O53–O56): `gato.sensacao.corpo` n1–n4 → "ficar **em silêncio** também…" (gênero neutro; piscada lenta do n4 preservada).
+> - **A-2** (C07): "…contado só pra ela" → "…como quem ganha um segredo contado só pra si".
+> - **A-3** (lint): aviso **A2** de flexão de gênero implementado (semente + heurística predicativa). A varredura revelou e corrigiu mais 4 vazamentos/ajustes: R08 "só dela"→"só sua" · R30 "na língua dela"→"na mesma língua" · R35 "os pelos dele"→"os pelos" · M08 "esperando quieto"→"à espera" (:273). E O52 reordenado ("um gato quieto feito sombra, que ninguém viu chegar — …") para manter o adjetivo junto do substantivo.
+> - **A-4** (lint): allow-list NOMINAL do A1 — `luzinha`, `olhos`, `folha` (imagens canônicas/nome do objeto); a regra de dígrafo segue viva para palavras novas.
+> - **A-5**: O42 ("o dedo segue no ar") aceito.
+> Gate re-rodado: `lint_fichas` = **0 erros · 0 avisos** · suíte completa verde.
+
 > **Para o Manoel — validação célula a célula (parada dura do 10-04).**
 > Toda célula dos 3 arquivos de `docs/fichas/` está numerada abaixo com a ORIGEM
 > (de qual variante do `docs/quintal.v3.json` foi minerada, ou "nova").

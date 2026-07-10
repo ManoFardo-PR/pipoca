@@ -1,0 +1,77 @@
+// Fichas (geração 2) — contrato pipoca.fichas.v1.
+// Fonte da verdade: docs/plans02/fase10_modelo_de_fichas/10-00_contrato-schema-de-fichas.md
+// (decisões D1–D6 fechadas; sensacao_no_personagem no cenário conforme D2/D-11.2; descricao
+// de cenário string única conforme D3; alvo explícito nas relações conforme D4).
+// Fase 10: fichas nascem como JSON versionado em docs/fichas/ (migração a BD é fase 13).
+// NivelKey é reaproveitado do motor v3 (fonte canônica) — nenhuma mudança no runtime.
+import type { NivelKey } from "../composicao.js";
+
+export const ESQUEMA_FICHAS_V1 = "pipoca.fichas.v1";
+
+/** Os 4 níveis são obrigatórios em todo campo por-nível (invariante 3 do 10-00; lint E1). */
+export type PorNivel = Record<NivelKey, string>;
+
+/** Camada 1 — ficha de identidade: o que o objeto É, cross-cenário (10-01). */
+export interface FichaIdentidade {
+  genero: "m" | "f";
+  numero: "sg" | "pl";
+  /** Dial de riqueza: a MESMA imagem em quatro alturas — nunca coisas diferentes por nível. */
+  descricao: PorNivel;
+  sensacao: {
+    /** Sentido dominante (mapa sensorial do 10-03). */
+    dominante: string;
+    /** Tom emocional (herda o espírito do `registro` do v3). */
+    registro: string;
+    /** O que o corpo da criança faz/sente. n1 = UMA sensação (lição da PoC; lint E4). */
+    corpo: PorNivel;
+  };
+}
+
+/** Camada 2 — relação objeto×objeto, chaveada pela gramática v3 (10-02; D4/D5). */
+export interface FichaRelacao {
+  /** Condição da gramática v3 (tem:/depois_de:/antes_de:/pos:); array = E lógico. */
+  se: string | string[];
+  /** Quem reage/anuncia (dono da relação). */
+  objeto: string;
+  /** O outro lado, SEMPRE explícito (D4) — o realizador nunca parseia a condição. */
+  alvo: string;
+  /** Interação para o realizador — nunca frase pronta. */
+  interacao: PorNivel;
+}
+
+/** Camada 2 — como o objeto se manifesta NESTE cenário (sem condição; 10-02, tabela 2). */
+export interface ManifestacaoNoCenario {
+  objeto: string;
+  manifestacao: PorNivel;
+}
+
+/** Camada 3 — ficha de cenário: o mundo e sua voz (10-00 pós D3/D-11.2). */
+export interface FichaCenario {
+  nome: string;
+  /** String única (D3). Variações futuras de cenário são TEMÁTICAS, não por nível. */
+  descricao: string;
+  /** Lei 2 — o cenário como contador. */
+  voz_do_contador: string;
+  /** A sensação que o lugar provoca na criança (D2/D-11.2) — por nível de leitura. */
+  sensacao_no_personagem: PorNivel;
+}
+
+/** docs/fichas/objetos.v1.json */
+export interface ArquivoObjetosV1 {
+  esquema: typeof ESQUEMA_FICHAS_V1;
+  objetos: Record<string, FichaIdentidade>;
+}
+
+/** docs/fichas/relacoes.<cenario>.v1.json */
+export interface ArquivoRelacoesV1 {
+  esquema: typeof ESQUEMA_FICHAS_V1;
+  cenario: string;
+  objeto_x_objeto: FichaRelacao[];
+  objeto_x_cenario: ManifestacaoNoCenario[];
+}
+
+/** docs/fichas/cenarios.v1.json */
+export interface ArquivoCenariosV1 {
+  esquema: typeof ESQUEMA_FICHAS_V1;
+  cenarios: Record<string, FichaCenario>;
+}

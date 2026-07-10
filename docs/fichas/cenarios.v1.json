@@ -1,0 +1,16 @@
+{
+  "esquema": "pipoca.fichas.v1",
+  "cenarios": {
+    "quintal_anoitecer": {
+      "nome": "O Quintal ao Anoitecer",
+      "descricao": "um quintal de casa ao cair da noite — muro baixo, grama fria, uma árvore de galhos altos, uma cerca, e a porta dos fundos por onde se entra na noite",
+      "voz_do_contador": "o quintal fala baixinho e sussurra segredos: só conta pra quem vem ver, um por um, até contar tudo o que sabe",
+      "sensacao_no_personagem": {
+        "n1": "a grama fria no pé",
+        "n2": "a grama fria no pé; a vontade de ver tudo",
+        "n3": "a grama fria nos pés descalços; a vontade de descobrir os segredos um por um",
+        "n4": "a grama fria nos pés descalços; o coração batendo forte de vontade de saber, como quem entra num segredo contado só pra ela"
+      }
+    }
+  }
+}

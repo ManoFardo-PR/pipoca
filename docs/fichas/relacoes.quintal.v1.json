@@ -1,0 +1,192 @@
+{
+  "esquema": "pipoca.fichas.v1",
+  "cenario": "quintal_anoitecer",
+  "objeto_x_objeto": [
+    {
+      "se": ["tem:frasco", "depois_de:frasco"],
+      "objeto": "vagalume",
+      "alvo": "frasco",
+      "interacao": {
+        "n1": "a faísca acha o pote; entra",
+        "n2": "a faísca acha o pote que ela carregava e entra",
+        "n3": "a faísca roda no ar, acha o pote que ela já carregava e entra devagarinho",
+        "n4": "a faísca roda no ar uma, duas vezes, encontra o pote carregado desde cedo e entra devagarinho — fica lá dentro piscando quentinha, como quem chega em casa"
+      }
+    },
+    {
+      "se": "tem:frasco",
+      "objeto": "vagalume",
+      "alvo": "frasco",
+      "interacao": {
+        "n1": "a faísca no pote; uma lanterninha na mão",
+        "n2": "a faísca entra no pote e vira uma lanterninha só dela",
+        "n3": "a faísca entra no pote de vidro e fica piscando lá dentro — uma lanterninha viva pra carregar",
+        "n4": "a faísca entra no pote de vidro com todo o cuidado e fica piscando lá dentro, presa e livre ao mesmo tempo — uma lanterninha viva que ilumina um passinho de cada vez"
+      }
+    },
+    {
+      "se": ["tem:vagalume", "antes_de:vagalume"],
+      "objeto": "frasco",
+      "alvo": "vagalume",
+      "interacao": {
+        "n1": "o pote vazio espera algo",
+        "n2": "o pote vazio parece esperar uma luzinha",
+        "n3": "o pote vazio e limpinho, esperando alguma coisa pequena e brilhante",
+        "n4": "o pote vazio que não parece abandonado — parece à espera; a certeza esquisita e boa de que a noite ainda vai mandar uma coisinha brilhante pra morar ali"
+      }
+    },
+    {
+      "se": ["tem:folha", "antes_de:folha"],
+      "objeto": "vento",
+      "alvo": "folha",
+      "interacao": {
+        "n1": "o vento sacode o galho; algo se solta",
+        "n2": "o vento sacode o galho lá em cima; alguma coisa se solta",
+        "n3": "o vento sobe e sacode os galhos; uma coisinha se solta e começa a descer rodando",
+        "n4": "o vento sobe pelos galhos e sacode a árvore de leve, como quem acorda alguém; lá no alto algo se solta e desce rodando, sem pressa — um presente anunciado"
+      }
+    },
+    {
+      "se": ["tem:gato", "depois_de:gato"],
+      "objeto": "folha",
+      "alvo": "gato",
+      "interacao": {
+        "n1": "a folha cai perto do gato; ele olha",
+        "n2": "a folha desce na frente do gato; ele arregala os olhos",
+        "n3": "a folha desce rodando na frente do gato; ele acompanha cada volta de olhos arregalados",
+        "n4": "a folha desce rodando devagar bem na frente do gato — ele esquece de tudo, o rabo parado no ar, os olhos enormes acompanhando cada volta, como se o mundo coubesse naquela folha caindo"
+      }
+    },
+    {
+      "se": ["tem:vagalume", "depois_de:vagalume"],
+      "objeto": "gato",
+      "alvo": "vagalume",
+      "interacao": {
+        "n1": "o gato olha a luz e pisca também",
+        "n2": "o gato olha a luzinha que pisca e pisca de volta",
+        "n3": "o gato espia a luzinha piscando, a cabeça indo de um lado pro outro",
+        "n4": "o gato encontra a luzinha que pisca e não entende — a cabeça vai de um lado, do outro, os olhos enormes seguindo a faísca; depois pisca também, devagarinho, como quem resolve conversar na língua dela"
+      }
+    },
+    {
+      "se": ["tem:lua", "depois_de:lua"],
+      "objeto": "gato",
+      "alvo": "lua",
+      "interacao": {
+        "n1": "o gato na luz da lua, brilhando",
+        "n2": "a luz da lua acende os pelos do gato",
+        "n3": "debaixo da lua, os pelos do gato viram fios de prata",
+        "n4": "a luz da lua encontra o gato e acende os pelos dele um por um, até virarem fios de prata; ele nem se mexe — gato sabe quando está bonito"
+      }
+    },
+    {
+      "se": "tem:folha",
+      "objeto": "gato",
+      "alvo": "folha",
+      "interacao": {
+        "n1": "o gato pula na folha",
+        "n2": "o gato vê a folha e pula, brincando",
+        "n3": "o gato vê a folha no chão e não resiste: pula, bate de leve com a patinha, corre atrás",
+        "n4": "o gato vê a folha caída e esquece a pose de gato sério: abaixa o rabo, mira e pula — batendo de leve com a patinha, correndo atrás quando o vento leva; até gato sério vira filhote de noite"
+      }
+    },
+    {
+      "se": ["tem:vagalume", "depois_de:vagalume"],
+      "objeto": "lua",
+      "alvo": "vagalume",
+      "interacao": {
+        "n1": "a lua e a faísca, duas luzes",
+        "n2": "duas luzes: a lua no alto, a faísca embaixo",
+        "n3": "duas luzes na noite: a lua enorme lá no alto e a faísca pequenininha embaixo, piscando uma pra outra",
+        "n4": "duas luzes acesas: a lua enorme e parada lá no alto, a faísca minúscula e dançante aqui embaixo — a grande e a pequena parecem se conhecer de algum lugar"
+      }
+    },
+    {
+      "se": "tem:orvalho",
+      "objeto": "lua",
+      "alvo": "orvalho",
+      "interacao": {
+        "n1": "a lua na grama; mil luas aos pés",
+        "n2": "a lua se reflete no orvalho: mil luas pequeninas",
+        "n3": "a lua refletida em cada gota de orvalho; o chão virando mil luas pequeninas",
+        "n4": "a luz da lua encontra o orvalho e se parte em mil pedaços: mil luas pequeninas espalhadas pelo chão, pedindo cuidado a cada passo"
+      }
+    },
+    {
+      "se": ["tem:folha", "depois_de:folha"],
+      "objeto": "orvalho",
+      "alvo": "folha",
+      "interacao": {
+        "n1": "uma gota pousa na folha e brilha",
+        "n2": "uma gotinha pousa bem na folha caída",
+        "n3": "uma gotinha de orvalho pousa na beiradinha da folha caída e fica ali, brilhando",
+        "n4": "uma gotinha de orvalho escolhe a folha caída pra morar: pousa na beiradinha, escorrega até o meio e fica ali, gordinha e brilhante — uma joia que a noite deu de presente pra folha"
+      }
+    }
+  ],
+  "objeto_x_cenario": [
+    {
+      "objeto": "vagalume",
+      "manifestacao": {
+        "n1": "uma luz no fundo do quintal",
+        "n2": "uma luzinha piscando no fundo do quintal",
+        "n3": "no canto do quintal onde o escuro é mais fundo, uma luzinha acendendo e apagando",
+        "n4": "no canto do quintal onde o escuro é mais escuro, perto da cerca, uma luzinha acende e apaga como se respirasse — flutuando no ar, sem pressa"
+      }
+    },
+    {
+      "objeto": "frasco",
+      "manifestacao": {
+        "n1": "um pote na grama",
+        "n2": "um pote de vidro esperando na grama",
+        "n3": "um pote de vidro meio escondido na grama, esperando deitado",
+        "n4": "um pote de vidro meio enterrado na grama do quintal, esperando quieto — desses achados que a noite deixa pra quem procura"
+      }
+    },
+    {
+      "objeto": "vento",
+      "manifestacao": {
+        "n1": "o vento pula o muro",
+        "n2": "o vento pula o muro e corre pelo quintal",
+        "n3": "o vento chega rolando por cima do muro e corre uma volta pelo quintal",
+        "n4": "o vento chega rolando por cima do muro, corre uma volta pelo quintal e balança a grama toda de uma vez — cheirando a terra molhada e a fim de tarde"
+      }
+    },
+    {
+      "objeto": "folha",
+      "manifestacao": {
+        "n1": "uma folha cai do galho",
+        "n2": "uma folha se solta do galho mais alto",
+        "n3": "uma folha se solta do galho mais alto da árvore do quintal e desce no ar escuro",
+        "n4": "do galho mais alto da árvore do quintal, uma folha se despede e vem descendo no ar que escurece, como o primeiro segredo da noite"
+      }
+    },
+    {
+      "objeto": "gato",
+      "manifestacao": {
+        "n1": "um gato na cerca",
+        "n2": "um gato aparece em cima da cerca",
+        "n3": "em cima da cerca do quintal, um gato aparece sem fazer barulho nenhum",
+        "n4": "ninguém viu de onde veio: em cima da cerca do quintal, o gato já está sentado, com a elegância de quem chegou primeiro"
+      }
+    },
+    {
+      "objeto": "lua",
+      "manifestacao": {
+        "n1": "a lua sobe atrás do muro",
+        "n2": "a lua aparece por cima do muro do quintal",
+        "n3": "a lua sobe por trás das árvores e aparece por cima do muro, enorme",
+        "n4": "o muro do quintal ganha uma coroa: a lua sobe devagar por trás das árvores, e a luz de prata escorre pela cerca e pela grama"
+      }
+    },
+    {
+      "objeto": "orvalho",
+      "manifestacao": {
+        "n1": "gotas na grama do quintal",
+        "n2": "o orvalho enfeita a grama do quintal",
+        "n3": "sem fazer barulho, o orvalho vai pousando na grama do quintal, gota por gota",
+        "n4": "sem ninguém ver, o orvalho se junta na ponta de cada folhinha de grama do quintal, até o chão inteiro brilhar de leve"
+      }
+    }
+  ]
+}

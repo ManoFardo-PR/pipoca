@@ -1,0 +1,145 @@
+{
+  "esquema": "pipoca.fichas.v1",
+  "objetos": {
+    "vagalume": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "uma luzinha que pisca",
+        "n2": "um vaga-lume que acende e apaga",
+        "n3": "um vaga-lume que pisca devagar, como uma estrelinha que desceu para brincar",
+        "n4": "um vaga-lume solitário, faísca viva que acende e some no escuro, piscando como quem chama"
+      },
+      "sensacao": {
+        "dominante": "visão",
+        "registro": "encanto silencioso",
+        "corpo": {
+          "n1": "os olhos seguem a pisca",
+          "n2": "os olhos seguem a pisca; chegar perto na ponta dos pés",
+          "n3": "os olhos que seguem a pisca; a vontade de chegar perto na ponta dos pés",
+          "n4": "os olhos que seguem a pisca; a vontade de chegar perto na ponta dos pés, prendendo a respiração"
+        }
+      }
+    },
+    "frasco": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "um pote de vidro, frio e liso",
+        "n2": "um pote de vidro frio e liso, que deixa ver tudo por dentro",
+        "n3": "um pote de vidro frio e liso feito pedra de rio, que entorta o mundo lá dentro",
+        "n4": "um pote de vidro frio e liso feito pedra de rio; erguido contra a luz, o mundo entorta e brilha lá dentro, pequenininho e curvo — um mundo de bolso"
+      },
+      "sensacao": {
+        "dominante": "tato+visão",
+        "registro": "curiosidade / lente",
+        "corpo": {
+          "n1": "segurar o pote com as duas mãos",
+          "n2": "segurar com as duas mãos; espiar o mundo lá dentro",
+          "n3": "segurar com as duas mãos; fechar um olho e espiar o mundo que entorta lá dentro",
+          "n4": "segurar com as duas mãos e erguer contra a luz; fechar um olho e espiar o mundo que entorta lá dentro, virando devagar pra ver tudo"
+        }
+      }
+    },
+    "vento": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "um vento fresco que passa",
+        "n2": "um vento fresco que passa e mexe em tudo de leve",
+        "n3": "um vento fresco que chega de longe, passa mexendo em tudo de leve e vai embora",
+        "n4": "um vento fresco que chega de longe, rolando por cima de tudo — passa mexendo no mundo de leve, como se a noite inteira estivesse respirando"
+      },
+      "sensacao": {
+        "dominante": "pele",
+        "registro": "aconchego / respiração",
+        "corpo": {
+          "n1": "a pele sente o fresco",
+          "n2": "a pele arrepia; o cabelo mexe",
+          "n3": "a pele dos braços arrepiando; o cabelo mexendo de leve",
+          "n4": "a pele dos braços arrepiando; fechar os olhos e respirar fundo, deixando o vento passar como se ela também fosse feita de noite"
+        }
+      }
+    },
+    "folha": {
+      "genero": "f",
+      "numero": "sg",
+      "descricao": {
+        "n1": "uma folha que desce rodando",
+        "n2": "uma folha que se solta e desce rodando devagar",
+        "n3": "uma folha que se solta lá de cima e desce rodando, sem pressa nenhuma",
+        "n4": "uma folha que se despede do galho e desce em espiral, rodando pra um lado e pro outro, sem pressa nenhuma de chegar — leve feito um cochicho"
+      },
+      "sensacao": {
+        "dominante": "movimento acompanhado",
+        "registro": "delicadeza / tempo",
+        "corpo": {
+          "n1": "o dedo segue no ar",
+          "n2": "o dedo acompanha no ar; os olhos dançam junto",
+          "n3": "o dedo que acompanha cada volta no ar; a mão aberta, espalmada, esperando",
+          "n4": "o dedo que acompanha cada volta; a mão aberta feito um ninho, esperando quietinha até a folha pousar de leve na palma"
+        }
+      }
+    },
+    "gato": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "um gato quieto, dois olhos acesos",
+        "n2": "um gato quieto feito sombra, dois olhos verdes acesos",
+        "n3": "um gato que aparece sem barulho nenhum, quieto feito sombra, os olhos verdes acesos feito lanternas",
+        "n4": "um gato que ninguém viu chegar — quieto feito sombra, o rabo balançando devagarinho, os olhos verdes acesos — estudando tudo com uma calma antiga, decidindo se vale a pena confiar"
+      },
+      "sensacao": {
+        "dominante": "quietude / olhar trocado",
+        "registro": "cautela / mistério",
+        "corpo": {
+          "n1": "ficar quieta também",
+          "n2": "ficar quieta também; prender a respiração",
+          "n3": "ficar quieta também, prendendo a respiração; trocar um olhar demorado",
+          "n4": "ficar quieta também, prendendo a respiração; trocar um olhar demorado e piscar devagar de volta — piscada lenta é o jeito de gato dizer que gosta"
+        }
+      }
+    },
+    "lua": {
+      "genero": "f",
+      "numero": "sg",
+      "descricao": {
+        "n1": "a lua grande, cor de prata",
+        "n2": "a lua que sobe grande e pinta tudo de prata",
+        "n3": "a lua que sobe redonda e enorme, acendendo tudo com uma luz de prata macia",
+        "n4": "a lua que sobe devagar, redonda e enorme, maior do que se lembrava — uma luz de prata macia e quieta escorrendo por tudo, como uma lâmpada gigante e mansa acesa no céu"
+      },
+      "sensacao": {
+        "dominante": "visão-grande (queixo erguido / prata no rosto)",
+        "registro": "deslumbre / vastidão",
+        "corpo": {
+          "n1": "o queixo sobe pra ver",
+          "n2": "o queixo sobe pra ver; a prata no rosto",
+          "n3": "o queixo erguido pra ver ela inteira; a prata acendendo no rosto",
+          "n4": "o queixo erguido, a cabeça jogada pra trás pra ver ela inteira; a prata no rosto e nos ombros, e o mundo por um instante grande demais, do tamanho do céu"
+        }
+      }
+    },
+    "orvalho": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "gotas de água com luz dentro",
+        "n2": "gotas de água miúdas, cada uma com um brilho dentro",
+        "n3": "gotas de água miúdas como continhas de vidro, cada uma guardando um pedacinho de luz",
+        "n4": "gotas de água que chegam sem barulho nenhum, gota por gota, miúdas como continhas de vidro — cada uma guardando um pedacinho de luz, um brilho que é só seu"
+      },
+      "sensacao": {
+        "dominante": "frio no pé / toque miúdo",
+        "registro": "preciosidade minúscula",
+        "corpo": {
+          "n1": "o pé sente o frio",
+          "n2": "o pé sente o frio; o dedo encosta numa gota",
+          "n3": "o pé descalço sentindo o frio; o dedo encostando numa gota, devagarinho",
+          "n4": "o pé descalço sentindo o frio da grama; abaixar bem perto e encostar o dedo numa gota, com cuidado pra não desmanchar o brilho"
+        }
+      }
+    }
+  }
+}

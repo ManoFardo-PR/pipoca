@@ -49,6 +49,8 @@ export interface OpcoesRealizar {
   modelo?: string;
   temperatura?: number;
   teto_tentativas?: number;
+  /** Pausa antes do retry de falha transitória (default 2000ms; 0 em testes). */
+  atraso_retry_ms?: number;
   /** Injeção para teste/calibração — em produção o SERVIDOR decide (fase 13). */
   provedores?: ProvedorRealizador[];
   /** O "estado da partida" do fallback A+ v3 (12-04). Ausente + cascata esgotada ⇒ erro. */
@@ -89,7 +91,9 @@ export async function realizarComCascata(
   const inicio = Date.now();
   const teto = opcoes.teto_tentativas ?? TETO_GLOBAL_TENTATIVAS;
   const temperatura = opcoes.temperatura ?? 0.4;
+  const atrasoRetryMs = opcoes.atraso_retry_ms ?? 2000;
   let chamadas = 0;
+  let ultimoErroProvedor: string | undefined;
   let tokensEntrada = 0;
   let tokensSaida = 0;
   let temTokens = false;
@@ -113,10 +117,12 @@ export async function realizarComCascata(
           system: prompt.system,
         });
       } catch (e) {
+        ultimoErroProvedor = e instanceof Error ? e.message : String(e);
         if (e instanceof ErroRecusaRealizador) continue cascata; // recusa não repete (12-04)
         const transitorio = e instanceof ErroProvedorRealizador && e.transitorio;
         if (transitorio && !jaRetentou && chamadas < teto) {
           jaRetentou = true; // retry curto, 1×, só falha técnica transitória
+          if (atrasoRetryMs > 0) await new Promise<void>((r) => setTimeout(r, atrasoRetryMs));
           continue;
         }
         continue cascata;
@@ -160,7 +166,7 @@ export async function realizarComCascata(
     };
   }
   throw new ErroRealizacaoEsgotada(
-    `realizador: cascata esgotada (${chamadas} chamada(s)) e sem estadoFallback — erro explícito de aplicação (12-04)`,
+    `realizador: cascata esgotada (${chamadas} chamada(s)) e sem estadoFallback — erro explícito de aplicação (12-04)${ultimoErroProvedor ? ` · último erro de provedor: ${ultimoErroProvedor}` : ""}`,
     ultima
   );
 }

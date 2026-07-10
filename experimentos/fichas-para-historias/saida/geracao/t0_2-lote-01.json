@@ -1,7 +1,7 @@
 {
   "lote": 1,
   "temperatura": 0.2,
-  "tamanho": 8,
+  "tamanho": 10,
   "registros": [
     {
       "estado": {
@@ -328,6 +328,86 @@
         "temperatura": 0.2,
         "tentativas": 1,
         "duracaoMs": 40208
+      }
+    },
+    {
+      "estado": {
+        "id": "r1-n2-f-p03",
+        "seed": 2340354826,
+        "rodada": 1,
+        "nivel": "n2",
+        "genero": "f",
+        "personagem": "Joana",
+        "linha": [
+          "vagalume",
+          "vento",
+          "frasco"
+        ],
+        "temperatura": 0.2
+      },
+      "material": {
+        "palavrasMaterial": 154,
+        "paragrafosAlvo": [
+          1,
+          1
+        ],
+        "palavrasPorParagrafo": 40,
+        "relacoes": [
+          {
+            "objeto": "vagalume",
+            "alvo": "frasco",
+            "se": "tem:frasco"
+          }
+        ]
+      },
+      "resposta": {
+        "estadoId": "r1-n2-f-p03",
+        "ok": true,
+        "texto": "O quintal sussurra segredos, a grama fria no pé acende a vontade de ver. Seus olhos seguem a luzinha, chega perto. A faísca entra no pote, virando lanterninha. O vento pula o muro, arrepiando e mexendo. Joana segura o pote frio, espiando lá dentro.",
+        "modelo": "gemini-2.5-flash",
+        "temperatura": 0.2,
+        "tentativas": 1,
+        "duracaoMs": 28433
+      }
+    },
+    {
+      "estado": {
+        "id": "r1-n2-m-p04",
+        "seed": 1254442022,
+        "rodada": 1,
+        "nivel": "n2",
+        "genero": "m",
+        "personagem": "Pietro",
+        "linha": [
+          "vagalume",
+          "vento",
+          "frasco"
+        ],
+        "temperatura": 0.2
+      },
+      "material": {
+        "palavrasMaterial": 154,
+        "paragrafosAlvo": [
+          1,
+          1
+        ],
+        "palavrasPorParagrafo": 40,
+        "relacoes": [
+          {
+            "objeto": "vagalume",
+            "alvo": "frasco",
+            "se": "tem:frasco"
+          }
+        ]
+      },
+      "resposta": {
+        "estadoId": "r1-n2-m-p04",
+        "ok": true,
+        "texto": "O quintal sussurrava segredos, e a grama fria chamava Pietro para ver tudo. Seus olhos seguiram o vaga-lume, e ele, na ponta dos pés, o pôs no pote, sua lanterninha. O vento fresco arrepiou sua pele e mexeu o cabelo. Pietro segurou o pote com as duas mãos, espiando o mundo lá dentro.",
+        "modelo": "gemini-2.5-flash",
+        "temperatura": 0.2,
+        "tentativas": 1,
+        "duracaoMs": 23552
       }
     }
   ]

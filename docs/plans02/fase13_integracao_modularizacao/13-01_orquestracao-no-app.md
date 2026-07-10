@@ -29,28 +29,25 @@ Nesta fase, nenhum. Na implementação, o enxerto acontece em `src/app/estado.js
 
 ### O fluxo novo (nos portões de leitura)
 1. A criança monta/ajusta o arranjo (R1 ordena; R2+ insere no miolo) — mecânica atual intocada (`ordenarR1Composicao` :755, `inserirComposicao` :768).
-2. No portão: o orquestrador monta `estado + fichas + perfil` → `compor` → `PacoteComposicao`.
+2. No portão: o módulo de geração (`src/core/geracao/`, [[fase13-13-00]]) monta `estado + fichas + perfil` → `compor` → `PacoteComposicao`.
 3. `realizar(pacote, opcoes)` no edge → `{ texto, paragrafos, veredito }`; falha → cascata → fallback A+ v3 ([[fase12-12-04]]).
 4. O app exibe `paragrafos` e segue o fluxo atual (avanço de rodada, captura na convergência — persistência em [[fase13-13-02]]).
 
 ### Ponto de enxerto exato (antes/depois, sem código)
 - **Hoje:** o portão exibe o texto de `montarComposicao(nivel)` (`src/app/estado.js:792-796`) — determinístico, síncrono, instantâneo.
-- **Depois:** no mesmo lugar do fluxo, o texto vem do orquestrador (compositor→realizador, assíncrono); `montarComposicao` permanece como está — vira o caminho de fallback e de prévia (abaixo). O boot ganha a carga das fichas ao lado da carga do grafo (`_initComposicao` :665-676 é o precedente do fetch estático).
+- **Depois:** no mesmo lugar do fluxo, o texto vem do módulo de geração (compositor→realizador, assíncrono); `montarComposicao` permanece como está — vira o caminho de fallback e de prévia (abaixo). O boot ganha a carga das fichas ao lado da carga do grafo (`_initComposicao` :665-676 é o precedente do fetch estático).
 
 ### Latência: gerar em background (requisito)
-A realização via LLM é assíncrona e cara; o orçamento de latência NATURAL é o tempo em que a criança compõe a cena (arrasta, ordena, pensa). Requisito registrado: o orquestrador dispara a realização em background assim que o arranjo estabiliza (ex.: no commit do move), e o portão abre com o texto já pronto na maioria dos casos; se ainda não chegou, indicador de espera curto com teto — estourou, fallback ([[fase12-12-04]]). Implementação (debounce, cancelamento de gerações obsoletas ao mudar o arranjo) é detalhe posterior; o requisito é: **a criança não espera o LLM de braços cruzados**.
+A realização via LLM é assíncrona e cara; o orçamento de latência NATURAL é o tempo em que a criança compõe a cena (arrasta, ordena, pensa). Requisito registrado: o módulo de geração dispara a realização em background assim que o arranjo estabiliza (ex.: no commit do move), e o portão abre com o texto já pronto na maioria dos casos; se ainda não chegou, indicador de espera curto com teto — estourou, fallback ([[fase12-12-04]]). Implementação (debounce, cancelamento de gerações obsoletas ao mudar o arranjo) é detalhe posterior; o requisito é: **a criança não espera o LLM de braços cruzados**.
 
 ### Prévia-depois-commit (T4/T5) e o realizador
 O padrão atual é sagrado: `preverComposicao` tece a prévia SEM consumir a rodada (:857-863), e só `aplicarComposicao` commita (:866). Encaixe do realizador:
 
-**DECISÃO ABERTA:** a PRÉVIA do portão usa o realizador ou permanece determinística?
-- Opção A — prévia determinística (A+ v3 via `montarComposicao`), realização LLM só no commit: zero custo/latência por move; a prévia mostra a história "de madeira" e o commit entrega a "de verdade". Custo: prévia e texto final diferem.
-- Opção B — prévia também realizada (LLM a cada prévia): fidelidade visual total, mas custo e latência por move de arrasto — briga com o orçamento de latência acima.
-A validação em escala + uma sessão real decidem; nenhum default fixado aqui.
+**Decisão fixada (2026-07-09):** a PRÉVIA do portão é DETERMINÍSTICA (A+ v3 via `montarComposicao`); a realização por LLM acontece só no COMMIT. Prévia realizada custaria uma chamada de LLM por movimento da criança — briga frontal com o orçamento de latência acima. A prévia crua mostra o efeito do arranjo; o texto LIDO no portão é o realizado. Nota de jardim: a diferença prévia↔texto-final é HIPÓTESE a observar na sessão real — não resolver antes de observar.
 
 ### Gap real: o gênero do personagem
 O Pacote exige `personagem.genero` ([[fase11-11-00]]), vindo do perfil (invariante de [[fase10-10-00]]). **O tipo Perfil atual NÃO tem campo de gênero** (verificado: `src/core/perfil.ts:21-27` — id, nome, idade, nivel, avatarId). Extensão do perfil é PRÉ-REQUISITO de integração.
-**DECISÃO ABERTA:** a extensão é campo aditivo no `pipoca.perfil.v1` (com valor padrão e migração leniente — o `RepositorioLocalStorage` já valida por schema) ou um `pipoca.perfil.v2` (invariante da casa: `.vN` publicado não muta — mas o v1 do perfil é schema de STORAGE local, não arquivo autoral; registrar a nuance para o Manoel decidir).
+**Decisão fixada (2026-07-09):** campo ADITIVO OPCIONAL no `pipoca.perfil.v1` — o envelope de storage local evolui aditivamente (leitores antigos ignoram o campo novo); `.v2` fica reservado para mudança que QUEBRE o shape. Distinção de regra registrada: "nunca mutar `.vN`" protege schemas AUTORAIS publicados (fichas, grafo); storage local aceita campo opcional novo sem trocar de versão.
 
 ## Regras de negócio
 1. **A mecânica de composição da criança não muda:** ordenar/inserir/compor/portões são os atuais; a geração 2 troca a ORIGEM DO TEXTO, não o brinquedo.
@@ -60,24 +57,23 @@ O Pacote exige `personagem.genero` ([[fase11-11-00]]), vindo do perfil (invarian
 5. **Perfil completo antes de compor:** sem nome+gênero+nível não há Pacote — falha explícita a montante, nunca texto com personagem "meio certo".
 
 ## Passos de implementação
-1. Fechar as DECISÕES ABERTAS (prévia; extensão do perfil) com o Manoel.
-2. Estender o perfil (gênero) conforme decidido; ajustar cadastro/telas da geração 1 que criam perfil (fase 02 — citado como contexto, sem tocar agora).
-3. Implementar o disparo em background no commit do move + descarte de gerações obsoletas.
-4. Enxertar no portão: texto do orquestrador com teto de espera; `montarComposicao` como fallback/prévia.
-5. Testar o fluxo feliz e o infeliz (matriz de [[fase12-12-04]]) numa sessão real.
+1. Estender o perfil com o gênero (campo aditivo opcional no `pipoca.perfil.v1` — decisão fixada); ajustar cadastro/telas da geração 1 que criam perfil (fase 02 — citado como contexto, sem tocar agora).
+2. Implementar o disparo em background no commit do move + descarte de gerações obsoletas.
+3. Enxertar no portão: texto do módulo de geração com teto de espera; `montarComposicao` como fallback e prévia (decisão fixada).
+4. Testar o fluxo feliz e o infeliz (matriz de [[fase12-12-04]]) numa sessão real — incluindo a observação da hipótese prévia↔texto-final.
 
 ## Estados / edge-cases
 - Portão aberto antes da realização terminar → espera curta com teto → fallback (nunca tela travada).
 - Arranjo mudou após disparo → geração descartada; nova dispara no próximo commit.
 - Fichas ausentes/corrompidas no boot → caminho v3 puro (como hoje), origem sinalizada.
-- Perfil legado sem gênero (criado antes da extensão) → fluxo de completar cadastro OU padrão neutro — definido junto com a DECISÃO ABERTA da extensão; nunca inferir do nome.
+- Perfil legado sem gênero (criado antes da extensão) → o campo é opcional (ausência é estado legal no storage); a experiência de completar o cadastro se define na implementação — nunca inferir do nome.
 - Convergência com texto de fallback → salva normalmente ([[fase13-13-02]]), origem registrada.
 
 ## Critérios de aceitação / verificação
 - [ ] Fluxo novo descrito de ponta a ponta com o ponto de enxerto real (caminho:linha).
 - [ ] Requisito de latência (background durante a composição; teto no portão) registrado.
-- [ ] Prévia-depois-commit preservado, com a DECISÃO ABERTA da prévia registrada (2 opções).
-- [ ] Gap do gênero no tipo Perfil registrado com a DECISÃO ABERTA da extensão.
+- [ ] Prévia-depois-commit preservado; prévia determinística fixada (LLM só no commit) com a nota de jardim.
+- [ ] Gap do gênero no tipo Perfil registrado com a extensão fixada (campo aditivo opcional no `pipoca.perfil.v1`).
 - [ ] Nenhuma mudança na mecânica de composição da criança.
 
 ## Relações com outros docs

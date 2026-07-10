@@ -17,4 +17,4 @@ determinístico), e o conteúdo vira **fichas** reaproveitáveis em três camada
 - Checker: `node docs/plans02/check_plans02.mjs` — valida os docs detalhados (template, links,
   dependências, nomes canônicos, ids); docs só-H1 são listados como esqueleto, fora do gate.
   Relatório gerado: `_diagnostico02.md` (nunca editar à mão).
-- Estado: fases 10–13 detalhadas; fase 14 ainda esqueleto (detalhamento vem em prompt posterior).
+- Estado: **as 5 fases (10–14) detalhadas** — próxima etapa é a implementação, começando pela fase 10 (fichas), com o portão da validação em escala (10-04) antes da fase 11. Roteiro e notas de decisão: `TRILHA-plans02.md`.

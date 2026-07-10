@@ -34,7 +34,7 @@ Nesta fase, nenhum. Na implementação: `src/core/historias.ts` (novo esquema/ca
 
 ### Evolução do esquema
 O esquema atual é `pipoca.historias.v1` (campo `esquema`, `src/core/historias.ts:16`). Os campos novos (texto de origem LLM, `pacoteOrigem`, marcador de intermediária/rodada) exigem evolução.
-**DECISÃO ABERTA:** `pipoca.historias.v2` (novo esquema, invariante da casa `.vN` não muta) ou campos OPCIONAIS aditivos no v1 (o `RepositorioLocalStorage` valida por schema e descarta corrompidos — aditivo com opcionais é compatível para trás; mas estica o significado de "v1")? Registrar a nuance: esquema de storage local ≠ arquivo autoral versionado; o Manoel decide o rigor.
+**Decisão fixada (2026-07-09):** campos OPCIONAIS ADITIVOS no `pipoca.historias.v1` — `origem`, `pacoteOrigem` e o marcador de rodada/intermediária, todos opcionais; registros antigos seguem válidos sem migração. Mesma distinção de regra da extensão do perfil ([[fase13-13-01]]): "nunca mutar `.vN`" protege schemas AUTORAIS publicados; o envelope de storage local evolui aditivamente, e `.v2` fica reservado para mudança que quebre o shape.
 
 ### Salvar ≠ cachear (explícito)
 - **Salvar** = histórico/releitura: a criança e a família reveem o que foi criado. É o que esta fase faz.
@@ -49,14 +49,13 @@ O esquema atual é `pipoca.historias.v1` (campo `esquema`, `src/core/historias.t
 5. **Privacidade herdada:** tudo continua local (localStorage) até o backend da geração 1 dizer o contrário; nada desta fase cria tráfego novo de dados da criança.
 
 ## Passos de implementação
-1. Fechar a DECISÃO ABERTA do esquema (v2 vs aditivo) com o Manoel.
-2. Evoluir `HistoriaSalva` (origem, `pacoteOrigem`, marcador de rodada/intermediária) conforme decidido.
-3. Estender a captura: além da convergência (:805-820), capturar a cada portão lido (intermediárias).
-4. Recalibrar poda/retenção contando intermediárias separado.
-5. Testes no padrão da casa: salvar/carregar/poda com o shape novo; compat com registros v1 existentes.
+1. Evoluir `HistoriaSalva` com os campos opcionais aditivos (`origem`, `pacoteOrigem`, marcador de rodada/intermediária — decisão fixada).
+2. Estender a captura: além da convergência (:805-820), capturar a cada portão lido (intermediárias).
+3. Recalibrar poda/retenção contando intermediárias separado.
+4. Testes no padrão da casa: salvar/carregar/poda com o shape novo; compat com registros v1 existentes.
 
 ## Estados / edge-cases
-- Registro v1 antigo (sem os campos novos) → carrega e exibe normalmente (compat para trás obrigatória, seja qual for a decisão do esquema).
+- Registro v1 antigo (sem os campos novos) → carrega e exibe normalmente (compat para trás garantida por design: os campos novos são opcionais).
 - História de fallback (A+ v3) → salva igual, origem sinalizada; `pacoteOrigem` pode ser nulo (não houve Pacote) — o shape precisa permitir.
 - localStorage cheio → comportamento atual do repositório (gravação falha silenciosa?) — VERIFICAR na implementação e tratar explícito; poda preventiva das intermediárias primeiro.
 - Partida abandonada no meio → intermediárias já salvas ficam (são histórias lidas de verdade); a poda cuida do volume.
@@ -65,7 +64,7 @@ O esquema atual é `pipoca.historias.v1` (campo `esquema`, `src/core/historias.t
 - [ ] Base existente descrita como É (contrato aditivo, chave, shape, retenção, captura só-na-convergência) com caminho:linha.
 - [ ] Mudanças planejadas: intermediárias por rodada + origem + `pacoteOrigem`.
 - [ ] "Salvar ≠ cachear" explícito; sem chave-de-replay; jardim com condição de colheita registrada.
-- [ ] DECISÃO ABERTA do esquema (v2 vs aditivo) registrada com a nuance storage-vs-autoral.
+- [ ] Decisão fixada do esquema (campos opcionais aditivos no `pipoca.historias.v1`) registrada com a distinção storage-vs-autoral.
 
 ## Relações com outros docs
 - Depende de: `[[fase13-13-00]]`, `[[fase11-11-00]]`

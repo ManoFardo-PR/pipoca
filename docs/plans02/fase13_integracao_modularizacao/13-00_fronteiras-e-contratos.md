@@ -19,7 +19,7 @@ Nenhum nesta fase (planejamento de integração). O acoplamento ATUAL descrito a
 
 ## Nomes & variáveis
 - `PipocaCanonico` — o seam global ATUAL (verificado): definido em `src/app/bridge.ts:137`, exposto em `globalThis` em `src/app/bridge.ts:256`; o sub-objeto `composicao` (`bridge.ts:139-152`) mapeia `iniciar`/`montar`/`abrirProximaRodada`/`convergiu` etc. para `src/core/composicao.js`.
-- `orquestrador` — o módulo NOVO planejado entre app e motores (ver DECISÃO ABERTA). **Homonímia verificada:** já existe `src/ia/orquestrador.ts` (cadeia de fallback de PROVEDORES, outra coisa) — se o módulo novo se chamar "orquestrador", qualificar sempre; considerar nome distinto na implementação.
+- `src/core/geracao/` — o módulo NOVO fixado (2026-07-09) entre app e motores: gera a história de ponta a ponta (compõe → realiza → valida → fallback). O nome "geracao" evita a homonímia verificada com `src/ia/orquestrador.ts` (cadeia de fallback de PROVEDORES, outra coisa). **Regra:** não criar um segundo símbolo `orquestrador` no repositório.
 - Reaproveitados com grafia idêntica: `compor`, `PacoteComposicao` ([[fase11-11-00]] e [[fase11-11-01]]); `realizar`, `veredito` ([[fase12-12-00]]); `pipoca.fichas.v1` ([[fase10-10-00]]).
 
 ## Interfaces / contratos
@@ -52,9 +52,9 @@ O que passa em cada fronteira (e SÓ isso):
 ### O acoplamento HOJE (verificado) e o que muda
 Hoje o app fala DIRETO com o motor: `estado.js` acessa `window.PipocaCanonico.composicao` (acessor `_comp()`, `src/app/estado.js:678-681`) e chama `C.iniciar` (:730), `C.montar` (:792-796), `C.abrirProximaRodada` (:802) — o A+ v3 é o único caminho. O grafo chega por `fetch("./docs/quintal.v3.json")` (`_initComposicao`, :665-676, chamado no boot :986).
 
-Amanhã: entre o app e os motores entra o **orquestrador** — recebe o estado+perfil, chama compositor→realizador, aplica a política de falha ([[fase12-12-04]]) e devolve texto+origem. O A+ v3 permanece EXATAMENTE onde está (fallback vivo, intocável até a fase 14 — texto simples); o que muda é quem o chama: o orquestrador, não mais o `estado.js` direto. O ponto de enxerto exato vive em [[fase13-13-01]].
+Amanhã: entre o app e os motores entra o **módulo de geração** (`src/core/geracao/`) — recebe o estado+perfil, chama compositor→realizador, aplica a política de falha ([[fase12-12-04]]) e devolve texto+origem. O A+ v3 permanece EXATAMENTE onde está (fallback vivo, intocável até a fase 14 — texto simples); o que muda é quem o chama: o módulo de geração, não mais o `estado.js` direto. O ponto de enxerto exato vive em [[fase13-13-01]].
 
-**DECISÃO ABERTA:** o orquestrador é um módulo novo (`src/core/orquestrador/` — não existe hoje, verificado) ou vive no app (dentro de `estado.js`/bridge)? A favor do módulo: testável isolado, o app fica burro (regra de ouro); a favor do app: uma peça a menos, o fluxo já vive em `estado.js`. Registrar também a questão do NOME (homonímia com `src/ia/orquestrador.ts`).
+**Decisão fixada (2026-07-09):** o módulo de geração é um MÓDULO NOVO — `src/core/geracao/` — fora do app: testável sem DOM, o app fica fino (regra de ouro). O nome "geracao" (quem gera a história de ponta a ponta) foi escolhido para não colidir com o `src/ia/orquestrador.ts` vivo; fica a regra: nenhum segundo símbolo `orquestrador` no repositório.
 
 ## Regras de negócio
 1. **Regra de ouro:** módulo conhece só o contrato do vizinho; toda comunicação pelas quatro fronteiras da tabela — sem atalhos.
@@ -64,22 +64,21 @@ Amanhã: entre o app e os motores entra o **orquestrador** — recebe o estado+p
 5. **Seam explícito:** o padrão `PipocaCanonico` (bridge + bundle + global) é o precedente de como expor o orquestrador ao `estado.js` — mesma disciplina, novo sub-objeto.
 
 ## Passos de implementação
-1. Fechar a DECISÃO ABERTA (módulo vs app; nome) com o Manoel.
-2. Declarar o contrato do orquestrador (entrada: estado+perfil; saída: texto+paragrafos+origem) — 1 página, colada aos contratos existentes.
-3. Expor via bridge (novo sub-objeto em `PipocaCanonico` ou irmão), mantendo `composicao` intocado.
-4. Integrar no app conforme [[fase13-13-01]]; persistir conforme [[fase13-13-02]]; deploy conforme [[fase13-13-03]].
+1. Declarar o contrato do módulo de geração (`src/core/geracao/`; entrada: estado+perfil; saída: texto+paragrafos+origem) — 1 página, colada aos contratos existentes.
+2. Expor via bridge (novo sub-objeto em `PipocaCanonico` ou irmão), mantendo `composicao` intocado.
+3. Integrar no app conforme [[fase13-13-01]]; persistir conforme [[fase13-13-02]]; deploy conforme [[fase13-13-03]].
 
 ## Estados / edge-cases
-- Fichas não carregadas (fetch falhou) → o orquestrador não tenta compor: cai direto no caminho v3 atual (que tem o próprio grafo) e sinaliza a origem.
+- Fichas não carregadas (fetch falhou) → o módulo de geração não tenta compor: cai direto no caminho v3 atual (que tem o próprio grafo) e sinaliza a origem.
 - Realizador indisponível (edge fora do ar) → cascata → fallback A+ v3 ([[fase12-12-04]]); o app não percebe diferença estrutural.
-- Perfil sem gênero (gap real do tipo Perfil atual — ver [[fase13-13-01]]) → o orquestrador não chama o compositor sem personagem completo; a extensão do perfil é pré-requisito de integração.
+- Perfil sem gênero (gap real do tipo Perfil atual — ver [[fase13-13-01]]) → o módulo de geração não chama o compositor sem personagem completo; a extensão do perfil é pré-requisito de integração.
 - Versões de contrato divergentes (Pacote v1 vs realizador esperando v2) → rejeição explícita na fronteira, nunca coerção silenciosa.
 
 ## Critérios de aceitação / verificação
 - [ ] Mapa de módulos + tabela de fronteiras (o que passa / o que nunca passa) completos.
 - [ ] Regra de ouro enunciada com os três "não sabe" (app/realizador/compositor).
 - [ ] Acoplamento atual descrito como É (com caminho:linha) e o delta (orquestrador entre app e motores) registrado.
-- [ ] DECISÃO ABERTA (módulo vs app + nome/homonímia) registrada.
+- [ ] Decisão fixada do módulo de geração (`src/core/geracao/`, fora do app; regra anti-homonímia) registrada.
 
 ## Relações com outros docs
 - Depende de: `[[fase10-10-00]]`, `[[fase11-11-00]]`, `[[fase12-12-00]]`

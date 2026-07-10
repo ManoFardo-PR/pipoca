@@ -42,7 +42,7 @@ O realizador REUSA este padrão inteiro: rota edge própria (irmã do proxy — 
 
 ### Migração das fichas JSON→BD
 A decisão da fase 10 foi **JSON-first** (fichas nascem versionadas no repositório — [[fase10-10-00]]); esta fase decide o QUANDO/SE da migração a banco.
-**DECISÃO ABERTA:** a migração fichas JSON→BD é trabalho DESTA fase ou fica plantada no jardim? A favor de agora: o backend Supabase já existe (tabelas `config_ia`/`uso_ia` são precedente); fichas no BD habilitam edição sem deploy. A favor de plantar: um cenário e ~7 objetos não justificam BD; arquivo estático é auditável, versionável em git e grátis; a condição de colheita natural é "mais de um cenário em produção OU edição de fichas por não-dev virou necessidade real".
+**Decisão fixada (2026-07-09):** a migração fichas JSON→BD fica no **JARDIM**, com condição de colheita: mais de um cenário em produção, OU edição de fichas por não-dev virar necessidade real. Até lá, fichas são JSON versionado no repositório, servido estático — um cenário e ~7 objetos não justificam BD; arquivo estático é auditável, versionável em git e grátis. O backend Supabase existente (tabelas `config_ia`/`uso_ia`) permanece como precedente para quando a colheita vier.
 
 ## Regras de negócio
 1. **Chave NUNCA no cliente** — invariante verificado e herdado; PR com chave em `src/` está errado por definição.
@@ -50,14 +50,13 @@ A decisão da fase 10 foi **JSON-first** (fichas nascem versionadas no repositó
 3. **Cota antes de chamar** (precedente :272-277) — vale também para a rota do realizador.
 4. **Compositor não tem segredo:** rodá-lo no cliente é legal por contrato; a escolha cliente-vs-edge é SÓ de latência/arquitetura ([[fase13-13-01]]), nunca de segurança.
 5. **Cascata no edge:** as tentativas de provedores ([[fase12-12-04]]) acontecem do lado do servidor — o cliente faz UMA chamada por realização.
-6. **Fichas seguem o caminho estático do grafo** até a DECISÃO ABERTA fechar diferente.
+6. **Fichas seguem o caminho estático do grafo** — decisão fixada: BD só quando a condição de colheita do jardim disparar.
 
 ## Passos de implementação
-1. Fechar a DECISÃO ABERTA (JSON→BD: agora ou jardim) com o Manoel.
-2. Criar a rota edge do realizador no padrão do proxy (secrets, config no servidor, cota, erros).
-3. Cliente keyless do realizador no padrão `criarProxyIA`/`provedorViaProxy`.
-4. Servir `docs/fichas/*.v1.json` estático (nenhum trabalho: o `server.js` já serve genericamente) e carregar no boot ao lado do grafo.
-5. Teste herdado: nenhum header de chave sai do cliente (padrão de `ia.test.ts:236-237`).
+1. Criar a rota edge do realizador no padrão do proxy (secrets, config no servidor, cota, erros).
+2. Cliente keyless do realizador no padrão `criarProxyIA`/`provedorViaProxy`.
+3. Servir `docs/fichas/*.v1.json` estático (nenhum trabalho: o `server.js` já serve genericamente) e carregar no boot ao lado do grafo.
+4. Teste herdado: nenhum header de chave sai do cliente (padrão de `ia.test.ts:236-237`).
 
 ## Estados / edge-cases
 - Secret ausente no ambiente → a função responde erro explícito sem chamar provedor (precedente: `{ok:false, semChave:true}`, `functions/proxy-ia/index.ts:154-156`) → cascata pula o provedor.
@@ -69,7 +68,7 @@ A decisão da fase 10 foi **JSON-first** (fichas nascem versionadas no repositó
 - [ ] Tabela o-que-roda-onde completa com o porquê de cada linha.
 - [ ] Padrão real de segredos descrito com caminho:linha (secrets, servidor-decide, cota-antes, cliente keyless, grep zero).
 - [ ] Reuso pelo realizador especificado (rota irmã, cascata no edge, uma viagem por realização).
-- [ ] DECISÃO ABERTA da migração JSON→BD registrada com prós/contras e condição de colheita.
+- [ ] Decisão fixada da migração JSON→BD (jardim, com condição de colheita) registrada.
 
 ## Relações com outros docs
 - Depende de: `[[fase13-13-00]]`, `[[fase12-12-02]]`

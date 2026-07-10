@@ -20,7 +20,10 @@ export function transportePadrao(): Transporte {
   // `tls.ca` explícito, enquanto o curl (CURL_CA_BUNDLE/https_proxy já
   // configurados pelo ambiente) atravessa. Fora do ambiente remoto, fetch.
   if (process.env["CCR_AGENT_PROXY_ENABLED"] === "1") return transporteCurl();
-  return (url, init) => fetch(url, init) as unknown as Promise<RespostaTransporte>;
+  // Timeout duro de 180s (paridade com o --max-time do curl): sem ele, um
+  // socket pendurado da rede local já segurou um lote por 78 minutos.
+  return (url, init) =>
+    fetch(url, { ...init, signal: AbortSignal.timeout(180_000) }) as unknown as Promise<RespostaTransporte>;
 }
 
 export function transporteCurl(): Transporte {

@@ -1,5 +1,7 @@
 # fase12 · 12-04 · Política de falha (cascata de modelos)
 
+> ✅ **STATUS · 2026-07-10 · IMPLEMENTADA** — `src/core/realizador/cascata.ts:85` (`realizarComCascata`): falha de provedor (retry 1× com pausa, só transitória; recusa pula) ≠ falha de fidelidade (1 tentativa ⇒ próximo); teto global 4; fallback final = `montar` do A+ v3 chamado como função (arquivo intocado); origem sempre sinalizada; FAIL nunca sai como sucesso (erro esgotado carrega a última tentativa para calibração). Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase12-12-04`
 - nó(s) da arquitetura: —

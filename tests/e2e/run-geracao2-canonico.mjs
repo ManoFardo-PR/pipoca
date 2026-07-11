@@ -109,15 +109,21 @@ try {
     App.selecionarPerfil(perfil);
     await espera(30);
 
-    // Provedor FAKE no seam: registra o Pacote recebido e devolve texto realizado.
+    // Provedor FAKE no seam: registra o Pacote recebido e devolve texto realizado
+    // em 3 PARÁGRAFOS (linha em branco), como o realizador real (fim do paredão).
     const registro = { chamadas: 0, pacotes: [] };
-    const TEXTO_FAKE = "Pietro pisa na grama fria. A história realizada chega pronta do faz-de-conta.";
+    const PARAGRAFOS_FAKE = [
+      "Pietro pisa na grama fria.",
+      "A história realizada chega pronta do faz-de-conta.",
+      "E respira em três blocos separados.",
+    ];
+    const TEXTO_FAKE = PARAGRAFOS_FAKE.join("\n\n");
     Canon.geracao.realizadorRemoto = () => async (pacote) => {
       registro.chamadas++;
       registro.pacotes.push(pacote);
       return {
         texto: TEXTO_FAKE,
-        paragrafos: [TEXTO_FAKE],
+        paragrafos: PARAGRAFOS_FAKE.slice(),
         veredito: { pass: true, motivos: [], avisos: [], presencaPorBeat: {} },
         origem: { fonte: "llm", provedor: "fake-e2e", modelo: "fake-1" },
         metadados: { chamadas: 1, duracaoMs: 1 },
@@ -168,6 +174,9 @@ try {
       intermediarias: intermediarias.length,
       rodadasIntermediarias: intermediarias.map((h) => h.rodada).sort(),
       completaOk: !!completa && completa.texto.indexOf("faz-de-conta") >= 0,
+      completaTextoVerbatim: !!completa && completa.texto === TEXTO_FAKE,
+      completaParagrafos: !!completa && Array.isArray(completa.paragrafos)
+        ? completa.paragrafos.length : 0,
       completaOrigem: completa ? completa.origem : null,
       completaPacote: !!completa && !!completa.pacoteOrigem &&
         completa.pacoteOrigem.esquema === "pipoca.pacote-composicao.v1",
@@ -187,6 +196,8 @@ try {
     "marcador de rodada correto (intermediárias R1–R3; completa R4)"
   );
   assert(feliz.completaOk, "a história completa salva o TEXTO REALIZADO (veio do fake, não do A+)");
+  assert(feliz.completaTextoVerbatim, "o texto com \\n\\n é salvo VERBATIM (as quebras sobrevivem à persistência)");
+  assert(feliz.completaParagrafos === 3, "paragrafos do realizador salvos no registro (3 blocos — fim do paredão)");
   assert(
     !!feliz.completaOrigem && feliz.completaOrigem.fonte === "llm" &&
       feliz.completaOrigem.provedor === "fake-e2e" && feliz.completaOrigem.rota === "realizador",
@@ -205,6 +216,43 @@ try {
   await page.locator("div[role='button']", { hasText: feliz.titulo }).first().click();
   await page.waitForFunction(() => /faz-de-conta/i.test(document.body.innerText), { timeout: 4000 });
   assert(true, "o leitor EXIBE o texto realizado pela geração 2 (compor→realizar→validar→exibir→salvar)");
+
+  // Fim do paredão: o leitor renderiza um <p> POR PARÁGRAFO (não um bloco único).
+  const blocos = await page.evaluate(() => {
+    const ps = [...document.querySelectorAll("p")].filter((p) =>
+      /grama fria|faz-de-conta|blocos separados/.test(p.textContent || ""));
+    return {
+      total: ps.length,
+      algumColado: ps.some((p) =>
+        /grama fria/.test(p.textContent || "") && /faz-de-conta/.test(p.textContent || "")),
+    };
+  });
+  assert(blocos.total === 3 && !blocos.algumColado,
+    "o leitor renderiza 3 <p> separados (um por parágrafo) — fim do paredão");
+  await page.locator('[aria-label="Fechar"]').first().click();
+
+  // Registro ANTIGO (sem `paragrafos`): o leitor deriva os blocos do texto
+  // por linha em branco — todo o histórico salvo ganha o conserto.
+  await page.evaluate(() => {
+    const App = window.PipocaApp;
+    App.setState({ leitorHistoria: {
+      id: "legada-e2e", cenarioId: "quintal_anoitecer",
+      texto: "Bloco legado um da colheita.\n\nBloco legado dois da colheita.",
+      linha: ["vagalume"], nivel: "n2", desfecho: "convergente",
+      titulo: "História legada", emoji: "🌾", criadaEm: Date.now(), favorita: false,
+    } });
+  });
+  await page.waitForFunction(() => /colheita/.test(document.body.innerText), { timeout: 4000 });
+  const blocosLegado = await page.evaluate(() => {
+    const ps = [...document.querySelectorAll("p")].filter((p) =>
+      /colheita/.test(p.textContent || ""));
+    return {
+      total: ps.length,
+      algumColado: ps.some((p) => /legado um/.test(p.textContent || "") && /legado dois/.test(p.textContent || "")),
+    };
+  });
+  assert(blocosLegado.total === 2 && !blocosLegado.algumColado,
+    "registro antigo SEM paragrafos ainda renderiza — 2 blocos derivados do \\n\\n do texto");
   await page.locator('[aria-label="Fechar"]').first().click();
 
   console.log("\n=== Caminho infeliz · realizador fora do ar ⇒ fallback A+ v3 local ===");

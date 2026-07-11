@@ -1,6 +1,8 @@
 # fase13 · 13-00 · Fronteiras e contratos entre módulos
 
 > ✅ **STATUS · 2026-07-11 · IMPLEMENTADA** — o módulo de geração vive em `src/core/geracao/geracao.ts` (gerar em :120; política de ROTA POR NÍVEL configurável, default realizador em todos — :44; personagem canônico do perfil legado — :52), exposto pelo seam como novo sub-objeto (`src/app/bridge.ts:160`, `composicao` intocado). Regra de ouro testada com provedores fake (35 asserts em `src/core/geracao/geracao.test.ts`); origem sempre sinalizada. Roteiro: ../TRILHA-plans02.md
+>
+> 📝 **Adendo · 2026-07-11 (pós-incidente)** — o "personagem canônico" citado acima foi APOSENTADO pela decisão evoluída do [[fase13-13-01]]: o nome do personagem é SEMPRE o do perfil; o que resta de default é só a concordância (`GENERO_CONCORDANCIA_PADRAO` em `src/core/geracao/geracao.ts`). Forense: `../forense-personagem.md`.
 
 ## Identidade
 - id: `fase13-13-00`

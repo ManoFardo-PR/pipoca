@@ -79,7 +79,7 @@ try {
     return {
       temGeracao: !!Canon.geracao && typeof Canon.geracao.gerar === "function",
       rotaPadrao: Canon.geracao ? Canon.geracao.ROTA_PADRAO : null,
-      canonico: Canon.geracao ? Canon.geracao.PERSONAGEM_CANONICO : null,
+      concordanciaPadrao: Canon.geracao ? Canon.geracao.GENERO_CONCORDANCIA_PADRAO : null,
       composicaoIntacta: !!Canon.composicao && typeof Canon.composicao.montar === "function",
     };
   });
@@ -90,8 +90,8 @@ try {
     "política de rota padrão: realizador em todos os níveis"
   );
   assert(
-    boot.canonico && boot.canonico.nome === "Joana" && boot.canonico.genero === "f",
-    "personagem canônico (Joana, f) registrado para perfis legados sem gênero"
+    boot.concordanciaPadrao === "f",
+    "default de concordância (f, com o NOME REAL) registrado para perfis sem gênero — regra pós-incidente"
   );
   assert(true, "fichas v1 carregadas no boot (fichasProntas)");
 
@@ -261,6 +261,105 @@ try {
       "v3 vivo como RESERVA: o texto do fallback começa com abertura autorada do grafo"
     );
   }
+
+  console.log("\n=== Identidade do personagem · regra pós-incidente (nome SEMPRE; pedir-uma-vez) ===");
+  // Fake que captura a identidade de cada Pacote realizado (janela global,
+  // lida entre os evaluates) — cobre os 3 cenários exigidos pela correção.
+  const idSetup = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const Canon = window.PipocaCanonico;
+    const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+    window.__identidades = [];
+    Canon.geracao.realizadorRemoto = () => async (pacote) => {
+      window.__identidades.push({ nome: pacote.personagem.nome, genero: pacote.personagem.genero });
+      return {
+        texto: "Texto realizado de identidade.",
+        paragrafos: ["Texto realizado de identidade."],
+        veredito: { pass: true, motivos: [], avisos: [], presencaPorBeat: {} },
+        origem: { fonte: "llm", provedor: "fake-e2e", modelo: "fake-1" },
+        metadados: { chamadas: 1, duracaoMs: 1 },
+      };
+    };
+    window.__jogarRodada = async () => {
+      App.iniciarComposicao();
+      App.aplicarComposicao({ tipo: "r1", ordem: App.estado.comp.banco.slice(0, 3) });
+      App.abrirProximaRodadaComposicao();
+      await espera(80);
+    };
+    // (a) pass-through no sentido f (o sentido m já é o g2-feliz acima, 4 rodadas)
+    const aurora = Canon.perfil.criarPerfil("id-aurora", { nome: "Aurora", idade: 7, nivel: "n2", avatarId: "lua", genero: "f" });
+    await App.repo.salvarPerfil(aurora);
+    App.selecionarPerfil(aurora);
+    await espera(30);
+    const overlayComGenero = App.estado.pedirGenero === true;
+    await window.__jogarRodada();
+    // (b)/(c) perfil LEGADO sem gênero (o perfil do incidente) — ativação pede
+    const pietro = Canon.perfil.criarPerfil("id-pietro", { nome: "Pietro", idade: 8, nivel: "n2", avatarId: "pingo" });
+    await App.repo.salvarPerfil(pietro);
+    App.selecionarPerfil(pietro);
+    await espera(30);
+    return {
+      overlayComGenero,
+      identidadeF: window.__identidades[0] || null,
+      overlaySemGenero: App.estado.pedirGenero === true,
+    };
+  });
+  assert(idSetup.overlayComGenero === false, "perfil COM gênero não dispara o pedir-uma-vez");
+  assert(
+    !!idSetup.identidadeF && idSetup.identidadeF.nome === "Aurora" && idSetup.identidadeF.genero === "f",
+    "pass-through f: Pacote com o personagem do perfil (Aurora, f) — os dois sentidos cobertos"
+  );
+  assert(idSetup.overlaySemGenero, "perfil legado SEM gênero dispara o pedir-uma-vez na ativação");
+  await page.waitForFunction(() => /quem vive as aventuras/i.test(document.body.innerText), { timeout: 4000 });
+  assert(true, "overlay PedirGenero visível (padrão da casa, nome da criança no texto)");
+
+  // (c) fluxo SEM resposta: "Depois" fecha; a geração usa o NOME REAL + concordância f.
+  await page.locator('[aria-label="Depois"]').first().click();
+  const semResposta = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const fechou = App.estado.pedirGenero === false;
+    await window.__jogarRodada();
+    return { fechou, identidade: window.__identidades[1] || null };
+  });
+  assert(semResposta.fechou, "'Depois' fecha o overlay sem escolher");
+  assert(
+    !!semResposta.identidade && semResposta.identidade.nome === "Pietro" && semResposta.identidade.genero === "f",
+    "INCIDENTE corrigido no fluxo real: sem resposta ⇒ história do PIETRO com concordância f (nunca Joana)"
+  );
+
+  // (b) pedir-uma-vez de verdade: nova ativação pergunta de novo; a escolha PERSISTE.
+  await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const perfis = await App.repo.carregarPerfis();
+    App.selecionarPerfil(perfis.find((p) => p.id === "id-pietro"));
+  });
+  await page.waitForFunction(() => window.PipocaApp.estado.pedirGenero === true, { timeout: 4000 });
+  assert(true, "sem escolha persistida, a próxima ativação pergunta de novo");
+  await page.locator("button", { hasText: "Um menino" }).first().click();
+  const escolha = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+    await espera(50); // persistência fire-and-forget aterrissa
+    const envs = JSON.parse(localStorage.getItem("pipoca.perfil.v1") || "[]");
+    const env = envs.find((e) => e.perfil && e.perfil.id === "id-pietro");
+    await window.__jogarRodada();
+    const perfis = await App.repo.carregarPerfis();
+    App.selecionarPerfil(perfis.find((p) => p.id === "id-pietro"));
+    await espera(30);
+    return {
+      estadoVivo: App.estado.perfil && App.estado.perfil.genero,
+      persistido: env && env.perfil.genero,
+      identidade: window.__identidades[2] || null,
+    };
+  });
+  assert(escolha.persistido === "m", "a escolha PERSISTE no envelope pipoca.perfil.v1 (genero: m)");
+  assert(escolha.estadoVivo === "m", "o estado vivo reflete a escolha na hora");
+  assert(
+    !!escolha.identidade && escolha.identidade.nome === "Pietro" && escolha.identidade.genero === "m",
+    "próxima geração usa Pietro, m — identidade completa do perfil"
+  );
+  const naoPerguntaMais = await page.evaluate(() => window.PipocaApp.estado.pedirGenero !== true);
+  assert(naoPerguntaMais, "com o gênero persistido, a ativação seguinte NÃO pergunta mais (pediu UMA vez)");
 
   assert(erros.length === 0, "sem erros de página no fluxo da geração 2 (erros: " + (erros.join(" | ") || "nenhum") + ")");
 } finally {

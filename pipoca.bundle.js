@@ -3005,7 +3005,7 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
     n3: "realizador",
     n4: "realizador"
   };
-  var PERSONAGEM_CANONICO = { nome: "Joana", genero: "f" };
+  var GENERO_CONCORDANCIA_PADRAO = "f";
   var NIVEIS2 = ["n1", "n2", "n3", "n4"];
   function generoValido(g) {
     return g === "m" || g === "f";
@@ -3033,8 +3033,11 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
       return aMais(`rota do nível ${nivel} = ap_cru`, null);
     if (!entrada.fichas)
       return aMais("fichas não carregadas", null);
-    const nome = typeof entrada.perfil.nome === "string" ? entrada.perfil.nome.trim() : "";
-    const personagem = nome !== "" && generoValido(entrada.perfil.genero) ? { nome, genero: entrada.perfil.genero } : PERSONAGEM_CANONICO;
+    const nomeCru = typeof entrada.perfil.nome === "string" ? entrada.perfil.nome.trim() : "";
+    const personagem = {
+      nome: nomeCru !== "" ? nomeCru : NOME_PADRAO,
+      genero: generoValido(entrada.perfil.genero) ? entrada.perfil.genero : GENERO_CONCORDANCIA_PADRAO
+    };
     let pacote;
     try {
       pacote = compor2(entrada.estado, entrada.fichas, {
@@ -3609,7 +3612,7 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
     geracao: {
       gerar,
       ROTA_PADRAO,
-      PERSONAGEM_CANONICO,
+      GENERO_CONCORDANCIA_PADRAO,
       realizadorRemoto: () => {
         try {
           return obterBackend().realizador ?? null;

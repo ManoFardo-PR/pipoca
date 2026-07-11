@@ -46,7 +46,7 @@ import {
 // fase13: o módulo de geração (geração 2) — compor → realizar → fallback A+ v3.
 // Novo sub-objeto irmão de `composicao` (que segue INTOCADO servindo prévia e
 // fallback — fase13-13-00, regra 5: mesmo seam, nova porta).
-import { gerar, PERSONAGEM_CANONICO, ROTA_PADRAO } from "../core/geracao/geracao.js";
+import { gerar, GENERO_CONCORDANCIA_PADRAO, ROTA_PADRAO } from "../core/geracao/geracao.js";
 
 import {
   estadoInicial,
@@ -160,7 +160,7 @@ const PipocaCanonico = {
   geracao: {
     gerar,
     ROTA_PADRAO,
-    PERSONAGEM_CANONICO,
+    GENERO_CONCORDANCIA_PADRAO,
     /** Realizador remoto (edge keyless) quando o backend o oferece; senão null. */
     realizadorRemoto: () => {
       try {

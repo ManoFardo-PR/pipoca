@@ -16,7 +16,8 @@ import {
   ErroRecusaRealizador,
   type ProvedorRealizador,
 } from "../realizador/provedor_realizador.js";
-import { gerar, PERSONAGEM_CANONICO, ROTA_PADRAO } from "./geracao.js";
+import { NOME_PADRAO } from "../perfil.js";
+import { gerar, GENERO_CONCORDANCIA_PADRAO, ROTA_PADRAO } from "./geracao.js";
 import objetosRaw from "../../../docs/fichas/objetos.v1.json" with { type: "json" };
 import relacoesRaw from "../../../docs/fichas/relacoes.quintal.v1.json" with { type: "json" };
 import cenariosRaw from "../../../docs/fichas/cenarios.v1.json" with { type: "json" };
@@ -212,25 +213,51 @@ console.log("=== BLOCO 4 — Erros explícitos nas fronteiras ===");
   assert(lancou2.includes("nível válido"), "perfil sem nível válido ⇒ erro explícito");
 }
 
-// ─── 5. Perfil legado sem gênero ⇒ personagem canônico (13-01) ───────────────
-console.log("=== BLOCO 5 — Default do perfil legado (personagem canônico) ===");
+// ─── 5. Identidade do personagem (regra de 2026-07-11 — pós-incidente) ───────
+console.log("=== BLOCO 5 — Identidade: nome do perfil SEMPRE; concordância padrão f ===");
 {
-  assertEqual(PERSONAGEM_CANONICO.nome, "Joana", "personagem canônico = Joana");
-  assertEqual(PERSONAGEM_CANONICO.genero, "f", "personagem canônico = feminino");
-  const c = { n: 0 };
+  assertEqual(GENERO_CONCORDANCIA_PADRAO, "f", "default de concordância sem gênero = feminino");
+
+  const realizadorFake = async () => ({
+    texto: "x", paragrafos: ["x"],
+    veredito: { pass: true, motivos: [], avisos: [], presencaPorBeat: {} },
+    origem: { fonte: "llm" as const, provedor: "fake", modelo: "fake" },
+    metadados: { chamadas: 1, duracaoMs: 1 },
+  });
+
+  // 🔎 TESTE DO INCIDENTE, FLIPADO (forense-personagem.md, 2026-07-11): na 1ª
+  // sessão real, Pietro sem gênero produziu a história da JOANA (a regra antiga
+  // substituía o personagem inteiro). Regra nova: o NOME NUNCA é substituído.
   const r = await gerar(
     { ...entradaBase, perfil: { nome: "Pietro", nivel: "n2" } }, // sem genero (legado)
-    { provedores: [provedorFake("alpha", [{ tipo: "texto", texto: TEXTO_FIEL }], c)], atraso_retry_ms: 0 }
+    { realizador: realizadorFake }
   );
-  assert(r.pacote !== null && r.pacote.personagem.nome === "Joana" && r.pacote.personagem.genero === "f",
-    "perfil sem gênero ⇒ Pacote com personagem canônico (nunca inferir do nome)");
+  assert(r.pacote !== null && r.pacote.personagem.nome === "Pietro",
+    "INCIDENTE corrigido: Pietro sem gênero ⇒ a história é do PIETRO (nome real preservado)");
+  assert(r.pacote !== null && r.pacote.personagem.genero === "f",
+    "sem gênero e sem resposta ⇒ concordância feminina COM o nome real");
 
+  // Pass-through nos DOIS sentidos: o gênero do perfil viaja intacto.
   const r2 = await gerar(
     { ...entradaBase, perfil: { nome: "Pietro", genero: "m", nivel: "n2" } },
-    { realizador: async () => ({ texto: "x", paragrafos: ["x"], veredito: { pass: true, motivos: [], avisos: [], presencaPorBeat: {} }, origem: { fonte: "llm" as const, provedor: "fake", modelo: "fake" }, metadados: { chamadas: 1, duracaoMs: 1 } }) }
+    { realizador: realizadorFake }
   );
   assert(r2.pacote !== null && r2.pacote.personagem.nome === "Pietro" && r2.pacote.personagem.genero === "m",
-    "perfil completo ⇒ personagem do perfil (Pietro, m)");
+    "perfil completo m ⇒ personagem do perfil (Pietro, m)");
+  const r3 = await gerar(
+    { ...entradaBase, perfil: { nome: "Aurora", genero: "f", nivel: "n2" } },
+    { realizador: realizadorFake }
+  );
+  assert(r3.pacote !== null && r3.pacote.personagem.nome === "Aurora" && r3.pacote.personagem.genero === "f",
+    "perfil completo f ⇒ personagem do perfil (Aurora, f)");
+
+  // Caso degenerado: nome vazio (criarPerfil normaliza a montante) ⇒ NOME_PADRAO, nunca "Joana".
+  const r4 = await gerar(
+    { ...entradaBase, perfil: { nome: "   ", nivel: "n2" } },
+    { realizador: realizadorFake }
+  );
+  assert(r4.pacote !== null && (r4.pacote.personagem.nome as string) === NOME_PADRAO,
+    "nome vazio (degenerado) ⇒ NOME_PADRAO com concordância f — \"Joana\" não é mais fallback de identidade");
 }
 
 console.log(`\n${passou} passou · ${falhou} falhou`);

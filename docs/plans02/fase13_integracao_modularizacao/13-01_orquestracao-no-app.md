@@ -1,6 +1,8 @@
 # fase13 · 13-01 · Orquestração no app (leitura)
 
 > ✅ **STATUS · 2026-07-11 · IMPLEMENTADA** — fichas carregadas no boot ao lado do grafo (`src/app/estado.js:694`, chamada :1117); realização por LLM disparada em BACKGROUND no commit do move (`_dispararRealizacao` :717, chamado em aplicarComposicao :969); prévia do portão segue DETERMINÍSTICA (D-13.2 — zero LLM por movimento, provado no e2e `tests/e2e/run-geracao2-canonico.mjs`); captura com teto de espera de 8s e fallback A+ cru (`_resultadoRealizacao` :753). Gênero ADITIVO no perfil (`src/core/perfil.ts`, telas Onboarding/Perfis); legado sem gênero ⇒ personagem canônico. Roteiro: ../TRILHA-plans02.md
+>
+> 🧬 **DECISÃO EVOLUÍDA · 2026-07-11 · identidade do personagem (incidente da primeira sessão real)** — a regra de default registrada abaixo ("perfil sem gênero ⇒ personagem canônico 'Joana', f") substituía a identidade INTEIRA quando só o gênero faltava, e produziu a história da "Joana" para o perfil real "Pietro" na primeira sessão (forense: `../forense-personagem.md`; o defeito era da regra registrada — o código a implementou fielmente). **Regra nova:** `personagem.nome` = SEMPRE o nome do perfil (nunca substituído; "Joana" fica só em conteúdo legado/demonstração); gênero ausente ⇒ o app PEDE UMA VEZ na ativação do perfil (overlay `src/telas/PedirGenero.dc.html`; escolha persiste via `definirGeneroPerfil`, `src/app/estado.js`) e, sem resposta, usa concordância FEMININA com o nome real (`GENERO_CONCORDANCIA_PADRAO`, `src/core/geracao/geracao.ts`); gênero OBRIGATÓRIO no cadastro (Onboarding e Perfis). O texto original abaixo permanece como registro — linhagem nunca se apaga.
 
 ## Identidade
 - id: `fase13-13-01`

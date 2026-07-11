@@ -156,3 +156,22 @@ Pendências de jardim (com condição de colheita, nenhuma bloqueia o uso):
   trancada (verify_jwt); o caminho feliz depende da `config_ia` do tenant e dos
   secrets já usados pelo proxy-ia — smoke com sessão real de família na primeira
   sessão.
+
+## Incidente da primeira sessão real (2026-07-11) — identidade do personagem
+
+A primeira sessão real registrou **o primeiro 200 do caminho feliz em produção**
+(compor → edge → realizar → validador → exibição, tudo funcionou) — e o primeiro
+defeito de verdade: o perfil real "Pietro" (sem gênero definido) recebeu a
+história da **"Joana"**. Causa-raiz (forense completo em
+`forense-personagem.md`): a regra de default registrada no [[fase13-13-01]]
+("perfil sem gênero ⇒ personagem canônico") substituía a identidade INTEIRA —
+nome incluído — quando só a concordância faltava; o código a implementou
+fielmente, o defeito era da regra.
+
+Correção (PR `fix/identidade-personagem`): o nome do personagem é **SEMPRE o do
+perfil** (nunca substituído; "Joana" fica só em conteúdo legado/demonstração);
+gênero ausente ⇒ o app **pede uma vez** na ativação do perfil e persiste a
+escolha; sem resposta, concordância feminina com o nome real; gênero
+**obrigatório** no cadastro (Onboarding e Perfis). Decisão evoluída carimbada no
+[[fase13-13-01]] com linhagem; teste do incidente na suíte (Pietro sem gênero ⇒
+história do Pietro) e 3 cenários de identidade no e2e da geração 2.

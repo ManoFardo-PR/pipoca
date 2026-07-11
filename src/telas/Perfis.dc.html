@@ -66,6 +66,14 @@
         <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:16px;">Idade</label>
         <input class="pip-pf-campo" style="margin-top:7px;max-width:120px;" value="{{ idade }}" onInput="{{ setIdade }}" type="number" min="3" max="12" aria-label="Idade" />
 
+        <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:16px;">Nas histórias, quem vive as aventuras é…</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
+          <sc-for list="{{ generos }}" as="ge" hint-placeholder-count="2">
+            <button class="pip-pf-btn" onClick="{{ ge.onTap }}" style="{{ ge.style }}">{{ ge.label }}</button>
+          </sc-for>
+        </div>
+        <p style="color:#9a8a72;font-family:'Nunito';font-size:12px;line-height:1.4;margin:6px 0 0;">Sem escolher, as histórias seguem com a Joana.</p>
+
         <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:16px;">Nível de leitura</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
           <sc-for list="{{ niveis }}" as="nv" hint-placeholder-count="4">
@@ -106,9 +114,16 @@
 class Component extends DCLogic {
   state = {
     perfis: [], editando: false, editId: null,
-    nome: '', idade: '7', nivel: 'n2', avatarId: 'pingo',
+    nome: '', idade: '7', nivel: 'n2', avatarId: 'pingo', genero: '',
     erro: '', salvando: false, confirmandoId: null,
   };
+
+  _generosDefs() {
+    return [
+      { id: 'f', label: 'Uma menina' },
+      { id: 'm', label: 'Um menino' },
+    ];
+  }
 
   _avataresDefs() {
     return [
@@ -140,8 +155,8 @@ class Component extends DCLogic {
 
   _abrirForm(p) {
     this.setState(p
-      ? { editando: true, editId: p.id, nome: p.nome, idade: String(p.idade), nivel: p.nivel, avatarId: p.avatarId, erro: '', confirmandoId: null }
-      : { editando: true, editId: null, nome: '', idade: '7', nivel: 'n2', avatarId: 'pingo', erro: '', confirmandoId: null });
+      ? { editando: true, editId: p.id, nome: p.nome, idade: String(p.idade), nivel: p.nivel, avatarId: p.avatarId, genero: p.genero || '', erro: '', confirmandoId: null }
+      : { editando: true, editId: null, nome: '', idade: '7', nivel: 'n2', avatarId: 'pingo', genero: '', erro: '', confirmandoId: null });
   }
 
   async _salvar() {
@@ -171,10 +186,12 @@ class Component extends DCLogic {
     }
     const id = this.state.editId
       || ((window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('p' + Date.now()));
-    const perfil = Canon.perfil.criarPerfil(id, {
+    const dados = {
       nome, idade: parseInt(this.state.idade, 10) || 7,
       nivel: this.state.nivel, avatarId: this.state.avatarId,
-    });
+    };
+    if (this.state.genero) dados.genero = this.state.genero; // aditivo: só quando escolhido
+    const perfil = Canon.perfil.criarPerfil(id, dados);
     try {
       await App.repo.salvarPerfil(perfil);
       // Editou o perfil em uso → reflete no estado vivo.
@@ -252,6 +269,17 @@ class Component extends DCLogic {
           + (sel ? 'box-shadow:0 0 0 3px #fff,0 0 0 6px ' + av.cor + ';' : 'box-shadow:0 6px 16px -6px rgba(0,0,0,.3);'),
       };
     });
+    const generos = this._generosDefs().map((ge) => {
+      const sel = s.genero === ge.id;
+      return {
+        label: ge.label,
+        // Segundo toque no mesmo desmarca (o campo é opcional).
+        onTap: () => this.setState({ genero: sel ? '' : ge.id }),
+        style: optBase + (sel
+          ? 'background:#7a9a5b;border-color:#7a9a5b;color:#fff;'
+          : 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;'),
+      };
+    });
 
     const pode = !!(s.nome || '').trim() && !s.salvando;
     return {
@@ -266,6 +294,7 @@ class Component extends DCLogic {
       setIdade: (e) => this.setState({ idade: e.target.value }),
       niveis,
       avatares,
+      generos,
       erro: s.erro || '',
       temErro: !!s.erro,
       novo: () => this._abrirForm(null),

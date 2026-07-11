@@ -10,9 +10,9 @@
 |------|--------|------|
 | 10 Modelo de fichas | 🟢 CONCLUÍDA (2026-07-10; 3 pendências herdadas pela fase 12 — ver "Fechamento da fase 10") | `fase10_modelo_de_fichas/` — 6 docs com selo de status |
 | 11 A+ compositor | 🟢 IMPLEMENTADA (2026-07-10 — `src/core/compositor/`, compor() determinístico + golden; PR da fase 11) | `fase11_a_mais_compositor/` — 4 docs com selo de status |
-| 12 B1.5 realizador | 🟡 IMPLEMENTADA (2026-07-11); 🛑 PARADA DE VOZ ABERTA — PR #24 (ver "Fase 12 implementada") | `fase12_b1_5_realizador/` — 6 docs com selo de status |
-| 13 Integração & modularização | 🟢 detalhada — **PORTÃO TRANCADO até o veredito de voz da fase 12 (PR #24)** | `fase13_integracao_modularizacao/` — 4 docs preenchidos no gabarito |
-| 14 Aposentar banco de frases | 🟢 detalhada (execução condicionada ao gatilho triplo do 14-01) | `fase14_aposentar_banco_de_frases/` — 3 docs preenchidos no gabarito |
+| 12 B1.5 realizador | 🟢 CONCLUÍDA (2026-07-11 — parada de voz ENCERRADA POR DECISÃO EXECUTIVA; ver "Fechamento da fase 12") | `fase12_b1_5_realizador/` — 6 docs com selo de status |
+| 13 Integração & modularização | 🟢 IMPLEMENTADA (2026-07-11 — `src/core/geracao/` no runtime, edge deployada; ver "Fases 13+14 implementadas") | `fase13_integracao_modularizacao/` — 4 docs com selo de status |
+| 14 Aposentar banco de frases | 🟡 PARCIAL (selos de linhagem ✅ aplicados; ARQUIVAMENTO aguarda o gatilho triplo — sessão real) | `fase14_aposentar_banco_de_frases/` — 3 docs com selo de status |
 
 Nota: as decisões abertas da fase 10 foram **fechadas em 2026-07-09** — registradas nos próprios docs como "Decisão fixada" (caminhos/esquema; cenário×personagem na ficha de cenário; descrição de cenário string única; campo alvo no contrato; teto de 2 relações por Pacote; lista A1 + regra de dígrafo).
 
@@ -89,17 +89,70 @@ Ledger das heranças da fase 10:
 2. ✅/gap **Few-shot por nível (D-12.2)** — minerado VERBATIM do PR #21 (1–2 por nível,
    banda canônica + nota do juiz); GAP PARCIAL sinalizado: o n1 tem só 1 candidato na
    banda 31–71. Veto/edição do autor na parada (tabela no PR #24).
-3. 🛑 **Veredito de voz — NA MESA (PR #24)**: grade nova 74/137 (54%) vs 22/291 (7,6%)
-   do ciclo 1, lado a lado; célula n1 em 26% — o CRITÉRIO do [[fase12-12-05]]
-   (n1: realizador ou A+ cru) decide na leitura. Achados do ciclo 1 ✅ aplicados no
-   template (fusão n1, anáfora, presente). **Orvalho ✅ concluído**: os 12 FAILs eram
-   "Gotas" no plural — lista de âncoras estreita, não omissão do modelo; corrigida
-   (`gota*` em `src/core/realizador/validador.ts`).
+3. ✅ **Veredito de voz — DECISÃO EXECUTIVA (2026-07-11)**: grade nova 74/137 (54%) vs
+   22/291 (7,6%) do ciclo 1, lado a lado; célula n1 em 26%. O autor encerrou a parada
+   por decisão executiva no merge do PR #24: o n1 permanece no realizador por ora;
+   recalibração futura será por ajuste de prompt; o julgamento final do CRITÉRIO do
+   [[fase12-12-05]] migra para a primeira sessão real com a criança. Achados do
+   ciclo 1 ✅ aplicados no template (fusão n1, anáfora, presente). **Orvalho ✅
+   concluído**: os 12 FAILs eram "Gotas" no plural — lista de âncoras estreita, não
+   omissão do modelo; corrigida (`gota*` em `src/core/realizador/validador.ts`).
 
 Limitação registrada: o lote do ciclo 2 é PARCIAL por decisão do autor (instabilidade
 recorrente da rede local; 137 estados limpos — t0.2 completa + t0.4 parcial; t0.7
 ausente). Retomável a qualquer momento pelo gerador (lotes salvos são pulados). Defesas
 adicionadas: pausa no retry transitório e timeout de 180s no transporte.
 
-**Portão da fase 13: TRANCADO até o veredito de voz.** Nada de `src/core/geracao/`,
-fiação no app ou deploy de edge antes do merge do PR #24 pelo autor.
+## Fechamento da fase 12 (2026-07-11)
+
+**Fase 12 CONCLUÍDA por decisão executiva do autor.** A 🛑 Parada de Voz foi encerrada
+no merge do PR #24: o realizador está aceito com a grade parcial (74/137 = 54%;
+fidelidade 100% no conjunto limpo — zero falhas de âncora/gênero/nome); o n1 fica no
+realizador por ora; o juiz final do CRITÉRIO (n1: realizador ou A+ cru) passa a ser a
+primeira sessão real. **Portão da fase 13: ABERTO.**
+
+Pendências de jardim (não bloqueiam a fase 13):
+- Completar o lote da calibração (um comando: `EXP_TEMPERATURAS="0.2,0.4,0.7"
+  bun run experimentos/fichas-para-historias/gerar.ts` — lotes salvos são pulados;
+  falta t0.7 inteira + resto da t0.4).
+- Recalibrar a célula n1 (por ajuste de prompt) SE a sessão real pedir; junto: o gap
+  do few-shot n1 (1 só exemplo na banda 31–71) e a tabela canônica (a testemunha
+  R4×n3 falhou só por crescimento +32% — indício de tabela curta).
+
+## Fases 13+14 implementadas — IMPLEMENTAÇÃO CONCLUÍDA (2026-07-11)
+
+**A geração 2 está no runtime.** A fase 13 enxertou o módulo de geração
+(`src/core/geracao/` — política de ROTA POR NÍVEL, default realizador em todos;
+trocar um nível = uma linha de config) no app real: fichas carregadas no boot ao
+lado do grafo; prévia do portão DETERMINÍSTICA (A+ v3, zero LLM por movimento);
+realização por LLM em BACKGROUND no commit da rodada, com teto de espera e
+fallback A+ cru na captura; perfil com gênero ADITIVO (legado sem gênero ⇒
+personagem canônico "Joana", f); persistência aditiva (origem + pacoteOrigem +
+rodada + intermediárias por rodada, retrocompatível, sem cache de replay); rota
+edge do realizador DEPLOYADA (irmã do proxy-ia; cascata no servidor; cliente
+keyless; grep de chave em `src/` = zero); e2e novo da geração 2 (provedor fake)
+MANTENDO o e2e canônico v3 vivo. A fase 14 aplicou os selos de linhagem na
+geração 1 (decisão executiva: selos agora; arquivamento espera) — o checker da
+geração 1 segue 10/10 e nada foi movido para `old/`.
+
+**Esta TRILHA é o roteiro ativo do projeto; `docs/plans/` é história selada
+(viva no que descreve o runtime de reserva).** Nenhuma fase resta a implementar.
+
+Pendências de jardim (com condição de colheita, nenhuma bloqueia o uso):
+- **Primeira sessão real — O JUIZ FINAL e próximo marco.** Dispara: o veredito
+  definitivo do CRITÉRIO do n1 (realizador vs A+ cru — hoje realizador, por
+  decisão executiva); a observação da hipótese prévia↔texto-final (13-01); e a
+  3ª condição do gatilho triplo do 14-01 (arquivamento da Leva 3 + DECISÃO
+  ABERTA congelar-vs-manutenção-mínima do v3, com dados de acionamento do
+  fallback).
+- Completar o lote da calibração (t0.7 + resto da t0.4 — um comando, retomável).
+- Recalibração fina do n1 por ajuste de prompt, SE a sessão real pedir (junto:
+  gap do few-shot n1 e a tabela canônica de comprimento).
+- Cache de replay: só se a sessão real mostrar a criança pedindo "a mesma
+  história de novo" e a versão nova frustrando (13-02).
+- Migração fichas JSON→BD: só com mais de um cenário em produção OU edição por
+  não-dev virando necessidade real (13-03).
+- Config de produção da rota edge: a função `realizador` está deployada e
+  trancada (verify_jwt); o caminho feliz depende da `config_ia` do tenant e dos
+  secrets já usados pelo proxy-ia — smoke com sessão real de família na primeira
+  sessão.

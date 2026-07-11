@@ -55,6 +55,31 @@ assert(
   "nome não-string → null"
 );
 
+// Gênero — campo ADITIVO OPCIONAL no pipoca.perfil.v1 (fase13-13-01):
+// legado sem o campo segue válido; valor inválido é SANEADO, nunca rejeita.
+const comGenero = criarPerfil("uuid2", { nome: "Pietro", idade: 8, nivel: "n2", avatarId: "lua", genero: "m" });
+assert(comGenero.genero === "m", "criarPerfil aceita genero válido (m)");
+assert(!("genero" in perfilOk), "criarPerfil sem genero não materializa o campo (legado limpo)");
+assert(
+  !("genero" in criarPerfil("uuid3", { nome: "X", idade: 7, nivel: "n2", avatarId: "lua", genero: "menina" })),
+  "genero inválido é saneado no criarPerfil (nunca 'meio certo')"
+);
+assert(
+  validarEnvelopePerfil(criarEnvelopePerfil(comGenero))?.genero === "m",
+  "round-trip preserva o genero (aditivo)"
+);
+assert(
+  validarEnvelopePerfil(envPerfilOk)?.genero === undefined,
+  "perfil LEGADO (sem genero) segue válido — retrocompatibilidade"
+);
+assert(
+  (() => {
+    const p = validarEnvelopePerfil({ esquema: "pipoca.perfil.v1", perfil: { ...perfilOk, genero: "xis" } });
+    return p !== null && p.genero === undefined;
+  })(),
+  "genero corrompido é saneado no load (perfil NÃO cai — regra aditivo-opcional do .v1)"
+);
+
 // --- Save ---
 console.log("\n=== pipoca.save.v1 — validação ===");
 
@@ -334,6 +359,99 @@ console.log("\n=== histórias salvas — repo local (upsert, poda, LGPD) ===");
   assert(Array.isArray(exp.historias) && exp.historias.length >= 1, "export LGPD inclui as histórias");
   await repo.apagarPerfil("p1");
   assert(mem.get(chaveHistorias("p1")) === undefined, "apagarPerfil remove a chave de histórias (sem resíduos)");
+
+  // ─── Campos ADITIVOS do fase13-13-02 (origem, pacoteOrigem, rodada, intermediária) ───
+  console.log("\n=== histórias salvas — campos aditivos da geração 2 (13-02) ===");
+
+  // RETROCOMPATIBILIDADE OBRIGATÓRIA: registro v1 antigo (sem os campos) segue válido.
+  await repo.salvarHistoria("p2", mkH("antiga-v1", 1));
+  const antigas = await repo.carregarHistorias("p2");
+  assert(antigas.length === 1 && antigas[0]?.id === "antiga-v1",
+    "registro v1 ANTIGO (sem campos novos) carrega normalmente — retrocompat");
+  assert(antigas[0]?.origem === undefined && antigas[0]?.intermediaria === undefined,
+    "registro antigo não ganha campos fantasmas");
+
+  // Round-trip dos campos novos (origem + pacoteOrigem + rodada + intermediária).
+  const pacoteMin = {
+    esquema: "pipoca.pacote-composicao.v1",
+    cenario: { id: "quintal_anoitecer", descricao: "x", voz_do_contador: "x", sensacao_no_personagem: "x" },
+    personagem: { nome: "Joana", genero: "f" },
+    nivel: "n2",
+    beats: [{ objeto: "vagalume", papel: "abertura", descricao: "x", corpo: "x", relacoes: [] }],
+    eco: null,
+    restricoes: { paragrafos: 1, palavras_max_por_paragrafo: 40 },
+  };
+  await repo.salvarHistoria("p2", {
+    ...mkH("nova-g2", 0),
+    origem: { fonte: "llm", rota: "realizador", provedor: "gemini", modelo: "gemini-flash" },
+    pacoteOrigem: pacoteMin as never,
+    rodada: 2,
+    intermediaria: true,
+  });
+  const g2 = (await repo.carregarHistorias("p2")).find((h) => h.id === "nova-g2");
+  assert(!!g2 && g2.origem?.fonte === "llm" && g2.origem?.provedor === "gemini",
+    "origem viaja no round-trip (fonte + provedor + modelo)");
+  assert(!!g2 && g2.pacoteOrigem?.esquema === "pipoca.pacote-composicao.v1",
+    "pacoteOrigem viaja no round-trip (unidade de evidência Pacote+texto)");
+  assert(!!g2 && g2.rodada === 2 && g2.intermediaria === true,
+    "marcadores de rodada/intermediária viajam no round-trip");
+
+  // Campos aditivos MALFORMADOS são saneados sem derrubar o registro.
+  const brutoP2 = JSON.parse(mem.get(chaveHistorias("p2")) as string) as unknown[];
+  brutoP2.push({ esquema: ESQUEMA_HISTORIAS, historia: {
+    ...mkH("saneada", 0), origem: { fonte: "magia" }, pacoteOrigem: { esquema: "outro.v9" }, rodada: 99, intermediaria: "sim",
+  } });
+  mem.set(chaveHistorias("p2"), JSON.stringify(brutoP2));
+  const saneada = (await repo.carregarHistorias("p2")).find((h) => h.id === "saneada");
+  assert(!!saneada, "campos aditivos malformados NÃO derrubam o registro");
+  assert(!!saneada && saneada.origem === undefined && saneada.pacoteOrigem === undefined
+    && saneada.rodada === undefined && saneada.intermediaria === undefined,
+    "origem/pacoteOrigem/rodada/intermediária malformados são saneados (caem fora)");
+
+  // Poda recalibrada: intermediárias contam SEPARADO e não expulsam completas.
+  const { normalizarHistorias, MAX_NAO_FAVORITAS, MAX_INTERMEDIARIAS_NAO_FAVORITAS } =
+    await import("../historias.js");
+  const muitas: unknown[] = [];
+  for (let i = 0; i < MAX_INTERMEDIARIAS_NAO_FAVORITAS + 10; i++) {
+    muitas.push({ ...mkH(`int-${i}`, 0), criadaEm: agora - i * 1000, intermediaria: true, rodada: 1 });
+  }
+  for (let i = 0; i < 5; i++) {
+    muitas.push({ ...mkH(`comp-${i}`, 10), criadaEm: agora - 10 * DIA - i * 1000 });
+  }
+  const normalizadas = normalizarHistorias(muitas, agora);
+  const completasVivas = normalizadas.filter((h) => h.intermediaria !== true);
+  const intermediariasVivas = normalizadas.filter((h) => h.intermediaria === true);
+  assert(completasVivas.length === 5,
+    "TODAS as completas sobrevivem mesmo com enxurrada de intermediárias (teto separado)");
+  assert(intermediariasVivas.length === MAX_INTERMEDIARIAS_NAO_FAVORITAS,
+    `intermediárias respeitam o teto próprio (${MAX_INTERMEDIARIAS_NAO_FAVORITAS})`);
+  assert(MAX_NAO_FAVORITAS === 30, "teto das completas não mudou (30)");
+
+  // localStorage cheio: poda preventiva — intermediárias primeiro (13-02).
+  const memCheia = new Map<string, string>();
+  let falhasRestantes = 1; // a 1ª gravação "estoura a quota"; após 1 poda, cabe
+  (globalThis as Record<string, unknown>)["localStorage"] = {
+    getItem: (k: string) => (memCheia.has(k) ? (memCheia.get(k) as string) : null),
+    setItem: (k: string, v: string) => {
+      if (falhasRestantes > 0) { falhasRestantes--; throw new Error("QuotaExceededError"); }
+      memCheia.set(k, String(v));
+    },
+    removeItem: (k: string) => { memCheia.delete(k); },
+    clear: () => { memCheia.clear(); },
+    key: (i: number) => [...memCheia.keys()][i] ?? null,
+    get length() { return memCheia.size; },
+  };
+  const repoCheio = new RepositorioLocalStorage();
+  // semeia direto na memória: 1 intermediária velha + 1 completa
+  memCheia.set(chaveHistorias("p3"), JSON.stringify([
+    { esquema: ESQUEMA_HISTORIAS, historia: { ...mkH("int-velha", 3), intermediaria: true, rodada: 1 } },
+    { esquema: ESQUEMA_HISTORIAS, historia: mkH("completa", 1) },
+  ]));
+  await repoCheio.salvarHistoria("p3", mkH("recem", 0));
+  const aposQuota = await repoCheio.carregarHistorias("p3");
+  assert(aposQuota.some((h) => h.id === "recem"), "quota estourada: a história nova ainda é gravada");
+  assert(!aposQuota.some((h) => h.id === "int-velha"), "poda preventiva sacrifica a INTERMEDIÁRIA primeiro");
+  assert(aposQuota.some((h) => h.id === "completa"), "a história completa sobrevive à poda preventiva");
 }
 
 console.log(`\n${"=".repeat(50)}`);

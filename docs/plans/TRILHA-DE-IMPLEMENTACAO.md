@@ -162,6 +162,16 @@ Aposentados em 2026-07-02 (movidos para `old/`): `app.html` (entry duplicado; o 
 para `/`) e `src/motores/jogar.ts` (inlinado em `motor.test.ts`).
 
 ## Mapa de status (resumo)
+
+> 🧬 **Nota de encerramento (2026-07-11)** — a trilha da geração 1 está completa e
+> selada como HISTÓRIA VIVA: o mapa abaixo segue descrevendo o runtime em produção
+> (o Motor A+ v3 permanece como prévia do portão e fallback de conteúdo — ver o
+> selo de linhagem em `fase08_conteudo/08-00_motor-a-plus-grafo-v3.md`). O roteiro
+> ATIVO do projeto passa a ser `docs/plans02/TRILHA-plans02.md` (geração 2:
+> fichas → compositor → realizador, integrada em 2026-07-11). O `check_plans.mjs`
+> desta geração continua rodando enquanto o conteúdo que ele guarda existir.
+> Linhagem nunca se apaga.
+
 | Fase | Status | Onde |
 |------|--------|------|
 | 00 Fundação | 🟢 módulos prontos (desvios corrigidos) | `Economia` conformada, `spendPct` corrigido, `ValidadorOrdem` incremental |

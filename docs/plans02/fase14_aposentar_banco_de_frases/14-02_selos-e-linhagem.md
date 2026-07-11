@@ -1,5 +1,7 @@
 # fase14 · 14-02 · Selos SUPERSEDED e linhagem
 
+> ✅ **STATUS · 2026-07-11 · SELOS APLICADOS (parte executável; decisão executiva do autor)** — os 4 alvos receberam selo/nota: `docs/plans/fase08_conteudo/08-00_motor-a-plus-grafo-v3.md` (selo "SUPERADO COMO TITULAR · VIVO COMO FALLBACK" ACIMA dos existentes, redação ajustada ao entregue: o realizado é o texto salvo/relido; a prévia lida no portão segue deste motor); `_contratos/grafo-autoral-v3.md` (nota de linhagem abaixo dos selos preservados); `_contratos/schemas-json.md` (entradas novas na tabela por caminho + parágrafo de linhagem da geração 2 + correção do selo desatualizado do topo, com selo próprio e sem apagar); `TRILHA-DE-IMPLEMENTACAO.md` (nota de encerramento apontando a TRILHA-plans02). Checker da geração 1 segue 10/10. NOTA DE CONFLITO (docs vencem; reportado no PR): a regra 4 deste doc previa selos JUNTO do arquivamento (gatilho triplo) — o autor decidiu em 2026-07-11 aplicar os selos AGORA (a geração 2 está implantada) e manter o arquivamento (14-01) aguardando a sessão real. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase14-14-02`
 - nó(s) da arquitetura: —

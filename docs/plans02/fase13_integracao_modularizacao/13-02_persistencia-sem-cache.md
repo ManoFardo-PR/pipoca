@@ -1,5 +1,7 @@
 # fase13 · 13-02 · Persistência (salvar história, sem cache de replay)
 
+> ✅ **STATUS · 2026-07-11 · IMPLEMENTADA** — campos ADITIVOS opcionais no `pipoca.historias.v1` (`src/core/historias.ts`: origem :65, pacoteOrigem :67, rodada/intermediária :71); intermediárias salvas a cada portão lido (`src/app/estado.js:1044`) com teto PRÓPRIO na poda (:30, `MAX_INTERMEDIARIAS_NAO_FAVORITAS`) — podadas primeiro, inclusive na quota estourada (verificado: `gravarItem` devolve false; poda preventiva em `RepositorioLocalStorage.salvarHistoria`). Retrocompatibilidade testada (registro v1 antigo segue válido). SEM cache de replay, como decidido. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase13-13-02`
 - nó(s) da arquitetura: —

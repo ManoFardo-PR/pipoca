@@ -24,6 +24,8 @@ export interface DadosOnboarding {
   idade: number;
   nivel: string; // normalizado por criarPerfil (n1..n4)
   avatarId: string;
+  /** Gênero do personagem — aditivo opcional (fase13-13-01); saneado por criarPerfil. */
+  genero?: string;
   modos?: Partial<Modos>;
   blocoMin?: BlocoMin;
 }
@@ -38,6 +40,7 @@ export function perfilDoOnboarding(dados: DadosOnboarding): Perfil {
     idade: dados.idade,
     nivel: dados.nivel,
     avatarId: dados.avatarId,
+    ...(dados.genero !== undefined ? { genero: dados.genero } : {}),
   });
 }
 

@@ -18,12 +18,23 @@ export const AVATAR_PADRAO: AvatarId = "pingo";
 export const IDADE_MIN = 3;
 export const IDADE_MAX = 12;
 
+export const GENEROS = ["m", "f"] as const;
+export type GeneroPerfil = typeof GENEROS[number];
+
 export interface Perfil {
   id: string;
   nome: string;
   idade: number;
   nivel: Nivel;
   avatarId: string;
+  /**
+   * Gênero do personagem nas histórias — campo ADITIVO OPCIONAL no
+   * `pipoca.perfil.v1` (fase13-13-01, decisão fixada: o envelope de storage
+   * local evolui aditivamente; leitores antigos ignoram o campo novo).
+   * Ausente (perfil legado) ⇒ o módulo de geração usa o personagem canônico
+   * ("Joana", f) — NUNCA inferir do nome.
+   */
+  genero?: GeneroPerfil;
 }
 
 const NIVEIS_VALIDOS: Nivel[] = ["n1", "n2", "n3", "n4"];
@@ -60,17 +71,29 @@ export function normalizarAvatar(avatarId: string): AvatarId {
   return AVATAR_PADRAO;
 }
 
+/**
+ * Normaliza o gênero OPCIONAL: "m"/"f" passam; qualquer outro valor vira
+ * `undefined` (saneado, nunca rejeita — mesmo padrão de `favorita` em
+ * historias.ts: dado opcional corrompido não derruba o perfil da criança).
+ */
+export function normalizarGenero(genero: unknown): GeneroPerfil | undefined {
+  return genero === "m" || genero === "f" ? genero : undefined;
+}
+
 /** Cria um Perfil normalizado com os dados fornecidos. */
 export function criarPerfil(
   id: string,
-  params: { nome?: string; idade?: number; nivel?: string; avatarId?: string }
+  params: { nome?: string; idade?: number; nivel?: string; avatarId?: string; genero?: string }
 ): Perfil {
+  const genero = normalizarGenero(params.genero);
   return {
     id,
     nome: normalizarNome(params.nome ?? ""),
     idade: clampIdade(params.idade ?? 7),
     nivel: normalizarNivel(params.nivel ?? NIVEL_PADRAO),
     avatarId: normalizarAvatar(params.avatarId ?? AVATAR_PADRAO),
+    // Campo aditivo: só entra quando escolhido (perfil sem gênero é estado legal).
+    ...(genero ? { genero } : {}),
   };
 }
 

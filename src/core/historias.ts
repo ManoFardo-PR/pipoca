@@ -12,6 +12,7 @@
  */
 
 import type { Nivel, ModoDesfecho } from "./grafo/tipos.js";
+import type { PacoteComposicao } from "./compositor/pacote.js";
 
 export const ESQUEMA_HISTORIAS = "pipoca.historias.v1";
 
@@ -21,14 +22,35 @@ export const RETENCAO_HISTORIAS_DIAS = 20;
 /** Teto de não-favoritas por criança (as mais antigas saem primeiro). */
 export const MAX_NAO_FAVORITAS = 30;
 
+/**
+ * Teto PRÓPRIO das intermediárias não-favoritas (fase13-13-02, regra-semente:
+ * "intermediárias contam separado e são podadas primeiro") — o teto das
+ * completas nunca é consumido por intermediárias.
+ */
+export const MAX_INTERMEDIARIAS_NAO_FAVORITAS = 30;
+
 const MS_POR_DIA = 86_400_000;
 const NIVEIS = ["n1", "n2", "n3", "n4"];
 const DESFECHOS = ["convergente", "aberto"];
 
+/**
+ * Origem do texto (fase12-12-04: sempre sinalizada; fase13-13-02: salva junto).
+ * Shape espelhado de OrigemGeracao (src/core/geracao/geracao.ts) — cópia
+ * estrutural deliberada para este módulo seguir PURO e sem dependência do
+ * módulo de geração.
+ */
+export interface OrigemHistoria {
+  fonte: "llm" | "fallback-a-mais";
+  rota?: string;
+  provedor?: string;
+  modelo?: string;
+  motivo?: string;
+}
+
 export interface HistoriaSalva {
   id: string;
   cenarioId: string;
-  texto: string; // capturado na convergência
+  texto: string; // capturado na convergência (geração 2: texto realizado)
   linha: string[]; // ids dos objetos, em ordem
   nivel: Nivel;
   desfecho: ModoDesfecho;
@@ -36,6 +58,17 @@ export interface HistoriaSalva {
   emoji: string;
   criadaEm: number; // epoch ms — PRESERVADO ao (des)favoritar
   favorita: boolean;
+  // ─── Campos ADITIVOS OPCIONAIS no pipoca.historias.v1 (fase13-13-02) ───────
+  // Registros v1 antigos (sem eles) seguem válidos SEM migração; leitores
+  // antigos ignoram. `.v2` fica reservado para mudança que QUEBRE o shape.
+  /** Qual caminho gerou o texto (LLM ou fallback A+ v3). */
+  origem?: OrigemHistoria;
+  /** O Pacote que gerou o texto — unidade de evidência (Pacote, texto); null = não houve. */
+  pacoteOrigem?: PacoteComposicao | null;
+  /** Rodada em que o texto foi lido (1..4). */
+  rodada?: number;
+  /** true = registro intermediário (um portão lido); ausente/false = história completa. */
+  intermediaria?: boolean;
 }
 
 export interface EnvelopeHistoriaV1 {
@@ -43,10 +76,32 @@ export interface EnvelopeHistoriaV1 {
   historia: HistoriaSalva;
 }
 
+/** Saneia a origem aditiva: shape mínimo válido passa; qualquer outro cai fora. */
+function sanearOrigem(raw: unknown): OrigemHistoria | undefined {
+  if (typeof raw !== "object" || raw === null) return undefined;
+  const r = raw as Record<string, unknown>;
+  if (r["fonte"] !== "llm" && r["fonte"] !== "fallback-a-mais") return undefined;
+  const origem: OrigemHistoria = { fonte: r["fonte"] };
+  for (const campo of ["rota", "provedor", "modelo", "motivo"] as const) {
+    if (typeof r[campo] === "string") origem[campo] = r[campo] as string;
+  }
+  return origem;
+}
+
+/** Saneia o Pacote de origem: só o objeto com o esquema v1 passa (senão cai fora). */
+function sanearPacoteOrigem(raw: unknown): PacoteComposicao | undefined {
+  if (typeof raw !== "object" || raw === null) return undefined;
+  const r = raw as Record<string, unknown>;
+  if (r["esquema"] !== "pipoca.pacote-composicao.v1") return undefined;
+  return raw as PacoteComposicao;
+}
+
 /**
  * Valida uma HistoriaSalva crua. REJEITADOR por item (corrompido é descartado
- * em silêncio, como validarEvento) — exceto `favorita`, saneada para boolean.
- * Devolve a história normalizada ou null.
+ * em silêncio, como validarEvento) — exceto `favorita`, saneada para boolean,
+ * e os campos ADITIVOS do fase13-13-02 (origem/pacoteOrigem/rodada/
+ * intermediaria), saneados: malformados caem fora SEM derrubar o registro
+ * (retrocompatibilidade por design). Devolve a história normalizada ou null.
  */
 export function validarHistoriaSalva(raw: unknown): HistoriaSalva | null {
   if (typeof raw !== "object" || raw === null) return null;
@@ -59,6 +114,12 @@ export function validarHistoriaSalva(raw: unknown): HistoriaSalva | null {
   if (!DESFECHOS.includes(r["desfecho"] as string)) return null;
   if (typeof r["titulo"] !== "string" || r["titulo"] === "") return null;
   if (typeof r["criadaEm"] !== "number" || !Number.isFinite(r["criadaEm"])) return null;
+  const origem = sanearOrigem(r["origem"]);
+  const pacoteOrigem = sanearPacoteOrigem(r["pacoteOrigem"]);
+  const rodada =
+    typeof r["rodada"] === "number" && Number.isInteger(r["rodada"]) && r["rodada"] >= 1 && r["rodada"] <= 4
+      ? (r["rodada"] as number)
+      : undefined;
   return {
     id: r["id"] as string,
     cenarioId: r["cenarioId"] as string,
@@ -70,6 +131,10 @@ export function validarHistoriaSalva(raw: unknown): HistoriaSalva | null {
     emoji: typeof r["emoji"] === "string" && r["emoji"] !== "" ? (r["emoji"] as string) : "✨",
     criadaEm: r["criadaEm"] as number,
     favorita: r["favorita"] === true, // saneada, nunca rejeita
+    ...(origem ? { origem } : {}),
+    ...(pacoteOrigem ? { pacoteOrigem } : {}),
+    ...(rodada !== undefined ? { rodada } : {}),
+    ...(r["intermediaria"] === true ? { intermediaria: true } : {}),
   };
 }
 
@@ -87,7 +152,9 @@ export function dentroDaRetencaoHistoria(
  * Normaliza uma lista crua de histórias: valida item a item (corrompido cai),
  * dedupe por id (a ÚLTIMA ocorrência vence — é a mais recente gravada),
  * poda por retenção (favoritas isentas), ordena por criadaEm desc e aplica o
- * teto às NÃO favoritas (as mais novas ficam). Pura.
+ * teto às NÃO favoritas (as mais novas ficam). Recalibração do fase13-13-02:
+ * intermediárias contam SEPARADO (teto próprio) — nunca expulsam uma história
+ * completa do teto dela. Pura.
  */
 export function normalizarHistorias(lista: unknown[], agora: number): HistoriaSalva[] {
   const porId = new Map<string, HistoriaSalva>();
@@ -100,10 +167,16 @@ export function normalizarHistorias(lista: unknown[], agora: number): HistoriaSa
     .sort((a, b) => b.criadaEm - a.criadaEm);
   const resultado: HistoriaSalva[] = [];
   let naoFavoritas = 0;
+  let intermediarias = 0;
   for (const h of vivas) {
     if (!h.favorita) {
-      if (naoFavoritas >= MAX_NAO_FAVORITAS) continue; // teto: mais antigas caem
-      naoFavoritas++;
+      if (h.intermediaria === true) {
+        if (intermediarias >= MAX_INTERMEDIARIAS_NAO_FAVORITAS) continue;
+        intermediarias++;
+      } else {
+        if (naoFavoritas >= MAX_NAO_FAVORITAS) continue; // teto: mais antigas caem
+        naoFavoritas++;
+      }
     }
     resultado.push(h);
   }

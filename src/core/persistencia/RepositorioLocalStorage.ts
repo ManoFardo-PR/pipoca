@@ -156,14 +156,32 @@ export class RepositorioLocalStorage implements RepositorioPersistencia {
       .sort((a, b) => b.criadaEm - a.criadaEm);
   }
 
-  /** Upsert por historia.id (favoritar = regravar com favorita=true). */
+  /**
+   * Upsert por historia.id (favoritar = regravar com favorita=true).
+   * localStorage cheio (gravarItem → false; comportamento verificado no
+   * fase13-13-02): poda preventiva — primeiro as INTERMEDIÁRIAS não-favoritas
+   * mais antigas, depois as completas não-favoritas mais antigas — e regrava.
+   * Se ainda assim não couber, degrada em silêncio (regra da casa: erro de
+   * escrita nunca interrompe a sessão da criança).
+   */
   async salvarHistoria(perfilId: string, historia: HistoriaSalva): Promise<void> {
-    const envelopes = lerArrayEnvelopes<EnvelopeHistoriaV1>(
-      chaveHistorias(perfilId),
-      ESQUEMA_HISTORIAS
-    );
+    const chave = chaveHistorias(perfilId);
+    const envelopes = lerArrayEnvelopes<EnvelopeHistoriaV1>(chave, ESQUEMA_HISTORIAS);
     const semEsta = envelopes.filter((e) => e.historia?.id !== historia.id);
-    gravarItem(chaveHistorias(perfilId), [...semEsta, criarEnvelopeHistoria({ ...historia })]);
+    let lista = [...semEsta, criarEnvelopeHistoria({ ...historia })];
+    if (gravarItem(chave, lista)) return;
+    const podavel = (e: EnvelopeHistoriaV1, intermediaria: boolean): boolean =>
+      !!e.historia && e.historia.favorita !== true && e.historia.id !== historia.id &&
+      (e.historia.intermediaria === true) === intermediaria;
+    for (const faseIntermediarias of [true, false]) {
+      const candidatas = lista
+        .filter((e) => podavel(e, faseIntermediarias))
+        .sort((a, b) => (a.historia?.criadaEm ?? 0) - (b.historia?.criadaEm ?? 0));
+      for (const vitima of candidatas) {
+        lista = lista.filter((e) => e !== vitima);
+        if (gravarItem(chave, lista)) return;
+      }
+    }
   }
 
   async apagarHistoria(perfilId: string, historiaId: string): Promise<void> {

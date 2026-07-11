@@ -69,6 +69,13 @@ export interface HistoriaSalva {
   rodada?: number;
   /** true = registro intermediário (um portão lido); ausente/false = história completa. */
   intermediaria?: boolean;
+  /**
+   * Parágrafos do texto realizado, como o realizador os segmentou (aditivo,
+   * 2026-07-11 — fim do paredão). `texto` segue sendo a fonte fiel (verbatim,
+   * com os `\n\n`); este campo é a segmentação para exibição. Ausente em
+   * registros antigos: o leitor deriva por linha em branco do próprio texto.
+   */
+  paragrafos?: string[];
 }
 
 export interface EnvelopeHistoriaV1 {
@@ -96,12 +103,20 @@ function sanearPacoteOrigem(raw: unknown): PacoteComposicao | undefined {
   return raw as PacoteComposicao;
 }
 
+/** Saneia os parágrafos aditivos: só array de strings não-vazias com ≥1 item passa. */
+function sanearParagrafos(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw) || raw.length === 0) return undefined;
+  if (!raw.every((p) => typeof p === "string" && p.trim() !== "")) return undefined;
+  return (raw as string[]).slice();
+}
+
 /**
  * Valida uma HistoriaSalva crua. REJEITADOR por item (corrompido é descartado
  * em silêncio, como validarEvento) — exceto `favorita`, saneada para boolean,
- * e os campos ADITIVOS do fase13-13-02 (origem/pacoteOrigem/rodada/
- * intermediaria), saneados: malformados caem fora SEM derrubar o registro
- * (retrocompatibilidade por design). Devolve a história normalizada ou null.
+ * e os campos ADITIVOS (origem/pacoteOrigem/rodada/intermediaria do
+ * fase13-13-02; paragrafos do fim do paredão), saneados: malformados caem
+ * fora SEM derrubar o registro (retrocompatibilidade por design). Devolve a
+ * história normalizada ou null.
  */
 export function validarHistoriaSalva(raw: unknown): HistoriaSalva | null {
   if (typeof raw !== "object" || raw === null) return null;
@@ -116,6 +131,7 @@ export function validarHistoriaSalva(raw: unknown): HistoriaSalva | null {
   if (typeof r["criadaEm"] !== "number" || !Number.isFinite(r["criadaEm"])) return null;
   const origem = sanearOrigem(r["origem"]);
   const pacoteOrigem = sanearPacoteOrigem(r["pacoteOrigem"]);
+  const paragrafos = sanearParagrafos(r["paragrafos"]);
   const rodada =
     typeof r["rodada"] === "number" && Number.isInteger(r["rodada"]) && r["rodada"] >= 1 && r["rodada"] <= 4
       ? (r["rodada"] as number)
@@ -135,6 +151,7 @@ export function validarHistoriaSalva(raw: unknown): HistoriaSalva | null {
     ...(pacoteOrigem ? { pacoteOrigem } : {}),
     ...(rodada !== undefined ? { rodada } : {}),
     ...(r["intermediaria"] === true ? { intermediaria: true } : {}),
+    ...(paragrafos ? { paragrafos } : {}),
   };
 }
 

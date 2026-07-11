@@ -1046,6 +1046,12 @@
     };
     if (resultado.pacote) h.pacoteOrigem = resultado.pacote;
     if (intermediaria) h.intermediaria = true;
+    // Segmentação do realizador (fim do paredão): guardada quando veio; o A+
+    // cru não a produz — o leitor deriva do texto (linha em branco).
+    if (Array.isArray(resultado.paragrafos) && resultado.paragrafos.length &&
+        resultado.paragrafos.every(function (p) { return typeof p === "string" && p.trim() !== ""; })) {
+      h.paragrafos = resultado.paragrafos.slice();
+    }
     var pid = state.perfil.id;
     try {
       repo.salvarHistoria(pid, h)

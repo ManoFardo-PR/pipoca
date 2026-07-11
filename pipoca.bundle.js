@@ -3,27 +3,37 @@
   var __getOwnPropNames = Object.getOwnPropertyNames;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
-  var __moduleCache = /* @__PURE__ */ new WeakMap;
+  function __accessProp(key) {
+    return this[key];
+  }
   var __toCommonJS = (from) => {
-    var entry = __moduleCache.get(from), desc;
+    var entry = (__moduleCache ??= new WeakMap).get(from), desc;
     if (entry)
       return entry;
     entry = __defProp({}, "__esModule", { value: true });
-    if (from && typeof from === "object" || typeof from === "function")
-      __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
-        get: () => from[key],
-        enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-      }));
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (var key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(entry, key))
+          __defProp(entry, key, {
+            get: __accessProp.bind(from, key),
+            enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+          });
+    }
     __moduleCache.set(from, entry);
     return entry;
   };
+  var __moduleCache;
+  var __returnValue = (v) => v;
+  function __exportSetter(name, newValue) {
+    this[name] = __returnValue.bind(null, newValue);
+  }
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, {
         get: all[name],
         enumerable: true,
         configurable: true,
-        set: (newValue) => all[name] = () => newValue
+        set: __exportSetter.bind(all, name)
       });
   };
 
@@ -171,13 +181,18 @@
       return avatarId;
     return AVATAR_PADRAO;
   }
+  function normalizarGenero(genero) {
+    return genero === "m" || genero === "f" ? genero : undefined;
+  }
   function criarPerfil(id, params) {
+    const genero = normalizarGenero(params.genero);
     return {
       id,
       nome: normalizarNome(params.nome ?? ""),
       idade: clampIdade(params.idade ?? 7),
       nivel: normalizarNivel(params.nivel ?? NIVEL_PADRAO),
-      avatarId: normalizarAvatar(params.avatarId ?? AVATAR_PADRAO)
+      avatarId: normalizarAvatar(params.avatarId ?? AVATAR_PADRAO),
+      ...genero ? { genero } : {}
     };
   }
   function validarPerfil(p) {
@@ -561,7 +576,17 @@
     const erros = validarPerfil(r["perfil"]);
     if (erros.length > 0)
       return null;
-    return r["perfil"];
+    const perfil = r["perfil"];
+    const genero = normalizarGenero(perfil["genero"]);
+    if (genero !== perfil.genero) {
+      const copia = { ...perfil };
+      if (genero)
+        copia.genero = genero;
+      else
+        delete copia.genero;
+      return copia;
+    }
+    return perfil;
   }
   function validarEnvelopeSave(raw) {
     try {
@@ -660,9 +685,31 @@
   var ESQUEMA_HISTORIAS = "pipoca.historias.v1";
   var RETENCAO_HISTORIAS_DIAS = 20;
   var MAX_NAO_FAVORITAS = 30;
+  var MAX_INTERMEDIARIAS_NAO_FAVORITAS = 30;
   var MS_POR_DIA2 = 86400000;
   var NIVEIS = ["n1", "n2", "n3", "n4"];
   var DESFECHOS = ["convergente", "aberto"];
+  function sanearOrigem(raw) {
+    if (typeof raw !== "object" || raw === null)
+      return;
+    const r = raw;
+    if (r["fonte"] !== "llm" && r["fonte"] !== "fallback-a-mais")
+      return;
+    const origem = { fonte: r["fonte"] };
+    for (const campo of ["rota", "provedor", "modelo", "motivo"]) {
+      if (typeof r[campo] === "string")
+        origem[campo] = r[campo];
+    }
+    return origem;
+  }
+  function sanearPacoteOrigem(raw) {
+    if (typeof raw !== "object" || raw === null)
+      return;
+    const r = raw;
+    if (r["esquema"] !== "pipoca.pacote-composicao.v1")
+      return;
+    return raw;
+  }
   function validarHistoriaSalva(raw) {
     if (typeof raw !== "object" || raw === null)
       return null;
@@ -683,6 +730,9 @@
       return null;
     if (typeof r["criadaEm"] !== "number" || !Number.isFinite(r["criadaEm"]))
       return null;
+    const origem = sanearOrigem(r["origem"]);
+    const pacoteOrigem = sanearPacoteOrigem(r["pacoteOrigem"]);
+    const rodada = typeof r["rodada"] === "number" && Number.isInteger(r["rodada"]) && r["rodada"] >= 1 && r["rodada"] <= 4 ? r["rodada"] : undefined;
     return {
       id: r["id"],
       cenarioId: r["cenarioId"],
@@ -693,7 +743,11 @@
       titulo: r["titulo"],
       emoji: typeof r["emoji"] === "string" && r["emoji"] !== "" ? r["emoji"] : "✨",
       criadaEm: r["criadaEm"],
-      favorita: r["favorita"] === true
+      favorita: r["favorita"] === true,
+      ...origem ? { origem } : {},
+      ...pacoteOrigem ? { pacoteOrigem } : {},
+      ...rodada !== undefined ? { rodada } : {},
+      ...r["intermediaria"] === true ? { intermediaria: true } : {}
     };
   }
   function dentroDaRetencaoHistoria(h, agora, retencaoDias = RETENCAO_HISTORIAS_DIAS) {
@@ -711,11 +765,18 @@
     const vivas = [...porId.values()].filter((h) => dentroDaRetencaoHistoria(h, agora)).sort((a, b) => b.criadaEm - a.criadaEm);
     const resultado = [];
     let naoFavoritas = 0;
+    let intermediarias = 0;
     for (const h of vivas) {
       if (!h.favorita) {
-        if (naoFavoritas >= MAX_NAO_FAVORITAS)
-          continue;
-        naoFavoritas++;
+        if (h.intermediaria === true) {
+          if (intermediarias >= MAX_INTERMEDIARIAS_NAO_FAVORITAS)
+            continue;
+          intermediarias++;
+        } else {
+          if (naoFavoritas >= MAX_NAO_FAVORITAS)
+            continue;
+          naoFavoritas++;
+        }
       }
       resultado.push(h);
     }
@@ -851,9 +912,21 @@
       return envelopes.map((e) => validarHistoriaSalva(e.historia)).filter((h) => h !== null).sort((a, b) => b.criadaEm - a.criadaEm);
     }
     async salvarHistoria(perfilId, historia) {
-      const envelopes = lerArrayEnvelopes(chaveHistorias(perfilId), ESQUEMA_HISTORIAS);
+      const chave = chaveHistorias(perfilId);
+      const envelopes = lerArrayEnvelopes(chave, ESQUEMA_HISTORIAS);
       const semEsta = envelopes.filter((e) => e.historia?.id !== historia.id);
-      gravarItem(chaveHistorias(perfilId), [...semEsta, criarEnvelopeHistoria({ ...historia })]);
+      let lista = [...semEsta, criarEnvelopeHistoria({ ...historia })];
+      if (gravarItem(chave, lista))
+        return;
+      const podavel = (e, intermediaria) => !!e.historia && e.historia.favorita !== true && e.historia.id !== historia.id && e.historia.intermediaria === true === intermediaria;
+      for (const faseIntermediarias of [true, false]) {
+        const candidatas = lista.filter((e) => podavel(e, faseIntermediarias)).sort((a, b) => (a.historia?.criadaEm ?? 0) - (b.historia?.criadaEm ?? 0));
+        for (const vitima of candidatas) {
+          lista = lista.filter((e) => e !== vitima);
+          if (gravarItem(chave, lista))
+            return;
+        }
+      }
     }
     async apagarHistoria(perfilId, historiaId) {
       const envelopes = lerArrayEnvelopes(chaveHistorias(perfilId), ESQUEMA_HISTORIAS);
@@ -2346,6 +2419,613 @@
     return !!estado.convergiu;
   }
 
+  // src/core/fichas/tipos.ts
+  var ESQUEMA_FICHAS_V1 = "pipoca.fichas.v1";
+
+  // src/core/compositor/pacote.ts
+  var ESQUEMA_PACOTE_COMPOSICAO_V1 = "pipoca.pacote-composicao.v1";
+
+  // src/core/compositor/gramatica.ts
+  var TETO_RELACOES_POR_PACOTE = 2;
+  function avaliarCondicao2(cond, objId, linha) {
+    const c = String(cond || "");
+    const i = linha.indexOf(objId);
+    if (c.indexOf("tem:") === 0) {
+      const alvo = c.slice(4);
+      return alvo !== objId && linha.indexOf(alvo) !== -1;
+    }
+    if (c.indexOf("nao_tem:") === 0) {
+      return linha.indexOf(c.slice(8)) === -1;
+    }
+    if (c === "pos:inicio")
+      return i === 0 && linha.length > 0;
+    if (c === "pos:fim")
+      return i !== -1 && i === linha.length - 1;
+    if (c === "pos:miolo")
+      return i > 0 && i < linha.length - 1;
+    if (c.indexOf("antes_de:") === 0) {
+      const j = linha.indexOf(c.slice(9));
+      return i !== -1 && j !== -1 && i < j;
+    }
+    if (c.indexOf("depois_de:") === 0) {
+      const j = linha.indexOf(c.slice(10));
+      return i !== -1 && j !== -1 && i > j;
+    }
+    return false;
+  }
+  function casaSe2(se, objId, linha) {
+    const conds = Array.isArray(se) ? se : [se];
+    if (conds.length === 0)
+      return false;
+    return conds.every((c) => avaliarCondicao2(c, objId, linha));
+  }
+  function especificidade(se) {
+    return Array.isArray(se) ? se.length : 1;
+  }
+  function selecionarRelacoes(relacoes, linha) {
+    const candidatas = relacoes.map((relacao, indice) => ({ relacao, indice })).filter(({ relacao }) => linha.indexOf(relacao.objeto) !== -1 && linha.indexOf(relacao.alvo) !== -1 && casaSe2(relacao.se, relacao.objeto, linha));
+    candidatas.sort((a, b) => {
+      const porEspecificidade = especificidade(b.relacao.se) - especificidade(a.relacao.se);
+      return porEspecificidade !== 0 ? porEspecificidade : a.indice - b.indice;
+    });
+    return candidatas.slice(0, TETO_RELACOES_POR_PACOTE).map((c) => c.relacao);
+  }
+  function derivarEco(estado) {
+    if (estado.desfecho !== "aberto" || estado.linha.length === 0)
+      return null;
+    return { abre_com: estado.linha[0], fecha_com: estado.linha[estado.linha.length - 1] };
+  }
+
+  // src/core/compositor/compor.ts
+  var NIVEIS_VALIDOS2 = ["n1", "n2", "n3", "n4"];
+  var PARAGRAFOS_POR_RODADA = { 1: 1, 2: 2, 3: 2, 4: 2 };
+  var PALAVRAS_MAX_POR_PARAGRAFO = {
+    n1: 25,
+    n2: 40,
+    n3: 55,
+    n4: 70
+  };
+  function celula(porNivel, nivel, dono, campo) {
+    const texto = porNivel ? porNivel[nivel] : undefined;
+    if (typeof texto !== "string" || texto.length === 0) {
+      throw new Error(`compositor: nível ausente na ficha — objeto "${dono}", campo "${campo}", nível "${nivel}"`);
+    }
+    return texto;
+  }
+  function validarEntrada(estado, fichas, perfil) {
+    if (!NIVEIS_VALIDOS2.includes(perfil.nivel)) {
+      throw new Error(`compositor: perfil sem nível válido — recebido "${perfil.nivel}"`);
+    }
+    for (const [nome, arquivo] of [
+      ["objetos", fichas.objetos],
+      ["relacoes", fichas.relacoes],
+      ["cenarios", fichas.cenarios]
+    ]) {
+      if (!arquivo || arquivo.esquema !== ESQUEMA_FICHAS_V1) {
+        throw new Error(`compositor: catálogo "${nome}" com esquema desconhecido — esperado "${ESQUEMA_FICHAS_V1}"`);
+      }
+    }
+    if (!Array.isArray(estado.linha) || estado.linha.length === 0) {
+      throw new Error("compositor: linha vazia — o Pacote exige ao menos 1 beat");
+    }
+    if (!(estado.rodada in PARAGRAFOS_POR_RODADA)) {
+      throw new Error(`compositor: rodada fora de 1..4 — recebida "${estado.rodada}"`);
+    }
+  }
+  function derivarPapel(indice, tamanho) {
+    if (indice === 0)
+      return "abertura";
+    if (indice === tamanho - 1)
+      return "fecho";
+    return "miolo";
+  }
+  function compor2(estado, fichas, perfil) {
+    validarEntrada(estado, fichas, perfil);
+    const nivel = perfil.nivel;
+    const fichaCenario = fichas.cenarios.cenarios[estado.cenarioId];
+    if (!fichaCenario) {
+      throw new Error(`compositor: cenário sem ficha no catálogo — "${estado.cenarioId}"`);
+    }
+    const vencedoras = selecionarRelacoes(fichas.relacoes.objeto_x_objeto, estado.linha);
+    const beats = estado.linha.map((objeto, indice) => {
+      const ficha = fichas.objetos.objetos[objeto];
+      if (!ficha) {
+        throw new Error(`compositor: objeto sem ficha no catálogo — "${objeto}"`);
+      }
+      return {
+        objeto,
+        papel: derivarPapel(indice, estado.linha.length),
+        descricao: celula(ficha.descricao, nivel, objeto, "descricao"),
+        corpo: celula(ficha.sensacao ? ficha.sensacao.corpo : undefined, nivel, objeto, "sensacao.corpo"),
+        relacoes: vencedoras.filter((r) => r.objeto === objeto).map((r) => ({ alvo: r.alvo, interacao: celula(r.interacao, nivel, r.objeto, "interacao") }))
+      };
+    });
+    return {
+      esquema: ESQUEMA_PACOTE_COMPOSICAO_V1,
+      cenario: {
+        id: estado.cenarioId,
+        descricao: fichaCenario.descricao,
+        voz_do_contador: fichaCenario.voz_do_contador,
+        sensacao_no_personagem: celula(fichaCenario.sensacao_no_personagem, nivel, estado.cenarioId, "sensacao_no_personagem")
+      },
+      personagem: { nome: perfil.nome, genero: perfil.genero },
+      nivel,
+      beats,
+      eco: derivarEco(estado),
+      restricoes: {
+        paragrafos: PARAGRAFOS_POR_RODADA[estado.rodada],
+        palavras_max_por_paragrafo: PALAVRAS_MAX_POR_PARAGRAFO[nivel]
+      }
+    };
+  }
+
+  // src/core/realizador/prompt_template.ts
+  var DESCRICAO_NIVEL = {
+    n1: "Primeiras palavras — sílabas e palavras soltas",
+    n2: "Frases curtas — uma linha",
+    n3: "Pequenos textos — frases ligadas",
+    n4: "Parágrafos — histórias mais longas"
+  };
+  var MAXIMO_PALAVRAS = {
+    n1: [31, 44, 58, 71],
+    n2: [55, 77, 100, 122],
+    n3: [91, 125, 159, 193],
+    n4: [200, 268, 335, 403]
+  };
+  function rodadaDoPacote(pacote) {
+    const r = pacote.beats.length - 2;
+    return r < 1 ? 1 : r > 4 ? 4 : r;
+  }
+  function maximoPalavrasDoPacote(pacote) {
+    return MAXIMO_PALAVRAS[pacote.nivel][rodadaDoPacote(pacote) - 1];
+  }
+  var FEWSHOT_POR_NIVEL = {
+    n1: [
+      {
+        entrada: "ELEMENTOS: vagalume → folha → vento · PERSONAGEM: Joana (menina)",
+        saida: "O quintal sussurra segredos, Joana quer ver tudo. A grama fria toca seu pé. Uma luz pisca no fundo, os olhos de Joana seguem. Uma folha desce rodando, o dedo de Joana segue. O vento pula o muro, a pele de Joana sente o fresco. O quintal conta tudo, Joana sente os segredos."
+      }
+    ],
+    n2: [
+      {
+        entrada: "ELEMENTOS: vagalume → vento → frasco · PERSONAGEM: Joana (menina)",
+        saida: "O quintal sussurra segredos. Joana sente a grama fria, quer ver tudo. Seus olhos seguem o vaga-lume piscando no fundo. Ela chega perto na ponta dos pés, e a faísca entra no pote, vira sua lanterninha. O vento pula o muro e corre, fresco, mexendo em tudo. A pele de Joana arrepia, o cabelo mexe. Ela segura o pote de vidro frio e liso com as duas mãos, espiando o mundo lá dentro."
+      },
+      {
+        entrada: "ELEMENTOS: folha → frasco → gato → vento · PERSONAGEM: Pietro (menino)",
+        saida: "O quintal sussurra segredos. A grama fria no pé de Pietro faz a vontade de ver tudo. Uma folha solta do galho, desce rodando. O dedo de Pietro acompanha, os olhos dançam. Um pote frio e liso espera na grama. Pietro o segura, espia o mundo. Um gato quieto aparece na cerca, olhos verdes. Pietro silencia, prende a respiração. O gato vê a folha, pula, brincando. O vento pula o muro, corre, fresco. A pele de Pietro arrepia, o cabelo mexe. O quintal continua a sussurrar segredos."
+      }
+    ],
+    n3: [
+      {
+        entrada: "ELEMENTOS: vento → vagalume → gato → frasco · PERSONAGEM: Pietro (menino)",
+        saida: `O quintal sussurra segredos; a grama fria nos pés de Pietro traz vontade de descobrir. O vento rola pelo muro, corre no quintal, fresco de longe, mexe de leve. Os braços de Pietro arrepiam, o cabelo mexe. No canto escuro, luzinha acende e apaga; vaga-lume pisca devagar como estrela. Os olhos de Pietro seguem a pisca, querendo perto.
+
+Na cerca, gato aparece sem barulho, quieto feito sombra, olhos verdes acesos feito lanternas. Pietro fica em silêncio, prende a respiração, troca olhar com o gato, que espia a luzinha. Então, Pietro vê pote de vidro escondido na grama, frio e liso feito pedra de rio, que entorta o mundo. Ele o segura com as duas mãos, fecha um olho para espiar. A faísca do vaga-lume entra no pote, piscando lá dentro — uma lanterninha viva pra carregar. Pietro agora tem um segredo do quintal, guardado bem perto.`
+      },
+      {
+        entrada: "ELEMENTOS: vagalume → folha → gato → frasco · PERSONAGEM: Pietro (menino)",
+        saida: "O quintal sussurra segredos, um por um. A grama fria nos pés de Pietro traz a vontade de descobrir. No canto escuro, um vaga-lume acende e apaga, estrelinha pra brincar. Os olhos de Pietro seguem a pisca, e ele na ponta dos pés quer chegar perto. A faísca entra no pote de vidro, virando lanterninha viva. Uma folha se solta do galho alto, descendo rodando no ar. O dedo de Pietro acompanha cada volta, sua mão aberta, esperando. Na cerca, um gato aparece sem barulho, quieto feito sombra, olhos verdes acesos. Pietro fica em silêncio, prende a respiração, e troca um olhar demorado. O gato espia a luzinha piscando, movendo a cabeça. Um pote de vidro, frio e liso feito pedra de rio, está na grama, entortando o mundo. Pietro o segura com as duas mãos, fecha um olho e espia, colhendo os segredos do quintal."
+      }
+    ],
+    n4: [
+      {
+        entrada: "ELEMENTOS: folha → vagalume → frasco · PERSONAGEM: Pietro (menino)",
+        saida: "O quintal sussurra segredos, e a grama fria nos pés de Pietro faz seu coração bater forte de vontade de saber. Do galho alto, uma folha se despede e desce no ar escuro, rodando leve. O dedo de Pietro acompanha as voltas, e sua mão se abre feito ninho, esperando a folha pousar. No canto escuro perto da cerca, uma luzinha acende e apaga, um vaga-lume. Os olhos de Pietro seguem a pisca, e a vontade o move na ponta dos pés, prendendo a respiração, até um pote de vidro na grama. A faísca entra no pote frio e liso, piscando lá dentro, presa e livre, uma lanterninha viva. Pietro o segura com as duas mãos, ergue contra a luz, fecha um olho e espia o mundo que entorta e brilha, pequeno e curvo, e a vontade de saber se colhe no brilho da lanterninha viva."
+      },
+      {
+        entrada: "ELEMENTOS: frasco → vento → gato → vagalume · PERSONAGEM: Pietro (menino)",
+        saida: `O quintal sussurra segredos para quem vem ver, e a grama fria nos pés descalços de Pietro faz seu coração bater forte de vontade de saber. Ele segura um pote de vidro com as duas mãos, erguendo-o contra a luz, e fecha um olho para espiar o mundo que entorta lá dentro, virando devagar. O pote vazio parece à espera, e Pietro sente a certeza boa de que a noite ainda vai mandar uma coisinha brilhante para morar ali.
+
+O vento chega rolando por cima do muro, balançando a grama e cheirando a terra molhada. A pele dos braços de Pietro arrepia, ele fecha os olhos e respira fundo, deixando o vento passar como se fosse noite. Em cima da cerca, um gato já está sentado, e Pietro fica em silêncio, prendendo a respiração, trocando um olhar demorado e piscando devagar de volta. No canto do quintal, uma luzinha acende e apaga, flutuando. Os olhos de Pietro seguem a pisca, e a vontade de chegar perto o guia, então a faísca roda no ar, encontra o pote e entra devagarinho, piscando quentinha, como quem chega em casa.`
+      }
+    ]
+  };
+  function rotuloGenero(genero) {
+    return genero === "f" ? "menina" : "menino";
+  }
+  function montarPromptRealizador(pacote) {
+    const nivel = pacote.nivel;
+    const nome = pacote.personagem.nome;
+    const genero = rotuloGenero(pacote.personagem.genero);
+    const maximo = maximoPalavrasDoPacote(pacote);
+    const linhasUser = [];
+    linhasUser.push(`LUGAR: ${pacote.cenario.descricao}`);
+    linhasUser.push(`VOZ DO LUGAR: ${pacote.cenario.voz_do_contador}`);
+    linhasUser.push(`O QUE O LUGAR FAZ SENTIR: ${pacote.cenario.sensacao_no_personagem}`);
+    linhasUser.push(`PERSONAGEM: ${nome} (${genero})`);
+    linhasUser.push("", "ELEMENTOS, NA ORDEM:");
+    pacote.beats.forEach((beat, i) => {
+      linhasUser.push(`${i + 1}. ${beat.objeto} (${beat.papel})`);
+      linhasUser.push(`   O QUE É: ${beat.descricao}`);
+      linhasUser.push(`   CORPO: ${beat.corpo}`);
+      for (const relacao of beat.relacoes) {
+        linhasUser.push(`   INTERAÇÃO (com ${relacao.alvo}): ${relacao.interacao}`);
+      }
+    });
+    const linhasSystem = [
+      "Escreva uma história infantil curta a partir do MATERIAL abaixo.",
+      `O corpo de ${nome} guia cada cena: use os gestos dados em CORPO, não invente emoções abstratas.`,
+      "O lugar é o contador: a voz do lugar abre e costura a história.",
+      "Plante a vontade na abertura; feche colhendo essa vontade no corpo.",
+      "NÃO invente acontecimentos, objetos, personagens ou falas.",
+      "NÃO remova nenhum elemento. NÃO mude a ordem dos elementos.",
+      `NÃO troque o nome (${nome}), o gênero (${genero}) ou a idade.`,
+      "Escreva no tempo PRESENTE (a história acontece agora), como nos exemplos abaixo.",
+      `Não use "ele" ou "ela" para objetos — repita o nome do objeto.`,
+      `Mantenha o vocabulário do nível ${nivel} (${DESCRICAO_NIVEL[nivel]}) — nem mais simples, nem mais difícil.`
+    ];
+    if (nivel === "n1") {
+      linhasSystem.push("Nível n1: frases bem curtas, UMA sensação de corpo por elemento.", 'Integre a sensação de corpo na frase do evento com "e" — no máximo 2 frases por elemento.', "Repetir o nome do objeto ou da personagem é bem-vindo (repetição coesiva).", "No máximo 1 fragmento exclamativo em todo o texto.");
+    } else {
+      linhasSystem.push('Uma frase pode unir-se à outra com "e", "mas", "então", "depois". Menos pontos finais, sem frases picadas.');
+    }
+    const exemplos = FEWSHOT_POR_NIVEL[nivel];
+    if (exemplos.length > 0) {
+      linhasSystem.push("", `EXEMPLOS do nível ${nivel} (siga o tom, o ritmo e o comprimento):`);
+      exemplos.forEach((exemplo, i) => {
+        linhasSystem.push(`EXEMPLO ${i + 1} — ${exemplo.entrada}`, exemplo.saida, "");
+      });
+    }
+    if (pacote.eco !== null) {
+      linhasSystem.push(`Termine ecoando ${pacote.eco.abre_com} com as próprias palavras.`);
+    }
+    const paragrafosTxt = pacote.restricoes.paragrafos === 1 ? "1 parágrafo" : `${pacote.restricoes.paragrafos} parágrafos`;
+    linhasSystem.push(`Escreva em ${paragrafosTxt} (separados por uma linha em branco). Máximo ${maximo} palavras no total.`, "Devolva só o texto final.");
+    return { system: linhasSystem.join(`
+`), user: linhasUser.join(`
+`) };
+  }
+
+  // src/core/realizador/validador.ts
+  var LIMIAR_PONTOS_FINAIS_N1 = 12;
+  var LIMIAR_MEDIA_FRASES_POR_BEAT_N1 = 2;
+  var TETO_CRESCIMENTO = 0.25;
+  var SUFIXOS_PRETERITO = /(ava|avam|iam|ou|aram)$/;
+  var PRESENTES_EM_OU = new Set(["sou", "vou", "estou", "dou"]);
+  var LIMIAR_MARCAS_PRETERITO = 2;
+  var ANCORAS_POR_OBJETO = {
+    vagalume: ["faísca", "luz", "lanterna*", "pisca*", "vaga-lume"],
+    frasco: ["pote", "vidro", "frasco*", "tampa*"],
+    gato: ["gato", "bicho", "olhos verdes"],
+    lua: ["lua", "prata", "luar"],
+    vento: ["vento", "brisa", "fresco*", "sopr*"],
+    folha: ["folha", "folhas"],
+    orvalho: ["orvalho", "gota*", "gotinha", "grama molhada"]
+  };
+  var TERMOS_CORPO = [
+    "ela",
+    "ele",
+    "dela",
+    "dele",
+    "pé",
+    "pés",
+    "mão",
+    "mãos",
+    "palma",
+    "dedo",
+    "dedos",
+    "olho",
+    "olhos",
+    "olhar",
+    "peito",
+    "cabelo",
+    "cabelos",
+    "rosto",
+    "queixo",
+    "respiração",
+    "pele",
+    "braço",
+    "braços",
+    "ombro",
+    "ombros",
+    "pescoço",
+    "nuca",
+    "coração"
+  ];
+  var ADJ_F = ["quieta", "sozinha", "descalça", "atenta", "agachada"];
+  var ADJ_M = ["quieto", "sozinho", "descalço", "atento", "agachado"];
+  var norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  var tokens = (s) => norm(s).split(/[^a-z0-9-]+/).filter(Boolean);
+  var sentencas = (s) => s.split(/(?<=[.!?…])\s+/).map((x) => x.trim()).filter(Boolean);
+  var contarPalavras = (s) => s.split(/\s+/).filter(Boolean).length;
+  var pareceVerbo = (p) => /(ar|er|ir|ndo)$/.test(p) && p.length > 3;
+  function contemAncora(texto, ancoras) {
+    const t = norm(texto);
+    const toks = tokens(texto);
+    return ancoras.some((a) => {
+      const an = norm(a);
+      if (an.endsWith("*")) {
+        const prefixo = an.slice(0, -1);
+        return toks.some((tk) => tk.startsWith(prefixo));
+      }
+      if (an.includes(" "))
+        return t.includes(an);
+      return toks.includes(an);
+    });
+  }
+  function temMarcaDeCorpo(texto, nomeNorm) {
+    const toks = tokens(texto);
+    if (toks.includes(nomeNorm))
+      return true;
+    return TERMOS_CORPO.some((termo) => toks.includes(norm(termo)));
+  }
+  function flexoesPredicativasOpostas(texto, genero) {
+    const opostas = (genero === "f" ? ADJ_M : ADJ_F).map(norm);
+    const toks = tokens(texto);
+    const achadas = [];
+    for (let i = 0;i < toks.length; i++) {
+      if (!opostas.includes(toks[i]))
+        continue;
+      const anterior = i > 0 ? toks[i - 1] : "";
+      if (anterior === "" || pareceVerbo(anterior))
+        achadas.push(toks[i]);
+    }
+    return achadas;
+  }
+  function validar(pacote, texto, paragrafos) {
+    const motivos = [];
+    const avisos = [];
+    const presencaPorBeat = {};
+    if (typeof texto !== "string" || texto.trim() === "") {
+      return { pass: false, motivos: ["texto realizado ausente ou vazio"], avisos, presencaPorBeat };
+    }
+    const frases = sentencas(texto);
+    for (const beat of pacote.beats) {
+      const ancoras = ANCORAS_POR_OBJETO[beat.objeto];
+      if (!ancoras) {
+        avisos.push(`objeto "${beat.objeto}" sem tabela de âncoras — cobertura não verificada`);
+        continue;
+      }
+      const idx = frases.findIndex((f) => contemAncora(f, ancoras));
+      if (idx === -1) {
+        motivos.push(`objeto "${beat.objeto}" sem âncora no texto realizado`);
+        presencaPorBeat[beat.objeto] = false;
+        continue;
+      }
+      const janela = frases.slice(Math.max(0, idx - 1), idx + 2).join(" ");
+      const coberto = temMarcaDeCorpo(janela, norm(pacote.personagem.nome));
+      presencaPorBeat[beat.objeto] = coberto;
+      if (!coberto)
+        motivos.push(`beat "${beat.objeto}" sem marca de corpo/personagem na janela da âncora`);
+    }
+    const toks = tokens(texto);
+    const nomeNorm = norm(pacote.personagem.nome);
+    const genero = pacote.personagem.genero;
+    if (!toks.includes(nomeNorm))
+      motivos.push(`nome da protagonista ("${pacote.personagem.nome}") ausente`);
+    const artigoOposto = genero === "f" ? "o" : "a";
+    for (let i = 0;i < toks.length - 1; i++) {
+      if (toks[i] === artigoOposto && toks[i + 1] === nomeNorm) {
+        motivos.push(`artigo do gênero oposto antes do nome ("${artigoOposto} ${pacote.personagem.nome}")`);
+        break;
+      }
+    }
+    const palavraOposta = genero === "f" ? "menino" : "menina";
+    if (toks.includes(palavraOposta))
+      motivos.push(`palavra do gênero oposto ("${palavraOposta}")`);
+    for (const flexao of flexoesPredicativasOpostas(texto, genero)) {
+      motivos.push(`flexão predicativa do gênero oposto ("${flexao}")`);
+    }
+    const palavrasTexto = contarPalavras(texto);
+    const maximo = maximoPalavrasDoPacote(pacote);
+    const razao = (palavrasTexto - maximo) / maximo;
+    if (razao > TETO_CRESCIMENTO) {
+      motivos.push(`crescimento de ${Math.round(razao * 100)}% sobre o máximo canônico de ${maximo} palavras (teto ${TETO_CRESCIMENTO * 100}%)`);
+    }
+    if (paragrafos.length !== pacote.restricoes.paragrafos) {
+      avisos.push(`parágrafos fora do alvo: ${paragrafos.length} (alvo ${pacote.restricoes.paragrafos})`);
+    }
+    const marcasPreterito = toks.filter((tk) => SUFIXOS_PRETERITO.test(tk) && !PRESENTES_EM_OU.has(tk)).length;
+    if (marcasPreterito >= LIMIAR_MARCAS_PRETERITO) {
+      avisos.push(`tempo passado: ${marcasPreterito} marcas de pretérito (limiar ${LIMIAR_MARCAS_PRETERITO})`);
+    }
+    let ritmoN1;
+    if (pacote.nivel === "n1") {
+      const pontosFinais = (texto.match(/\./g) || []).length;
+      const beats = pacote.beats.length;
+      const mediaFrasesPorBeat = beats > 0 ? pontosFinais / beats : 0;
+      const ok = pontosFinais <= LIMIAR_PONTOS_FINAIS_N1 && mediaFrasesPorBeat <= LIMIAR_MEDIA_FRASES_POR_BEAT_N1;
+      ritmoN1 = { pontosFinais, mediaFrasesPorBeat, ok };
+      if (!ok) {
+        motivos.push(`ritmo n1 estourado: ${pontosFinais} pontos finais, ${mediaFrasesPorBeat.toFixed(1)} frases/beat (tetos ${LIMIAR_PONTOS_FINAIS_N1}/${LIMIAR_MEDIA_FRASES_POR_BEAT_N1})`);
+      }
+    }
+    return { pass: motivos.length === 0, motivos, avisos, ritmoN1, presencaPorBeat };
+  }
+
+  // src/core/realizador/provedor_realizador.ts
+  class ErroRecusaRealizador extends Error {
+    constructor(motivo) {
+      super(`recusa do provedor: ${motivo}`);
+      this.name = "ErroRecusaRealizador";
+    }
+  }
+
+  class ErroProvedorRealizador extends Error {
+    transitorio;
+    constructor(motivo, transitorio) {
+      super(motivo);
+      this.name = "ErroProvedorRealizador";
+      this.transitorio = transitorio;
+    }
+  }
+
+  // src/core/realizador/cascata.ts
+  var TETO_GLOBAL_TENTATIVAS = 4;
+
+  class ErroRealizacaoEsgotada extends Error {
+    ultima;
+    constructor(mensagem, ultima) {
+      super(mensagem);
+      this.name = "ErroRealizacaoEsgotada";
+      this.ultima = ultima;
+    }
+  }
+  function segmentarParagrafos(texto) {
+    return texto.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+  }
+  async function realizarComCascata(pacote, prompt, provedores, opcoes) {
+    const inicio = Date.now();
+    const teto = opcoes.teto_tentativas ?? TETO_GLOBAL_TENTATIVAS;
+    const temperatura = opcoes.temperatura ?? 0.4;
+    const atrasoRetryMs = opcoes.atraso_retry_ms ?? 2000;
+    let chamadas = 0;
+    let ultimoErroProvedor;
+    let tokensEntrada = 0;
+    let tokensSaida = 0;
+    let temTokens = false;
+    let ultima;
+    const metadados = () => ({
+      chamadas,
+      duracaoMs: Date.now() - inicio,
+      ...temTokens ? { tokens: { entrada: tokensEntrada, saida: tokensSaida } } : {}
+    });
+    cascata:
+      for (const provedor of provedores) {
+        let jaRetentou = false;
+        while (chamadas < teto) {
+          chamadas++;
+          let resposta;
+          try {
+            resposta = await provedor.gerarTexto(prompt.user, {
+              modelo: opcoes.modelo ?? provedor.modeloPadrao,
+              temperatura,
+              system: prompt.system
+            });
+          } catch (e) {
+            ultimoErroProvedor = e instanceof Error ? e.message : String(e);
+            if (e instanceof ErroRecusaRealizador)
+              continue cascata;
+            const transitorio = e instanceof ErroProvedorRealizador && e.transitorio;
+            if (transitorio && !jaRetentou && chamadas < teto) {
+              jaRetentou = true;
+              if (atrasoRetryMs > 0)
+                await new Promise((r) => setTimeout(r, atrasoRetryMs));
+              continue;
+            }
+            continue cascata;
+          }
+          if (resposta.metadados.tokens) {
+            temTokens = true;
+            tokensEntrada += resposta.metadados.tokens.entrada;
+            tokensSaida += resposta.metadados.tokens.saida;
+          }
+          const paragrafos = segmentarParagrafos(resposta.texto);
+          const veredito = validar(pacote, resposta.texto, paragrafos);
+          const origem = {
+            fonte: "llm",
+            provedor: provedor.nome,
+            modelo: resposta.metadados.modelo
+          };
+          if (veredito.pass) {
+            return { texto: resposta.texto, paragrafos, veredito, origem, metadados: metadados() };
+          }
+          ultima = { texto: resposta.texto, paragrafos, veredito, origem, metadados: metadados() };
+          continue cascata;
+        }
+        break;
+      }
+    if (opcoes.estadoFallback) {
+      const texto = montar(opcoes.estadoFallback.estado, opcoes.estadoFallback.nivel);
+      return {
+        texto,
+        paragrafos: [texto],
+        veredito: {
+          pass: true,
+          motivos: [],
+          avisos: ["texto do fallback A+ v3 (cascata de LLM esgotada)"],
+          presencaPorBeat: {}
+        },
+        origem: { fonte: "fallback-a-mais" },
+        metadados: metadados()
+      };
+    }
+    throw new ErroRealizacaoEsgotada(`realizador: cascata esgotada (${chamadas} chamada(s)) e sem estadoFallback — erro explícito de aplicação (12-04)${ultimoErroProvedor ? ` · último erro de provedor: ${ultimoErroProvedor}` : ""}`, ultima);
+  }
+
+  // src/core/realizador/realizar.ts
+  async function realizar(pacote, opcoes = {}) {
+    if (!pacote || pacote.esquema !== ESQUEMA_PACOTE_COMPOSICAO_V1) {
+      throw new Error(`realizador: Pacote com esquema desconhecido — esperado "${ESQUEMA_PACOTE_COMPOSICAO_V1}"`);
+    }
+    const provedores = opcoes.provedores ?? [];
+    if (provedores.length === 0 && !opcoes.estadoFallback) {
+      throw new Error("realizador: nenhum provedor configurado e sem estadoFallback — em produção o servidor decide o provedor (fase 13)");
+    }
+    const prompt = montarPromptRealizador(pacote);
+    return realizarComCascata(pacote, prompt, provedores, opcoes);
+  }
+
+  // src/core/geracao/geracao.ts
+  var ROTA_PADRAO = {
+    n1: "realizador",
+    n2: "realizador",
+    n3: "realizador",
+    n4: "realizador"
+  };
+  var PERSONAGEM_CANONICO = { nome: "Joana", genero: "f" };
+  var NIVEIS2 = ["n1", "n2", "n3", "n4"];
+  function generoValido(g) {
+    return g === "m" || g === "f";
+  }
+  async function gerar(entrada, opcoes = {}) {
+    const nivel = entrada.perfil ? entrada.perfil.nivel : undefined;
+    if (!nivel || !NIVEIS2.includes(nivel)) {
+      throw new Error(`geracao: perfil sem nível válido — recebido "${String(nivel)}"`);
+    }
+    const rota = { ...ROTA_PADRAO, ...opcoes.rota ?? {} }[nivel];
+    const aMais = (motivo, pacote2) => {
+      if (!entrada.estadoFallback) {
+        throw new Error(`geracao: caminho A+ v3 sem estadoFallback — ${motivo}`);
+      }
+      const texto = montar(entrada.estadoFallback.estado, entrada.estadoFallback.nivel);
+      return {
+        texto,
+        paragrafos: [texto],
+        veredito: null,
+        origem: { fonte: "fallback-a-mais", rota, motivo },
+        pacote: pacote2
+      };
+    };
+    if (rota === "ap_cru")
+      return aMais(`rota do nível ${nivel} = ap_cru`, null);
+    if (!entrada.fichas)
+      return aMais("fichas não carregadas", null);
+    const nome = typeof entrada.perfil.nome === "string" ? entrada.perfil.nome.trim() : "";
+    const personagem = nome !== "" && generoValido(entrada.perfil.genero) ? { nome, genero: entrada.perfil.genero } : PERSONAGEM_CANONICO;
+    let pacote;
+    try {
+      pacote = compor2(entrada.estado, entrada.fichas, {
+        nome: personagem.nome,
+        genero: personagem.genero,
+        nivel
+      });
+    } catch (e) {
+      return aMais(`compor falhou: ${e instanceof Error ? e.message : String(e)}`, null);
+    }
+    const realizador = opcoes.realizador ?? realizar;
+    try {
+      const r = await realizador(pacote, {
+        ...opcoes.provedores ? { provedores: opcoes.provedores } : {},
+        ...entrada.estadoFallback ? { estadoFallback: entrada.estadoFallback } : {},
+        ...opcoes.temperatura !== undefined ? { temperatura: opcoes.temperatura } : {},
+        ...opcoes.teto_tentativas !== undefined ? { teto_tentativas: opcoes.teto_tentativas } : {},
+        ...opcoes.atraso_retry_ms !== undefined ? { atraso_retry_ms: opcoes.atraso_retry_ms } : {}
+      });
+      return {
+        texto: r.texto,
+        paragrafos: r.paragrafos,
+        veredito: r.veredito,
+        origem: { ...r.origem, rota },
+        metadados: r.metadados,
+        pacote
+      };
+    } catch (e) {
+      return aMais(`realização falhou: ${e instanceof Error ? e.message : String(e)}`, pacote);
+    }
+  }
+
   // src/core/lgpd.ts
   async function exportarDados(perfilId, repo, agora) {
     const perfis = await repo.carregarPerfis();
@@ -2396,7 +3076,8 @@
       nome: dados.nome,
       idade: dados.idade,
       nivel: dados.nivel,
-      avatarId: dados.avatarId
+      avatarId: dados.avatarId,
+      ...dados.genero !== undefined ? { genero: dados.genero } : {}
     });
   }
   function montarEstadoOnboarding(dados, agora) {
@@ -2884,6 +3565,7 @@
       abrirProximaRodada,
       convergiu
     },
+    geracao: { gerar, ROTA_PADRAO, PERSONAGEM_CANONICO },
     estado: { estadoInicial, patchEstado, perfilAtivo, nivelAtivo, storyLines },
     economia: {
       economiaInicial,

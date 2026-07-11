@@ -43,6 +43,11 @@ import {
   ESQUEMA_COMPOSICAO_V3,
 } from "../core/composicao.js";
 
+// fase13: o módulo de geração (geração 2) — compor → realizar → fallback A+ v3.
+// Novo sub-objeto irmão de `composicao` (que segue INTOCADO servindo prévia e
+// fallback — fase13-13-00, regra 5: mesmo seam, nova porta).
+import { gerar, PERSONAGEM_CANONICO, ROTA_PADRAO } from "../core/geracao/geracao.js";
+
 import {
   estadoInicial,
   patchEstado,
@@ -150,6 +155,9 @@ const PipocaCanonico = {
     abrirProximaRodada: compAbrirProximaRodada,
     convergiu: compConvergiu,
   },
+
+  // --- geração 2 (fase13 · módulo de geração — compor→realizar→fallback A+) ---
+  geracao: { gerar, ROTA_PADRAO, PERSONAGEM_CANONICO },
 
   // --- CORE ---
   estado: { estadoInicial, patchEstado, perfilAtivo, nivelAtivo, storyLines },

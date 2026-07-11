@@ -680,6 +680,96 @@
     return Canon && Canon.composicao ? Canon.composicao : null;
   }
 
+  // ─── GERAÇÃO 2 (fase13) — fichas + módulo de geração em background ─────────
+  // A prévia do portão segue DETERMINÍSTICA (A+ v3 via montarComposicao; zero
+  // LLM por movimento — D-13.2). A realização por LLM dispara no COMMIT da
+  // rodada (aplicarComposicao), em background; a CAPTURA (intermediárias e
+  // história completa) espera com teto e cai no A+ cru se estourar.
+  var _fichasV1 = null; // CatalogoFichas (3 catálogos pipoca.fichas.v1) ou null
+  var _realizacaoPendente = null; // { chave, promise } — geração do último commit
+  var TETO_ESPERA_REALIZACAO_MS = 8000;
+
+  // Carrega os 3 catálogos no boot, ao lado do grafo (padrão de _initComposicao).
+  // Falha ⇒ _fichasV1 = null e o módulo de geração cai no caminho v3 (13-00).
+  function _initFichas() {
+    Promise.all([
+      fetch("./docs/fichas/objetos.v1.json").then(function (r) { return r.json(); }),
+      fetch("./docs/fichas/relacoes.quintal.v1.json").then(function (r) { return r.json(); }),
+      fetch("./docs/fichas/cenarios.v1.json").then(function (r) { return r.json(); }),
+    ])
+      .then(function (arr) {
+        _fichasV1 = { objetos: arr[0], relacoes: arr[1], cenarios: arr[2] };
+      })
+      .catch(function (e) {
+        console.warn("[PipocaApp] Falha ao carregar fichas v1 (caminho v3 segue):", e);
+        _fichasV1 = null;
+      });
+  }
+
+  function _geracao() {
+    var Canon = window.PipocaCanonico;
+    return Canon && Canon.geracao ? Canon.geracao : null;
+  }
+
+  // Dispara a realização em BACKGROUND no commit do move (13-01: a criança não
+  // espera o LLM de braços cruzados). Um disparo novo substitui o anterior —
+  // geração obsoleta nunca aparece (a captura só consome o pendente da rodada).
+  function _dispararRealizacao() {
+    var G = _geracao();
+    if (!G || !state.comp || !state.perfil) { _realizacaoPendente = null; return; }
+    var comp = state.comp;
+    var nivel = state.perfil.nivel || "n2";
+    var entrada = {
+      estado: {
+        cenarioId: comp.cenarioId || "quintal_anoitecer",
+        linha: (comp.linha || []).slice(),
+        rodada: Math.max(1, Math.min(4, comp.rodada || 1)),
+        desfecho: (state.modos && state.modos.desfecho) || "convergente",
+      },
+      fichas: _fichasV1,
+      perfil: { nome: state.perfil.nome, genero: state.perfil.genero, nivel: nivel },
+      // O fallback A+ v3 roda no DISPOSITIVO (não depende do edge — 13-03).
+      estadoFallback: { estado: comp, nivel: nivel },
+    };
+    var opcoes = {};
+    // Produção: realizador remoto (edge, cascata no servidor) quando disponível.
+    if (G.realizadorRemoto) {
+      var remoto = null;
+      try { remoto = G.realizadorRemoto(); } catch (_) { remoto = null; }
+      if (remoto) opcoes.realizador = remoto;
+    }
+    var chave = (comp.rodada || 1) + ":" + (comp.linha || []).join(",");
+    _realizacaoPendente = {
+      chave: chave,
+      promise: G.gerar(entrada, opcoes).catch(function (e) {
+        console.warn("[PipocaApp] geração falhou (captura cai no A+ cru):", e);
+        return null;
+      }),
+    };
+  }
+
+  // Resultado da realização com TETO DE ESPERA: estourou (ou não há pendente)
+  // ⇒ A+ cru (montarComposicao), origem sinalizada. Nunca rejeita.
+  function _resultadoRealizacao(pendente, nivel) {
+    function cru(motivo) {
+      return {
+        texto: montarComposicao(nivel),
+        origem: { fonte: "fallback-a-mais", rota: "realizador", motivo: motivo },
+        pacote: null,
+      };
+    }
+    if (!pendente || !pendente.promise) return Promise.resolve(cru("realização não disparada"));
+    var teto = new Promise(function (res) {
+      setTimeout(function () { res(null); }, TETO_ESPERA_REALIZACAO_MS);
+    });
+    return Promise.race([pendente.promise, teto])
+      .then(function (r) {
+        if (!r || !r.texto) return cru("teto de espera estourado ou geração falhou");
+        return r;
+      })
+      .catch(function () { return cru("geração falhou"); });
+  }
+
   // ─── Telemetria (TELE · fase03-03-01) — captura na borda, fire-and-forget ──
   // Acumuladores da sessão de leitura (zerados a cada iniciarComposicao).
   var _acum = { palavras: 0, historias: 0 };
@@ -799,6 +889,10 @@
   function abrirProximaRodadaComposicao() {
     var C = _comp();
     if (!C || !state.comp) return;
+    // fase13 · a rodada que ACABOU de ser lida e a realização disparada no
+    // commit dela (aplicarComposicao) — a captura consome este par.
+    var rodadaLida = state.comp.rodada || 1;
+    var pendenteRealizacao = _realizacaoPendente;
     setState({ comp: C.abrirProximaRodada(state.comp) });
 
     // TELE · desfecho: última rodada lida → história concluída + fim do bloco.
@@ -817,8 +911,11 @@
       }
       _encerrarSessaoLeitura();
       _agendarSave(); // historia mutada direto (fora do setState) — persiste a conclusão
-      _capturarHistoriaSalva(); // guarda a história completa (20d; coração = p/ sempre)
-
+      _capturarHistoriaSalva(rodadaLida, pendenteRealizacao); // história completa (20d; coração = p/ sempre)
+    } else if (!C.convergiu(state.comp)) {
+      // fase13-13-02 · intermediária: cada portão lido gera um registro (a
+      // criança relê "como a história cresceu"). Fire-and-forget.
+      _capturarHistoriaIntermediaria(rodadaLida, pendenteRealizacao);
     }
   }
 
@@ -867,6 +964,10 @@
     if (!state.comp || !pendente) return;
     setState({ comp: _aplicarMove(state.comp, pendente) });
 
+    // fase13 · o arranjo da rodada acabou de estabilizar (commit do move):
+    // dispara a realização por LLM em BACKGROUND (13-01, requisito de latência).
+    _dispararRealizacao();
+
     // TELE · portão: leitura confirmada (+ objeto que entrou na cena nesta rodada).
     // gateTrecho/gateObjId ainda estão no estado (a T5 só os limpa depois).
     var palavras = _contarPalavras(state.gateTrecho);
@@ -888,21 +989,18 @@
     return "h-" + Date.now() + "-" + Math.random().toString(36).slice(2);
   }
 
-  // Captura AUTOMÁTICA na convergência: o texto completo tecido AGORA é a
-  // fonte fiel (se a IA um dia tecer a linha verde, não é re-derivável).
-  // Guards: sem perfil ou sem comp, não salva. Fire-and-forget com catch.
-  function _capturarHistoriaSalva() {
-    if (!state.perfil || !state.perfil.id || !state.comp) return;
+  // Monta o registro-base de HistoriaSalva a partir do estado vivo (campos do
+  // v1 + os aditivos do fase13-13-02 quando presentes) e grava fire-and-forget.
+  function _salvarRegistroHistoria(id, resultado, nivel, rodadaLida, intermediaria) {
     var Canon = window.PipocaCanonico;
-    var nivel = state.perfil.nivel || "n2";
-    var texto = montarComposicao(nivel);
-    if (!texto) return;
+    if (!state.perfil || !state.perfil.id || !state.comp) return;
+    if (!resultado || !resultado.texto) return;
     var linha = (state.comp.linha || []).slice();
     var ultimo = linha.length ? objetoMetaV2(linha[linha.length - 1]) : null;
     var h = {
-      id: _uuid(),
+      id: id,
       cenarioId: state.comp.cenarioId || "quintal_anoitecer",
-      texto: texto,
+      texto: resultado.texto,
       linha: linha,
       nivel: nivel,
       desfecho: (state.modos && state.modos.desfecho) || "convergente",
@@ -912,14 +1010,44 @@
       emoji: (ultimo && ultimo.emoji) || "✨",
       criadaEm: Date.now(),
       favorita: false,
+      // Aditivos da geração 2 (13-02): origem sempre; Pacote quando houve.
+      origem: resultado.origem,
+      rodada: rodadaLida,
     };
-    state.ultimaHistoriaSalvaId = h.id;
+    if (resultado.pacote) h.pacoteOrigem = resultado.pacote;
+    if (intermediaria) h.intermediaria = true;
     var pid = state.perfil.id;
     try {
       repo.salvarHistoria(pid, h)
         .then(function () { return repo.podarHistorias(pid, Date.now()); })
         .catch(function () {});
     } catch (_) {}
+  }
+
+  // Captura AUTOMÁTICA na convergência: o texto REALIZADO (LLM) quando chegou
+  // dentro do teto; senão o A+ cru — fonte fiel, origem sinalizada (fase13).
+  // Guards: sem perfil ou sem comp, não salva. Fire-and-forget com catch.
+  function _capturarHistoriaSalva(rodadaLida, pendenteRealizacao) {
+    if (!state.perfil || !state.perfil.id || !state.comp) return;
+    var nivel = state.perfil.nivel || "n2";
+    // id definido SÍNCRONO: o coração da T6 aponta para o registro certo mesmo
+    // enquanto a realização ainda viaja (a gravação chega logo atrás).
+    var id = _uuid();
+    state.ultimaHistoriaSalvaId = id;
+    _resultadoRealizacao(pendenteRealizacao, nivel).then(function (r) {
+      _salvarRegistroHistoria(id, r, nivel, rodadaLida, false);
+    });
+  }
+
+  // fase13-13-02 · intermediária por rodada: cada portão lido gera um registro
+  // (segunda classe na poda; a criança relê "como a história cresceu").
+  function _capturarHistoriaIntermediaria(rodadaLida, pendenteRealizacao) {
+    if (!state.perfil || !state.perfil.id || !state.comp) return;
+    var nivel = state.perfil.nivel || "n2";
+    var id = _uuid();
+    _resultadoRealizacao(pendenteRealizacao, nivel).then(function (r) {
+      _salvarRegistroHistoria(id, r, nivel, rodadaLida, true);
+    });
   }
 
   // (Des)favoritar pela criança: regrava com criadaEm PRESERVADO (o relógio
@@ -984,6 +1112,7 @@
   // ─── Inicialização (na borda) ─────────────────────────────────────────────
   _migrarPerfisLegado().then(function () { return repo.carregarPerfis(); }); // popula cache _perfis
   _initComposicao();
+  _initFichas(); // fase13 · fichas v1 ao lado do grafo (falha ⇒ caminho v3 segue)
   // Rota inicial: sem sessão de conta válida → login da família (T9, HH_LOGIN);
   // com sessão → modo criança (T2). O boot navega por _irPara (anterior à guarda).
   // O check continua SÍNCRONO no espelho local — o adaptador remoto (fase06)

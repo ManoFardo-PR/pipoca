@@ -948,6 +948,73 @@ console.log("\n=== ProxyIA cliente (06-05) — bearer do usuário, servidor deci
   assert(proxySemSessao, "backend supabase SEM sessão → proxy rejeita sem rede (fail-soft)");
 }
 
+// ─── Etapa 5b · ProxyRealizador cliente (fase13-13-03) ───────────────────────
+
+console.log("\n=== ProxyRealizador cliente (13-03) — keyless, cascata no edge ===");
+{
+  const { criarProxyRealizador } = await import("./proxy_realizador.js");
+  const { default: pacoteGolden } = await import("../core/fixtures/pacote_golden_v1.json", { with: { type: "json" } });
+  const pacote = pacoteGolden as never;
+  const respostaOk = {
+    texto: "texto realizado no edge",
+    paragrafos: ["texto realizado no edge"],
+    veredito: { pass: true, motivos: [], avisos: [], presencaPorBeat: {} },
+    origem: { fonte: "llm", provedor: "gemini", modelo: "gemini-flash" },
+    metadados: { chamadas: 1, duracaoMs: 10 },
+  };
+  const { t, chamadas } = transporteRotas([
+    { casa: (u) => u.indexOf("/functions/v1/realizador") >= 0, responder: () => ({ status: 200, json: respostaOk }) },
+  ]);
+  const realizador = criarProxyRealizador({
+    url: URL_SUPA,
+    anonKey: "anon-k",
+    obterToken: async () => "tok-user",
+    tenantId: () => "familia:u1",
+    transporte: t,
+  });
+  const r = await realizador(pacote, { temperatura: 0.4 });
+  assert(r.texto === "texto realizado no edge" && r.origem.fonte === "llm", "200 com contrato válido → ResultadoRealizar");
+  const c = chamadas[0]!;
+  assert(
+    c.headers["Authorization"] === "Bearer tok-user" && c.headers["apikey"] === "anon-k",
+    "bearer do USUÁRIO + anon key — nenhuma chave de provedor sai do cliente"
+  );
+  const corpo = c.corpo as Record<string, unknown>;
+  const promptEnviado = corpo["prompt"] as Record<string, unknown>;
+  assert(
+    !!corpo["pacote"] && typeof promptEnviado["system"] === "string" && typeof promptEnviado["user"] === "string"
+      && !("provedor" in corpo) && !("modelo" in corpo) && !("apiKey" in corpo),
+    "payload = pacote + prompt montado do Pacote; o cliente NÃO escolhe provedor/modelo"
+  );
+
+  // Qualquer não-200 → throw (o módulo de geração cai no fallback A+ v3 LOCAL).
+  const { t: t502 } = transporteRotas([{ casa: () => true, responder: () => ({ status: 502, json: { erro: "realizacao_esgotada" } }) }]);
+  let caiu = false;
+  await criarProxyRealizador({ url: URL_SUPA, anonKey: "k", obterToken: async () => "tok", transporte: t502 })(pacote)
+    .catch(() => { caiu = true; });
+  assert(caiu, "502 realizacao_esgotada → throw (fallback A+ roda no dispositivo)");
+
+  // Contrato quebrado (pass !== true) NUNCA é entregue.
+  const { t: tInfiel } = transporteRotas([
+    { casa: () => true, responder: () => ({ status: 200, json: { ...respostaOk, veredito: { ...respostaOk.veredito, pass: false } } }) },
+  ]);
+  let recusou = false;
+  await criarProxyRealizador({ url: URL_SUPA, anonKey: "k", obterToken: async () => "tok", transporte: tInfiel })(pacote)
+    .catch(() => { recusou = true; });
+  assert(recusou, "resposta sem PASS é rejeitada no cliente (FAIL nunca vira sucesso)");
+
+  const { t: tOk, chamadas: cSem } = transporteRotas([{ casa: () => true, responder: () => ({ status: 200, json: respostaOk }) }]);
+  let semSessao = false;
+  await criarProxyRealizador({ url: URL_SUPA, anonKey: "k", obterToken: async () => null, transporte: tOk })(pacote)
+    .catch(() => { semSessao = true; });
+  assert(semSessao && cSem.length === 0, "sem sessão → rejeita SEM ir à rede");
+
+  const bSupa2 = obterBackend({ provedor: "supabase", supabaseUrl: URL_SUPA, supabaseAnonKey: "k" });
+  assert(typeof bSupa2.realizador === "function", "backend supabase expõe o realizador remoto (aditivo)");
+  const bLocal = obterBackend({ provedor: "local" });
+  assert(bLocal.realizador === undefined, "backend local NÃO tem realizador remoto (geração cai no A+ local)");
+}
+
 // ─── Etapa 6 · espelho remoto da ConfigIA (SA_AI → config_ia) ────────────────
 
 console.log("\n=== espelharConfigIA (06-05) — só operador, só supabase ===");

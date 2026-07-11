@@ -31,6 +31,7 @@ import { criarAuthSupabase } from "./adaptadores/auth_supabase.js";
 import { RepositorioSupabase } from "./adaptadores/repo_supabase.js";
 import { criarRepositorioSincronizado } from "./adaptadores/repo_sincronizado.js";
 import { criarProxyIA } from "./proxy_ia.js";
+import { criarProxyRealizador, type RealizadorRemoto } from "./proxy_realizador.js";
 import { escopoTenant } from "./tenant.js";
 import { sincronizarInicial } from "./sync.js";
 import { transportePadrao, type Transporte } from "../ia/provedor.js";
@@ -47,6 +48,12 @@ export interface Backend {
   proxyIA: ProxyIA;
   /** fase06 (opcional): sincronização inicial local↔remoto — a borda chama no login/boot, fire-and-forget. */
   sincronizar?: () => Promise<unknown>;
+  /**
+   * fase13 (opcional, ADITIVO): realizador remoto keyless — cascata da geração
+   * 2 no edge (uma viagem por realização). Ausente nos backends sem edge; o
+   * módulo de geração cai no fallback A+ v3 local.
+   */
+  realizador?: RealizadorRemoto;
 }
 
 /** Proxy indisponível: rejeita limpo — o orquestrador degrada p/ simulado → Motor A. */
@@ -173,7 +180,13 @@ function criarBackendSupabase(cfg: ConfigBackend): Backend {
     obterToken: () => auth.obterToken(),
     tenantId: () => escopoTenant(auth.sessaoAtual()),
   });
-  return { auth, repo, proxyIA, sincronizar: () => sincronizarInicial(local, remoto) };
+  const realizador = criarProxyRealizador({
+    url: cfg.supabaseUrl as string,
+    anonKey: cfg.supabaseAnonKey as string,
+    obterToken: () => auth.obterToken(),
+    tenantId: () => escopoTenant(auth.sessaoAtual()),
+  });
+  return { auth, repo, proxyIA, realizador, sincronizar: () => sincronizarInicial(local, remoto) };
 }
 
 /**

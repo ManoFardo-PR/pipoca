@@ -157,7 +157,19 @@ const PipocaCanonico = {
   },
 
   // --- geração 2 (fase13 · módulo de geração — compor→realizar→fallback A+) ---
-  geracao: { gerar, ROTA_PADRAO, PERSONAGEM_CANONICO },
+  geracao: {
+    gerar,
+    ROTA_PADRAO,
+    PERSONAGEM_CANONICO,
+    /** Realizador remoto (edge keyless) quando o backend o oferece; senão null. */
+    realizadorRemoto: () => {
+      try {
+        return obterBackend().realizador ?? null;
+      } catch {
+        return null;
+      }
+    },
+  },
 
   // --- CORE ---
   estado: { estadoInicial, patchEstado, perfilAtivo, nivelAtivo, storyLines },

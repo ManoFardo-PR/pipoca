@@ -710,6 +710,13 @@
       return;
     return raw;
   }
+  function sanearParagrafos(raw) {
+    if (!Array.isArray(raw) || raw.length === 0)
+      return;
+    if (!raw.every((p) => typeof p === "string" && p.trim() !== ""))
+      return;
+    return raw.slice();
+  }
   function validarHistoriaSalva(raw) {
     if (typeof raw !== "object" || raw === null)
       return null;
@@ -732,6 +739,7 @@
       return null;
     const origem = sanearOrigem(r["origem"]);
     const pacoteOrigem = sanearPacoteOrigem(r["pacoteOrigem"]);
+    const paragrafos = sanearParagrafos(r["paragrafos"]);
     const rodada = typeof r["rodada"] === "number" && Number.isInteger(r["rodada"]) && r["rodada"] >= 1 && r["rodada"] <= 4 ? r["rodada"] : undefined;
     return {
       id: r["id"],
@@ -747,7 +755,8 @@
       ...origem ? { origem } : {},
       ...pacoteOrigem ? { pacoteOrigem } : {},
       ...rodada !== undefined ? { rodada } : {},
-      ...r["intermediaria"] === true ? { intermediaria: true } : {}
+      ...r["intermediaria"] === true ? { intermediaria: true } : {},
+      ...paragrafos ? { paragrafos } : {}
     };
   }
   function dentroDaRetencaoHistoria(h, agora, retencaoDias = RETENCAO_HISTORIAS_DIAS) {

@@ -396,10 +396,30 @@ console.log("\n=== histórias salvas — repo local (upsert, poda, LGPD) ===");
   assert(!!g2 && g2.rodada === 2 && g2.intermediaria === true,
     "marcadores de rodada/intermediária viajam no round-trip");
 
+  // Fim do paredão: texto com \n\n VERBATIM + paragrafos aditivo no round-trip.
+  const TEXTO_3P = "Primeiro bloco.\n\nSegundo bloco.\n\nTerceiro bloco.";
+  await repo.salvarHistoria("p2", {
+    ...mkH("com-paragrafos", 0),
+    texto: TEXTO_3P,
+    paragrafos: ["Primeiro bloco.", "Segundo bloco.", "Terceiro bloco."],
+  });
+  const comP = (await repo.carregarHistorias("p2")).find((h) => h.id === "com-paragrafos");
+  assert(!!comP && comP.texto === TEXTO_3P,
+    "texto com \\n\\n é salvo e relido VERBATIM (as quebras sobrevivem)");
+  assert(!!comP && Array.isArray(comP.paragrafos) && comP.paragrafos.length === 3
+    && comP.paragrafos[1] === "Segundo bloco.",
+    "paragrafos viaja no round-trip (segmentação do realizador preservada)");
+  assert(antigas[0]?.paragrafos === undefined,
+    "registro antigo sem paragrafos segue válido e não ganha o campo");
+
   // Campos aditivos MALFORMADOS são saneados sem derrubar o registro.
   const brutoP2 = JSON.parse(mem.get(chaveHistorias("p2")) as string) as unknown[];
   brutoP2.push({ esquema: ESQUEMA_HISTORIAS, historia: {
     ...mkH("saneada", 0), origem: { fonte: "magia" }, pacoteOrigem: { esquema: "outro.v9" }, rodada: 99, intermediaria: "sim",
+    paragrafos: ["ok", 7, ""],
+  } });
+  brutoP2.push({ esquema: ESQUEMA_HISTORIAS, historia: {
+    ...mkH("saneada-2", 0), paragrafos: [],
   } });
   mem.set(chaveHistorias("p2"), JSON.stringify(brutoP2));
   const saneada = (await repo.carregarHistorias("p2")).find((h) => h.id === "saneada");
@@ -407,6 +427,11 @@ console.log("\n=== histórias salvas — repo local (upsert, poda, LGPD) ===");
   assert(!!saneada && saneada.origem === undefined && saneada.pacoteOrigem === undefined
     && saneada.rodada === undefined && saneada.intermediaria === undefined,
     "origem/pacoteOrigem/rodada/intermediária malformados são saneados (caem fora)");
+  assert(!!saneada && saneada.paragrafos === undefined,
+    "paragrafos com item não-string/vazio é saneado (cai fora) sem derrubar o registro");
+  const saneada2 = (await repo.carregarHistorias("p2")).find((h) => h.id === "saneada-2");
+  assert(!!saneada2 && saneada2.paragrafos === undefined,
+    "paragrafos array vazio é saneado (cai fora)");
 
   // Poda recalibrada: intermediárias contam SEPARADO e não expulsam completas.
   const { normalizarHistorias, MAX_NAO_FAVORITAS, MAX_INTERMEDIARIAS_NAO_FAVORITAS } =

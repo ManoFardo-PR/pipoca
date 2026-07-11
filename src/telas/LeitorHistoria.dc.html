@@ -23,9 +23,13 @@
       <button onClick="{{ fechar }}" aria-label="Fechar" style="width:38px;height:38px;flex-shrink:0;border-radius:50%;border:none;background:#f1e7d4;cursor:pointer;font-size:16px;color:#7a6a54;">✕</button>
     </div>
 
-    <!-- Texto da história (scroll próprio; fonte respeita a11y.textScale) -->
+    <!-- Texto da história (scroll próprio; fonte respeita a11y.textScale).
+         Um <p> por parágrafo — fim do paredão: usa h.paragrafos quando o
+         registro tem; senão deriva do texto por linha em branco. -->
     <div style="flex:1;min-height:0;overflow-y:auto;padding:6px 28px 10px;">
-      <p style="{{ textoStyle }}">{{ texto }}</p>
+      <sc-for list="{{ paragrafos }}" as="p" hint-placeholder-count="1">
+        <p style="{{ textoStyle }}">{{ p }}</p>
+      </sc-for>
     </div>
 
     <!-- Rodapé: coração da criança -->
@@ -70,13 +74,20 @@ class Component extends DCLogic {
     const quando = (Canon && Canon.historias)
       ? Canon.historias.dataRelativa(h.criadaEm, Date.now())
       : '';
+    // Parágrafos: do registro quando o realizador os segmentou; senão derivados
+    // do texto por linha em branco (mesma regra do core) — cobre todo o
+    // histórico salvo. Texto sem quebra nenhuma segue como bloco único.
+    const brutos = (Array.isArray(h.paragrafos) && h.paragrafos.length)
+      ? h.paragrafos
+      : String(h.texto || '').split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
+    const paragrafos = brutos.length ? brutos : [String(h.texto || '')];
     return {
       titulo: h.titulo,
       emoji: h.emoji || '✨',
-      texto: h.texto,
+      paragrafos,
       quando,
       seloFavorita: h.favorita ? ' · guardada para sempre 💛' : '',
-      textoStyle: 'margin:0;font-family:var(--pip-fonte-texto,Nunito);color:#3a2c20;'
+      textoStyle: 'margin:0 0 .8em;font-family:var(--pip-fonte-texto,Nunito);color:#3a2c20;'
         + 'font-size:' + Math.round(19 * escala) + 'px;line-height:1.8;'
         + (a11y.dyslexia ? 'letter-spacing:.04em;word-spacing:.12em;' : ''),
       fechar: () => this.fechar(),

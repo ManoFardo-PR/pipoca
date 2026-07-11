@@ -32,11 +32,17 @@ function montarLinha(rodada: 1 | 2 | 3 | 4, seedBase: number | string, id: strin
   return { linha, seed };
 }
 
-export function montarMatriz(temperatura: number, seedBase: number | string = 42): EstadoExperimento[] {
+export function montarMatriz(
+  temperatura: number,
+  seedBase: number | string = 42,
+  estadosPorCelula: number = ESTADOS_POR_CELULA
+): EstadoExperimento[] {
   const estados: EstadoExperimento[] = [];
   for (const rodada of RODADAS) {
     for (const nivel of NIVEIS) {
-      for (let p = 0; p < ESTADOS_POR_CELULA; p++) {
+      // estadosPorCelula < 6 = modo AMOSTRA (12-05): mesmos ids/seeds/linhas dos
+      // primeiros p da matriz cheia — a amostra é um prefixo da matriz, não outra.
+      for (let p = 0; p < estadosPorCelula; p++) {
         const genero: GeneroPersonagem = p % 2 === 0 ? "f" : "m";
         const personagem = genero === "f" ? "Joana" : "Pietro";
         const id = `r${rodada}-${nivel}-${genero}-p${String(p + 1).padStart(2, "0")}`;

@@ -1,5 +1,7 @@
 # fase12 · 12-02 · Provedor de LLM plugável
 
+> ✅ **STATUS · 2026-07-10 · IMPLEMENTADA** — `ProvedorRealizador` em `src/core/realizador/provedor_realizador.ts:36` (gerarTexto → texto+metadados com modelo/tentativas/duração/tokens); adaptador Gemini keyless (`apiKey` por parâmetro, :89) reusando o `Transporte` injetável de `src/ia/provedor.ts:70-83`; recusa tipada antes de ler conteúdo. Grep de chave em `src/` segue zero. Deploy edge é fase 13. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase12-12-02`
 - nó(s) da arquitetura: —

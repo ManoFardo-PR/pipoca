@@ -18,34 +18,43 @@
         ],
         "temperatura": 0.4
       },
-      "material": {
-        "palavrasMaterial": 322,
-        "alvoPalavras": 120,
-        "paragrafosAlvo": [
-          1,
-          1
-        ],
-        "palavrasPorParagrafo": 70,
+      "pacote": {
+        "maximoPalavras": 200,
+        "paragrafos": 1,
         "relacoes": [
           {
             "objeto": "vagalume",
-            "alvo": "frasco",
-            "se": "tem:frasco"
+            "alvo": "frasco"
           }
         ]
       },
       "resposta": {
         "estadoId": "r1-n4-f-p03",
         "ok": true,
-        "texto": "O quintal fala baixinho e sussurra segredos, e a grama fria nos pés descalços de Joana faz seu coração bater forte de vontade de saber, como quem ganha um segredo contado só para si. No canto mais escuro, perto da cerca, uma luzinha acende e apaga, um vaga-lume solitário piscando como quem chama, e os olhos de Joana seguem a pisca, sua vontade de chegar perto a faz ir na ponta dos pés, prendendo a respiração. Joana encontra um pote de vidro meio enterrado na grama, frio e liso, e o segura com as duas mãos, erguendo-o contra a luz para espiar o mundo que entorta lá dentro, virando devagar. A faísca do vaga-lume entra no pote com todo o cuidado, piscando lá dentro, uma lanterninha viva. Do galho mais alto da árvore, uma folha se despede e vem descendo no ar que escurece, em espiral, leve feito um cochicho, como o primeiro segredo da noite, e o dedo de Joana acompanha cada volta enquanto sua mão aberta, feita um ninho, espera quietinha até a folha pousar de leve na palma.",
+        "texto": "O quintal sussurra segredos, e a grama fria nos pés descalços de Joana faz seu coração bater forte de vontade de saber, como quem ganha um segredo contado só para si. No escuro, uma faísca viva acende e some, piscando como quem chama, e os olhos de Joana seguem a pisca, então a vontade a move na ponta dos pés, prendendo a respiração, até que a faísca entra no pote de vidro com todo o cuidado e fica piscando lá dentro, presa e livre, uma lanterninha viva que ilumina um passinho de cada vez. Joana segura o pote de vidro com as duas mãos, ergue o pote contra a luz, e fecha um olho para espiar o mundo que entorta e brilha lá dentro, pequenininho e curvo, um mundo de bolso que Joana vira devagar para ver tudo. Do galho alto, uma folha se despede e desce em espiral, rodando para um lado e para o outro, sem pressa nenhuma de chegar, leve feito um cochicho, e o dedo de Joana acompanha cada volta da folha, então sua mão se abre feito um ninho, esperando quietinha até a folha pousar de leve na palma da mão, e a vontade de saber se colhe ali, no toque leve da folha e no brilho da lanterninha viva.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.4,
-        "tentativas": 1,
-        "duracaoMs": 29052,
+        "chamadas": 1,
+        "duracaoMs": 7448,
         "tokens": {
-          "entrada": 821,
-          "saida": 278
+          "entrada": 1278,
+          "saida": 311
         }
+      },
+      "veredito": {
+        "pass": true,
+        "motivos": [],
+        "avisos": [],
+        "presencaPorBeat": {
+          "vagalume": true,
+          "frasco": true,
+          "folha": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -63,45 +72,49 @@
         ],
         "temperatura": 0.4
       },
-      "material": {
-        "palavrasMaterial": 346,
-        "alvoPalavras": 120,
-        "paragrafosAlvo": [
-          1,
-          1
-        ],
-        "palavrasPorParagrafo": 70,
+      "pacote": {
+        "maximoPalavras": 200,
+        "paragrafos": 1,
         "relacoes": [
           {
-            "objeto": "vagalume",
-            "alvo": "frasco",
-            "se": [
-              "tem:frasco",
-              "depois_de:frasco"
-            ]
+            "objeto": "frasco",
+            "alvo": "vagalume"
           },
           {
-            "objeto": "frasco",
-            "alvo": "vagalume",
-            "se": [
-              "tem:vagalume",
-              "antes_de:vagalume"
-            ]
+            "objeto": "vagalume",
+            "alvo": "frasco"
           }
         ]
       },
       "resposta": {
         "estadoId": "r1-n4-m-p04",
         "ok": true,
-        "texto": "O quintal sussurra segredos, e Pietro sente a grama fria nos pés descalços, com o coração batendo forte de vontade de saber. Ele encontra um pote de vidro meio enterrado na grama, frio e liso feito pedra de rio, e o segura com as duas mãos, erguendo-o contra a luz. Pietro fecha um olho, espiando o mundo que entorta e brilha lá dentro, pequenininho e curvo, um mundo de bolso, virando devagar, com a certeza de que a noite trará algo brilhante para morar ali. Depois, do galho mais alto da árvore, uma folha se despede, descendo em espiral no ar que escurece, leve feito um cochicho. O dedo de Pietro acompanha cada volta enquanto sua mão, aberta feito ninho, espera a folha pousar de leve. Então, no canto mais escuro do quintal, perto da cerca, um vaga-lume solitário acende e apaga, faísca viva que pisca como quem chama. Os olhos de Pietro seguem a pisca, com a vontade de chegar perto na ponta dos pés, prendendo a respiração. A faísca roda no ar, encontra o pote e entra devagarinho, ficando lá dentro piscando quentinha, como quem chega em casa. O quintal continua a sussurrar seus segredos, e a vontade de Pietro de saber é colhida, um segredo contado só pra ele.",
+        "texto": "O quintal de casa ao cair da noite fala baixinho e sussurra segredos, só conta pra quem vem ver, um por um, até contar tudo o que sabe. A grama fria nos pés descalços de Pietro faz seu coração bater forte de vontade de saber, como quem ganha um segredo contado só pra si. Pietro segura um pote de vidro frio e liso feito pedra de rio com as duas mãos e o ergue contra a luz, então ele fecha um olho e espia o mundo que entorta e brilha lá dentro, pequenininho e curvo, virando o pote devagar pra ver tudo. O pote vazio não parece abandonado, mas sim à espera, e Pietro sente a certeza esquisita e boa de que a noite ainda vai mandar uma coisinha brilhante para morar ali. Do galho alto, uma folha se despede e desce em espiral, rodando pra um lado e pro outro, sem pressa nenhuma de chegar, leve feito um cochicho. O dedo de Pietro acompanha cada volta da folha, e sua mão se abre feito um ninho, esperando quietinha até a folha pousar de leve na palma. No escuro, um vaga-lume solitário, faísca viva, acende e some, piscando como quem chama. Os olhos de Pietro seguem a pisca do vaga-lume, e a vontade de chegar perto o move na ponta dos pés, prendendo a respiração, então a faísca roda no ar uma, duas vezes, encontra o pote e entra devagarinho, e fica lá dentro piscando quentinha, como quem chega em casa, e a vontade de saber se colhe no brilho da lanterninha viva.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.4,
-        "tentativas": 1,
-        "duracaoMs": 28193,
+        "chamadas": 1,
+        "duracaoMs": 7806,
         "tokens": {
-          "entrada": 867,
-          "saida": 330
+          "entrada": 1324,
+          "saida": 379
         }
+      },
+      "veredito": {
+        "pass": false,
+        "motivos": [
+          "crescimento de 32% sobre o máximo canônico de 200 palavras (teto 25%)"
+        ],
+        "avisos": [],
+        "presencaPorBeat": {
+          "frasco": true,
+          "folha": true,
+          "vagalume": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -119,45 +132,49 @@
         ],
         "temperatura": 0.4
       },
-      "material": {
-        "palavrasMaterial": 351,
-        "alvoPalavras": 120,
-        "paragrafosAlvo": [
-          1,
-          1
-        ],
-        "palavrasPorParagrafo": 70,
+      "pacote": {
+        "maximoPalavras": 200,
+        "paragrafos": 1,
         "relacoes": [
           {
-            "objeto": "vagalume",
-            "alvo": "frasco",
-            "se": [
-              "tem:frasco",
-              "depois_de:frasco"
-            ]
+            "objeto": "frasco",
+            "alvo": "vagalume"
           },
           {
-            "objeto": "frasco",
-            "alvo": "vagalume",
-            "se": [
-              "tem:vagalume",
-              "antes_de:vagalume"
-            ]
+            "objeto": "vagalume",
+            "alvo": "frasco"
           }
         ]
       },
       "resposta": {
         "estadoId": "r1-n4-f-p05",
         "ok": true,
-        "texto": "O quintal sussurra segredos, e o coração de Joana bate forte de vontade de saber, como quem ganha um segredo contado só para si. Um vento fresco chega rolando por cima do muro, corre uma volta pelo quintal e balança a grama toda de uma vez, cheirando a terra molhada e a fim de tarde. A pele dos braços de Joana se arrepia, e ela fecha os olhos, respirando fundo, deixando o vento passar como se ela também fosse feita de noite. Depois, ela encontra um pote de vidro meio enterrado na grama, frio e liso feito pedra de rio, que parece à espera. Joana o segura com as duas mãos e o ergue contra a luz, fechando um olho para espiar o mundo que entorta e brilha lá dentro, pequenininho e curvo, virando devagar para ver tudo. Ela sente a certeza esquisita e boa de que a noite ainda vai mandar uma coisinha brilhante para morar ali. Então, no canto mais escuro do quintal, perto da cerca, uma luzinha acende e apaga, um vaga-lume solitário que pisca como quem chama. Os olhos de Joana seguem a pisca, e a vontade de chegar perto na ponta dos pés, prendendo a respiração, a guia. A faísca roda no ar uma, duas vezes, encontra o pote que Joana carrega e entra devagarinho, ficando lá dentro, piscando quentinha, como quem chega em casa, e a vontade de Joana se acalma no seu corpo.",
+        "texto": "O quintal fala baixinho e sussurra segredos, só conta pra quem vem ver, um por um, até contar tudo o que sabe, e a grama fria nos pés descalços de Joana faz seu coração bater forte de vontade de saber, como quem ganha um segredo contado só pra si. Um vento fresco chega de longe, rolando por cima de tudo, e passa mexendo no mundo de leve, como se a noite inteira estivesse respirando, e a pele dos braços de Joana arrepia, ela fecha os olhos e respira fundo, deixando o vento passar como se ela também fosse feita de noite. Joana segura um pote de vidro frio e liso feito pedra de rio com as duas mãos, e ergue o pote contra a luz, depois ela fecha um olho e espia o mundo que entorta e brilha lá dentro, pequenininho e curvo, um mundo de bolso, virando o pote devagar pra ver tudo, e o pote vazio não parece abandonado, mas parece à espera, e Joana sente a certeza esquisita e boa de que a noite ainda vai mandar uma coisinha brilhante para morar ali. Um vaga-lume solitário, uma faísca viva, acende e some no escuro, piscando como quem chama, e os olhos de Joana seguem a pisca, e a vontade de chegar perto a move na ponta dos pés, prendendo a respiração, então a faísca roda no ar uma, duas vezes, encontra o pote carregado desde cedo e entra devagarinho, e fica lá dentro piscando quentinha, como quem chega em casa, e a vontade de saber se colhe no brilho da faísca viva.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.4,
-        "tentativas": 1,
-        "duracaoMs": 9763,
+        "chamadas": 1,
+        "duracaoMs": 9140,
         "tokens": {
-          "entrada": 869,
-          "saida": 354
+          "entrada": 1322,
+          "saida": 381
         }
+      },
+      "veredito": {
+        "pass": false,
+        "motivos": [
+          "crescimento de 33% sobre o máximo canônico de 200 palavras (teto 25%)"
+        ],
+        "avisos": [],
+        "presencaPorBeat": {
+          "vento": true,
+          "frasco": true,
+          "vagalume": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -175,37 +192,43 @@
         ],
         "temperatura": 0.4
       },
-      "material": {
-        "palavrasMaterial": 321,
-        "alvoPalavras": 120,
-        "paragrafosAlvo": [
-          1,
-          1
-        ],
-        "palavrasPorParagrafo": 70,
+      "pacote": {
+        "maximoPalavras": 200,
+        "paragrafos": 1,
         "relacoes": [
           {
             "objeto": "vento",
-            "alvo": "folha",
-            "se": [
-              "tem:folha",
-              "antes_de:folha"
-            ]
+            "alvo": "folha"
           }
         ]
       },
       "resposta": {
         "estadoId": "r1-n4-m-p06",
         "ok": true,
-        "texto": "O quintal fala baixinho e sussurra segredos, só para quem vem ver, um por um, até contar tudo o que sabe, e Pietro sente a grama fria nos pés descalços, o coração batendo forte de vontade de saber, como quem ganha um segredo contado só pra si. No canto do quintal onde o escuro é mais escuro, perto da cerca, uma luzinha acende e apaga como se respirasse, flutuando no ar, sem pressa, um vaga-lume solitário que pisca como quem chama, e os olhos de Pietro seguem a pisca, sua vontade de chegar perto na ponta dos pés, prendendo a respiração. Depois, o vento chega rolando por cima do muro, corre uma volta pelo quintal e balança a grama toda de uma vez, cheirando a terra molhada e a fim de tarde, e a pele dos braços de Pietro arrepia, ele fecha os olhos e respira fundo, deixando o vento passar como se ele também fosse feito de noite. O vento sobe pelos galhos e sacode a árvore de leve, como quem acorda alguém, e lá no alto algo se solta e desce rodando, sem pressa, um presente anunciado. Do galho mais alto da árvore do quintal, uma folha se despede e vem descendo no ar que escurece, como o primeiro segredo da noite, rodando pra um lado e pro outro, sem pressa nenhuma de chegar, leve feito um cochicho, e o dedo de Pietro acompanha cada volta, sua mão aberta feito um ninho, esperando quietinha até a folha pousar de leve na palma, colhendo a vontade de saber que ele tinha.",
+        "texto": "O quintal fala baixinho e sussurra segredos, e a grama fria nos pés descalços de Pietro faz seu coração bater forte de vontade de saber, como quem ganha um segredo contado só pra si. No escuro que começa a cair, uma faísca viva acende e some, um vaga-lume solitário piscando como quem chama. Os olhos de Pietro seguem a pisca, e a vontade de chegar perto o move na ponta dos pés, prendendo a respiração. Então, um vento fresco chega de longe, rolando por cima do muro baixo e passando mexendo no mundo de leve, como se a noite inteira estivesse respirando. A pele dos braços de Pietro arrepia, ele fecha os olhos e respira fundo, deixando o vento passar como se ele também fosse feito de noite. O vento sobe pelos galhos altos e sacode a árvore de leve, como quem acorda alguém, e lá no alto algo se solta e desce rodando, sem pressa, um presente anunciado. É uma folha que se despede do galho e desce em espiral, rodando para um lado e para o outro, leve feito um cochicho. O dedo de Pietro acompanha cada volta da folha, e sua mão se abre feito um ninho, esperando quietinha até a folha pousar de leve na palma, e a vontade de saber se colhe no toque suave.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.4,
-        "tentativas": 1,
-        "duracaoMs": 27478,
+        "chamadas": 1,
+        "duracaoMs": 6451,
         "tokens": {
-          "entrada": 817,
-          "saida": 379
+          "entrada": 1262,
+          "saida": 314
         }
+      },
+      "veredito": {
+        "pass": true,
+        "motivos": [],
+        "avisos": [],
+        "presencaPorBeat": {
+          "vagalume": true,
+          "vento": true,
+          "folha": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -224,45 +247,55 @@
         ],
         "temperatura": 0.4
       },
-      "material": {
-        "palavrasMaterial": 131,
-        "alvoPalavras": 59,
-        "paragrafosAlvo": [
-          1,
-          2
-        ],
-        "palavrasPorParagrafo": 25,
+      "pacote": {
+        "maximoPalavras": 44,
+        "paragrafos": 2,
         "relacoes": [
           {
-            "objeto": "vagalume",
-            "alvo": "frasco",
-            "se": [
-              "tem:frasco",
-              "depois_de:frasco"
-            ]
+            "objeto": "frasco",
+            "alvo": "vagalume"
           },
           {
-            "objeto": "frasco",
-            "alvo": "vagalume",
-            "se": [
-              "tem:vagalume",
-              "antes_de:vagalume"
-            ]
+            "objeto": "vagalume",
+            "alvo": "frasco"
           }
         ]
       },
       "resposta": {
         "estadoId": "r2-n1-f-p01",
         "ok": true,
-        "texto": "O quintal fala baixinho. A grama fria toca o pé de Joana. Ela segura um pote frio e liso com as duas mãos. O pote vazio espera.\n\nUm vento fresco pula o muro. A pele de Joana sente o fresco. Um gato quieto está na cerca. Seus olhos brilham. Joana fica em silêncio também. Uma luzinha pisca no fundo. Os olhos de Joana seguem a pisca. A faísca acha o pote. Ela entra.",
+        "texto": "Quintal sussurra, Joana quer ver. Grama fria toca o pé. Joana segura o pote. Pote vazio espera.Vento passa, a pele sente o fresco. Gato quieto olha, Joana em silêncio. Luzinha pisca, os olhos seguem. Luzinha entra no pote!",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.4,
-        "tentativas": 1,
-        "duracaoMs": 9065,
+        "chamadas": 1,
+        "duracaoMs": 23449,
         "tokens": {
-          "entrada": 583,
-          "saida": 121
+          "entrada": 735,
+          "saida": 80
         }
+      },
+      "veredito": {
+        "pass": true,
+        "motivos": [],
+        "avisos": [
+          "parágrafos fora do alvo: 1 (alvo 2)"
+        ],
+        "ritmoN1": {
+          "pontosFinais": 7,
+          "mediaFrasesPorBeat": 1.75,
+          "ok": true
+        },
+        "presencaPorBeat": {
+          "frasco": true,
+          "vento": true,
+          "gato": true,
+          "vagalume": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -281,42 +314,55 @@
         ],
         "temperatura": 0.4
       },
-      "material": {
-        "palavrasMaterial": 136,
-        "alvoPalavras": 61,
-        "paragrafosAlvo": [
-          1,
-          2
-        ],
-        "palavrasPorParagrafo": 25,
+      "pacote": {
+        "maximoPalavras": 44,
+        "paragrafos": 2,
         "relacoes": [
           {
-            "objeto": "gato",
-            "alvo": "vagalume",
-            "se": [
-              "tem:vagalume",
-              "depois_de:vagalume"
-            ]
+            "objeto": "vagalume",
+            "alvo": "frasco"
           },
           {
-            "objeto": "vagalume",
-            "alvo": "frasco",
-            "se": "tem:frasco"
+            "objeto": "gato",
+            "alvo": "vagalume"
           }
         ]
       },
       "resposta": {
         "estadoId": "r2-n1-m-p02",
         "ok": true,
-        "texto": "O quintal sussurra segredos. Pietro sente a grama fria no pé. No fundo, uma luz pisca. Os olhos de Pietro seguem a pisca. Ele segura o pote, frio e liso. A luzinha no pote é uma lanterninha na mão. Na cerca, um gato quieto. Pietro fica em silêncio. O gato olha a luz e pisca os olhos. O vento pula o muro. É um vento fresco. A pele de Pietro sente o fresco. O quintal sussurra mais.",
+        "texto": "Quintal sussurra. Pietro quer ver. A grama fria toca o pé.\n\nLuz pisca, os olhos de Pietro seguem. Pietro segura o pote frio. Gato quieto olha e pisca. Pietro fica em silêncio. Vento passa, Pietro sente fresco. Quintal conta tudo.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.4,
-        "tentativas": 1,
-        "duracaoMs": 13303,
+        "chamadas": 1,
+        "duracaoMs": 38133,
         "tokens": {
-          "entrada": 588,
-          "saida": 122
+          "entrada": 740,
+          "saida": 80
         }
+      },
+      "veredito": {
+        "pass": false,
+        "motivos": [
+          "ritmo n1 estourado: 9 pontos finais, 2.3 frases/beat (tetos 12/2)"
+        ],
+        "avisos": [],
+        "ritmoN1": {
+          "pontosFinais": 9,
+          "mediaFrasesPorBeat": 2.25,
+          "ok": false
+        },
+        "presencaPorBeat": {
+          "vagalume": true,
+          "frasco": true,
+          "gato": true,
+          "vento": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -335,45 +381,56 @@
         ],
         "temperatura": 0.4
       },
-      "material": {
-        "palavrasMaterial": 133,
-        "alvoPalavras": 60,
-        "paragrafosAlvo": [
-          1,
-          2
-        ],
-        "palavrasPorParagrafo": 25,
+      "pacote": {
+        "maximoPalavras": 44,
+        "paragrafos": 2,
         "relacoes": [
           {
             "objeto": "vento",
-            "alvo": "folha",
-            "se": [
-              "tem:folha",
-              "antes_de:folha"
-            ]
+            "alvo": "folha"
           },
           {
             "objeto": "folha",
-            "alvo": "gato",
-            "se": [
-              "tem:gato",
-              "depois_de:gato"
-            ]
+            "alvo": "gato"
           }
         ]
       },
       "resposta": {
         "estadoId": "r2-n1-f-p03",
         "ok": true,
-        "texto": "O quintal sussurra segredos. Joana vem ver. A grama fria toca seu pé. O vento pula o muro. A pele de Joana sente o fresco. O vento sacode o galho, e algo se solta.\n\nUm gato na cerca. Quieto, dois olhos acesos. Joana fica em silêncio. Uma folha cai do galho, desce rodando. O dedo de Joana segue no ar. A folha cai perto do gato, ele olha. Uma luz pisca no fundo do quintal. Os olhos de Joana seguem a pisca. O quintal conta tudo.",
+        "texto": "O quintal sussurra segredos, Joana quer ver tudo. A grama fria toca seu pé. O vento sacode o galho, a pele de Joana sente o fresco.\n\nUm gato quieto está lá, Joana fica em silêncio. Uma folha desce rodando, o dedo de Joana segue. A folha cai perto do gato. O gato olha. Uma luz pisca, os olhos de Joana seguem. O quintal conta tudo, Joana sente os segredos.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.4,
-        "tentativas": 1,
-        "duracaoMs": 51095,
+        "chamadas": 1,
+        "duracaoMs": 43773,
         "tokens": {
-          "entrada": 587,
-          "saida": 147
+          "entrada": 737,
+          "saida": 123
         }
+      },
+      "veredito": {
+        "pass": false,
+        "motivos": [
+          "crescimento de 57% sobre o máximo canônico de 44 palavras (teto 25%)",
+          "ritmo n1 estourado: 9 pontos finais, 2.3 frases/beat (tetos 12/2)"
+        ],
+        "avisos": [],
+        "ritmoN1": {
+          "pontosFinais": 9,
+          "mediaFrasesPorBeat": 2.25,
+          "ok": false
+        },
+        "presencaPorBeat": {
+          "vento": true,
+          "gato": true,
+          "folha": true,
+          "vagalume": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -392,34 +449,51 @@
         ],
         "temperatura": 0.4
       },
-      "material": {
-        "palavrasMaterial": 128,
-        "alvoPalavras": 58,
-        "paragrafosAlvo": [
-          1,
-          2
-        ],
-        "palavrasPorParagrafo": 25,
+      "pacote": {
+        "maximoPalavras": 44,
+        "paragrafos": 2,
         "relacoes": [
           {
             "objeto": "vagalume",
-            "alvo": "frasco",
-            "se": "tem:frasco"
+            "alvo": "frasco"
           }
         ]
       },
       "resposta": {
         "estadoId": "r2-n1-m-p04",
         "ok": true,
-        "texto": "O quintal fala baixinho, sussurra segredos. Pietro vem ver. A grama fria no pé. O vento pula o muro, fresco. A pele sente o fresco. Um gato na cerca, quieto, dois olhos acesos. Pietro fica em silêncio. Uma luz no fundo, uma luzinha pisca. Os olhos seguem a pisca. A faísca no pote vira lanterninha. Um pote na grama, frio e liso. Pietro segura o pote com as duas mãos.",
+        "texto": "O quintal sussurra. Pietro quer ver. Grama fria no pé. Vento passa, pele sente. Gato quieto olha. Pietro em silêncio.\n\nLuzinha pisca. Olhos seguem. Pietro segura o pote, frio e liso. Uma lanterninha na mão! Quintal conta. Pietro sente.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.4,
-        "tentativas": 1,
-        "duracaoMs": 12330,
+        "chamadas": 1,
+        "duracaoMs": 3633128,
         "tokens": {
-          "entrada": 568,
-          "saida": 120
+          "entrada": 720,
+          "saida": 85
         }
+      },
+      "veredito": {
+        "pass": false,
+        "motivos": [
+          "ritmo n1 estourado: 11 pontos finais, 2.8 frases/beat (tetos 12/2)"
+        ],
+        "avisos": [],
+        "ritmoN1": {
+          "pontosFinais": 11,
+          "mediaFrasesPorBeat": 2.75,
+          "ok": false
+        },
+        "presencaPorBeat": {
+          "vento": true,
+          "gato": true,
+          "vagalume": true,
+          "frasco": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -438,42 +512,55 @@
         ],
         "temperatura": 0.4
       },
-      "material": {
-        "palavrasMaterial": 136,
-        "alvoPalavras": 61,
-        "paragrafosAlvo": [
-          1,
-          2
-        ],
-        "palavrasPorParagrafo": 25,
+      "pacote": {
+        "maximoPalavras": 44,
+        "paragrafos": 2,
         "relacoes": [
           {
-            "objeto": "gato",
-            "alvo": "vagalume",
-            "se": [
-              "tem:vagalume",
-              "depois_de:vagalume"
-            ]
+            "objeto": "vagalume",
+            "alvo": "frasco"
           },
           {
-            "objeto": "vagalume",
-            "alvo": "frasco",
-            "se": "tem:frasco"
+            "objeto": "gato",
+            "alvo": "vagalume"
           }
         ]
       },
       "resposta": {
         "estadoId": "r2-n1-f-p05",
         "ok": true,
-        "texto": "O quintal sussurra segredos. Joana sente a grama fria no pé. No fundo, uma luzinha pisca. Os olhos de Joana seguem a pisca. Ela quer a luz. Joana pega o pote frio na grama. Segura com as duas mãos. A luzinha vira faísca no pote, uma lanterninha na mão.\n\nUm gato quieto na cerca tem dois olhos acesos. Joana fica em silêncio. O gato olha a luz e pisca também. O vento fresco pula o muro. A pele de Joana sente o fresco.",
+        "texto": "O quintal sussurra segredos, Joana quer ver tudo. A grama fria toca seu pé. Uma luzinha pisca, os olhos de Joana seguem. Joana segura o frasco, o frasco é frio.\n\nO gato olha a luz, Joana fica em silêncio. O vento passa, a pele de Joana sente o fresco. O quintal conta tudo, Joana sente os segredos.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.4,
-        "tentativas": 1,
-        "duracaoMs": 49842,
+        "chamadas": 1,
+        "duracaoMs": 36790,
         "tokens": {
-          "entrada": 590,
-          "saida": 139
+          "entrada": 742,
+          "saida": 105
         }
+      },
+      "veredito": {
+        "pass": false,
+        "motivos": [
+          "crescimento de 30% sobre o máximo canônico de 44 palavras (teto 25%)"
+        ],
+        "avisos": [],
+        "ritmoN1": {
+          "pontosFinais": 7,
+          "mediaFrasesPorBeat": 1.75,
+          "ok": true
+        },
+        "presencaPorBeat": {
+          "vagalume": true,
+          "frasco": true,
+          "gato": true,
+          "vento": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -492,45 +579,55 @@
         ],
         "temperatura": 0.4
       },
-      "material": {
-        "palavrasMaterial": 136,
-        "alvoPalavras": 61,
-        "paragrafosAlvo": [
-          1,
-          2
-        ],
-        "palavrasPorParagrafo": 25,
+      "pacote": {
+        "maximoPalavras": 44,
+        "paragrafos": 2,
         "relacoes": [
           {
             "objeto": "vento",
-            "alvo": "folha",
-            "se": [
-              "tem:folha",
-              "antes_de:folha"
-            ]
+            "alvo": "folha"
           },
           {
             "objeto": "folha",
-            "alvo": "gato",
-            "se": [
-              "tem:gato",
-              "depois_de:gato"
-            ]
+            "alvo": "gato"
           }
         ]
       },
       "resposta": {
         "estadoId": "r2-n1-m-p06",
         "ok": true,
-        "texto": "O quintal sussurra. Grama fria no pé de Pietro. Um pote frio e liso, Pietro o segura. Vento pula o muro, fresco na pele, sacode o galho. Gato quieto, dois olhos acesos. Pietro fica em silêncio. Folha cai rodando. Dedo segue no ar. Perto do gato. Olha.",
+        "texto": "O quintal sussurra. Pietro quer ver. Grama fria toca pé. Pietro segura frasco liso. Vento passa, pele sente fresco.\n\nVento sacode galho. Gato quieto, Pietro fica em silêncio. Folha desce, dedo segue. Folha cai perto gato. Pietro ainda segura frasco.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.4,
-        "tentativas": 1,
-        "duracaoMs": 52570,
+        "chamadas": 1,
+        "duracaoMs": 42984,
         "tokens": {
-          "entrada": 586,
-          "saida": 90
+          "entrada": 738,
+          "saida": 85
         }
+      },
+      "veredito": {
+        "pass": false,
+        "motivos": [
+          "ritmo n1 estourado: 10 pontos finais, 2.5 frases/beat (tetos 12/2)"
+        ],
+        "avisos": [],
+        "ritmoN1": {
+          "pontosFinais": 10,
+          "mediaFrasesPorBeat": 2.5,
+          "ok": false
+        },
+        "presencaPorBeat": {
+          "frasco": true,
+          "vento": true,
+          "gato": true,
+          "folha": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     }
   ]

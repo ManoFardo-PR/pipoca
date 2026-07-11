@@ -11,19 +11,19 @@
 
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { carregarEnv } from "../beats-para-paragrafos/carregar-env.js";
-import objetosRaw from "../../docs/fichas/objetos.v1.json";
-import relacoesRaw from "../../docs/fichas/relacoes.quintal.v1.json";
-import cenariosRaw from "../../docs/fichas/cenarios.v1.json";
+import { carregarEnv } from "../../beats-para-paragrafos/carregar-env.js";
+import objetosRaw from "../../../docs/fichas/objetos.v1.json";
+import relacoesRaw from "../../../docs/fichas/relacoes.quintal.v1.json";
+import cenariosRaw from "../../../docs/fichas/cenarios.v1.json";
 import type {
   ArquivoCenariosV1,
   ArquivoObjetosV1,
   ArquivoRelacoesV1,
-} from "../../src/core/fichas/tipos.js";
-import { gerarComGemini } from "./gemini-cliente-fichas.js";
+} from "../../../src/core/fichas/tipos.js";
+import { gerarComGemini } from "../gemini-cliente-fichas.js";
 import { montarPromptFichas, contarPalavras } from "./montar-prompt.js";
-import { montarMatriz } from "./matriz.js";
-import type { ArquivoLoteGeracao, RegistroGeracao } from "./tipos.js";
+import { montarMatriz } from "../matriz.js";
+import type { ArquivoLoteGeracao, RegistroGeracao } from "../tipos.js";
 
 const TEMPERATURA = 0.4;
 

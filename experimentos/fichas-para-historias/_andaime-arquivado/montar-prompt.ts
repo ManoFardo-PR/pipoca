@@ -7,13 +7,13 @@
  * produção nasce na fase 12/13 guiado pelos docs do plans02.
  */
 
-import type { NivelKey } from "../../src/core/composicao.js";
+import type { NivelKey } from "../../../src/core/composicao.js";
 import type {
   ArquivoCenariosV1,
   ArquivoObjetosV1,
   ArquivoRelacoesV1,
-} from "../../src/core/fichas/tipos.js";
-import type { EstadoExperimento, MaterialPrompt } from "./tipos.js";
+} from "../../../src/core/fichas/tipos.js";
+import type { EstadoExperimento, MaterialPrompt } from "../tipos.js";
 import {
   PALAVRAS_POR_PARAGRAFO,
   alvoPalavras,

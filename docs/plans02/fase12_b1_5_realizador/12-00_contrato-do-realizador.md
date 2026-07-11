@@ -1,5 +1,7 @@
 # fase12 · 12-00 · Contrato do realizador
 
+> ✅ **STATUS · 2026-07-10 · IMPLEMENTADA** — `realizar` vivo em `src/core/realizador/realizar.ts:18` (retorna texto+paragrafos+veredito, com origem sempre sinalizada); segmentação pelo LLM por instrução; esquema desconhecido rejeitado. Suíte: `src/core/realizador/realizador.test.ts` (66 asserts). Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase12-12-00`
 - nó(s) da arquitetura: —

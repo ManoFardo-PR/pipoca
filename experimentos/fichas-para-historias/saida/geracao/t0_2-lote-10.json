@@ -21,45 +21,50 @@
         ],
         "temperatura": 0.2
       },
-      "material": {
-        "palavrasMaterial": 594,
-        "alvoPalavras": 220,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 70,
+      "pacote": {
+        "maximoPalavras": 403,
+        "paragrafos": 2,
         "relacoes": [
           {
-            "objeto": "vagalume",
-            "alvo": "frasco",
-            "se": [
-              "tem:frasco",
-              "depois_de:frasco"
-            ]
+            "objeto": "frasco",
+            "alvo": "vagalume"
           },
           {
-            "objeto": "frasco",
-            "alvo": "vagalume",
-            "se": [
-              "tem:vagalume",
-              "antes_de:vagalume"
-            ]
+            "objeto": "vagalume",
+            "alvo": "frasco"
           }
         ]
       },
       "resposta": {
         "estadoId": "r4-n4-f-p01",
         "ok": true,
-        "texto": "O quintal fala baixinho, sussurra segredos que só conta pra quem vem ver, um por um, até contar tudo o que sabe, e o coração de Joana bate forte de vontade de saber, como quem ganha um segredo contado só pra si, enquanto a grama fria nos pés descalços já anuncia a noite. Do galho mais alto da árvore, uma folha se despede e vem descendo no ar que escurece, rodando leve feito um cochicho, e o dedo de Joana acompanha cada volta, então sua mão se abre feito um ninho, esperando quietinha até a folha pousar de leve na palma. Depois, o muro do quintal ganha uma coroa, pois a lua sobe devagar por trás das árvores, redonda e enorme, e a luz de prata escorre pela cerca e pela grama, então o queixo de Joana se ergue, a cabeça jogada pra trás para ver ela inteira, e a prata no rosto e nos ombros faz o mundo por um instante grande demais. Um pote de vidro meio enterrado na grama do quintal espera, frio e liso feito pedra de rio, e Joana o segura com as duas mãos, erguendo-o contra a luz, então o mundo entorta e brilha lá dentro, pequenininho e curvo, e ela fecha um olho para espiar o mundo que entorta, virando devagar para ver tudo, sentindo a certeza esquisita e boa de que a noite ainda vai mandar uma coisinha brilhante para morar ali.\n\nNinguém viu de onde veio, mas em cima da cerca do quintal, o gato já está sentado, quieto feito sombra, com o rabo balançando devagarinho e os olhos verdes acesos, então Joana fica em silêncio também, prendendo a respiração, e troca um olhar demorado, piscando devagar de volta. Sem ninguém ver, o orvalho se junta na ponta de cada folhinha de grama, até o chão inteiro brilhar de leve, e o pé descalço de Joana sente o frio da grama, então ela abaixa bem perto e encosta o dedo numa gota, com cuidado pra não desmanchar o brilho. No canto do quintal onde o escuro é mais escuro, perto da cerca, uma luzinha acende e apaga como se respirasse, flutuando no ar, e os olhos de Joana seguem a pisca, com a vontade de chegar perto na ponta dos pés, prendendo a respiração, então a faísca roda no ar uma, duas vezes, encontra o pote carregado desde cedo e entra devagarinho, ficando lá dentro piscando quentinha, como quem chega em casa.",
+        "texto": "O quintal sussurra segredos para quem vem ver, um por um, até contar tudo o que sabe, e a grama fria nos pés descalços de Joana faz seu coração bater forte de vontade de saber, como quem ganha um segredo contado só pra si. Do galho alto da árvore, uma folha se despede e desce no ar escuro, rodando pra um lado e pro outro, sem pressa nenhuma de chegar, leve feito um cochicho. O dedo de Joana acompanha cada volta da folha, e sua mão se abre feito um ninho, esperando quietinha até a folha pousar de leve na palma. A lua sobe devagar no céu, redonda e enorme, maior do que Joana se lembrava, uma luz de prata macia e quieta escorrendo por tudo, como uma lâmpada gigante e mansa acesa no céu. O queixo de Joana fica erguido, a cabeça jogada pra trás pra ver a lua inteira, e a prata escorre no rosto e nos ombros, e o mundo por um instante parece grande demais, do tamanho do céu. \n\nJoana segura um pote de vidro com as duas mãos, o pote é frio e liso feito pedra de rio, e ela o ergue contra a luz. Joana fecha um olho e espia o mundo que entorta e brilha lá dentro, pequenininho e curvo, um mundo de bolso, e ela vira o pote devagar pra ver tudo. O pote vazio não parece abandonado, parece à espera, e Joana sente a certeza esquisita e boa de que a noite ainda vai mandar uma coisinha brilhante para morar ali. Em cima do muro baixo, um gato já está sentado, quieto feito sombra, e ninguém o viu chegar, o rabo do gato balança devagarinho, e os olhos verdes do gato estão acesos, estudando tudo com uma calma antiga, decidindo se vale a pena confiar. Joana fica em silêncio também, prendendo a respiração, e ela troca um olhar demorado com o gato e pisca devagar de volta, porque piscada lenta é o jeito de gato dizer que gosta. Gotas de água chegam sem barulho nenhum, gota por gota, miúdas como continhas de vidro, e cada uma guarda um pedacinho de luz, um brilho que é só seu. O pé descalço de Joana sente o frio da grama, e ela abaixa bem perto e encosta o dedo numa gota, com cuidado pra não desmanchar o brilho. No canto escuro perto da cerca, um vaga-lume solitário acende e some no escuro, piscando como quem chama, uma faísca viva. Os olhos de Joana seguem a pisca, e a vontade de chegar perto a move na ponta dos pés, prendendo a respiração, então a faísca roda no ar uma, duas vezes, encontra o pote que Joana carrega desde cedo e entra devagarinho, fica lá dentro piscando quentinha, como quem chega em casa, e a vontade de saber se colhe no brilho da faísca viva.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 39892,
+        "chamadas": 1,
+        "duracaoMs": 7709,
         "tokens": {
-          "entrada": 1285,
-          "saida": 605
+          "entrada": 1631,
+          "saida": 693
         }
+      },
+      "veredito": {
+        "pass": true,
+        "motivos": [],
+        "avisos": [],
+        "presencaPorBeat": {
+          "folha": true,
+          "lua": true,
+          "frasco": true,
+          "gato": true,
+          "orvalho": true,
+          "vagalume": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -80,45 +85,50 @@
         ],
         "temperatura": 0.2
       },
-      "material": {
-        "palavrasMaterial": 601,
-        "alvoPalavras": 220,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 70,
+      "pacote": {
+        "maximoPalavras": 403,
+        "paragrafos": 2,
         "relacoes": [
           {
-            "objeto": "lua",
-            "alvo": "vagalume",
-            "se": [
-              "tem:vagalume",
-              "depois_de:vagalume"
-            ]
+            "objeto": "orvalho",
+            "alvo": "folha"
           },
           {
-            "objeto": "orvalho",
-            "alvo": "folha",
-            "se": [
-              "tem:folha",
-              "depois_de:folha"
-            ]
+            "objeto": "lua",
+            "alvo": "vagalume"
           }
         ]
       },
       "resposta": {
         "estadoId": "r4-n4-m-p02",
         "ok": true,
-        "texto": "O quintal fala baixinho, sussurra segredos, só conta pra quem vem ver, um por um, até contar tudo o que sabe. A grama fria nos pés descalços de Pietro faz seu coração bater forte de vontade de saber, como quem ganha um segredo contado só pra si. Do galho mais alto da árvore, uma folha se despede e vem descendo no ar que escurece, como o primeiro segredo da noite, rodando pra um lado e pro outro, sem pressa nenhuma de chegar, leve feito um cochicho, e o dedo de Pietro acompanha cada volta, e sua mão aberta feito um ninho espera quietinha até a folha pousar de leve na palma. Ninguém viu de onde veio, mas em cima da cerca do quintal, o gato já está sentado, com a elegância de quem chegou primeiro, quieto feito sombra, o rabo balançando devagarinho, os olhos verdes acesos, estudando tudo com uma calma antiga, decidindo se vale a pena confiar, e Pietro fica em silêncio também, prendendo a respiração, e ele troca um olhar demorado e pisca devagar de volta, porque piscada lenta é o jeito de gato dizer que gosta. Sem ninguém ver, o orvalho se junta na ponta de cada folhinha de grama, até o chão inteiro brilhar de leve, gotas de água que chegam sem barulho nenhum, miúdas como continhas de vidro, cada uma guardando um pedacinho de luz, um brilho que é só seu, e o pé descalço de Pietro sente o frio da grama, e ele abaixa bem perto e encosta o dedo numa gota, com cuidado pra não desmanchar o brilho, e uma gotinha de orvalho escolhe a folha caída pra morar, pousa na beiradinha, escorrega até o meio e fica ali, gordinha e brilhante, uma joia que a noite deu de presente pra folha.\nNo canto do quintal onde o escuro é mais escuro, perto da cerca, uma luzinha acende e apaga como se respirasse, flutuando no ar, sem pressa, um vaga-lume solitário, faísca viva que acende e some no escuro, piscando como quem chama, e os olhos de Pietro seguem a pisca, e ele sente a vontade de chegar perto na ponta dos pés, prendendo a respiração. O muro do quintal ganha uma coroa, pois a lua sobe devagar por trás das árvores, redonda e enorme, maior do que se lembrava, e a luz de prata escorre pela cerca e pela grama, macia e quieta, como uma lâmpada gigante e mansa acesa no céu, e o queixo de Pietro fica erguido, a cabeça jogada pra trás pra ver ela inteira, e a prata toca seu rosto e seus ombros, e o mundo por um instante parece grande demais, do tamanho do céu, e as duas luzes acesas, a lua enorme e parada lá no alto, a faísca minúscula e dançante aqui embaixo, parecem se conhecer de algum lugar. Um pote de vidro meio enterrado na grama do quintal, à espera, desses achados que a noite deixa pra quem procura, frio e liso feito pedra de rio, e Pietro o segura com as duas mãos e o ergue contra a luz, e o mundo entorta e brilha lá dentro, pequenininho e curvo, um mundo de bolso, e ele fecha um olho e espia o mundo que entorta lá dentro, virando devagar pra ver tudo, e a vontade de saber se enche de segredos.",
+        "texto": "O quintal sussurra segredos, e a grama fria nos pés descalços de Pietro faz seu coração bater forte de vontade de saber, como quem ganha um segredo contado só pra si. Do galho alto, uma folha se despede e desce no ar escuro, rodando pra um lado e pro outro, sem pressa nenhuma de chegar, leve feito um cochicho. O dedo de Pietro acompanha cada volta da folha, e sua mão se abre feito ninho, esperando quietinha até a folha pousar de leve na palma. Em cima da cerca, um gato já está sentado, quieto feito sombra, que ninguém viu chegar, e o rabo do gato balança devagarinho, os olhos verdes do gato acesos, estudando tudo com uma calma antiga. Pietro fica em silêncio também, prendendo a respiração, trocando um olhar demorado com o gato e piscando devagar de volta, porque piscada lenta é o jeito de gato dizer que gosta. Gotas de orvalho chegam sem barulho nenhum, gota por gota, miúdas como continhas de vidro, e cada gota guarda um pedacinho de luz, um brilho que é só seu. O pé descalço de Pietro sente o frio da grama, e ele abaixa bem perto, encostando o dedo numa gota, com cuidado pra não desmanchar o brilho. Uma gotinha de orvalho escolhe a folha caída pra morar, pousa na beiradinha da folha, escorrega até o meio da folha e fica ali, gordinha e brilhante, uma joia que a noite deu de presente pra folha.\n\nNo canto escuro perto da cerca, uma luzinha acende e apaga, um vaga-lume solitário, faísca viva que pisca como quem chama. Os olhos de Pietro seguem a pisca do vaga-lume, e a vontade de chegar perto o move na ponta dos pés, prendendo a respiração. A lua sobe devagar, redonda e enorme, maior do que Pietro se lembrava, e uma luz de prata macia e quieta escorre por tudo, como uma lâmpada gigante e mansa acesa no céu. O queixo de Pietro se ergue, a cabeça de Pietro joga pra trás pra ver a lua inteira, e a prata da lua toca o rosto e os ombros de Pietro, e o mundo por um instante fica grande demais, do tamanho do céu. Duas luzes acesas: a lua enorme e parada lá no alto, e a faísca minúscula e dançante aqui embaixo, e a grande e a pequena parecem se conhecer de algum lugar. Pietro segura um pote de vidro frio e liso feito pedra de rio com as duas mãos, erguendo o pote contra a luz. Ele fecha um olho e espia o mundo que entorta e brilha lá dentro, pequenininho e curvo, virando o pote devagar pra ver tudo, e a vontade de saber se colhe no brilho do mundo de bolso.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 9251,
+        "chamadas": 1,
+        "duracaoMs": 13681,
         "tokens": {
-          "entrada": 1299,
-          "saida": 808
+          "entrada": 1645,
+          "saida": 669
         }
+      },
+      "veredito": {
+        "pass": true,
+        "motivos": [],
+        "avisos": [],
+        "presencaPorBeat": {
+          "folha": true,
+          "gato": true,
+          "orvalho": true,
+          "vagalume": true,
+          "lua": true,
+          "frasco": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -139,45 +149,50 @@
         ],
         "temperatura": 0.2
       },
-      "material": {
-        "palavrasMaterial": 616,
-        "alvoPalavras": 220,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 70,
+      "pacote": {
+        "maximoPalavras": 403,
+        "paragrafos": 2,
         "relacoes": [
           {
             "objeto": "vento",
-            "alvo": "folha",
-            "se": [
-              "tem:folha",
-              "antes_de:folha"
-            ]
+            "alvo": "folha"
           },
           {
             "objeto": "gato",
-            "alvo": "lua",
-            "se": [
-              "tem:lua",
-              "depois_de:lua"
-            ]
+            "alvo": "lua"
           }
         ]
       },
       "resposta": {
         "estadoId": "r4-n4-f-p03",
         "ok": true,
-        "texto": "O quintal fala baixinho e sussurra segredos, só conta pra quem vem ver, um por um, até contar tudo o que sabe. A grama fria nos pés descalços faz o coração de Joana bater forte de vontade de saber, como quem ganha um segredo só pra si. O vento chega rolando por cima do muro, corre uma volta pelo quintal e balança a grama toda, cheirando a terra molhada e a fim de tarde. É um vento fresco que vem de longe, mexendo no mundo de leve, como se a noite inteira respirasse, e a pele dos braços de Joana se arrepia. Ela fecha os olhos e respira fundo, deixando o vento passar como se ela também fosse feita de noite. O vento sobe pelos galhos e sacode a árvore de leve, e lá no alto algo se solta e desce rodando, sem pressa, um presente anunciado. Do galho mais alto, uma folha se despede e vem descendo no ar que escurece, como o primeiro segredo da noite, rodando pra um lado e para o outro, leve feito um cochicho. O dedo de Joana acompanha cada volta, e a mão dela se abre feito um ninho, esperando quietinha até a folha pousar de leve na palma.\n\nDepois, o muro do quintal ganha uma coroa: a lua sobe devagar por trás das árvores, redonda e enorme, e a luz de prata escorre pela cerca e pela grama, macia e quieta. Joana ergue o queixo, a cabeça jogada pra trás pra ver ela inteira, e a prata no rosto e nos ombros faz o mundo por um instante parecer grande demais, do tamanho do céu. Ninguém viu de onde veio, mas em cima da cerca do quintal, o gato já está sentado, quieto feito sombra, com o rabo balançando devagarinho e os olhos verdes acesos. Joana fica em silêncio também, prendendo a respiração, e troca um olhar demorado, piscando devagar de volta, pois piscada lenta é o jeito de gato dizer que gosta. A luz da lua encontra o gato e acende os pelos, um por um, até virarem fios de prata, e ele nem se mexe. Sem ninguém ver, o orvalho se junta na ponta de cada folhinha de grama do quintal, até o chão inteiro brilhar de leve, gotas miúdas como continhas de vidro. O pé descalço de Joana sente o frio da grama, e ela se abaixa bem perto para encostar o dedo numa gota, com cuidado pra não desmanchar o brilho. Por fim, um pote de vidro meio enterrado na grama do quintal, à espera, frio e liso feito pedra de rio. Joana o segura com as duas mãos, erguendo-o contra a luz, e fecha um olho para espiar o mundo que entorta lá dentro, virando devagar pra ver tudo, colhendo a vontade de saber que o quintal sussurrou.",
+        "texto": "O quintal fala baixinho e sussurra segredos, e a grama fria nos pés descalços de Joana faz seu coração bater forte de vontade de saber, como quem ganha um segredo contado só pra si. Um vento fresco chega de longe, rolando por cima de tudo, e a pele dos braços de Joana arrepia, então ela fecha os olhos e respira fundo, deixando o vento passar como se ela também fosse feita de noite. O vento sobe pelos galhos e sacode a árvore de leve, como quem acorda alguém, e lá no alto algo se solta e desce rodando, sem pressa, um presente anunciado. Uma folha se despede do galho e desce em espiral, rodando pra um lado e pro outro, sem pressa nenhuma de chegar, leve feito um cochicho, e o dedo de Joana acompanha cada volta, e sua mão se abre feito um ninho, esperando quietinha até a folha pousar de leve na palma. A lua sobe devagar, redonda e enorme, maior do que se lembrava, uma luz de prata macia e quieta escorrendo por tudo, como uma lâmpada gigante e mansa acesa no céu, e o queixo de Joana erguido, a cabeça jogada pra trás pra ver ela inteira, e a prata no rosto e nos ombros, e o mundo por um instante grande demais, do tamanho do céu.\n\nUm gato quieto feito sombra já está ali, e Joana fica em silêncio também, prendendo a respiração, trocando um olhar demorado e piscando devagar de volta, pois piscada lenta é o jeito de gato dizer que gosta. A luz da lua encontra o gato e acende os pelos, um por um, até virarem fios de prata, e ele nem se mexe, pois gato sabe quando está bonito. Gotas de água chegam sem barulho nenhum, gota por gota, miúdas como continhas de vidro, e cada uma guarda um pedacinho de luz, um brilho que é só seu, e o pé descalço de Joana sente o frio da grama, então ela abaixa bem perto e encosta o dedo numa gota, com cuidado pra não desmanchar o brilho. Joana segura um pote de vidro frio e liso feito pedra de rio com as duas mãos e o ergue contra a luz, e fecha um olho e espia o mundo que entorta e brilha lá dentro, pequenininho e curvo, um mundo de bolso, virando devagar pra ver tudo, e a vontade de saber se colhe no brilho do mundo de bolso.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 40119,
+        "chamadas": 1,
+        "duracaoMs": 11090,
         "tokens": {
-          "entrada": 1291,
-          "saida": 676
+          "entrada": 1638,
+          "saida": 580
         }
+      },
+      "veredito": {
+        "pass": true,
+        "motivos": [],
+        "avisos": [],
+        "presencaPorBeat": {
+          "vento": true,
+          "folha": true,
+          "lua": true,
+          "gato": true,
+          "orvalho": true,
+          "frasco": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -198,45 +213,50 @@
         ],
         "temperatura": 0.2
       },
-      "material": {
-        "palavrasMaterial": 616,
-        "alvoPalavras": 220,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 70,
+      "pacote": {
+        "maximoPalavras": 403,
+        "paragrafos": 2,
         "relacoes": [
           {
             "objeto": "vento",
-            "alvo": "folha",
-            "se": [
-              "tem:folha",
-              "antes_de:folha"
-            ]
+            "alvo": "folha"
           },
           {
             "objeto": "gato",
-            "alvo": "lua",
-            "se": [
-              "tem:lua",
-              "depois_de:lua"
-            ]
+            "alvo": "lua"
           }
         ]
       },
       "resposta": {
         "estadoId": "r4-n4-m-p04",
         "ok": true,
-        "texto": "O quintal de casa, ao cair da noite, sussurra seus segredos, só para quem vem ver, até contar tudo o que sabe. A grama fria nos pés descalços de Pietro faz o coração dele bater forte de vontade de saber, como quem ganha um segredo só pra si. Um vento fresco chega rolando pelo muro, corre o quintal e balança a grama, cheirando a terra molhada e fim de tarde. A pele dos braços de Pietro se arrepia, e ele fecha os olhos para respirar fundo, deixando o vento passar. O vento sobe pelos galhos e sacode a árvore, e lá no alto algo se solta e desce rodando, um presente anunciado. O orvalho se junta na ponta de cada folhinha de grama, até o chão brilhar de leve, gotas miúdas como continhas de vidro, guardando um pedacinho de luz. O pé descalço de Pietro sente o frio da grama, e ele abaixa bem perto para encostar o dedo numa gota, com cuidado para não desmanchar o brilho. Do galho mais alto da árvore, uma folha se despede e vem descendo no ar que escurece, rodando, leve feito um cochicho. O dedo de Pietro acompanha cada volta, e a mão dele fica aberta feito um ninho, esperando quietinha até a folha pousar de leve na palma.\n\nDepois, o muro do quintal ganha uma coroa: a lua sobe devagar por trás das árvores, redonda e enorme, e a luz de prata macia escorre pela cerca e pela grama, como uma lâmpada gigante acesa no céu. Pietro ergue o queixo, a cabeça jogada para trás para ver ela inteira, e a prata no rosto e nos ombros faz o mundo por um instante grande demais, do tamanho do céu. Ninguém viu de onde veio, mas em cima da cerca do quintal, o gato já está sentado, com a elegância de quem chegou primeiro, quieto feito sombra, rabo balançando devagarinho, olhos verdes acesos, estudando tudo com uma calma antiga. Pietro fica em silêncio também, prendendo a respiração, e troca um olhar demorado com o gato, piscando devagar de volta, pois piscada lenta é o jeito de gato dizer que gosta. A luz da lua encontra o gato e acende os pelos, um por um, até virarem fios de prata, e ele nem se mexe. Por fim, Pietro encontra um pote de vidro meio enterrado na grama, à espera, um desses achados que a noite deixa, frio e liso como pedra de rio. Ele segura o pote com as duas mãos e o ergue contra a luz, fechando um olho para espiar o mundo que entorta lá dentro, pequenininho e curvo, um mundo de bolso, virando devagar para ver tudo, e assim a vontade de saber se colhe em cada brilho.",
+        "texto": "O quintal fala baixinho e sussurra segredos, e só conta pra quem vem ver, um por um, até contar tudo o que sabe. A grama fria nos pés descalços de Pietro faz seu coração bater forte de vontade de saber, como quem ganha um segredo contado só pra si. Um vento fresco chega de longe, rolando por cima de tudo, e passa mexendo no mundo de leve, como se a noite inteira estivesse respirando. A pele dos braços de Pietro arrepia, ele fecha os olhos e respira fundo, deixando o vento passar como se ela também fosse feita de noite. O vento sobe pelos galhos e sacode a árvore de leve, como quem acorda alguém, e lá no alto algo se solta e desce rodando, sem pressa, um presente anunciado. Gotas de água chegam sem barulho nenhum, gota por gota, miúdas como continhas de vidro, e cada uma guarda um pedacinho de luz, um brilho que é só seu. O pé descalço de Pietro sente o frio da grama, ele abaixa bem perto e encosta o dedo numa gota, com cuidado pra não desmanchar o brilho. Uma folha se despede do galho e desce em espiral, rodando pra um lado e pro outro, sem pressa nenhuma de chegar, leve feito um cochicho. O dedo de Pietro acompanha cada volta, e sua mão se abre feito um ninho, esperando quietinha até a folha pousar de leve na palma.\n\nA lua sobe devagar, redonda e enorme, maior do que se lembrava, uma luz de prata macia e quieta escorrendo por tudo, como uma lâmpada gigante e mansa acesa no céu. O queixo de Pietro se ergue, a cabeça jogada pra trás pra ver a lua inteira, e a prata escorre no rosto e nos ombros, e o mundo por um instante fica grande demais, do tamanho do céu. Um gato quieto feito sombra, que ninguém viu chegar, aparece com o rabo balançando devagarinho, os olhos verdes acesos, estudando tudo com uma calma antiga, decidindo se vale a pena confiar. Pietro fica em silêncio também, prendendo a respiração, trocando um olhar demorado e piscando devagar de volta, pois piscada lenta é o jeito de gato dizer que gosta. A luz da lua encontra o gato e acende os pelos, um por um, até virarem fios de prata; o gato nem se mexe, pois gato sabe quando está bonito. Pietro segura um pote de vidro frio e liso feito pedra de rio com as duas mãos e o ergue contra a luz, fecha um olho e espia o mundo que entorta e brilha lá dentro, pequenininho e curvo, um mundo de bolso, e a vontade de saber se colhe no brilho do mundo de bolso.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 250737,
+        "chamadas": 1,
+        "duracaoMs": 12027,
         "tokens": {
-          "entrada": 1289,
-          "saida": 655
+          "entrada": 1636,
+          "saida": 635
         }
+      },
+      "veredito": {
+        "pass": true,
+        "motivos": [],
+        "avisos": [],
+        "presencaPorBeat": {
+          "vento": true,
+          "orvalho": true,
+          "folha": true,
+          "lua": true,
+          "gato": true,
+          "frasco": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -257,45 +277,50 @@
         ],
         "temperatura": 0.2
       },
-      "material": {
-        "palavrasMaterial": 603,
-        "alvoPalavras": 220,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 70,
+      "pacote": {
+        "maximoPalavras": 403,
+        "paragrafos": 2,
         "relacoes": [
           {
             "objeto": "vento",
-            "alvo": "folha",
-            "se": [
-              "tem:folha",
-              "antes_de:folha"
-            ]
+            "alvo": "folha"
           },
           {
             "objeto": "folha",
-            "alvo": "gato",
-            "se": [
-              "tem:gato",
-              "depois_de:gato"
-            ]
+            "alvo": "gato"
           }
         ]
       },
       "resposta": {
         "estadoId": "r4-n4-f-p05",
         "ok": true,
-        "texto": "O quintal fala baixinho e sussurra segredos, só contando para quem vem ver, um por um, até revelar tudo o que sabe, e Joana sente a grama fria nos pés descalços, o coração batendo forte de vontade de saber, como quem ganha um segredo. No canto mais escuro, perto da cerca, uma luzinha de vaga-lume acende e apaga, flutuando sem pressa, e os olhos de Joana seguem a pisca, a vontade de chegar perto na ponta dos pés, prendendo a respiração. Em cima da cerca, um gato já está sentado, quieto feito sombra, com o rabo balançando devagarinho e os olhos verdes acesos, e Joana fica em silêncio também, prendendo a respiração, trocando um olhar demorado e piscando devagar de volta. O orvalho se junta na ponta de cada folhinha de grama, e o pé descalço de Joana sente o frio, então ela abaixa bem perto e encosta o dedo numa gota, com cuidado para não desmanchar o brilho.\n\nO vento chega rolando por cima do muro, corre pelo quintal e balança a grama toda, cheirando a terra molhada, e a pele dos braços de Joana arrepia, ela fecha os olhos e respira fundo, deixando o vento passar como se ela também fosse feita de noite. O vento sacode a árvore de leve, soltando algo que desce rodando. A lua sobe devagar por trás das árvores, redonda e enorme, e a luz de prata escorre pela cerca e pela grama, e Joana ergue o queixo, a cabeça jogada para trás para ver ela inteira, sentindo a prata no rosto e nos ombros, e o mundo por um instante grande demais. Do galho mais alto, uma folha se despede e vem descendo no ar que escurece, rodando em espiral, leve feito um cochicho, e o dedo de Joana acompanha cada volta, a mão aberta feito um ninho, esperando quietinha até a folha pousar de leve na palma, enquanto a folha desce rodando bem na frente do gato, que esquece de tudo, o rabo parado no ar, os olhos enormes acompanhando cada volta.",
+        "texto": "O quintal sussurra segredos, e a grama fria nos pés descalços de Joana faz seu coração bater forte de vontade de saber, como quem ganha um segredo contado só pra si. No canto escuro perto da cerca, uma luzinha acende e apaga, um vaga-lume solitário, piscando como quem chama. Os olhos de Joana seguem a pisca, e a vontade de chegar perto a move na ponta dos pés, prendendo a respiração. Em cima da cerca, um gato já está sentado, quieto feito sombra, e Joana fica em silêncio também, prendendo a respiração, trocando um olhar demorado e piscando devagar de volta, pois piscada lenta é o jeito de gato dizer que gosta. As gotas de orvalho chegam sem barulho nenhum, miúdas como continhas de vidro, e o pé descalço de Joana sente o frio da grama, então ela abaixa bem perto e encosta o dedo numa gota, com cuidado pra não desmanchar o brilho. \n\nO vento fresco chega de longe, rolando por cima de tudo, e a pele dos braços de Joana arrepia, ela fecha os olhos e respira fundo, deixando o vento passar como se ela também fosse feita de noite. O vento sobe pelos galhos e sacode a árvore de leve, como quem acorda alguém. A lua sobe devagar, redonda e enorme, maior do que se lembrava, e Joana ergue o queixo, a cabeça jogada pra trás pra ver a lua inteira, sentindo a prata no rosto e nos ombros, e o mundo por um instante grande demais, do tamanho do céu. Lá do alto, uma folha se despede do galho e desce em espiral, rodando pra um lado e pro outro, sem pressa nenhuma de chegar, leve feito um cochicho. O dedo de Joana acompanha cada volta, e sua mão se abre feito um ninho, esperando quietinha até a folha pousar de leve na palma, e a vontade de saber se colhe no toque macio da folha.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 42717,
+        "chamadas": 1,
+        "duracaoMs": 6461,
         "tokens": {
-          "entrada": 1293,
-          "saida": 515
+          "entrada": 1627,
+          "saida": 470
         }
+      },
+      "veredito": {
+        "pass": true,
+        "motivos": [],
+        "avisos": [],
+        "presencaPorBeat": {
+          "vagalume": true,
+          "gato": true,
+          "orvalho": true,
+          "vento": true,
+          "lua": true,
+          "folha": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -316,45 +341,50 @@
         ],
         "temperatura": 0.2
       },
-      "material": {
-        "palavrasMaterial": 599,
-        "alvoPalavras": 220,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 70,
+      "pacote": {
+        "maximoPalavras": 403,
+        "paragrafos": 2,
         "relacoes": [
           {
-            "objeto": "vagalume",
-            "alvo": "frasco",
-            "se": [
-              "tem:frasco",
-              "depois_de:frasco"
-            ]
+            "objeto": "frasco",
+            "alvo": "vagalume"
           },
           {
-            "objeto": "frasco",
-            "alvo": "vagalume",
-            "se": [
-              "tem:vagalume",
-              "antes_de:vagalume"
-            ]
+            "objeto": "vagalume",
+            "alvo": "frasco"
           }
         ]
       },
       "resposta": {
         "estadoId": "r4-n4-m-p06",
         "ok": true,
-        "texto": "O quintal fala baixinho e sussurra segredos, só contando pra quem vem ver. O vento fresco chega rolando por cima do muro, balança a grama cheirando a terra e a fim de tarde, e Pietro sente a pele dos braços arrepiando. Ele fecha os olhos e respira fundo, deixando o vento passar como se fosse feito de noite, e o coração bate forte de vontade de saber. Depois, o orvalho se junta sem barulho na ponta de cada folhinha de grama, miúdas como continhas de vidro, e o chão brilha de leve. Pietro sente o frio da grama nos pés descalços, então abaixa e encosta o dedo numa gota, com cuidado. Em seguida, a lua redonda e enorme sobe devagar por trás das árvores, e a luz de prata macia escorre pela cerca e pela grama, como uma lâmpada gigante. Pietro ergue o queixo, a cabeça jogada pra trás pra ver ela inteira, sentindo a prata no rosto e nos ombros, e o mundo por um instante parece grande demais, do tamanho do céu. Ninguém viu de onde veio, mas em cima da cerca, um gato quieto feito sombra já está sentado, o rabo balançando devagarinho e os olhos verdes acesos, estudando tudo com calma antiga. Pietro fica em silêncio, prendendo a respiração, e troca um olhar demorado e pisca devagar de volta, pois piscada lenta é o jeito de gato dizer que gosta.\n\nPietro encontra um pote de vidro frio e liso feito pedra de rio, meio enterrado na grama, à espera. Ele o segura com as duas mãos e ergue contra a luz, fechando um olho para espiar o mundo que entorta e brilha lá dentro, pequenininho e curvo, um mundo de bolso, virando devagar pra ver tudo, com a certeza boa de que a noite ainda vai mandar uma coisinha brilhante pra morar ali. No canto do quintal onde o escuro é mais escuro, perto da cerca, uma luzinha acende e apaga como se respirasse, flutuando no ar, sem pressa, um vaga-lume solitário, faísca viva que acende e some no escuro, piscando como quem chama. Os olhos de Pietro seguem a pisca, e ele sente a vontade de chegar perto na ponta dos pés, prendendo a respiração. A faísca roda no ar uma, duas vezes, encontra o pote carregado desde cedo e entra devagarinho, ficando lá dentro e piscando quentinha, como quem chega em casa, e o coração de Pietro se enche, como se o segredo mais bonito do quintal tivesse sido contado só para ele.",
+        "texto": "O quintal fala baixinho e sussurra segredos, só conta pra quem vem ver, um por um, até contar tudo o que sabe. A grama fria nos pés descalços de Pietro faz seu coração bater forte de vontade de saber, como quem ganha um segredo contado só pra si. Um vento fresco chega de longe, rolando por cima de tudo, e passa mexendo no mundo de leve, como se a noite inteira estivesse respirando. A pele dos braços de Pietro arrepia, ele fecha os olhos e respira fundo, deixando o vento passar como se ela também fosse feita de noite. Depois, gotas de água chegam sem barulho nenhum, gota por gota, miúdas como continhas de vidro, e cada uma guarda um pedacinho de luz, um brilho que é só seu. O pé descalço de Pietro sente o frio da grama, ele abaixa bem perto e encosta o dedo numa gota, com cuidado pra não desmanchar o brilho. A lua sobe devagar, redonda e enorme, maior do que se lembrava, uma luz de prata macia e quieta escorrendo por tudo, como uma lâmpada gigante e mansa acesa no céu. O queixo de Pietro se ergue, a cabeça jogada pra trás pra ver a lua inteira, e a prata escorre no rosto e nos ombros, e o mundo por um instante fica grande demais, do tamanho do céu.\n\nEm cima da cerca, um gato quieto feito sombra já está lá, ninguém viu o gato chegar, e o rabo do gato balança devagarinho, os olhos verdes acesos, estudando tudo com uma calma antiga, decidindo se vale a pena confiar. Pietro fica em silêncio também, prendendo a respiração, e troca um olhar demorado com o gato e pisca devagar de volta, porque piscada lenta é o jeito de gato dizer que gosta. Ele segura um pote de vidro frio e liso feito pedra de rio com as duas mãos e ergue o pote contra a luz, então fecha um olho e espia o mundo que entorta lá dentro, virando o pote devagar pra ver tudo. O pote vazio não parece abandonado, mas parece à espera, e Pietro sente a certeza esquisita e boa de que a noite ainda vai mandar uma coisinha brilhante para morar ali. No canto do quintal, um vaga-lume solitário acende e some no escuro, piscando como quem chama. Os olhos de Pietro seguem a pisca, e a vontade de chegar perto o move na ponta dos pés, prendendo a respiração, então a faísca roda no ar uma, duas vezes, encontra o pote carregado desde cedo e entra devagarinho, e fica lá dentro piscando quentinha, como quem chega em casa, e a vontade de saber se colhe no brilho da lanterninha viva.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 43016,
+        "chamadas": 1,
+        "duracaoMs": 13722,
         "tokens": {
-          "entrada": 1283,
-          "saida": 609
+          "entrada": 1625,
+          "saida": 634
         }
+      },
+      "veredito": {
+        "pass": true,
+        "motivos": [],
+        "avisos": [],
+        "presencaPorBeat": {
+          "vento": true,
+          "orvalho": true,
+          "lua": true,
+          "gato": true,
+          "frasco": true,
+          "vagalume": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -376,45 +406,52 @@
         "temperatura": 0.2,
         "testemunha": true
       },
-      "material": {
-        "palavrasMaterial": 349,
-        "alvoPalavras": 157,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 55,
+      "pacote": {
+        "maximoPalavras": 193,
+        "paragrafos": 2,
         "relacoes": [
           {
             "objeto": "vento",
-            "alvo": "folha",
-            "se": [
-              "tem:folha",
-              "antes_de:folha"
-            ]
+            "alvo": "folha"
           },
           {
             "objeto": "folha",
-            "alvo": "gato",
-            "se": [
-              "tem:gato",
-              "depois_de:gato"
-            ]
+            "alvo": "gato"
           }
         ]
       },
       "resposta": {
         "estadoId": "r4-n3-f-testemunha",
         "ok": true,
-        "texto": "O quintal sussurra segredos, contando um por um a quem vem ver. A grama fria nos pés descalços de Joana faz ela querer descobrir. No canto escuro, uma luzinha acende e apaga: um vaga-lume pisca devagar. Os olhos de Joana seguem a pisca, e ela quer chegar perto na ponta dos pés. Um pote de vidro na grama, frio e liso, entorta o mundo lá dentro. Joana o segura com as duas mãos, fecha um olho e espia. A lua sobe por trás das árvores, enorme e redonda, acendendo com luz de prata. Joana ergue o queixo para ver, a prata acende em seu rosto.\n\nEm cima da cerca, um gato aparece sem barulho, quieto feito sombra, olhos verdes acesos. Joana fica em silêncio, prende a respiração, troca um olhar demorado. O vento chega rolando por cima do muro, fresco, corre pelo quintal, mexendo em tudo. A pele dos braços de Joana arrepia, o cabelo dela mexe. O vento sacode os galhos, uma coisinha se solta, descendo rodando. Uma folha se solta do galho mais alto e desce no ar escuro, sem pressa. O dedo de Joana acompanha cada volta, sua mão fica aberta, espalmada, esperando. A folha desce rodando na frente do gato, que acompanha de olhos arregalados, e o quintal colhe a vontade de Joana em sua mão aberta.",
+        "texto": "O quintal fala baixinho e sussurra segredos; só conta pra quem vem ver, um por um. A grama fria nos pés descalços de Joana traz a vontade de descobrir os segredos. No canto escuro, um vaga-lume pisca devagar, como uma estrelinha pra brincar. Os olhos de Joana seguem a pisca, e ela na ponta dos pés quer chegar perto. Um pote de vidro, frio e liso feito pedra de rio, está na grama, entortando o mundo. Joana o segura com as duas mãos, fecha um olho e espia o mundo que entorta lá dentro. A lua sobe redonda e enorme, acendendo tudo com luz de prata macia. O queixo de Joana se ergue pra ver a lua inteira, e a prata acende no rosto dela.\n\nNa cerca, um gato aparece sem barulho, quieto feito sombra, os olhos verdes acesos feito lanternas. Joana fica em silêncio, prendendo a respiração, e troca um olhar demorado com o gato. Um vento fresco chega de longe, passa mexendo em tudo de leve e vai embora. A pele dos braços de Joana arrepia, e o cabelo dela mexe de leve. O vento sobe e sacode os galhos da árvore, e uma coisinha se solta e começa a descer rodando. É uma folha que se solta lá de cima e desce rodando, sem pressa. O dedo de Joana acompanha cada volta no ar, e a mão dela fica aberta, espalmada, esperando, colhendo os segredos do quintal. A folha desce rodando na frente do gato; ele acompanha cada volta de olhos arregalados.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 65899,
+        "chamadas": 1,
+        "duracaoMs": 10727,
         "tokens": {
-          "entrada": 941,
-          "saida": 354
+          "entrada": 1349,
+          "saida": 391
         }
+      },
+      "veredito": {
+        "pass": false,
+        "motivos": [
+          "crescimento de 32% sobre o máximo canônico de 193 palavras (teto 25%)"
+        ],
+        "avisos": [],
+        "presencaPorBeat": {
+          "vagalume": true,
+          "frasco": true,
+          "lua": true,
+          "gato": true,
+          "vento": true,
+          "folha": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     }
   ]

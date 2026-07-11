@@ -20,45 +20,56 @@
         ],
         "temperatura": 0.2
       },
-      "material": {
-        "palavrasMaterial": 148,
-        "alvoPalavras": 67,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 25,
+      "pacote": {
+        "maximoPalavras": 58,
+        "paragrafos": 2,
         "relacoes": [
           {
-            "objeto": "vagalume",
-            "alvo": "frasco",
-            "se": [
-              "tem:frasco",
-              "depois_de:frasco"
-            ]
+            "objeto": "frasco",
+            "alvo": "vagalume"
           },
           {
-            "objeto": "frasco",
-            "alvo": "vagalume",
-            "se": [
-              "tem:vagalume",
-              "antes_de:vagalume"
-            ]
+            "objeto": "vagalume",
+            "alvo": "frasco"
           }
         ]
       },
       "resposta": {
         "estadoId": "r3-n1-f-p03",
         "ok": true,
-        "texto": "O quintal sussurra segredos. A grama fria no pé. Joana segura um pote de vidro, frio e liso. O pote vazio espera. A lua sobe atrás do muro, grande e prata. O queixo de Joana sobe. Um gato quieto na cerca, dois olhos acesos. Joana fica em silêncio.\n\nO vento pula o muro, fresco. A pele de Joana sente. Uma luz no fundo pisca. Os olhos de Joana seguem. A faísca acha o pote e entra.",
+        "texto": "O quintal sussurra segredos, Joana quer ver tudo. A grama fria toca seu pé. Joana segura o pote. O pote espera. A lua aparece. O queixo de Joana sobe.\n\nUm gato passa. Joana fica em silêncio. Um vento passa. A pele de Joana sente. Uma luz pisca e os olhos seguem. A luz entra no pote.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 13118,
+        "chamadas": 1,
+        "duracaoMs": 45357,
         "tokens": {
-          "entrada": 628,
-          "saida": 130
+          "entrada": 768,
+          "saida": 100
         }
+      },
+      "veredito": {
+        "pass": false,
+        "motivos": [
+          "ritmo n1 estourado: 12 pontos finais, 2.4 frases/beat (tetos 12/2)"
+        ],
+        "avisos": [],
+        "ritmoN1": {
+          "pontosFinais": 12,
+          "mediaFrasesPorBeat": 2.4,
+          "ok": false
+        },
+        "presencaPorBeat": {
+          "frasco": true,
+          "lua": true,
+          "gato": true,
+          "vento": true,
+          "vagalume": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -78,45 +89,56 @@
         ],
         "temperatura": 0.2
       },
-      "material": {
-        "palavrasMaterial": 148,
-        "alvoPalavras": 67,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 25,
+      "pacote": {
+        "maximoPalavras": 58,
+        "paragrafos": 2,
         "relacoes": [
           {
-            "objeto": "vagalume",
-            "alvo": "frasco",
-            "se": [
-              "tem:frasco",
-              "depois_de:frasco"
-            ]
+            "objeto": "frasco",
+            "alvo": "vagalume"
           },
           {
-            "objeto": "frasco",
-            "alvo": "vagalume",
-            "se": [
-              "tem:vagalume",
-              "antes_de:vagalume"
-            ]
+            "objeto": "vagalume",
+            "alvo": "frasco"
           }
         ]
       },
       "resposta": {
         "estadoId": "r3-n1-m-p04",
         "ok": true,
-        "texto": "O quintal sussurra segredos. Grama fria no pé. Pietro segura pote frio e liso. Pote vazio espera. Vento fresco pula muro, pele sente. Gato quieto na cerca, dois olhos acesos. Pietro fica em silêncio.\n\nLua grande, prata, sobe atrás muro. Queixo sobe. Luzinha pisca no fundo quintal. Olhos seguem. Faísca acha pote, entra. O quintal conta tudo.",
+        "texto": "O quintal fala baixinho, Pietro quer ver. A grama fria toca o pé. Pietro segura o pote, o pote vazio espera.\n\nO vento fresco passa e a pele de Pietro sente. Um gato quieto, dois olhos acesos. Pietro fica em silêncio. A lua grande, cor de prata, o queixo de Pietro sobe. Uma luzinha pisca, os olhos de Pietro seguem. A faísca acha o pote, a faísca entra. O quintal conta tudo, Pietro sente os segredos.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 34294,
+        "chamadas": 1,
+        "duracaoMs": 10684,
         "tokens": {
-          "entrada": 626,
-          "saida": 114
+          "entrada": 766,
+          "saida": 128
         }
+      },
+      "veredito": {
+        "pass": false,
+        "motivos": [
+          "crescimento de 31% sobre o máximo canônico de 58 palavras (teto 25%)"
+        ],
+        "avisos": [],
+        "ritmoN1": {
+          "pontosFinais": 10,
+          "mediaFrasesPorBeat": 2,
+          "ok": true
+        },
+        "presencaPorBeat": {
+          "frasco": true,
+          "vento": true,
+          "gato": true,
+          "lua": true,
+          "vagalume": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -136,45 +158,57 @@
         ],
         "temperatura": 0.2
       },
-      "material": {
-        "palavrasMaterial": 153,
-        "alvoPalavras": 69,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 25,
+      "pacote": {
+        "maximoPalavras": 58,
+        "paragrafos": 2,
         "relacoes": [
           {
             "objeto": "vento",
-            "alvo": "folha",
-            "se": [
-              "tem:folha",
-              "antes_de:folha"
-            ]
+            "alvo": "folha"
           },
           {
             "objeto": "folha",
-            "alvo": "gato",
-            "se": [
-              "tem:gato",
-              "depois_de:gato"
-            ]
+            "alvo": "gato"
           }
         ]
       },
       "resposta": {
         "estadoId": "r3-n1-f-p05",
         "ok": true,
-        "texto": "O quintal fala baixinho, sussurra segredos. Só pra quem vem ver. Vento fresco pula o muro. A pele sente. Sacode o galho; algo se solta. Gato quieto na cerca, olhos acesos. Fica em silêncio. Lua grande, prata, sobe atrás do muro. O queixo sobe pra ver.\n\nPote de vidro, frio e liso, na grama. Segura com as duas mãos. Folha rodando cai do galho. O dedo segue no ar. Cai perto do gato; ele olha. O quintal contou tudo.",
+        "texto": "O quintal sussurra segredos, Joana quer ver tudo. A grama fria toca seu pé.\nO vento fresco passa, a pele de Joana sente o fresco. O vento sacode o galho.\nUm gato quieto, dois olhos acesos. Joana fica em silêncio.\nA lua grande, cor de prata. O queixo de Joana sobe.\n\nUm pote de vidro, frio e liso. Joana segura o pote.\nUma folha desce rodando, o dedo de Joana segue a folha. A folha cai perto do gato, o gato olha.\nO quintal conta tudo, Joana sente os segredos.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 47001,
+        "chamadas": 1,
+        "duracaoMs": 60580,
         "tokens": {
-          "entrada": 633,
-          "saida": 141
+          "entrada": 773,
+          "saida": 158
         }
+      },
+      "veredito": {
+        "pass": false,
+        "motivos": [
+          "crescimento de 55% sobre o máximo canônico de 58 palavras (teto 25%)",
+          "ritmo n1 estourado: 13 pontos finais, 2.6 frases/beat (tetos 12/2)"
+        ],
+        "avisos": [],
+        "ritmoN1": {
+          "pontosFinais": 13,
+          "mediaFrasesPorBeat": 2.6,
+          "ok": false
+        },
+        "presencaPorBeat": {
+          "vento": true,
+          "gato": true,
+          "lua": true,
+          "frasco": true,
+          "folha": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -194,42 +228,57 @@
         ],
         "temperatura": 0.2
       },
-      "material": {
-        "palavrasMaterial": 149,
-        "alvoPalavras": 67,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 25,
+      "pacote": {
+        "maximoPalavras": 58,
+        "paragrafos": 2,
         "relacoes": [
           {
             "objeto": "gato",
-            "alvo": "lua",
-            "se": [
-              "tem:lua",
-              "depois_de:lua"
-            ]
+            "alvo": "lua"
           },
           {
             "objeto": "gato",
-            "alvo": "folha",
-            "se": "tem:folha"
+            "alvo": "folha"
           }
         ]
       },
       "resposta": {
         "estadoId": "r3-n1-m-p06",
         "ok": true,
-        "texto": "O quintal fala baixinho, sussurra segredos. Pietro vem ver a grama fria no pé. Uma folha cai do galho, desce rodando, o dedo segue no ar. O vento pula o muro, um vento fresco passa, a pele sente o fresco. A lua sobe atrás do muro, grande, cor de prata, o queixo sobe pra ver.\n\nUm gato na cerca, quieto, dois olhos acesos. Pietro fica em silêncio também. O gato brilha na luz da lua, pula na folha. Um pote na grama, frio e liso. Pietro segura o pote com as duas mãos.",
+        "texto": "O quintal sussurra. Pietro quer ver. A grama fria toca o pé. Uma folha desce rodando. O dedo de Pietro segue no ar. Um vento fresco passa. A pele de Pietro sente o fresco. A lua grande, cor de prata. O queixo de Pietro sobe pra ver.\n\nUm gato quieto, dois olhos acesos. Pietro fica em silêncio. O gato brilha na luz da lua. O gato pula na folha. Um pote de vidro, frio e liso. Pietro segura o pote com as duas mãos. O quintal conta tudo. Pietro sente os segredos.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 25822,
+        "chamadas": 1,
+        "duracaoMs": 54734,
         "tokens": {
-          "entrada": 624,
-          "saida": 151
+          "entrada": 764,
+          "saida": 145
         }
+      },
+      "veredito": {
+        "pass": false,
+        "motivos": [
+          "crescimento de 59% sobre o máximo canônico de 58 palavras (teto 25%)",
+          "ritmo n1 estourado: 17 pontos finais, 3.4 frases/beat (tetos 12/2)"
+        ],
+        "avisos": [],
+        "ritmoN1": {
+          "pontosFinais": 17,
+          "mediaFrasesPorBeat": 3.4,
+          "ok": false
+        },
+        "presencaPorBeat": {
+          "folha": true,
+          "vento": true,
+          "lua": true,
+          "gato": true,
+          "frasco": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -249,42 +298,51 @@
         ],
         "temperatura": 0.2
       },
-      "material": {
-        "palavrasMaterial": 214,
-        "alvoPalavras": 96,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 40,
+      "pacote": {
+        "maximoPalavras": 100,
+        "paragrafos": 2,
         "relacoes": [
           {
-            "objeto": "lua",
-            "alvo": "vagalume",
-            "se": [
-              "tem:vagalume",
-              "depois_de:vagalume"
-            ]
+            "objeto": "vagalume",
+            "alvo": "frasco"
           },
           {
-            "objeto": "vagalume",
-            "alvo": "frasco",
-            "se": "tem:frasco"
+            "objeto": "lua",
+            "alvo": "vagalume"
           }
         ]
       },
       "resposta": {
         "estadoId": "r3-n2-f-p01",
         "ok": true,
-        "texto": "O quintal sussurra segredos. Joana sente a grama fria no pé, quer ver tudo. Uma folha do galho alto se solta, rodando. O dedo de Joana acompanha, os olhos dançam. Um gato aparece na cerca, sombra quieta, dois olhos verdes. Joana fica em silêncio, prende a respiração.\n\nUma luzinha pisca no fundo. Joana segue a pisca, chega perto. A faísca entra no pote, vira lanterninha. A lua aparece no muro, grande e prata. O queixo de Joana sobe, prata no rosto. Duas luzes: a lua no alto, a faísca embaixo. Um pote de vidro espera na grama, frio e liso. Joana o segura, espia o mundo lá dentro, colhendo a vontade de ver tudo.",
+        "texto": "O quintal fala baixinho e sussurra segredos. A grama fria no pé de Joana faz a vontade de ver tudo. Uma folha se solta do galho, desce rodando devagar. O dedo de Joana acompanha no ar, os olhos dançam junto. Um gato quieto feito sombra aparece com dois olhos verdes acesos, e Joana fica em silêncio, prende a respiração.\n\nUm vaga-lume acende e apaga. Os olhos de Joana seguem a pisca, ela chega perto na ponta dos pés, a faísca entra no pote, virando sua lanterninha. A lua sobe grande e pinta tudo de prata. O queixo de Joana sobe pra ver a prata no rosto. Duas luzes: a lua no alto, a faísca embaixo. Joana segura o pote de vidro frio e liso com as duas mãos, espiando o mundo lá dentro.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 42273,
+        "chamadas": 1,
+        "duracaoMs": 12584,
         "tokens": {
-          "entrada": 724,
-          "saida": 196
+          "entrada": 994,
+          "saida": 215
         }
+      },
+      "veredito": {
+        "pass": false,
+        "motivos": [
+          "crescimento de 33% sobre o máximo canônico de 100 palavras (teto 25%)"
+        ],
+        "avisos": [],
+        "presencaPorBeat": {
+          "folha": true,
+          "gato": true,
+          "vagalume": true,
+          "lua": true,
+          "frasco": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -304,34 +362,45 @@
         ],
         "temperatura": 0.2
       },
-      "material": {
-        "palavrasMaterial": 198,
-        "alvoPalavras": 89,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 40,
+      "pacote": {
+        "maximoPalavras": 100,
+        "paragrafos": 2,
         "relacoes": [
           {
             "objeto": "gato",
-            "alvo": "folha",
-            "se": "tem:folha"
+            "alvo": "folha"
           }
         ]
       },
       "resposta": {
         "estadoId": "r3-n2-m-p02",
         "ok": true,
-        "texto": "O quintal sussurra segredos para quem vem ver, e Pietro sente a grama fria no pé, com vontade de ver tudo. Uma folha se solta do galho, desce rodando, e o dedo de Pietro acompanha no ar, seus olhos dançam. Um gato quieto, olhos verdes, aparece na cerca, e Pietro fica em silêncio, prende a respiração, depois o gato vê a folha e pula. \n\nA lua sobe grande no muro, pinta tudo de prata, e o queixo de Pietro sobe, vê a prata no rosto. Um vento fresco passa no quintal, mexe em tudo, e a pele de Pietro arrepia, seu cabelo mexe. Uma luzinha pisca no fundo, um vaga-lume acende e apaga, e os olhos de Pietro seguem a pisca, ele chega perto.",
+        "texto": "O quintal sussurra segredos. A grama fria no pé de Pietro faz a vontade de ver tudo. Uma folha solta do galho, desce rodando. O dedo de Pietro acompanha, os olhos dançam. Um gato quieto aparece na cerca, olhos verdes. Pietro silencia, prende a respiração. O gato vê a folha, pula, brincando.\n\nA lua sobe grande, pinta o rosto de Pietro de prata. Um vento fresco passa, mexe em tudo. A pele de Pietro arrepia, o cabelo mexe. Um vaga-lume acende e apaga. Os olhos de Pietro seguem a pisca, Pietro chega perto na ponta dos pés. O quintal continua a sussurrar segredos.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 51141,
+        "chamadas": 1,
+        "duracaoMs": 32231,
         "tokens": {
-          "entrada": 688,
-          "saida": 197
+          "entrada": 956,
+          "saida": 173
         }
+      },
+      "veredito": {
+        "pass": true,
+        "motivos": [],
+        "avisos": [],
+        "presencaPorBeat": {
+          "folha": true,
+          "gato": true,
+          "lua": true,
+          "vento": true,
+          "vagalume": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -351,42 +420,49 @@
         ],
         "temperatura": 0.2
       },
-      "material": {
-        "palavrasMaterial": 213,
-        "alvoPalavras": 96,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 40,
+      "pacote": {
+        "maximoPalavras": 100,
+        "paragrafos": 2,
         "relacoes": [
           {
             "objeto": "gato",
-            "alvo": "lua",
-            "se": [
-              "tem:lua",
-              "depois_de:lua"
-            ]
+            "alvo": "lua"
           },
           {
             "objeto": "gato",
-            "alvo": "folha",
-            "se": "tem:folha"
+            "alvo": "folha"
           }
         ]
       },
       "resposta": {
         "estadoId": "r3-n2-f-p03",
         "ok": true,
-        "texto": "O quintal sussurra segredos, e Joana sente a grama fria no pé, com vontade de ver tudo. Ela segura um pote de vidro frio e liso com as duas mãos, espiando o mundo lá dentro. A lua sobe grande por cima do muro, pinta tudo de prata, e o queixo de Joana sobe para ver a prata no rosto. Uma folha se solta do galho mais alto, desce rodando devagar, e o dedo de Joana acompanha no ar, com os olhos dançando junto.\n\nUm gato quieto aparece na cerca, dois olhos verdes acesos. Joana fica em silêncio, prende a respiração. A luz da lua acende os pelos do gato, que vê a folha e pula para brincar. Um vento fresco pula o muro, corre pelo quintal, mexe em tudo de leve. A pele de Joana arrepia, seu cabelo mexe, colhendo a vontade de ver tudo.",
+        "texto": "O quintal sussurra segredos. A grama fria no pé de Joana faz a vontade de ver tudo. Joana segura o pote frio e liso, espiando o mundo lá dentro. O queixo de Joana sobe pra ver a lua grande. A prata no rosto de Joana. Uma folha se solta e desce rodando. O dedo de Joana acompanha no ar, os olhos dançam junto.\n\nUm gato quieto aparece, olhos verdes. Joana fica em silêncio, prende a respiração. A luz da lua acende os pelos do gato. O gato vê a folha e pula, brincando. Um vento fresco passa e mexe em tudo. A pele de Joana arrepia, o cabelo de Joana mexe. O quintal continua a sussurrar segredos.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 40297,
+        "chamadas": 1,
+        "duracaoMs": 53453,
         "tokens": {
-          "entrada": 708,
-          "saida": 222
+          "entrada": 978,
+          "saida": 190
         }
+      },
+      "veredito": {
+        "pass": true,
+        "motivos": [],
+        "avisos": [],
+        "presencaPorBeat": {
+          "frasco": true,
+          "lua": true,
+          "folha": true,
+          "gato": true,
+          "vento": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -406,45 +482,49 @@
         ],
         "temperatura": 0.2
       },
-      "material": {
-        "palavrasMaterial": 219,
-        "alvoPalavras": 99,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 40,
+      "pacote": {
+        "maximoPalavras": 100,
+        "paragrafos": 2,
         "relacoes": [
           {
             "objeto": "vento",
-            "alvo": "folha",
-            "se": [
-              "tem:folha",
-              "antes_de:folha"
-            ]
+            "alvo": "folha"
           },
           {
             "objeto": "folha",
-            "alvo": "gato",
-            "se": [
-              "tem:gato",
-              "depois_de:gato"
-            ]
+            "alvo": "gato"
           }
         ]
       },
       "resposta": {
         "estadoId": "r3-n2-m-p04",
         "ok": true,
-        "texto": "O quintal sussurra segredos para quem vem ver, e a grama fria no pé traz a vontade de ver tudo. O vento fresco pula o muro e corre, mexendo em tudo, e a pele de Pietro arrepia, o cabelo mexe. O vento sacode o galho e algo se solta. Um pote de vidro frio e liso espera na grama, Pietro o segura com as duas mãos, espiando o mundo. A lua grande aparece, pinta tudo de prata, e o queixo de Pietro sobe pra ver a prata no rosto.\n\nUm gato quieto aparece na cerca, dois olhos verdes acesos, e Pietro fica em silêncio, prende a respiração. Uma folha se solta do galho e desce rodando, o dedo de Pietro acompanha no ar e os olhos dançam junto. A folha desce na frente do gato e ele arregala os olhos, e Pietro sente a vontade de ver tudo colhida em seu corpo.",
+        "texto": "O quintal sussurra segredos. A grama fria no pé de Pietro faz a vontade de ver tudo. O vento fresco passa e mexe em tudo. A pele de Pietro arrepia, o cabelo mexe. O vento sacode o galho, e algo se solta. Um pote frio e liso espera. Pietro o segura, espia o mundo.\n\nA lua sobe grande e pinta tudo de prata. O queixo de Pietro sobe, a prata no rosto. Um gato quieto aparece na cerca, olhos verdes acesos. Pietro silencia, prende a respiração. Uma folha se solta e desce rodando. O dedo de Pietro acompanha, os olhos dançam. A folha desce na frente do gato, ele arregala os olhos.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 49906,
+        "chamadas": 1,
+        "duracaoMs": 21779,
         "tokens": {
-          "entrada": 716,
-          "saida": 222
+          "entrada": 986,
+          "saida": 177
         }
+      },
+      "veredito": {
+        "pass": true,
+        "motivos": [],
+        "avisos": [],
+        "presencaPorBeat": {
+          "vento": true,
+          "frasco": true,
+          "lua": true,
+          "gato": true,
+          "folha": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -464,45 +544,49 @@
         ],
         "temperatura": 0.2
       },
-      "material": {
-        "palavrasMaterial": 211,
-        "alvoPalavras": 95,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 40,
+      "pacote": {
+        "maximoPalavras": 100,
+        "paragrafos": 2,
         "relacoes": [
           {
-            "objeto": "vagalume",
-            "alvo": "frasco",
-            "se": [
-              "tem:frasco",
-              "depois_de:frasco"
-            ]
+            "objeto": "frasco",
+            "alvo": "vagalume"
           },
           {
-            "objeto": "frasco",
-            "alvo": "vagalume",
-            "se": [
-              "tem:vagalume",
-              "antes_de:vagalume"
-            ]
+            "objeto": "vagalume",
+            "alvo": "frasco"
           }
         ]
       },
       "resposta": {
         "estadoId": "r3-n2-f-p05",
         "ok": true,
-        "texto": "O quintal sussurra segredos, só conta pra quem vem ver, e a grama fria no pé de Joana faz crescer a vontade de ver tudo. Uma folha se solta do galho alto e desce rodando, e o dedo de Joana acompanha no ar, os olhos dançam junto. Joana segura um pote de vidro frio e liso com as duas mãos, espiando o mundo lá dentro, pois o pote vazio parece esperar uma luzinha.\n\nUm gato quieto feito sombra aparece na cerca, com dois olhos verdes acesos, e Joana fica em silêncio, prendendo a respiração. A lua sobe grande por cima do muro, pintando tudo de prata, e o queixo de Joana sobe pra ver a prata no rosto. Então, um vaga-lume acende e apaga no fundo do quintal, e os olhos de Joana seguem a pisca enquanto ela chega perto na ponta dos pés. A faísca acha o pote que ela carregava e entra, colhendo ali a vontade de ver tudo.",
+        "texto": "O quintal sussurra segredos. A grama fria no pé de Joana faz a vontade de ver tudo. Uma folha solta do galho, desce rodando. O dedo de Joana acompanha, olhos dançam. Um pote frio e liso espera. Joana o segura, espia o mundo. Um gato quieto aparece, olhos verdes. Joana silencia, prende a respiração.\n\nA lua sobe grande, pinta tudo de prata. O queixo de Joana sobe, prata no rosto. Um vaga-lume acende e apaga. Os olhos de Joana seguem a pisca. Ela chega perto. A faísca acha o pote e entra. O quintal continua a sussurrar segredos.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 37831,
+        "chamadas": 1,
+        "duracaoMs": 52672,
         "tokens": {
-          "entrada": 716,
-          "saida": 243
+          "entrada": 986,
+          "saida": 172
         }
+      },
+      "veredito": {
+        "pass": true,
+        "motivos": [],
+        "avisos": [],
+        "presencaPorBeat": {
+          "folha": true,
+          "frasco": true,
+          "gato": true,
+          "lua": true,
+          "vagalume": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     },
     {
@@ -522,34 +606,45 @@
         ],
         "temperatura": 0.2
       },
-      "material": {
-        "palavrasMaterial": 198,
-        "alvoPalavras": 89,
-        "paragrafosAlvo": [
-          2,
-          2
-        ],
-        "palavrasPorParagrafo": 40,
+      "pacote": {
+        "maximoPalavras": 100,
+        "paragrafos": 2,
         "relacoes": [
           {
             "objeto": "gato",
-            "alvo": "folha",
-            "se": "tem:folha"
+            "alvo": "folha"
           }
         ]
       },
       "resposta": {
         "estadoId": "r3-n2-m-p06",
         "ok": true,
-        "texto": "O quintal sussurra segredos. Pietro sente a grama fria no pé, com vontade de ver tudo. Uma folha se solta do galho alto, desce rodando. O dedo de Pietro acompanha no ar, os olhos dançam. Um gato aparece na cerca, quieto feito sombra, com olhos verdes. Pietro fica em silêncio, prende a respiração. O gato vê a folha e pula.\n\nA lua aparece no muro, sobe grande, pinta tudo de prata. O queixo de Pietro sobe, a prata brilha no rosto. Uma luzinha pisca no fundo, um vaga-lume acende e apaga. Os olhos de Pietro seguem a pisca, ele chega perto. O vento pula o muro, corre, fresco, mexe em tudo. A pele de Pietro arrepia, o cabelo mexe. O quintal contou tudo, colhendo a vontade no corpo.",
+        "texto": "O quintal sussurra segredos. A grama fria no pé de Pietro faz a vontade de ver tudo. Uma folha solta do galho, desce rodando. O dedo de Pietro acompanha no ar, os olhos dançam. Um gato quieto aparece, feito sombra, olhos verdes. Pietro silencia, prende a respiração. O gato vê a folha e pula, brincando.\n\nA lua sobe grande e pinta tudo de prata. O queixo de Pietro sobe, prata no rosto. Um vaga-lume acende e apaga. Os olhos de Pietro seguem a pisca, chega perto na ponta dos pés. Um vento fresco passa e mexe em tudo. A pele de Pietro arrepia, o cabelo mexe.",
         "modelo": "gemini-2.5-flash",
         "temperatura": 0.2,
-        "tentativas": 1,
-        "duracaoMs": 35603,
+        "chamadas": 1,
+        "duracaoMs": 14201,
         "tokens": {
-          "entrada": 688,
-          "saida": 208
+          "entrada": 956,
+          "saida": 169
         }
+      },
+      "veredito": {
+        "pass": true,
+        "motivos": [],
+        "avisos": [],
+        "presencaPorBeat": {
+          "folha": true,
+          "gato": true,
+          "lua": true,
+          "vagalume": true,
+          "vento": true
+        }
+      },
+      "origem": {
+        "fonte": "llm",
+        "provedor": "gemini",
+        "modelo": "gemini-2.5-flash"
       }
     }
   ]

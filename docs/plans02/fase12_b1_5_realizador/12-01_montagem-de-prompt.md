@@ -1,5 +1,7 @@
 # fase12 · 12-01 · Montagem de prompt a partir do Pacote
 
+> ✅ **STATUS · 2026-07-10 · IMPLEMENTADA** — `src/core/realizador/prompt_template.ts:131` (`montarPromptRealizador`): 3 leis + 4 proibições parametrizadas + tempo presente + anáfora + regras de fusão do n1; few-shot POR NÍVEL minerado verbatim do PR #21 (`FEWSHOT_POR_NIVEL`, :68 — gap parcial no n1: 1 exemplo na banda); tabela canônica de comprimento com "Máximo" (`MAXIMO_PALAVRAS`, :31 — herança 1, ajustável pelo veredito de voz). Golden do prompt congelado em `src/core/fixtures/prompt_golden_v1.json`. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase12-12-01`
 - nó(s) da arquitetura: —

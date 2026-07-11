@@ -1,5 +1,7 @@
 # fase12 · 12-03 · Validador de fidelidade (Camada 1 promovida a runtime)
 
+> ✅ **STATUS · 2026-07-10 · IMPLEMENTADA** — `src/core/realizador/validador.ts:103` (`validar`): presença POR BEAT, gênero bidirecional parametrizado, teto sobre o máximo canônico (+25%), ritmo n1 como GATE (12/2), aviso de tempo verbal e de parágrafos. Âncora do orvalho CORRIGIDA (`gota*`, :42 — os 12 FAILs do PR #21 eram "Gotas" no plural; lista estreita, não omissão). Testes dispara/passa na suíte do realizador. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase12-12-03`
 - nó(s) da arquitetura: —

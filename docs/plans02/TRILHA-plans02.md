@@ -10,8 +10,8 @@
 |------|--------|------|
 | 10 Modelo de fichas | 🟢 CONCLUÍDA (2026-07-10; 3 pendências herdadas pela fase 12 — ver "Fechamento da fase 10") | `fase10_modelo_de_fichas/` — 6 docs com selo de status |
 | 11 A+ compositor | 🟢 IMPLEMENTADA (2026-07-10 — `src/core/compositor/`, compor() determinístico + golden; PR da fase 11) | `fase11_a_mais_compositor/` — 4 docs com selo de status |
-| 12 B1.5 realizador | ⚪ próxima — primeiras entregas: as 3 pendências herdadas da fase 10 (ver "Fechamento da fase 10") | `fase12_b1_5_realizador/` — 6 docs preenchidos no gabarito |
-| 13 Integração & modularização | 🟢 detalhada (decisões fechadas em 2026-07-09; implementação pendente) | `fase13_integracao_modularizacao/` — 4 docs preenchidos no gabarito |
+| 12 B1.5 realizador | 🟡 IMPLEMENTADA (2026-07-11); 🛑 PARADA DE VOZ ABERTA — PR #24 (ver "Fase 12 implementada") | `fase12_b1_5_realizador/` — 6 docs com selo de status |
+| 13 Integração & modularização | 🟢 detalhada — **PORTÃO TRANCADO até o veredito de voz da fase 12 (PR #24)** | `fase13_integracao_modularizacao/` — 4 docs preenchidos no gabarito |
 | 14 Aposentar banco de frases | 🟢 detalhada (execução condicionada ao gatilho triplo do 14-01) | `fase14_aposentar_banco_de_frases/` — 3 docs preenchidos no gabarito |
 
 Nota: as decisões abertas da fase 10 foram **fechadas em 2026-07-09** — registradas nos próprios docs como "Decisão fixada" (caminhos/esquema; cenário×personagem na ficha de cenário; descrição de cenário string única; campo alvo no contrato; teto de 2 relações por Pacote; lista A1 + regra de dígrafo).
@@ -72,3 +72,34 @@ As 3 pendências herdadas pela fase 12:
    Endereço: [[fase12-12-05]]. Junto: achados do ciclo 1 a aplicar na 12 — regras de fusão
    no prompt do n1; regra de anáfora ("não usar ele/ela para objetos; repetir o nome");
    investigar a âncora do orvalho (12 dos 21 FAILs reais).
+
+## Fase 12 implementada — Parada de Voz (2026-07-11)
+
+**Fase 12 IMPLEMENTADA; 🛑 PARADA DE VOZ ABERTA — o PR #24 é a parada.** O módulo
+`src/core/realizador/` (realizar + prompt-template + provedor plugável + validador +
+cascata com fallback A+ v3) está pronto, testado (66 asserts) e calibrado pelo protocolo
+do [[fase12-12-05]] (smoke → amostra 71% → lote). O experimento fichas→histórias consome
+o pipeline REAL (compor+realizar); o andaime do ciclo 1 foi arquivado.
+
+Ledger das heranças da fase 10:
+
+1. ✅ **Tabela canônica de comprimento** — ADOTADA como default datado ("ajustável pelo
+   veredito de voz"): `MAXIMO_PALAVRAS` em `src/core/realizador/prompt_template.ts`, com
+   instrução dura "Máximo M palavras" (nunca "cerca de"). Gate = máximo × 1,25.
+2. ✅/gap **Few-shot por nível (D-12.2)** — minerado VERBATIM do PR #21 (1–2 por nível,
+   banda canônica + nota do juiz); GAP PARCIAL sinalizado: o n1 tem só 1 candidato na
+   banda 31–71. Veto/edição do autor na parada (tabela no PR #24).
+3. 🛑 **Veredito de voz — NA MESA (PR #24)**: grade nova 74/137 (54%) vs 22/291 (7,6%)
+   do ciclo 1, lado a lado; célula n1 em 26% — o CRITÉRIO do [[fase12-12-05]]
+   (n1: realizador ou A+ cru) decide na leitura. Achados do ciclo 1 ✅ aplicados no
+   template (fusão n1, anáfora, presente). **Orvalho ✅ concluído**: os 12 FAILs eram
+   "Gotas" no plural — lista de âncoras estreita, não omissão do modelo; corrigida
+   (`gota*` em `src/core/realizador/validador.ts`).
+
+Limitação registrada: o lote do ciclo 2 é PARCIAL por decisão do autor (instabilidade
+recorrente da rede local; 137 estados limpos — t0.2 completa + t0.4 parcial; t0.7
+ausente). Retomável a qualquer momento pelo gerador (lotes salvos são pulados). Defesas
+adicionadas: pausa no retry transitório e timeout de 180s no transporte.
+
+**Portão da fase 13: TRANCADO até o veredito de voz.** Nada de `src/core/geracao/`,
+fiação no app ou deploy de edge antes do merge do PR #24 pelo autor.

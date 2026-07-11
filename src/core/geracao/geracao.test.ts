@@ -225,6 +225,14 @@ console.log("=== BLOCO 5 — Default do perfil legado (personagem canônico) ===
   assert(r.pacote !== null && r.pacote.personagem.nome === "Joana" && r.pacote.personagem.genero === "f",
     "perfil sem gênero ⇒ Pacote com personagem canônico (nunca inferir do nome)");
 
+  // 🔎 TESTE DO INCIDENTE (forense-personagem.md, 2026-07-11): perfil real
+  // "Pietro" SEM genero na primeira sessão real produziu a história da JOANA —
+  // a regra registrada em D-13.3 substitui o personagem INTEIRO, descartando o
+  // nome. Este assert documenta o comportamento DEFEITUOSO como está hoje;
+  // vira "história do PIETRO" no commit do conserto (regra nova do autor).
+  assert(r.pacote !== null && r.pacote.personagem.nome === "Joana",
+    "INCIDENTE reproduzido: Pietro sem gênero ⇒ hoje o Pacote sai com \"Joana\" (nome real descartado)");
+
   const r2 = await gerar(
     { ...entradaBase, perfil: { nome: "Pietro", genero: "m", nivel: "n2" } },
     { realizador: async () => ({ texto: "x", paragrafos: ["x"], veredito: { pass: true, motivos: [], avisos: [], presencaPorBeat: {} }, origem: { fonte: "llm" as const, provedor: "fake", modelo: "fake" }, metadados: { chamadas: 1, duracaoMs: 1 } }) }

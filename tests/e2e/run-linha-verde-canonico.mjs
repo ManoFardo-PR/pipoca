@@ -237,6 +237,8 @@ try {
   // Onboarding monta perfil e persiste no repo (seam), aterrissando na criança (T2).
   await page.waitForFunction(() => /Configurar a leitura/.test(document.body.innerText), { timeout: 4000 });
   await page.fill('[aria-label="Nome da criança"]', "Tião");
+  // fase13 pós-incidente: gênero é OBRIGATÓRIO no onboarding (identidade real).
+  await page.locator("button", { hasText: "Um menino" }).first().click();
   await page.locator("button", { hasText: "Tudo pronto" }).first().click();
   await page.waitForFunction(() => window.PipocaApp.estado.tela === 2 && !!window.PipocaApp.estado.perfil, { timeout: 4000 });
   const posOb = await page.evaluate(async () => {
@@ -344,8 +346,10 @@ try {
   const uxSave = await page.evaluate(async () => {
     const App = window.PipocaApp;
     const espera = (ms) => new Promise((r) => setTimeout(r, ms));
-    const A = { id: "uxA", nome: "Ana", idade: 7, nivel: "n2", avatarId: "lua" };
-    const B = { id: "uxB", nome: "Bia", idade: 8, nivel: "n3", avatarId: "tuca" };
+    // Com genero definido (fase13 pós-incidente): perfil sem gênero dispara o
+    // overlay pedir-uma-vez — coberto no e2e da geração 2, não aqui.
+    const A = { id: "uxA", nome: "Ana", idade: 7, nivel: "n2", avatarId: "lua", genero: "f" };
+    const B = { id: "uxB", nome: "Bia", idade: 8, nivel: "n3", avatarId: "tuca", genero: "f" };
     await App.repo.salvarPerfil(A);
     await App.repo.salvarPerfil(B);
     App.selecionarPerfil(A, 3);

@@ -72,7 +72,7 @@
             <button class="pip-pf-btn" onClick="{{ ge.onTap }}" style="{{ ge.style }}">{{ ge.label }}</button>
           </sc-for>
         </div>
-        <p style="color:#9a8a72;font-family:'Nunito';font-size:12px;line-height:1.4;margin:6px 0 0;">Sem escolher, as histórias seguem com a Joana.</p>
+        <p style="color:#9a8a72;font-family:'Nunito';font-size:12px;line-height:1.4;margin:6px 0 0;">O nome da história é sempre o da criança — aqui é só a concordância.</p>
 
         <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:16px;">Nível de leitura</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
@@ -165,6 +165,9 @@ class Component extends DCLogic {
     const Canon = window.PipocaCanonico;
     const nome = (this.state.nome || '').trim();
     if (!nome) { this.setState({ erro: 'Conte o nome da criança para salvar.' }); return; }
+    // fase13 pós-incidente: gênero obrigatório no salvar (perfil novo E edição
+    // de legado — fecha a lacuna que gerou o incidente da 1ª sessão real).
+    if (!this.state.genero) { this.setState({ erro: 'Conte quem vive as aventuras para salvar.' }); return; }
     if (!App || !App.repo || !Canon || !Canon.perfil) { this.setState({ erro: 'App indisponível. Recarregue a página.' }); return; }
     this.setState({ salvando: true, erro: '' });
     // pós-fase06 · teto do plano SÓ na criação (editar nunca bloqueia — regra
@@ -189,8 +192,8 @@ class Component extends DCLogic {
     const dados = {
       nome, idade: parseInt(this.state.idade, 10) || 7,
       nivel: this.state.nivel, avatarId: this.state.avatarId,
+      genero: this.state.genero,
     };
-    if (this.state.genero) dados.genero = this.state.genero; // aditivo: só quando escolhido
     const perfil = Canon.perfil.criarPerfil(id, dados);
     try {
       await App.repo.salvarPerfil(perfil);
@@ -273,15 +276,14 @@ class Component extends DCLogic {
       const sel = s.genero === ge.id;
       return {
         label: ge.label,
-        // Segundo toque no mesmo desmarca (o campo é opcional).
-        onTap: () => this.setState({ genero: sel ? '' : ge.id }),
+        onTap: () => this.setState({ genero: ge.id }), // obrigatório: escolher não desmarca
         style: optBase + (sel
           ? 'background:#7a9a5b;border-color:#7a9a5b;color:#fff;'
           : 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;'),
       };
     });
 
-    const pode = !!(s.nome || '').trim() && !s.salvando;
+    const pode = !!(s.nome || '').trim() && !!s.genero && !s.salvando;
     return {
       cartoes,
       vazio: !s.perfis.length && !s.editando,

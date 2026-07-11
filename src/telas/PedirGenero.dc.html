@@ -1,0 +1,50 @@
+<!-- PedirGenero.dc.html — pedir-uma-vez do gênero (fase13 pós-incidente)
+     ─────────────────────────────────────────────────────────────
+     Overlay que aparece na ativação de um perfil SEM genero (flag
+     estado.pedirGenero — mesmo padrão do PainelA11y). A escolha persiste no
+     perfil via App.definirGeneroPerfil; "Depois" fecha sem escolher (a
+     geração usa o nome REAL com concordância feminina; pergunta de novo na
+     próxima ativação). O nome da criança NUNCA muda — só a concordância.
+-->
+<x-dc>
+
+<div style="position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;">
+  <div onClick="{{ depois }}" style="position:absolute;inset:0;background:rgba(40,28,16,.36);backdrop-filter:blur(2px);"></div>
+  <div style="position:relative;width:420px;max-width:92%;background:#fffdf7;border-radius:26px;padding:26px 28px;box-shadow:0 30px 70px -20px rgba(40,30,18,.55);">
+    <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;color:#3a4f63;">Uma perguntinha rápida</div>
+    <div style="font-size:14px;color:#8a7a64;margin-top:4px;line-height:1.45;">Nas histórias de {{ nome }}, quem vive as aventuras é…</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px;">
+      <button class="pip-pg-opt" onClick="{{ escolherF }}" style="{{ optStyle }}">Uma menina</button>
+      <button class="pip-pg-opt" onClick="{{ escolherM }}" style="{{ optStyle }}">Um menino</button>
+    </div>
+
+    <button onClick="{{ depois }}" aria-label="Depois" style="margin-top:14px;width:100%;min-height:42px;border:1.5px dashed rgba(160,140,110,.4);background:transparent;border-radius:14px;font-family:'Nunito';font-weight:700;font-size:14px;color:#7a6a54;cursor:pointer;">Depois</button>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {};
+
+  _escolher(g) {
+    const App = window.PipocaApp;
+    if (App && App.definirGeneroPerfil) App.definirGeneroPerfil(g);
+    else if (App) App.setState({ pedirGenero: false });
+  }
+
+  renderVals() {
+    const App = window.PipocaApp;
+    const nome = (App && App.estado.perfil && App.estado.perfil.nome) || 'quem lê';
+    return {
+      nome,
+      escolherF: () => this._escolher('f'),
+      escolherM: () => this._escolher('m'),
+      depois: () => { if (App) App.setState({ pedirGenero: false }); },
+      optStyle: 'min-height:52px;border-radius:16px;border:2px solid #7a9a5b;background:#fffdf7;'
+        + 'font-family:Nunito;font-weight:700;font-size:15px;color:#3a2c20;cursor:pointer;padding:10px;',
+    };
+  }
+}
+</script>

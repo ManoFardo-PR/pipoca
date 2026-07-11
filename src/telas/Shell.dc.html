@@ -60,6 +60,9 @@
   <!-- Releitura de história salva — mesmo padrão de overlay. -->
   <sc-if value="{{ showLeitor }}" hint-placeholder-val="{{ false }}"><dc-import name="LeitorHistoria"></dc-import></sc-if>
 
+  <!-- Pedir-uma-vez do gênero (fase13 pós-incidente) — mesmo padrão de overlay. -->
+  <sc-if value="{{ showPedirGenero }}" hint-placeholder-val="{{ false }}"><dc-import name="PedirGenero"></dc-import></sc-if>
+
   <!-- Portão parental (PIN) — modal de viewport (position:fixed), no nível da raiz. -->
   <sc-if value="{{ ehT1 }}" hint-placeholder-val="{{ false }}"><dc-import name="PortaoParental"></dc-import></sc-if>
 
@@ -149,11 +152,13 @@ class Component extends DCLogic {
     const App = window.PipocaApp;
     const showA11y = !!(App && App.estado && App.estado.showA11y);
     const showLeitor = !!(App && App.estado && App.estado.leitorHistoria);
+    const showPedirGenero = !!(App && App.estado && App.estado.pedirGenero);
     return {
       tela,
       devMode: dev,
       showA11y,
       showLeitor,
+      showPedirGenero,
       // Marca só onde a tela não traz app bar própria (evita cabeçalho duplo).
       mostrarMarca: tela === 2 || tela === 9,
       // Flags de montagem do slot (uma tela ativa por vez).

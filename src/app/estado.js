@@ -46,6 +46,9 @@
     coletaTelemetria: true,
     showA11y: false,
     showOnboarding: false,
+    // fase13 pós-incidente · pedir-uma-vez do gênero: true quando o perfil
+    // ativo não tem genero (o overlay PedirGenero pergunta e persiste).
+    pedirGenero: false,
     storyMsg: null,
     // Histórias salvas: modal de releitura (overlay no Shell) e a última
     // história capturada nesta sessão (o coração da T6 usa). EFÊMEROS —
@@ -413,6 +416,9 @@
     var nav = typeof telaDestino === "number" ? { tela: telaDestino } : {};
     if (state.perfil && state.perfil.id === p.id) {
       nav.perfil = p;
+      // fase13 pós-incidente · perfil legado sem gênero: pergunta na ativação
+      // ("Depois" fecha; volta a perguntar na próxima ativação).
+      nav.pedirGenero = !p.genero;
       setState(nav);
       return;
     }
@@ -423,12 +429,36 @@
     patch.gatePendente = null;
     patch.leitorHistoria = null; // a releitura da criança A não vaza pra B
     patch.ultimaHistoriaSalvaId = null;
+    patch.pedirGenero = !p.genero; // pedir-uma-vez (fase13 pós-incidente)
     for (var k in nav) { if (Object.prototype.hasOwnProperty.call(nav, k)) patch[k] = nav[k]; }
     setState(patch);
     _hidratarPerfil(p);
     // Retenção das histórias na borda da troca (20d; favoritas ficam) —
     // fire-and-forget: o repo sincronizado também poda o espelho remoto.
     try { repo.podarHistorias(p.id, Date.now()).catch(function () {}); } catch (_) {}
+  }
+
+  // fase13 pós-incidente · escolha do pedir-uma-vez: persiste o gênero no
+  // perfil ativo (espelho do salvar da tela Perfis) e fecha o overlay. A
+  // partir daqui toda geração usa o gênero real; o nome SEMPRE foi o real.
+  function definirGeneroPerfil(genero) {
+    if ((genero !== "m" && genero !== "f") || !state.perfil || !state.perfil.id) {
+      setState({ pedirGenero: false });
+      return Promise.resolve({ ok: false });
+    }
+    var novo = {};
+    for (var k in state.perfil) {
+      if (Object.prototype.hasOwnProperty.call(state.perfil, k)) novo[k] = state.perfil[k];
+    }
+    novo.genero = genero;
+    setState({ perfil: novo, pedirGenero: false });
+    try {
+      return repo.salvarPerfil(novo)
+        .then(function () { return { ok: true }; })
+        .catch(function () { return { ok: true }; }); // estado vivo já reflete; o espelho tenta de novo no próximo save
+    } catch (_) {
+      return Promise.resolve({ ok: true });
+    }
   }
 
   // ─── Portão parental (PINGATE / acesso.ts via bundle) ─────────────────────
@@ -1081,6 +1111,7 @@
     get fichasProntas() { return !!_fichasV1; },
     repo: repo,
     selecionarPerfil: selecionarPerfil,
+    definirGeneroPerfil: definirGeneroPerfil,
     lerPrefsPerfil: lerPrefsPerfil,
     gravarPrefsPerfil: gravarPrefsPerfil,
     verificarPinCuidador: verificarPinCuidador,

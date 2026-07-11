@@ -41,14 +41,14 @@
       <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Idade</label>
       <input class="pip-ob-campo" style="margin-top:7px;max-width:120px;" value="{{ idade }}" onInput="{{ setIdade }}" type="number" min="3" max="12" aria-label="Idade" />
 
-      <!-- Gênero do personagem (aditivo opcional · fase13-13-01) -->
+      <!-- Gênero do personagem (obrigatório · fase13 pós-incidente: o nome é
+           sempre o da criança; aqui se escolhe só a concordância) -->
       <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Nas histórias, quem vive as aventuras é…</label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
         <sc-for list="{{ generos }}" as="ge" hint-placeholder-count="2">
           <button class="pip-ob-opt" onClick="{{ ge.onTap }}" style="{{ ge.style }}">{{ ge.label }}</button>
         </sc-for>
       </div>
-      <p style="color:#9a8a72;font-family:'Nunito';font-size:12px;line-height:1.4;margin:6px 0 0;">Sem escolher, as histórias seguem com a Joana.</p>
 
       <!-- Nível de leitura -->
       <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Nível de leitura</label>
@@ -117,13 +117,13 @@ class Component extends DCLogic {
     const Canon = window.PipocaCanonico;
     const nome = (this.state.nome || '').trim();
     if (!nome) { this.setState({ erro: 'Conte o nome da criança para começar.' }); return; }
+    if (!this.state.genero) { this.setState({ erro: 'Conte quem vive as aventuras para continuar.' }); return; }
     if (!App || !Canon || !Canon.onboarding) { this.setState({ erro: 'App indisponível. Recarregue a página.' }); return; }
 
     this.setState({ salvando: true, erro: '' });
     const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('p' + Date.now());
     const idade = parseInt(this.state.idade, 10) || 7;
-    const dados = { id, nome, idade, nivel: this.state.nivel, avatarId: this.state.avatarId };
-    if (this.state.genero) dados.genero = this.state.genero; // aditivo: só quando escolhido
+    const dados = { id, nome, idade, nivel: this.state.nivel, avatarId: this.state.avatarId, genero: this.state.genero };
     try {
       const perfil = Canon.onboarding.perfilDoOnboarding(dados);
       if (App.repo) await App.repo.salvarPerfil(perfil);
@@ -161,8 +161,7 @@ class Component extends DCLogic {
       const sel = s.genero === ge.id;
       return {
         label: ge.label,
-        // Segundo toque no mesmo desmarca (o campo é opcional).
-        onTap: () => this.setState({ genero: sel ? '' : ge.id }),
+        onTap: () => this.setState({ genero: ge.id }), // obrigatório: escolher não desmarca
         style: optBase + (sel
           ? 'background:#7a9a5b;border-color:#7a9a5b;color:#fff;'
           : 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;'),
@@ -181,7 +180,7 @@ class Component extends DCLogic {
           + (sel ? 'box-shadow:0 0 0 3px #fff,0 0 0 6px ' + av.cor + ';' : 'box-shadow:0 6px 16px -6px rgba(0,0,0,.3);'),
       };
     });
-    const podeSalvar = !!(s.nome || '').trim() && !s.salvando;
+    const podeSalvar = !!(s.nome || '').trim() && !!s.genero && !s.salvando;
     return {
       nome: s.nome,
       idade: s.idade,

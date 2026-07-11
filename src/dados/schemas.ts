@@ -15,7 +15,7 @@
 
 import type { Perfil, EstadoApp, Limites, ItemCardapio } from "../core/estado.js";
 import { estadoInicial } from "../core/estado.js";
-import { validarPerfil } from "../core/perfil.js";
+import { normalizarGenero, validarPerfil } from "../core/perfil.js";
 import { validarModos } from "../core/modos.js";
 import { validarEconomia } from "../core/economia.js";
 import { validarHistoriaState } from "../core/historia.js";
@@ -106,7 +106,17 @@ export function validarEnvelopePerfil(raw: unknown): Perfil | null {
   if (r["esquema"] !== ESQUEMA_PERFIL) return null;
   const erros = validarPerfil(r["perfil"]);
   if (erros.length > 0) return null;
-  return r["perfil"] as Perfil;
+  const perfil = r["perfil"] as Perfil;
+  // Campo aditivo opcional (fase13-13-01): gênero fora de "m"/"f" é SANEADO
+  // (cai fora), nunca rejeita — o perfil da criança não cai por metadado novo.
+  const genero = normalizarGenero((perfil as unknown as Record<string, unknown>)["genero"]);
+  if (genero !== perfil.genero) {
+    const copia = { ...perfil };
+    if (genero) copia.genero = genero;
+    else delete copia.genero;
+    return copia;
+  }
+  return perfil;
 }
 
 /**

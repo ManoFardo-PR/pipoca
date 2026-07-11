@@ -55,6 +55,31 @@ assert(
   "nome não-string → null"
 );
 
+// Gênero — campo ADITIVO OPCIONAL no pipoca.perfil.v1 (fase13-13-01):
+// legado sem o campo segue válido; valor inválido é SANEADO, nunca rejeita.
+const comGenero = criarPerfil("uuid2", { nome: "Pietro", idade: 8, nivel: "n2", avatarId: "lua", genero: "m" });
+assert(comGenero.genero === "m", "criarPerfil aceita genero válido (m)");
+assert(!("genero" in perfilOk), "criarPerfil sem genero não materializa o campo (legado limpo)");
+assert(
+  !("genero" in criarPerfil("uuid3", { nome: "X", idade: 7, nivel: "n2", avatarId: "lua", genero: "menina" })),
+  "genero inválido é saneado no criarPerfil (nunca 'meio certo')"
+);
+assert(
+  validarEnvelopePerfil(criarEnvelopePerfil(comGenero))?.genero === "m",
+  "round-trip preserva o genero (aditivo)"
+);
+assert(
+  validarEnvelopePerfil(envPerfilOk)?.genero === undefined,
+  "perfil LEGADO (sem genero) segue válido — retrocompatibilidade"
+);
+assert(
+  (() => {
+    const p = validarEnvelopePerfil({ esquema: "pipoca.perfil.v1", perfil: { ...perfilOk, genero: "xis" } });
+    return p !== null && p.genero === undefined;
+  })(),
+  "genero corrompido é saneado no load (perfil NÃO cai — regra aditivo-opcional do .v1)"
+);
+
 // --- Save ---
 console.log("\n=== pipoca.save.v1 — validação ===");
 

@@ -37,6 +37,8 @@ export interface Perfil {
   idade: number;
   nivel: Nivel;
   avatarId: string;
+  /** Aditivo opcional no pipoca.perfil.v1 (fase13-13-01); ausente = legado. */
+  genero?: "m" | "f";
 }
 
 // --- Sessão / bloco de foco ---

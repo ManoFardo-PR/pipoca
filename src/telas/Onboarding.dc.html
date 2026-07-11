@@ -41,6 +41,15 @@
       <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Idade</label>
       <input class="pip-ob-campo" style="margin-top:7px;max-width:120px;" value="{{ idade }}" onInput="{{ setIdade }}" type="number" min="3" max="12" aria-label="Idade" />
 
+      <!-- Gênero do personagem (aditivo opcional · fase13-13-01) -->
+      <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Nas histórias, quem vive as aventuras é…</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
+        <sc-for list="{{ generos }}" as="ge" hint-placeholder-count="2">
+          <button class="pip-ob-opt" onClick="{{ ge.onTap }}" style="{{ ge.style }}">{{ ge.label }}</button>
+        </sc-for>
+      </div>
+      <p style="color:#9a8a72;font-family:'Nunito';font-size:12px;line-height:1.4;margin:6px 0 0;">Sem escolher, as histórias seguem com a Joana.</p>
+
       <!-- Nível de leitura -->
       <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Nível de leitura</label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
@@ -75,7 +84,14 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { nome: '', idade: '7', nivel: 'n2', avatarId: 'pingo', salvando: false, erro: '' };
+  state = { nome: '', idade: '7', nivel: 'n2', avatarId: 'pingo', genero: '', salvando: false, erro: '' };
+
+  _generosDefs() {
+    return [
+      { id: 'f', label: 'Uma menina' },
+      { id: 'm', label: 'Um menino' },
+    ];
+  }
 
   _niveisDefs() {
     return [
@@ -107,6 +123,7 @@ class Component extends DCLogic {
     const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('p' + Date.now());
     const idade = parseInt(this.state.idade, 10) || 7;
     const dados = { id, nome, idade, nivel: this.state.nivel, avatarId: this.state.avatarId };
+    if (this.state.genero) dados.genero = this.state.genero; // aditivo: só quando escolhido
     try {
       const perfil = Canon.onboarding.perfilDoOnboarding(dados);
       if (App.repo) await App.repo.salvarPerfil(perfil);
@@ -140,6 +157,17 @@ class Component extends DCLogic {
           : 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;'),
       };
     });
+    const generos = this._generosDefs().map((ge) => {
+      const sel = s.genero === ge.id;
+      return {
+        label: ge.label,
+        // Segundo toque no mesmo desmarca (o campo é opcional).
+        onTap: () => this.setState({ genero: sel ? '' : ge.id }),
+        style: optBase + (sel
+          ? 'background:#7a9a5b;border-color:#7a9a5b;color:#fff;'
+          : 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;'),
+      };
+    });
     const avatares = this._avataresDefs().map((av) => {
       const sel = s.avatarId === av.id;
       return {
@@ -160,6 +188,7 @@ class Component extends DCLogic {
       setNome: (e) => this.setState({ nome: e.target.value }),
       setIdade: (e) => this.setState({ idade: e.target.value }),
       niveis,
+      generos,
       avatares,
       erro: s.erro || '',
       temErro: !!s.erro,

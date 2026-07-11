@@ -79,7 +79,7 @@ try {
     return {
       temGeracao: !!Canon.geracao && typeof Canon.geracao.gerar === "function",
       rotaPadrao: Canon.geracao ? Canon.geracao.ROTA_PADRAO : null,
-      canonico: Canon.geracao ? Canon.geracao.PERSONAGEM_CANONICO : null,
+      concordanciaPadrao: Canon.geracao ? Canon.geracao.GENERO_CONCORDANCIA_PADRAO : null,
       composicaoIntacta: !!Canon.composicao && typeof Canon.composicao.montar === "function",
     };
   });
@@ -90,8 +90,8 @@ try {
     "política de rota padrão: realizador em todos os níveis"
   );
   assert(
-    boot.canonico && boot.canonico.nome === "Joana" && boot.canonico.genero === "f",
-    "personagem canônico (Joana, f) registrado para perfis legados sem gênero"
+    boot.concordanciaPadrao === "f",
+    "default de concordância (f, com o NOME REAL) registrado para perfis sem gênero — regra pós-incidente"
   );
   assert(true, "fichas v1 carregadas no boot (fichasProntas)");
 

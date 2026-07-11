@@ -15,13 +15,17 @@
  * primeira sessão real). Trocar a rota de um nível custa UMA linha:
  *   gerar(entrada, { rota: { n1: "ap_cru" } })
  *
- * Perfil legado SEM gênero (13-01, decisão fixada): o Pacote exige
- * `personagem.genero`; sem ele o compositor não é chamado com personagem
- * "meio certo" — usa-se o PERSONAGEM CANÔNICO ("Joana", f). Nunca inferir
- * do nome.
+ * REGRA DE IDENTIDADE (evoluída em 2026-07-11 — incidente da primeira sessão
+ * real, ver docs/plans02/forense-personagem.md): `personagem.nome` é SEMPRE o
+ * nome do perfil — o nome da criança NUNCA é substituído ("Joana" permanece
+ * apenas em conteúdo legado/demonstração). `personagem.genero`: o do perfil
+ * quando definido; ausente ⇒ concordância FEMININA com o nome real (o app
+ * pede o gênero uma vez na ativação do perfil e persiste — 13-01). Nunca
+ * inferir do nome.
  */
 
 import { montar, type EstadoComp, type NivelKey } from "../composicao.js";
+import { NOME_PADRAO } from "../perfil.js";
 import { compor } from "../compositor/compor.js";
 import type {
   CatalogoFichas,
@@ -48,8 +52,13 @@ export const ROTA_PADRAO: RotaPorNivel = {
   n4: "realizador",
 };
 
-/** Regra de default do perfil legado sem gênero (13-01): personagem canônico. */
-export const PERSONAGEM_CANONICO = { nome: "Joana", genero: "f" } as const;
+/**
+ * Default de CONCORDÂNCIA quando o perfil não tem gênero e ninguém respondeu
+ * ao pedir-uma-vez (regra de 2026-07-11): a história usa o NOME REAL do perfil
+ * com flexões femininas. Substitui o antigo PERSONAGEM_CANONICO ("Joana", f),
+ * que trocava a identidade inteira — causa-raiz do incidente da 1ª sessão real.
+ */
+export const GENERO_CONCORDANCIA_PADRAO = "f" as const;
 
 const NIVEIS: readonly NivelKey[] = ["n1", "n2", "n3", "n4"];
 
@@ -147,12 +156,15 @@ export async function gerar(
   // Fichas não carregadas ⇒ cai direto no caminho v3 (13-00, edge-case).
   if (!entrada.fichas) return aMais("fichas não carregadas", null);
 
-  // Perfil completo antes de compor (13-01, regra 5); legado sem gênero ⇒ canônico.
-  const nome = typeof entrada.perfil.nome === "string" ? entrada.perfil.nome.trim() : "";
-  const personagem =
-    nome !== "" && generoValido(entrada.perfil.genero)
-      ? { nome, genero: entrada.perfil.genero }
-      : PERSONAGEM_CANONICO;
+  // Identidade (regra de 2026-07-11): o nome é SEMPRE o do perfil — nunca
+  // substituído. Nome vazio é caso degenerado (criarPerfil normaliza para
+  // NOME_PADRAO a montante); aqui o mesmo default explícito, nunca "Joana".
+  // Gênero ausente/ inválido ⇒ concordância feminina com o nome real.
+  const nomeCru = typeof entrada.perfil.nome === "string" ? entrada.perfil.nome.trim() : "";
+  const personagem = {
+    nome: nomeCru !== "" ? nomeCru : NOME_PADRAO,
+    genero: generoValido(entrada.perfil.genero) ? entrada.perfil.genero : GENERO_CONCORDANCIA_PADRAO,
+  };
 
   let pacote: PacoteComposicao;
   try {

@@ -1,5 +1,7 @@
 # fase12 · 12-05 · Calibração do n1
 
+> 🟡 **STATUS · 2026-07-11 · EXECUTADA, AGUARDANDO VEREDITO DE VOZ** — a parada é o **PR #24**. Protocolo cumprido: smoke → amostra 48+1 (71% PASS, critério ≥60%) → lote (PARCIAL por decisão do autor após instabilidade de rede local: 137 estados limpos, 74 PASS = 54%; retomável). Célula n1 = 26% vs 55–81% dos demais níveis — o CRITÉRIO (n1: realizador ou A+ cru) está na mesa, com o pior/melhor n1 e a testemunha colados no PR. Artefatos: `experimentos/fichas-para-historias/saida/avaliacao/`. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase12-12-05`
 - nó(s) da arquitetura: —

@@ -13,6 +13,7 @@
     "test:e2e": "node tests/e2e/run-linha-verde-canonico.mjs",
     "test:e2e:canonico": "node tests/e2e/run-linha-verde-canonico.mjs",
     "test:e2e:admin": "node tests/e2e/run-admin.mjs",
+    "test:e2e:geracao2": "node tests/e2e/run-geracao2-canonico.mjs",
     "test:e2e:reordenar": "node tests/e2e/run-reordenar-miolo.mjs"
   },
   "engines": {

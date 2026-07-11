@@ -1077,6 +1077,8 @@
     setState: setState,
     subscribe: subscribe,
     get cenarioV2() { return _cenarioV2; },
+    // fase13 · prontidão das fichas v1 (e2e/diagnóstico; o app não espera por elas)
+    get fichasProntas() { return !!_fichasV1; },
     repo: repo,
     selecionarPerfil: selecionarPerfil,
     lerPrefsPerfil: lerPrefsPerfil,

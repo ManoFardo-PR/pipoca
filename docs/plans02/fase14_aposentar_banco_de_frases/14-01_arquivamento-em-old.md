@@ -1,5 +1,7 @@
 # fase14 · 14-01 · Arquivamento das variantes de texto em old/
 
+> 🟡 **STATUS · 2026-07-11 · AGUARDANDO GATILHO (sessão real)** — gatilho triplo PARCIAL: (1) validação em escala ✅ (portão do 10-04 fechado em 2026-07-10; parada de voz da 12 encerrada por decisão executiva em 2026-07-11); (2) fase 13 ✅ implantada (módulo de geração no runtime, PR das fases 13+14); (3) primeira sessão real ⏳ PENDENTE. **Nenhum arquivamento executado** — nada em `old/` foi tocado; a Leva 3 e a DECISÃO ABERTA (congelar vs manutenção mínima do v3) esperam a sessão real, como manda este doc. Pendência de jardim registrada na TRILHA. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase14-14-01`
 - nó(s) da arquitetura: —

@@ -1,5 +1,7 @@
 # fase14 · 14-00 · Auditoria de dependências (o que ainda usa frases)
 
+> ✅ **STATUS · 2026-07-11 · AUDITORIA REEXECUTADA** — grep reexecutado com a fase 13 implantada: a tabela consumidor→destino abaixo segue válida, com consumidores NOVOS nascidos nas fases 12–13, todos SEGUE (consomem o v3 no posto de reserva): `src/core/realizador/cascata.ts` (fallback via montar), `src/core/geracao/geracao.ts` (fallback do módulo de geração), `src/app/estado.js` (prévia determinística + A+ cru no teto de espera) e o e2e novo `tests/e2e/run-geracao2-canonico.mjs` (prova de vida do v3 no caminho infeliz). O e2e canônico v3 SEGUE VIVO. As duas amarras duras conferidas (checker :170 verde; v3 no bundle regenerado). Nada foi movido — o arquivamento aguarda o gatilho triplo do 14-01. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase14-14-00`
 - nó(s) da arquitetura: —

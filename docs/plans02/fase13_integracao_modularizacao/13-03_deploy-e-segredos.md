@@ -1,5 +1,7 @@
 # fase13 · 13-03 · Deploy e segredos (cliente vs edge)
 
+> ✅ **STATUS · 2026-07-11 · IMPLEMENTADA E DEPLOYADA** — rota edge `functions/realizador/index.ts` (irmã do proxy-ia: secrets no servidor, servidor decide provedor/modelo via config_ia, cota ANTES, cascata do 12-04 NO EDGE — uma viagem por realização; validador = espelho compacto do canônico, precedente guardrails-lite) DEPLOYADA no projeto real (verify_jwt ON; smoke: sem bearer ⇒ 401 da plataforma, JWT sem usuário ⇒ nao_autenticado). Cliente keyless em `src/backend/proxy_realizador.ts`; `Backend.realizador` aditivo (`src/backend/backend.ts:56`). Fichas servidas estáticas como o grafo. Grep de chave em `src/` = ZERO. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase13-13-03`
 - nó(s) da arquitetura: —

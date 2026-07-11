@@ -1,5 +1,7 @@
 # Contrato · Schemas JSON canônicos
 
+> 📝 **CORREÇÃO DE REGISTRO · 2026-07-11** — o selo de 2026-06-29 abaixo ficou DESATUALIZADO (pendência registrada em plans02 · fase14-14-02): o `pipoca.grafo-autoral.v1` citado em `src/dados/quintal_grafo.json` foi ARQUIVADO em `old/dados/` na implantação do v3 (ver Nota de linhagem de 2026-07-06 abaixo); o grafo ativo é o `pipoca.grafo-autoral.v3` em `docs/quintal.v3.json`. O texto antigo permanece preservado (linhagem nunca se apaga).
+
 > 🟢 **STATUS · 2026-06-29 · IMPLEMENTADO** — `pipoca.perfil.v1`/`pipoca.save.v1` em `src/dados/schemas.ts`; `pipoca.grafo-autoral.v1` em `src/dados/quintal_grafo.json`. `telemetria.v1` parcial (fase03); `tenant.v1` não (fase06). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 
 > Strings `esquema`/`schema` versionadas. Todo doc que persiste ou lê dados deve citar o schema pelo
@@ -11,6 +13,16 @@
 > mutado), e a compat do leitor v3 com o v2 é garantida PARA SEMPRE pela fixture autocontida
 > `src/core/fixtures/composicao_golden_v2.json` (grafo v2 integral embutido + 28 casos golden
 > reproduzidos byte a byte em `composicao.test.ts`).
+>
+> **Nota de linhagem (2026-07-11, geração 2 integrada):** a geração 2 (`docs/plans02/`) assumiu
+> o posto de TITULAR do texto gerado com dois esquemas autorais novos — `pipoca.fichas.v1`
+> (conteúdo em 3 catálogos, `docs/fichas/*.v1.json`) e `pipoca.pacote-composicao.v1` (a fronteira
+> compositor→realizador, `src/core/compositor/pacote.ts`). O `pipoca.grafo-autoral.v3` SEGUE VIVO
+> como reserva (prévia do portão + fallback de conteúdo). Os envelopes de storage local
+> `pipoca.perfil.v1` e `pipoca.historias.v1` evoluíram ADITIVAMENTE (campos opcionais `genero`;
+> `origem`/`pacoteOrigem`/`rodada`/`intermediaria`) — regra: storage local aceita campo opcional
+> novo com saneamento; `.v2` fica reservado para quebra de shape ("nunca mutar `.vN`" protege os
+> schemas AUTORAIS publicados).
 
 | Schema | Dono | Persistido por |
 |--------|------|----------------|
@@ -20,6 +32,9 @@
 | `pipoca.save.v1` | [[../fase00/00-14_schema-perfil-e-save]] | SAVE |
 | `pipoca.telemetria.v1` | [[../fase03/03-01_telemetria-TELE]] | TELE / SAVE |
 | `pipoca.tenant.v1` | [[../fase06/06-04_multitenant-rls-e-regras]] | backend (SA_TENANT) |
+| `pipoca.fichas.v1` | plans02 · fase10-10-00 (`docs/plans02/fase10_modelo_de_fichas/`) | conteúdo autoral (`docs/fichas/*.v1.json`) |
+| `pipoca.pacote-composicao.v1` | plans02 · fase11-11-00 (`docs/plans02/fase11_a_mais_compositor/`) | não persistido como arquivo; salvo por história em `pacoteOrigem` (`pipoca.historias.v1`) |
+| `pipoca.historias.v1` | pós-fase06 (`src/core/historias.ts`) · campos aditivos: plans02 · fase13-13-02 | histórias salvas por perfil (localStorage) |
 
 ---
 

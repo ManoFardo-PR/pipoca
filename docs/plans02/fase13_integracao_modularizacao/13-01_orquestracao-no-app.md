@@ -1,5 +1,7 @@
 # fase13 · 13-01 · Orquestração no app (leitura)
 
+> ✅ **STATUS · 2026-07-11 · IMPLEMENTADA** — fichas carregadas no boot ao lado do grafo (`src/app/estado.js:694`, chamada :1117); realização por LLM disparada em BACKGROUND no commit do move (`_dispararRealizacao` :717, chamado em aplicarComposicao :969); prévia do portão segue DETERMINÍSTICA (D-13.2 — zero LLM por movimento, provado no e2e `tests/e2e/run-geracao2-canonico.mjs`); captura com teto de espera de 8s e fallback A+ cru (`_resultadoRealizacao` :753). Gênero ADITIVO no perfil (`src/core/perfil.ts`, telas Onboarding/Perfis); legado sem gênero ⇒ personagem canônico. Roteiro: ../TRILHA-plans02.md
+
 ## Identidade
 - id: `fase13-13-01`
 - nó(s) da arquitetura: —

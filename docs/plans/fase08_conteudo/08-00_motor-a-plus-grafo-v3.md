@@ -1,5 +1,7 @@
 # fase08 · 08-00 · Motor A+ · Grafo Autoral V3
 
+> 🔄 **SUPERADO COMO TITULAR · 2026-07-11 — VIVO COMO FALLBACK** — o Motor A+ v3 deixou de ser o gerador TITULAR do texto das histórias: a geração 2 (fichas → compositor → realizador, `docs/plans02/`) assumiu o posto — o texto realizado por LLM é o que se salva e relê; a prévia lida no portão segue sendo o texto determinístico deste motor (plans02 · fase13-13-01, decisão fixada). O motor descrito aqui PERMANECE em produção como fallback de conteúdo (plans02 · fase12-12-04) e prévia do portão — este doc segue descrevendo um motor vivo, agora de reserva. Nada daqui foi arquivado (o arquivamento aguarda o gatilho triplo de plans02 · fase14-14-01, incluída a primeira sessão real); ver `docs/plans02/TRILHA-plans02.md`.
+>
 > 🟢 **STATUS · 2026-07-06 · COMPLETO — passos 1–7** — motor+lint+testes (passos 1–5), oficina de conteúdo com validação humana → `docs/quintal.v3.json` (passo 6) e troca do grafo ativo (passo 7: `_initComposicao` fetcha o v3; bundle regenerado; golden v3 congelado). Roteiro: ../TRILHA-DE-IMPLEMENTACAO.md
 >
 > 🔧 **2026-07 · lapidação da costura** — duas regras de runtime na costura conectivo+texto (rebaixamento da inicial + supressão do conectivo quando a variante já abre por marcador); rng preservado, texto autoral e mecânica inalterados. Golden v3 regenerado (só minúsculas/conectivos suprimidos). Ver `[[_contratos/grafo-autoral-v3]]` §4.1.

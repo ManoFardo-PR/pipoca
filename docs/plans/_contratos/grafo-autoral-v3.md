@@ -9,6 +9,15 @@
 > conectivo quando a variante já abre por marcador), rng preservado; campos
 > aditivos `moldura.nomes_proprios?` e `moldura.marcadores_iniciais?`; §6.7 ganha
 > aviso de "abre por marcador". Texto autoral e mecânica inalterados.
+>
+> 🧬 **Nota de linhagem · 2026-07-11 (geração 2 integrada)** — este contrato SEGUE
+> VÁLIDO para o motor de reserva (o A+ v3 permanece em produção como prévia do
+> portão e fallback de conteúdo). Os sucessores no posto de TITULAR do texto
+> gerado são `pipoca.fichas.v1` (conteúdo — plans02 · fase10-10-00, dono em
+> `docs/plans02/fase10_modelo_de_fichas/`) e `pipoca.pacote-composicao.v1`
+> (estrutura — plans02 · fase11-11-00, dono em
+> `docs/plans02/fase11_a_mais_compositor/`). Roteiro ativo:
+> `docs/plans02/TRILHA-plans02.md`.
 
 ---
 

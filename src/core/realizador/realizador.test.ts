@@ -32,6 +32,11 @@ import {
 } from "./provedor_realizador.js";
 import pacoteGolden from "../fixtures/pacote_golden_v1.json" with { type: "json" };
 // GOLDEN — política do 11-03/12-01: NUNCA regenerar para "fazer passar".
+// EXCEÇÃO REGISTRADA (P3, censo A1/C1): o golden foi regenerado UMA vez ao
+// parametrizar o few-shot pela identidade do Pacote (personalizarExemplo) — o
+// exemplo antes fixo em Pietro passou a falar do personagem-golden (Joana, f),
+// eliminando o prior de nome/gênero. Mudança MECÂNICA (prosa verbatim), não uma
+// reescrita para "passar"; decisão do autor no PR de correção da geração 2.
 import promptGolden from "../fixtures/prompt_golden_v1.json" with { type: "json" };
 import quintalV3Raw from "../../../docs/quintal.v3.json" with { type: "json" };
 

@@ -6,12 +6,14 @@
  * (`PipocaCanonico.geracao.realizadorRemoto`) — sem rede, sem chave.
  *
  * Verifica: (1) fichas v1 carregadas no boot ao lado do grafo; (2) prévia do
- * portão DETERMINÍSTICA com zero LLM por movimento (D-13.2); (3) realização
- * dispara SÓ no commit, em background, e recebe o Pacote com o personagem do
- * perfil (gênero aditivo); (4) intermediárias por rodada + história completa
- * salvas com texto realizado, origem, pacoteOrigem e rodada (13-02); (5) o
- * leitor EXIBE o texto realizado; (6) caminho infeliz: realizador fora do ar
- * ⇒ fallback A+ v3 local, origem sinalizada — a criança nunca vê erro.
+ * portão (T4) DETERMINÍSTICA com zero LLM por MOVIMENTO (D-13.2); (3) P2
+ * (13-01:50 reconciliado): a realização dispara na ENTRADA do portão (1×/rodada)
+ * e a T5 LÊ o texto REALIZADO; recebe o Pacote com o personagem do perfil
+ * (gênero aditivo); (4) intermediárias por rodada + história completa salvas com
+ * o texto LIDO, origem, pacoteOrigem e rodada (13-02) — salvo === lido; (5) o
+ * leitor EXIBE o texto realizado; (6) caminho infeliz: realizador fora do ar ⇒
+ * o portão CAI NO CRU (A+ v3 visível), origem sinalizada; (7) teto: fake que
+ * estoura o teto (override e2e) ⇒ cru por 'teto' — a criança nunca vê erro.
  *
  * Usa playwright-core em cache (registry offline). Porta dedicada 5139.
  */
@@ -95,7 +97,7 @@ try {
   );
   assert(true, "fichas v1 carregadas no boot (fichasProntas)");
 
-  console.log("\n=== Caminho feliz · fake realizador: prévia determinística, LLM só no commit ===");
+  console.log("\n=== Caminho feliz · fake realizador: prévia determinística; o PORTÃO lê o realizado (P2) ===");
   const feliz = await page.evaluate(async () => {
     const App = window.PipocaApp;
     const Canon = window.PipocaCanonico;
@@ -130,20 +132,33 @@ try {
       };
     };
 
+    // Portão de uma rodada (fluxo T4→T5): prepararLeituraPortao DISPARA a
+    // realização na ENTRADA e abre a T5; espera a corrida (fake resolve rápido)
+    // trocar gateStage p/ 'reading'; então commita (aplicar + próxima rodada),
+    // como faz o _commit da T5. Devolve o gateTrecho LIDO no portão.
+    const portao = async (pendente, objetoId) => {
+      App.prepararLeituraPortao(pendente, objetoId);
+      let g = 0;
+      while (App.estado.gateStage !== "reading" && g++ < 400) await espera(5);
+      const gateTrecho = App.estado.gateTrecho;
+      App.aplicarComposicao(pendente);
+      App.abrirProximaRodadaComposicao();
+      return gateTrecho;
+    };
+
     App.iniciarComposicao();
     const banco = App.estado.comp.banco.slice(0, 3);
 
-    // Prévia (T4) é determinística e NÃO chama o realizador (zero LLM por movimento).
+    // Prévia (T4) é determinística e NÃO chama o realizador (zero LLM por MOVIMENTO).
     const pendenteR1 = { tipo: "r1", ordem: banco };
     const previa1 = App.preverComposicao(pendenteR1, "n2");
     const previa2 = App.preverComposicao(pendenteR1, "n2");
-    const chamadasAntesDoCommit = registro.chamadas;
+    const chamadasAntesDoPortao = registro.chamadas;
 
-    // Commit da R1 (fluxo da T5) → dispara em background → próxima rodada.
-    App.aplicarComposicao(pendenteR1);
-    App.abrirProximaRodadaComposicao();
+    // Portão R1: a T5 deve LER o texto REALIZADO (não a prévia crua).
+    const gateTrechoR1 = await portao(pendenteR1, banco[banco.length - 1]);
 
-    // R2..R4 pelo mesmo fluxo de commit (pendente "insere", como o portão faz).
+    // R2..R4 pelo mesmo fluxo de portão (pendente "insere").
     let guarda = 0;
     while (!App.composicaoConvergiu() && guarda++ < 10) {
       const comp = App.estado.comp;
@@ -153,8 +168,7 @@ try {
         if (App.podeInserirComposicao(objeto, slot)) pendente = { tipo: "insere", objetoId: objeto, slot };
       }
       if (!pendente) break;
-      App.aplicarComposicao(pendente);
-      App.abrirProximaRodadaComposicao();
+      await portao(pendente, objeto);
     }
     await espera(150); // capturas fire-and-forget aterrissam (fake resolve na hora)
 
@@ -163,7 +177,9 @@ try {
     const intermediarias = envs.filter((h) => h && h.intermediaria === true);
     return {
       previaDeterministica: previa1 === previa2 && previa1.length > 0,
-      chamadasAntesDoCommit,
+      chamadasAntesDoPortao,
+      gateLeuRealizado: gateTrechoR1 === TEXTO_FAKE,
+      salvoIgualLido: !!completa && completa.texto === gateTrechoR1,
       chamadas: registro.chamadas,
       pacoteComPietro: registro.pacotes.every(
         (p) => p && p.esquema === "pipoca.pacote-composicao.v1" &&
@@ -186,9 +202,11 @@ try {
     };
   });
   assert(feliz.previaDeterministica, "prévia do portão é determinística (A+ v3, byte-igual no repeat)");
-  assert(feliz.chamadasAntesDoCommit === 0, "ZERO chamadas de LLM por movimento — realização só no commit (D-13.2)");
-  assert(feliz.convergiu, "a composição converge pelo fluxo de commit (T4→T5)");
-  assert(feliz.chamadas === 4, "4 commits de rodada = 4 realizações em background (uma por portão)");
+  assert(feliz.chamadasAntesDoPortao === 0, "ZERO LLM por MOVIMENTO — a prévia da T4 não chama o realizador (D-13.2)");
+  assert(feliz.gateLeuRealizado, "P2: o PORTÃO (T5) LÊ o texto REALIZADO — gateTrecho === texto do fake (com Pietro), não a prévia crua");
+  assert(feliz.salvoIgualLido, "salvo === lido: a história salva é exatamente o texto lido no portão");
+  assert(feliz.convergiu, "a composição converge pelo fluxo de portão (T4→T5)");
+  assert(feliz.chamadas === 4, "4 entradas de portão = 4 realizações (uma por rodada, na entrada — não no commit)");
   assert(feliz.pacoteComPietro, "todo Pacote carrega o personagem do PERFIL (Pietro, m) — gênero aditivo vivo");
   assert(feliz.intermediarias === 3 && feliz.totalRegistros === 4, "3 intermediárias + 1 completa salvas (13-02)");
   assert(
@@ -270,9 +288,20 @@ try {
     // Edge "fora do ar": o remoto lança — o fallback NÃO depende do edge (13-03).
     Canon.geracao.realizadorRemoto = () => async () => { throw new Error("edge fora do ar (e2e)"); };
 
+    const portao = async (pendente, objetoId) => {
+      const previa = App.preverComposicao(pendente, App.estado.perfil.nivel || "n2");
+      App.prepararLeituraPortao(pendente, objetoId);
+      let g = 0;
+      while (App.estado.gateStage !== "reading" && g++ < 400) await espera(5);
+      const gateTrecho = App.estado.gateTrecho;
+      App.aplicarComposicao(pendente);
+      App.abrirProximaRodadaComposicao();
+      return { previa, gateTrecho };
+    };
+
     App.iniciarComposicao();
-    App.aplicarComposicao({ tipo: "r1", ordem: App.estado.comp.banco.slice(0, 3) });
-    App.abrirProximaRodadaComposicao();
+    const banco = App.estado.comp.banco.slice(0, 3);
+    const r1 = await portao({ tipo: "r1", ordem: banco }, banco[banco.length - 1]);
     let guarda = 0;
     while (!App.composicaoConvergiu() && guarda++ < 10) {
       const comp = App.estado.comp;
@@ -282,8 +311,7 @@ try {
         if (App.podeInserirComposicao(objeto, slot)) pendente = { tipo: "insere", objetoId: objeto, slot };
       }
       if (!pendente) break;
-      App.aplicarComposicao(pendente);
-      App.abrirProximaRodadaComposicao();
+      await portao(pendente, objeto);
     }
     await espera(150);
     const envs = JSON.parse(localStorage.getItem("pipoca.historias.v1:g2-infeliz") || "[]").map((e) => e.historia);
@@ -293,9 +321,11 @@ try {
       capturada: !!completa && typeof completa.texto === "string" && completa.texto.length > 40,
       origem: completa ? completa.origem : null,
       texto: completa ? completa.texto : "",
+      portaoLeuCru: r1.gateTrecho === r1.previa && r1.previa.length > 0,
     };
   });
   assert(infeliz.convergiu && infeliz.capturada, "com o edge fora do ar a história ainda é capturada (nunca tela vazia)");
+  assert(infeliz.portaoLeuCru, "P2 portão-cai-no-cru: o remoto lança ⇒ a T5 LÊ a prévia A+ crua (gateTrecho === prévia)");
   assert(
     !!infeliz.origem && infeliz.origem.fonte === "fallback-a-mais",
     "origem sinaliza o fallback A+ v3 (fonte fallback-a-mais)"
@@ -309,6 +339,51 @@ try {
       "v3 vivo como RESERVA: o texto do fallback começa com abertura autorada do grafo"
     );
   }
+
+  console.log("\n=== Teto · fake que NUNCA resolve ⇒ cru por 'teto' (override de e2e) ===");
+  const teto = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const Canon = window.PipocaCanonico;
+    const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+    // Override do teto p/ não esperar 8s reais no e2e (P2 · _tetoMs).
+    window.PIPOCA_CONFIG = Object.assign(window.PIPOCA_CONFIG || {}, { tetoRealizacaoMs: 300 });
+    const perfil = Canon.perfil.criarPerfil("g2-teto", {
+      nome: "Theo", idade: 7, nivel: "n2", avatarId: "pingo", genero: "m",
+    });
+    await App.repo.salvarPerfil(perfil);
+    App.selecionarPerfil(perfil);
+    await espera(30);
+    // Realizador que NUNCA resolve → só o teto encerra a espera.
+    Canon.geracao.realizadorRemoto = () => () => new Promise(() => {});
+    App.iniciarComposicao();
+    const banco = App.estado.comp.banco.slice(0, 3);
+    const pendente = { tipo: "r1", ordem: banco };
+    const previa = App.preverComposicao(pendente, "n2");
+    const t0 = Date.now();
+    App.prepararLeituraPortao(pendente, banco[banco.length - 1]);
+    let g = 0;
+    while (App.estado.gateStage !== "reading" && g++ < 600) await espera(10);
+    const dt = Date.now() - t0;
+    const gateTrecho = App.estado.gateTrecho;
+    App.aplicarComposicao(pendente);
+    App.abrirProximaRodadaComposicao();
+    await espera(80);
+    const envs = JSON.parse(localStorage.getItem("pipoca.historias.v1:g2-teto") || "[]").map((e) => e.historia);
+    const reg = envs.find((h) => h);
+    // Restaura o teto para não afetar os cenários seguintes.
+    delete window.PIPOCA_CONFIG.tetoRealizacaoMs;
+    return {
+      caiuNoCru: gateTrecho === previa && previa.length > 0,
+      dentroDoTeto: dt >= 250 && dt < 3000,
+      origem: reg ? reg.origem : null,
+    };
+  });
+  assert(teto.caiuNoCru, "teto estourado ⇒ a T5 LÊ a prévia A+ crua (gateTrecho === prévia)");
+  assert(teto.dentroDoTeto, "a espera respeitou o teto configurável (~300ms via PIPOCA_CONFIG.tetoRealizacaoMs)");
+  assert(
+    !!teto.origem && teto.origem.fonte === "fallback-a-mais" && /teto/.test(teto.origem.motivo || ""),
+    "origem do cru por teto: fallback-a-mais com motivo contendo 'teto' (P1 — motivo real salvo)"
+  );
 
   console.log("\n=== Identidade do personagem · regra pós-incidente (nome SEMPRE; pedir-uma-vez) ===");
   // Fake que captura a identidade de cada Pacote realizado (janela global,
@@ -330,7 +405,13 @@ try {
     };
     window.__jogarRodada = async () => {
       App.iniciarComposicao();
-      App.aplicarComposicao({ tipo: "r1", ordem: App.estado.comp.banco.slice(0, 3) });
+      const banco = App.estado.comp.banco.slice(0, 3);
+      const pendente = { tipo: "r1", ordem: banco };
+      // P2: a realização dispara na ENTRADA do portão (não no commit).
+      App.prepararLeituraPortao(pendente, banco[banco.length - 1]);
+      let g = 0;
+      while (App.estado.gateStage !== "reading" && g++ < 400) await espera(5);
+      App.aplicarComposicao(pendente);
       App.abrirProximaRodadaComposicao();
       await espera(80);
     };

@@ -352,12 +352,12 @@ console.log("\n=== SA_AI · config por tenant, gate triplo, sem chaves ===");
   assert(!iaEfetivaDisponivel(valida, familia, FLAGS_PADRAO), "flag global de IA desligada barra (kill-switch)");
   assert(!iaEfetivaDisponivel({ ...valida, cotaMensal: 0 }, familia, flagsIaOn), "cota 0 → IA indisponível");
 
-  const erros = validarConfigIA({ ...valida, cotaMensal: -1, fallback: "claude", modelo: "gpt-mini" });
+  const erros = validarConfigIA({ ...valida, cotaMensal: -1, fallback: "claude", modelo: "gpt-5.4-mini" });
   assert(erros.length >= 3, "cota negativa + fallback=provedor + modelo fora do catálogo → erros");
   assert(!JSON.stringify(valida).toLowerCase().includes("chave"), "a config não tem campo de chave (server-side, fase06)");
 
   salvarConfigIA("ten_a", valida, st);
-  salvarConfigIA("ten_b", { ...valida, provedor: "gemini", modelo: "gemini-flash", fallback: null }, st);
+  salvarConfigIA("ten_b", { ...valida, provedor: "gemini", modelo: "gemini-2.5-flash", fallback: null }, st);
   assert(carregarConfigIA("ten_a", st).provedor === "claude" && carregarConfigIA("ten_b", st).provedor === "gemini", "configs por tenant não se misturam");
   assert(carregarConfigIA("ten_novo", st).provedor === null, "tenant sem config carrega o padrão sem IA");
 

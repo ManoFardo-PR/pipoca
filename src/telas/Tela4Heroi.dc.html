@@ -219,15 +219,11 @@ class Component extends DCLogic {
       objParaGate = novoId;
     }
 
-    const texto = App.preverComposicao(pendente, nivel);
-    App.setState({
-      gatePendente: pendente,
-      gateObjId: objParaGate,
-      gateTrecho: texto,
-      gatePalavraIdx: 0,
-      gateStage: 'reading',
-      tela: 5,
-    });
+    // P2 (13-01:50 reconciliado): a realização dispara AQUI, na entrada do portão
+    // (não no commit). A T5 abre em "preparando" com a prévia A+ crua e troca para
+    // o texto REALIZADO quando ele chega no teto (senão segue no cru — fallback
+    // visível). T4 continua 100% determinística: zero LLM por MOVIMENTO.
+    App.prepararLeituraPortao(pendente, objParaGate);
     const R = window.PipocaRoteador;
     if (R) R.irParaTela(5);
   }

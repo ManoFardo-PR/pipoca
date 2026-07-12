@@ -141,28 +141,53 @@ geração 1 segue 10/10 e nada foi movido para `old/`.
 Pendências de jardim (com condição de colheita, nenhuma bloqueia o uso):
 - **Primeira sessão real — O JUIZ FINAL e próximo marco.** Dispara: o veredito
   definitivo do CRITÉRIO do n1 (realizador vs A+ cru — hoje realizador, por
-  decisão executiva); a observação da hipótese prévia↔texto-final (13-01); e a
-  3ª condição do gatilho triplo do 14-01 (arquivamento da Leva 3 + DECISÃO
-  ABERTA congelar-vs-manutenção-mínima do v3, com dados de acionamento do
-  fallback).
+  decisão executiva); e a 3ª condição do gatilho triplo do 14-01 (arquivamento
+  da Leva 3 + DECISÃO ABERTA congelar-vs-manutenção-mínima do v3, com dados de
+  acionamento do fallback). NOTA: a hipótese prévia↔texto-final foi observada e
+  RESOLVIDA (P2, 2026-07-12): o portão lê o realizado — ver [[fase13-13-01]].
+- **Calibração do validador (comprimento/tolerância)** — decisão do AUTOR: a
+  tabela `MAXIMO_PALAVRAS`/`TETO_CRESCIMENTO` (25%) manda muita realização n2 R1
+  (máx. 55 palavras) para a cascata → fallback. A taxa PASS/FAIL real só é
+  observável quando a edge tiver secrets (abaixo). Colher com dados de `uso_ia`
+  + os textos gerados; junto: gap do few-shot n1.
+- **Rota do n1** (realizador vs A+ cru): a config de 1 linha existe; a decisão é
+  da sessão real.
+- **Parametrizar o NOME no conteúdo v3** (112 "Joana" no `docs/quintal.v3.json`):
+  só se a sessão real exigir — hoje o v3 é fallback/prévia e o realizador já usa
+  o nome do perfil; o few-shot do prompt já foi parametrizado (P3).
 - Completar o lote da calibração (t0.7 + resto da t0.4 — um comando, retomável).
-- Recalibração fina do n1 por ajuste de prompt, SE a sessão real pedir (junto:
-  gap do few-shot n1 e a tabela canônica de comprimento).
 - Cache de replay: só se a sessão real mostrar a criança pedindo "a mesma
   história de novo" e a versão nova frustrando (13-02).
 - Migração fichas JSON→BD: só com mais de um cenário em produção OU edição por
   não-dev virando necessidade real (13-03).
-- Config de produção da rota edge: a função `realizador` está deployada e
-  trancada (verify_jwt); o caminho feliz depende da `config_ia` do tenant e dos
-  secrets já usados pelo proxy-ia — smoke com sessão real de família na primeira
-  sessão.
+- **⚠️ Config de produção da rota edge — AÇÃO DO AUTOR (bloqueia o caminho feliz
+  REAL).** A função `realizador` está deployada e trancada (verify_jwt) e a
+  `config_ia` da plataforma já existe (migração `2026-07-12_config_plataforma` +
+  ids de modelo reais). PORÉM o smoke real (P0) revelou a causa-raiz mais
+  profunda: **os SECRETS de API dos provedores NÃO estão configurados na edge**
+  (`GEMINI_API_KEY`/`DEEPSEEK_API_KEY` = ausentes → 502 `realizacao_esgotada`).
+  Sem as chaves (privadas do autor), 100% das histórias seguem no fallback A+ v3
+  ("Joana"). Colher: setar os secrets no dashboard Supabase e rodar
+  `bun run scripts/smoke-realizador.mjs run` até um 200 com `origem.fonte:"llm"`.
 
 ## Incidente da primeira sessão real (2026-07-11) — identidade do personagem
 
-A primeira sessão real registrou **o primeiro 200 do caminho feliz em produção**
-(compor → edge → realizar → validador → exibição, tudo funcionou) — e o primeiro
-defeito de verdade: o perfil real "Pietro" (sem gênero definido) recebeu a
-história da **"Joana"**. Causa-raiz (forense completo em
+> 🔄 **CORREÇÃO DA NARRATIVA · 2026-07-12 (A3 + smoke P0):** o "primeiro 200"
+> celebrado abaixo **NÃO foi o caminho feliz do edge** — foi o **fallback A+ v3
+> LOCAL** (o cliente converte qualquer não-200 da edge em fallback no
+> dispositivo, `proxy_realizador.ts`). A edge nunca completou uma realização:
+> 100% das POSTs deram 503 `nao_configurado` (sem linha `config_ia`) e, após o
+> conserto da config (P0), 502 `realizacao_esgotada` (secrets de provedor
+> ausentes na edge). Como conferir a origem de uma história salva: campo
+> `origem.fonte` no envelope `pipoca.historias.v1:<perfilId>` do localStorage —
+> `"llm"` = edge realizou; `"fallback-a-mais"` = A+ v3 local (com `origem.motivo`
+> desde o P1). O incidente da identidade abaixo é REAL e independente (era o
+> `PERSONAGEM_CANONICO` antes do LLM, não o few-shot), corrigido no PR #26.
+
+A primeira sessão real registrou **um 200 na exibição** (compor → validador →
+exibição funcionaram) — mas por FALLBACK LOCAL, não pela edge (ver correção
+acima) — e o primeiro defeito de verdade: o perfil real "Pietro" (sem gênero
+definido) recebeu a história da **"Joana"**. Causa-raiz (forense completo em
 `forense-personagem.md`): a regra de default registrada no [[fase13-13-01]]
 ("perfil sem gênero ⇒ personagem canônico") substituía a identidade INTEIRA —
 nome incluído — quando só a concordância faltava; o código a implementou

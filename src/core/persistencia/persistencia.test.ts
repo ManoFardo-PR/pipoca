@@ -383,7 +383,7 @@ console.log("\n=== histórias salvas — repo local (upsert, poda, LGPD) ===");
   };
   await repo.salvarHistoria("p2", {
     ...mkH("nova-g2", 0),
-    origem: { fonte: "llm", rota: "realizador", provedor: "gemini", modelo: "gemini-flash" },
+    origem: { fonte: "llm", rota: "realizador", provedor: "gemini", modelo: "gemini-2.5-flash" },
     pacoteOrigem: pacoteMin as never,
     rodada: 2,
     intermediaria: true,

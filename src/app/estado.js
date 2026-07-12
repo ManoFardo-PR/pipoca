@@ -455,7 +455,10 @@
     try {
       return repo.salvarPerfil(novo)
         .then(function () { return { ok: true }; })
-        .catch(function () { return { ok: true }; }); // estado vivo já reflete; o espelho tenta de novo no próximo save
+        // estado vivo já reflete a escolha (setState acima); NÃO há retry do
+        // espelho — se o save falhar, a persistência do gênero fica só no aviso
+        // (A4/H1: perfil não entra no pipeline debounced). Fail-soft deliberado.
+        .catch(function () { return { ok: true }; });
     } catch (_) {
       return Promise.resolve({ ok: true });
     }
@@ -741,13 +744,15 @@
     return Canon && Canon.geracao ? Canon.geracao : null;
   }
 
-  // Dispara a realização em BACKGROUND no commit do move (13-01: a criança não
-  // espera o LLM de braços cruzados). Um disparo novo substitui o anterior —
-  // geração obsoleta nunca aparece (a captura só consome o pendente da rodada).
-  function _dispararRealizacao() {
+  // Dispara a realização em BACKGROUND na ENTRADA do portão (13-01:50, reconciliado
+  // após A2: o texto LIDO no portão é o realizado). Roda sobre a composição
+  // pós-move SIMULADA (compAlvo = _aplicarMove) — a mesma da prévia; um disparo
+  // novo substitui o anterior (geração obsoleta nunca aparece; a captura só
+  // consome o pendente da rodada, e o commit reusa o resultado memoizado).
+  function _dispararRealizacao(compAlvo) {
     var G = _geracao();
-    if (!G || !state.comp || !state.perfil) { _realizacaoPendente = null; return; }
-    var comp = state.comp;
+    var comp = compAlvo || state.comp;
+    if (!G || !comp || !state.perfil) { _realizacaoPendente = null; return; }
     var nivel = state.perfil.nivel || "n2";
     var entrada = {
       estado: {
@@ -771,33 +776,96 @@
     var chave = (comp.rodada || 1) + ":" + (comp.linha || []).join(",");
     _realizacaoPendente = {
       chave: chave,
+      resultado: null, // P2: memoizado pela corrida do portão; o commit reusa (salvo === lido)
       promise: G.gerar(entrada, opcoes).catch(function (e) {
-        console.warn("[PipocaApp] geração falhou (captura cai no A+ cru):", e);
-        return null;
+        // P1 (observabilidade 13-02 aditivo): preservar o MOTIVO real (ex.: 503
+        // da edge, "sem sessão") em vez de engolir em null — flui p/ origem.motivo.
+        var motivo = (e && e.message) || String(e);
+        console.warn("[PipocaApp] geração falhou (captura cai no A+ cru):", motivo);
+        return { erro: motivo };
       }),
     };
   }
 
-  // Resultado da realização com TETO DE ESPERA: estourou (ou não há pendente)
-  // ⇒ A+ cru (montarComposicao), origem sinalizada. Nunca rejeita.
-  function _resultadoRealizacao(pendente, nivel) {
+  // Teto de espera efetivo (override p/ e2e via window.PIPOCA_CONFIG.tetoRealizacaoMs).
+  function _tetoMs() {
+    try {
+      var c = window.PIPOCA_CONFIG;
+      if (c && typeof c.tetoRealizacaoMs === "number") return c.tetoRealizacaoMs;
+    } catch (_) {}
+    return TETO_ESPERA_REALIZACAO_MS;
+  }
+
+  // Corre a realização com TETO DE ESPERA (SEM memo): estourou (ou não há
+  // pendente) ⇒ A+ cru — no portão o `textoCru` é a prévia já tecida; na captura
+  // (sem textoCru) tece do estado. Origem sinalizada. Nunca rejeita.
+  function _correrRealizacao(pendente, nivel, textoCru) {
     function cru(motivo) {
       return {
-        texto: montarComposicao(nivel),
+        texto: textoCru || montarComposicao(nivel),
         origem: { fonte: "fallback-a-mais", rota: "realizador", motivo: motivo },
         pacote: null,
       };
     }
     if (!pendente || !pendente.promise) return Promise.resolve(cru("realização não disparada"));
+    var tetoMs = _tetoMs();
     var teto = new Promise(function (res) {
-      setTimeout(function () { res(null); }, TETO_ESPERA_REALIZACAO_MS);
+      setTimeout(function () { res(null); }, tetoMs);
     });
     return Promise.race([pendente.promise, teto])
       .then(function (r) {
-        if (!r || !r.texto) return cru("teto de espera estourado ou geração falhou");
+        // P1: motivos DISTINTOS e reais (o teto resolve null; o caminho LLM que
+        // caiu resolve { erro } — ver _dispararRealizacao) → origem.motivo salvo.
+        if (r === null) return cru("teto de " + Math.round(tetoMs / 1000) + "s estourado");
+        if (r && r.erro) return cru("caminho LLM caiu: " + r.erro);
+        if (!r || !r.texto) return cru("realização sem texto");
         return r;
       })
-      .catch(function () { return cru("geração falhou"); });
+      .catch(function (e) {
+        // Antes silencioso (engolia o erro): agora registra no console.
+        var motivo = (e && e.message) || String(e);
+        console.warn("[PipocaApp] captura da realização rejeitada (cai no A+ cru):", motivo);
+        return cru("exceção na captura: " + motivo);
+      });
+  }
+
+  // Resultado da realização MEMO-FIRST: se a corrida do portão já resolveu
+  // (pendente.resultado), reusa — o commit NÃO re-espera (salvo === lido). Senão,
+  // corre agora. Usada na captura (convergência/intermediária).
+  function _resultadoRealizacao(pendente, nivel, textoCru) {
+    if (pendente && pendente.resultado) return Promise.resolve(pendente.resultado);
+    return _correrRealizacao(pendente, nivel, textoCru);
+  }
+
+  // P2 (13-01:50 reconciliado) · ENTRADA DO PORTÃO (T4→T5): dispara/reusa a
+  // realização sobre o move SIMULADO e abre a T5 lendo o REALIZADO quando chega
+  // no teto; senão a prévia A+ crua (fallback visível, origem no registro). O
+  // resultado é memoizado em _realizacaoPendente.resultado ANTES de liberar a
+  // leitura — o commit salva exatamente o texto LIDO.
+  function prepararLeituraPortao(pendente, objetoId) {
+    var C = _comp();
+    if (!C || !state.comp || !pendente || !state.perfil) return;
+    var nivel = state.perfil.nivel || "n2";
+    var compSim = _aplicarMove(state.comp, pendente);
+    var previa = C.montar(compSim, nivel); // A+ cru — a reserva visível
+    var chave = (compSim.rodada || 1) + ":" + (compSim.linha || []).join(",");
+    var reusar = _realizacaoPendente && _realizacaoPendente.chave === chave;
+    if (!reusar) _dispararRealizacao(compSim); // arranjo novo (ou 1ª entrada) → dispara
+    var pend = _realizacaoPendente;
+    // Reuso com o LLM já memoizado (voltou e reentrou no mesmo arranjo) → abre PRONTO.
+    if (reusar && pend && pend.resultado && pend.resultado.origem && pend.resultado.origem.fonte === "llm") {
+      setState({ gatePendente: pendente, gateObjId: objetoId, gateTrecho: pend.resultado.texto, gatePalavraIdx: 0, gateStage: "reading", tela: 5 });
+      return;
+    }
+    // Abre em "preparando" com a prévia crua; a corrida troca p/ o realizado ao chegar.
+    setState({ gatePendente: pendente, gateObjId: objetoId, gateTrecho: previa, gatePalavraIdx: 0, gateStage: "preparando", tela: 5 });
+    _correrRealizacao(pend, nivel, previa).then(function (r) {
+      if (pend) pend.resultado = r; // ANTES do setState: o commit lê exatamente isto (salvo === lido)
+      // Só troca a tela se ainda estivermos NESTE portão (a criança pode ter voltado).
+      if (state.tela === 5 && state.gatePendente === pendente) {
+        setState({ gateTrecho: r.texto, gateStage: "reading" });
+      }
+    });
   }
 
   // ─── Telemetria (TELE · fase03-03-01) — captura na borda, fire-and-forget ──
@@ -805,6 +873,14 @@
   var _acum = { palavras: 0, historias: 0 };
   var _jaEmitidos = new Set(); // objeto_destravado idempotente (re-render/voltar)
   var _historiaEmitida = false; // historia_concluida 1x por história
+  // P1 (observabilidade): taxa realizador vs fallback da SESSÃO (em memória);
+  // logada ao fim da sessão — o autor VÊ a taxa sem painel novo.
+  var _origemSessao = { llm: 0, fallback: 0 };
+  function _contarOrigem(r) {
+    var fonte = r && r.origem && r.origem.fonte;
+    if (fonte === "llm") _origemSessao.llm += 1;
+    else if (fonte === "fallback-a-mais") _origemSessao.fallback += 1;
+  }
 
   function _tele() {
     var Canon = window.PipocaCanonico;
@@ -853,6 +929,7 @@
     _acum = { palavras: 0, historias: 0 };
     _jaEmitidos = new Set();
     _historiaEmitida = false;
+    _origemSessao = { llm: 0, fallback: 0 };
     var Canon = window.PipocaCanonico;
     if (!state.sessao && state.perfil && Canon && Canon.sessao) {
       var bloco = (state.limites && state.limites.blocoMin) || 15;
@@ -919,10 +996,12 @@
   function abrirProximaRodadaComposicao() {
     var C = _comp();
     if (!C || !state.comp) return;
-    // fase13 · a rodada que ACABOU de ser lida e a realização disparada no
-    // commit dela (aplicarComposicao) — a captura consome este par.
+    // fase13 · a rodada que ACABOU de ser lida e a realização disparada na
+    // ENTRADA do portão (prepararLeituraPortao) — a captura consome este par
+    // (com o resultado JÁ memoizado: salvo === lido).
     var rodadaLida = state.comp.rodada || 1;
     var pendenteRealizacao = _realizacaoPendente;
+    _realizacaoPendente = null; // consumido; o próximo portão dispara de novo (arranjo novo)
     setState({ comp: C.abrirProximaRodada(state.comp) });
 
     // TELE · desfecho: última rodada lida → história concluída + fim do bloco.
@@ -994,9 +1073,9 @@
     if (!state.comp || !pendente) return;
     setState({ comp: _aplicarMove(state.comp, pendente) });
 
-    // fase13 · o arranjo da rodada acabou de estabilizar (commit do move):
-    // dispara a realização por LLM em BACKGROUND (13-01, requisito de latência).
-    _dispararRealizacao();
+    // P2 (13-01:50 reconciliado): a realização NÃO dispara mais aqui — ela já
+    // rodou na ENTRADA do portão (prepararLeituraPortao) e o resultado LIDO está
+    // memoizado; a captura o reusa (salvo === lido). Zero LLM por movimento.
 
     // TELE · portão: leitura confirmada (+ objeto que entrou na cena nesta rodada).
     // gateTrecho/gateObjId ainda estão no estado (a T5 só os limpa depois).
@@ -1072,6 +1151,10 @@
     state.ultimaHistoriaSalvaId = id;
     _resultadoRealizacao(pendenteRealizacao, nivel).then(function (r) {
       _salvarRegistroHistoria(id, r, nivel, rodadaLida, false);
+      // P1: fim da história completa (convergência) — loga a taxa da sessão.
+      _contarOrigem(r);
+      console.info("[PipocaApp] realizações da sessão — realizador(llm): " +
+        _origemSessao.llm + " · fallback(cru): " + _origemSessao.fallback);
     });
   }
 
@@ -1083,6 +1166,7 @@
     var id = _uuid();
     _resultadoRealizacao(pendenteRealizacao, nivel).then(function (r) {
       _salvarRegistroHistoria(id, r, nivel, rodadaLida, true);
+      _contarOrigem(r); // P1: cada rodada conta p/ a taxa da sessão.
     });
   }
 
@@ -1141,6 +1225,7 @@
     podeComporComposicao: podeComporComposicao,
     montarComposicao: montarComposicao,
     preverComposicao: preverComposicao,
+    prepararLeituraPortao: prepararLeituraPortao,
     aplicarComposicao: aplicarComposicao,
     abrirProximaRodadaComposicao: abrirProximaRodadaComposicao,
     composicaoConvergiu: composicaoConvergiu,

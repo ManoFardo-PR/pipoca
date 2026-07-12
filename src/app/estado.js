@@ -455,7 +455,10 @@
     try {
       return repo.salvarPerfil(novo)
         .then(function () { return { ok: true }; })
-        .catch(function () { return { ok: true }; }); // estado vivo já reflete; o espelho tenta de novo no próximo save
+        // estado vivo já reflete a escolha (setState acima); NÃO há retry do
+        // espelho — se o save falhar, a persistência do gênero fica só no aviso
+        // (A4/H1: perfil não entra no pipeline debounced). Fail-soft deliberado.
+        .catch(function () { return { ok: true }; });
     } catch (_) {
       return Promise.resolve({ ok: true });
     }

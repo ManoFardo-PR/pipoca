@@ -31,8 +31,11 @@ export interface Perfil {
    * Gênero do personagem nas histórias — campo ADITIVO OPCIONAL no
    * `pipoca.perfil.v1` (fase13-13-01, decisão fixada: o envelope de storage
    * local evolui aditivamente; leitores antigos ignoram o campo novo).
-   * Ausente (perfil legado) ⇒ o módulo de geração usa o personagem canônico
-   * ("Joana", f) — NUNCA inferir do nome.
+   * Ausente (perfil legado) ⇒ regra pós-PR#26: o NOME é SEMPRE o do perfil
+   * (nunca substituído); o app pede o gênero UMA vez na ativação e, sem
+   * resposta, usa concordância FEMININA padrão (GENERO_CONCORDANCIA_PADRAO,
+   * `geracao.ts`) com o nome real. NUNCA inferir do nome; "Joana" só em
+   * conteúdo legado/demonstração.
    */
   genero?: GeneroPerfil;
 }

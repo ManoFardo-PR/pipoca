@@ -1,5 +1,9 @@
 <!-- CartaoHistoria.dc.html — Cartão de trecho da história (Trecho)
      ──────────────────────────────────────────────────────────────
+     JARDIM (A1/A2): componente ÓRFÃO — nenhuma tela o monta via <dc-import>
+     (legado da geração 1; confirmado por grep). Mantido como referência de
+     folha de componentes. Colher (remover) se seguir sem montagem na próxima
+     limpeza. O `default` do prop é só placeholder de editor.
      Props:
        texto        string  — texto do Trecho a exibir
        numeroFrase  number  — número da frase corrente (1-based)
@@ -73,7 +77,7 @@
   data-props="{
     &quot;texto&quot;: {
       &quot;editor&quot;: &quot;text&quot;,
-      &quot;default&quot;: &quot;A Joana viu um vaga-lume brilhar no quintal.&quot;,
+      &quot;default&quot;: &quot;Um vaga-lume brilhou no quintal.&quot;,
       &quot;tsType&quot;: &quot;string&quot;,
       &quot;section&quot;: &quot;CartaoHistoria&quot;,
       &quot;label&quot;: &quot;Texto do Trecho&quot;

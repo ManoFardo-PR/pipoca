@@ -128,6 +128,34 @@ function rotuloGenero(genero: "m" | "f"): string {
   return genero === "f" ? "menina" : "menino";
 }
 
+/**
+ * Parametriza um exemplo few-shot pela IDENTIDADE do personagem do Pacote (A1,
+ * censo C1: o few-shot fixo — n1/n2 em "Joana (menina)" — plantava um prior de
+ * nome/gênero conflitante ao gerar p/ outro personagem). A troca é MECÂNICA e a
+ * prosa segue VERBATIM (D-12.2): a identidade-fonte é lida do próprio campo
+ * `entrada` ("PERSONAGEM: <nome> (<rótulo>)") e só o NOME e os tokens que
+ * dependem do GÊNERO DO PERSONAGEM (rótulo menina/menino, pronomes ela/ele,
+ * dela/dele) são trocados — adjetivos concordam com substantivos (pés, olhos),
+ * não com o personagem, então não se tocam. Alvo === fonte ⇒ no-op.
+ */
+export function personalizarExemplo(ex: ExemploFewShot, nomeAlvo: string, generoAlvo: "m" | "f"): ExemploFewShot {
+  const m = ex.entrada.match(/PERSONAGEM:\s*([^()]+?)\s*\((menina|menino)\)/);
+  if (!m) return ex; // sem personagem reconhecível — não mexe
+  const nomeFonte = m[1].trim();
+  const generoFonte: "m" | "f" = m[2] === "menina" ? "f" : "m";
+  const trocar = (s: string): string => {
+    let out = s.replace(new RegExp("\\b" + nomeFonte.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g"), nomeAlvo);
+    if (generoFonte !== generoAlvo) {
+      const pares: Array<[string, string]> = generoAlvo === "m"
+        ? [["menina", "menino"], ["Ela", "Ele"], ["ela", "ele"], ["Dela", "Dele"], ["dela", "dele"]]
+        : [["menino", "menina"], ["Ele", "Ela"], ["ele", "ela"], ["Dele", "Dela"], ["dele", "dela"]];
+      for (const [de, para] of pares) out = out.replace(new RegExp("\\b" + de + "\\b", "g"), para);
+    }
+    return out;
+  };
+  return { entrada: trocar(ex.entrada), saida: trocar(ex.saida) };
+}
+
 export function montarPromptRealizador(pacote: PacoteComposicao): PromptRealizador {
   const nivel = pacote.nivel;
   const nome = pacote.personagem.nome;
@@ -182,11 +210,14 @@ export function montarPromptRealizador(pacote: PacoteComposicao): PromptRealizad
     );
   }
 
-  // Few-shot do nível (D-12.2) — só o nível pedido; exemplo de um envenena o outro.
+  // Few-shot do nível (D-12.2) — só o nível pedido; exemplo de um envenena o
+  // outro. Parametrizado pela identidade do Pacote (A1/C1): o few-shot passa a
+  // falar do MESMO personagem que se pede — sem prior de nome/gênero conflitante.
   const exemplos = FEWSHOT_POR_NIVEL[nivel];
   if (exemplos.length > 0) {
     linhasSystem.push("", `EXEMPLOS do nível ${nivel} (siga o tom, o ritmo e o comprimento):`);
-    exemplos.forEach((exemplo, i) => {
+    exemplos.forEach((exemploBruto, i) => {
+      const exemplo = personalizarExemplo(exemploBruto, nome, pacote.personagem.genero);
       linhasSystem.push(`EXEMPLO ${i + 1} — ${exemplo.entrada}`, exemplo.saida, "");
     });
   }

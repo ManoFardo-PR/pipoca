@@ -1841,6 +1841,23 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
   function rotuloGenero(genero) {
     return genero === "f" ? "menina" : "menino";
   }
+  function personalizarExemplo(ex, nomeAlvo, generoAlvo) {
+    const m = ex.entrada.match(/PERSONAGEM:\s*([^()]+?)\s*\((menina|menino)\)/);
+    if (!m)
+      return ex;
+    const nomeFonte = m[1].trim();
+    const generoFonte = m[2] === "menina" ? "f" : "m";
+    const trocar = (s) => {
+      let out = s.replace(new RegExp("\\b" + nomeFonte.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g"), nomeAlvo);
+      if (generoFonte !== generoAlvo) {
+        const pares = generoAlvo === "m" ? [["menina", "menino"], ["Ela", "Ele"], ["ela", "ele"], ["Dela", "Dele"], ["dela", "dele"]] : [["menino", "menina"], ["Ele", "Ela"], ["ele", "ela"], ["Dele", "Dela"], ["dele", "dela"]];
+        for (const [de, para] of pares)
+          out = out.replace(new RegExp("\\b" + de + "\\b", "g"), para);
+      }
+      return out;
+    };
+    return { entrada: trocar(ex.entrada), saida: trocar(ex.saida) };
+  }
   function montarPromptRealizador(pacote) {
     const nivel = pacote.nivel;
     const nome = pacote.personagem.nome;
@@ -1880,7 +1897,8 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
     const exemplos = FEWSHOT_POR_NIVEL[nivel];
     if (exemplos.length > 0) {
       linhasSystem.push("", `EXEMPLOS do nível ${nivel} (siga o tom, o ritmo e o comprimento):`);
-      exemplos.forEach((exemplo, i) => {
+      exemplos.forEach((exemploBruto, i) => {
+        const exemplo = personalizarExemplo(exemploBruto, nome, pacote.personagem.genero);
         linhasSystem.push(`EXEMPLO ${i + 1} — ${exemplo.entrada}`, exemplo.saida, "");
       });
     }

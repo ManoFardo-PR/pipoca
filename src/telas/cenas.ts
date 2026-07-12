@@ -82,7 +82,7 @@ export interface EnvData {
 
 export function _envData(): EnvData[] {
   return [
-    { key: "quintal",  name: "O Quintal", desc: "Com a Joana e o vaga-lume", badge: "", cenarioId: "quintal_anoitecer", disponivel: true },
+    { key: "quintal",  name: "O Quintal", desc: "Com um vaga-lume no quintal", badge: "", cenarioId: "quintal_anoitecer", disponivel: true },
     { key: "quarto",   name: "O Quarto",  desc: "Histórias antes de dormir",   badge: "Em breve", cenarioId: "", disponivel: false },
     { key: "floresta", name: "A Floresta",desc: "Uma aventura entre árvores",   badge: "Em breve", cenarioId: "", disponivel: false },
     { key: "espaco",   name: "O Espaço",  desc: "Entre estrelas e planetas",    badge: "Em breve", cenarioId: "", disponivel: false },

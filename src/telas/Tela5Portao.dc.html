@@ -4,7 +4,9 @@
      Tocar palavra → TTS + destaque.
      isStuck → re-tentativa acolhedora (destaque dourado, "Ouvir de novo").
      Fim do trecho → verificação (cuidador ou auto) → commit + T6.
-     Seam: texto vem de window.PipocaApp.gateTrecho (motor já chamado em T4).
+     Seam (P2, 13-01:50 reconciliado): o texto vem de window.PipocaApp.gateTrecho —
+     o REALIZADO quando chega no teto, com a prévia A+ crua como reserva visível.
+     gateStage 'preparando' (espera) → 'reading' (lê) → 'verifying'.
 -->
 <x-dc>
 <helmet>
@@ -25,6 +27,15 @@
     </div>
     <button onClick="{{ abrirAjustesA11y }}" style="width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(160,140,110,.25);background:rgba(255,255,255,.6);cursor:pointer;font-size:17px;color:#7a6a54;">⚙</button>
   </div>
+
+  <!-- Preparando (P2): a realização corre na entrada do portão; espera curta com
+       teto — nunca tela travada; estourou/falhou → segue no A+ cru (fallback visível). -->
+  <sc-if value="{{ modoPreparando }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:40px 60px;">
+    <div style="width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 22px 6px rgba(247,191,96,.6);" class="word-stuck"></div>
+    <div role="status" aria-live="polite" style="font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;color:#b8693c;text-align:center;">Preparando a sua história… ✨</div>
+  </div>
+  </sc-if>
 
   <!-- Reading state -->
   <sc-if value="{{ modoLendo }}" hint-placeholder-val="{{ true }}">
@@ -211,11 +222,19 @@ class Component extends DCLogic {
       const idx = App.estado.gatePalavraIdx || 0;
       const stage = App.estado.gateStage || 'reading';
       this.setState({ palavraIdx: idx, stage });
+      // P2: a realização corre na entrada do portão; quando chega (App troca
+      // gateStage 'preparando'→'reading'), a tela sai da espera e lê o realizado.
+      this._unsub = App.subscribe((s) => {
+        if (this.state.stage === 'preparando' && s.gateStage === 'reading') {
+          this.setState({ stage: 'reading', palavraIdx: 0 });
+        }
+      });
     }
   }
 
   componentWillUnmount() {
     this._pararLeituraAuto();
+    if (this._unsub) { this._unsub(); this._unsub = null; }
   }
 
   // Dispara o carregamento assíncrono das vozes (getVoices vem vazio até carregar),
@@ -355,6 +374,7 @@ class Component extends DCLogic {
     const palavras = this._tokenizar(trecho);
     const curIdx = this.state.palavraIdx;
     const stage = this.state.stage;
+    const modoPreparando = stage === 'preparando';
     const modoLendo = stage === 'reading';
     const modoVerificacao = stage === 'verifying';
 
@@ -405,6 +425,7 @@ class Component extends DCLogic {
     const vagalumes = estado.economia ? estado.economia.vagalumes : 0;
 
     return {
+      modoPreparando,
       modoLendo,
       modoVerificacao,
       vagalumes,

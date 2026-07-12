@@ -772,8 +772,11 @@
     _realizacaoPendente = {
       chave: chave,
       promise: G.gerar(entrada, opcoes).catch(function (e) {
-        console.warn("[PipocaApp] geração falhou (captura cai no A+ cru):", e);
-        return null;
+        // P1 (observabilidade 13-02 aditivo): preservar o MOTIVO real (ex.: 503
+        // da edge, "sem sessão") em vez de engolir em null — flui p/ origem.motivo.
+        var motivo = (e && e.message) || String(e);
+        console.warn("[PipocaApp] geração falhou (captura cai no A+ cru):", motivo);
+        return { erro: motivo };
       }),
     };
   }
@@ -794,10 +797,19 @@
     });
     return Promise.race([pendente.promise, teto])
       .then(function (r) {
-        if (!r || !r.texto) return cru("teto de espera estourado ou geração falhou");
+        // P1: motivos DISTINTOS e reais (o teto resolve null; o caminho LLM que
+        // caiu resolve { erro } — ver _dispararRealizacao) → origem.motivo salvo.
+        if (r === null) return cru("teto de " + Math.round(TETO_ESPERA_REALIZACAO_MS / 1000) + "s estourado");
+        if (r && r.erro) return cru("caminho LLM caiu: " + r.erro);
+        if (!r || !r.texto) return cru("realização sem texto");
         return r;
       })
-      .catch(function () { return cru("geração falhou"); });
+      .catch(function (e) {
+        // Antes silencioso (engolia o erro): agora registra no console.
+        var motivo = (e && e.message) || String(e);
+        console.warn("[PipocaApp] captura da realização rejeitada (cai no A+ cru):", motivo);
+        return cru("exceção na captura: " + motivo);
+      });
   }
 
   // ─── Telemetria (TELE · fase03-03-01) — captura na borda, fire-and-forget ──
@@ -805,6 +817,14 @@
   var _acum = { palavras: 0, historias: 0 };
   var _jaEmitidos = new Set(); // objeto_destravado idempotente (re-render/voltar)
   var _historiaEmitida = false; // historia_concluida 1x por história
+  // P1 (observabilidade): taxa realizador vs fallback da SESSÃO (em memória);
+  // logada ao fim da sessão — o autor VÊ a taxa sem painel novo.
+  var _origemSessao = { llm: 0, fallback: 0 };
+  function _contarOrigem(r) {
+    var fonte = r && r.origem && r.origem.fonte;
+    if (fonte === "llm") _origemSessao.llm += 1;
+    else if (fonte === "fallback-a-mais") _origemSessao.fallback += 1;
+  }
 
   function _tele() {
     var Canon = window.PipocaCanonico;
@@ -853,6 +873,7 @@
     _acum = { palavras: 0, historias: 0 };
     _jaEmitidos = new Set();
     _historiaEmitida = false;
+    _origemSessao = { llm: 0, fallback: 0 };
     var Canon = window.PipocaCanonico;
     if (!state.sessao && state.perfil && Canon && Canon.sessao) {
       var bloco = (state.limites && state.limites.blocoMin) || 15;
@@ -1072,6 +1093,10 @@
     state.ultimaHistoriaSalvaId = id;
     _resultadoRealizacao(pendenteRealizacao, nivel).then(function (r) {
       _salvarRegistroHistoria(id, r, nivel, rodadaLida, false);
+      // P1: fim da história completa (convergência) — loga a taxa da sessão.
+      _contarOrigem(r);
+      console.info("[PipocaApp] realizações da sessão — realizador(llm): " +
+        _origemSessao.llm + " · fallback(cru): " + _origemSessao.fallback);
     });
   }
 
@@ -1083,6 +1108,7 @@
     var id = _uuid();
     _resultadoRealizacao(pendenteRealizacao, nivel).then(function (r) {
       _salvarRegistroHistoria(id, r, nivel, rodadaLida, true);
+      _contarOrigem(r); // P1: cada rodada conta p/ a taxa da sessão.
     });
   }
 

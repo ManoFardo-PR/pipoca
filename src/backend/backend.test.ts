@@ -959,7 +959,7 @@ console.log("\n=== ProxyRealizador cliente (13-03) — keyless, cascata no edge 
     texto: "texto realizado no edge",
     paragrafos: ["texto realizado no edge"],
     veredito: { pass: true, motivos: [], avisos: [], presencaPorBeat: {} },
-    origem: { fonte: "llm", provedor: "gemini", modelo: "gemini-flash" },
+    origem: { fonte: "llm", provedor: "gemini", modelo: "gemini-2.5-flash" },
     metadados: { chamadas: 1, duracaoMs: 10 },
   };
   const { t, chamadas } = transporteRotas([

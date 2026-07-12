@@ -114,8 +114,8 @@ function uidDoJwt(jwt: string): string | null {
 // ── provedores (4) — chaves só do ambiente; modelo default barato por provedor ──
 const MODELO_PADRAO: Record<string, string> = {
   claude: "claude-haiku-4-5",
-  openai: "gpt-mini",
-  gemini: "gemini-flash",
+  openai: "gpt-5.4-mini",
+  gemini: "gemini-2.5-flash",
   deepseek: "deepseek-chat",
 };
 const SECRET_POR_PROVEDOR: Record<string, string> = {

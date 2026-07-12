@@ -260,19 +260,19 @@ console.log("\n=== adaptador Gemini (05-06) ===");
 {
   const ok = { candidates: [{ content: { parts: [{ text: TRECHO_OK }] } }] };
   const { t, capturas } = transporteFake(ok);
-  const gem = criarAdaptadorGemini({ modelo: "gemini-flash", transporte: t });
+  const gem = criarAdaptadorGemini({ modelo: "gemini-2.5-flash", transporte: t });
   const trecho = await gem.gerar("conte a abertura", TRECHO_JSON_SCHEMA, { system: PROMPT_BASE });
   assert(trecho.texto.indexOf("luzinha") >= 0, "resposta ok vira Trecho válido");
-  assert(capturas[0]!.url.indexOf("gemini-flash:generateContent") >= 0, "rota carrega o modelo");
+  assert(capturas[0]!.url.indexOf("gemini-2.5-flash:generateContent") >= 0, "rota carrega o modelo");
   const gc = capturas[0]!.corpo["generationConfig"] as { responseSchema?: unknown };
   assert(!!gc && !!gc.responseSchema, "saída restrita por responseSchema");
   let eBloq = false;
   const { t: tBloq } = transporteFake({ promptFeedback: { blockReason: "SAFETY" } });
-  try { await criarAdaptadorGemini({ modelo: "gemini-flash", transporte: tBloq }).gerar("x", TRECHO_JSON_SCHEMA); } catch (e) { eBloq = e instanceof ErroRecusaProvedor; }
+  try { await criarAdaptadorGemini({ modelo: "gemini-2.5-flash", transporte: tBloq }).gerar("x", TRECHO_JSON_SCHEMA); } catch (e) { eBloq = e instanceof ErroRecusaProvedor; }
   assert(eBloq, "blockReason → erro tipado de recusa");
   let eSafety = false;
   const { t: tSaf } = transporteFake({ candidates: [{ finishReason: "SAFETY" }] });
-  try { await criarAdaptadorGemini({ modelo: "gemini-flash", transporte: tSaf }).gerar("x", TRECHO_JSON_SCHEMA); } catch (e) { eSafety = e instanceof ErroRecusaProvedor; }
+  try { await criarAdaptadorGemini({ modelo: "gemini-2.5-flash", transporte: tSaf }).gerar("x", TRECHO_JSON_SCHEMA); } catch (e) { eSafety = e instanceof ErroRecusaProvedor; }
   assert(eSafety, "finishReason SAFETY → erro tipado de recusa");
 }
 
@@ -280,7 +280,7 @@ console.log("\n=== adaptador OpenAI (05-07) ===");
 {
   const ok = { choices: [{ message: { content: TRECHO_OK } }] };
   const { t, capturas } = transporteFake(ok);
-  const oai = criarAdaptadorOpenAI({ modelo: "gpt-mini", transporte: t });
+  const oai = criarAdaptadorOpenAI({ modelo: "gpt-5.4-mini", transporte: t });
   const trecho = await oai.gerar("conte a abertura", TRECHO_JSON_SCHEMA, { system: PROMPT_BASE });
   assert(trecho.texto.indexOf("luzinha") >= 0, "resposta ok vira Trecho válido");
   const rf = capturas[0]!.corpo["response_format"] as { type?: string; json_schema?: { strict?: boolean } };
@@ -288,7 +288,7 @@ console.log("\n=== adaptador OpenAI (05-07) ===");
   assert(!("temperature" in capturas[0]!.corpo), "sem temperature no corpo");
   let eRef = false;
   const { t: tRef } = transporteFake({ choices: [{ message: { refusal: "não posso", content: TRECHO_OK } }] });
-  try { await criarAdaptadorOpenAI({ modelo: "gpt-mini", transporte: tRef }).gerar("x", TRECHO_JSON_SCHEMA); } catch (e) { eRef = e instanceof ErroRecusaProvedor; }
+  try { await criarAdaptadorOpenAI({ modelo: "gpt-5.4-mini", transporte: tRef }).gerar("x", TRECHO_JSON_SCHEMA); } catch (e) { eRef = e instanceof ErroRecusaProvedor; }
   assert(eRef, "refusal → erro tipado ANTES do conteúdo");
 }
 
@@ -308,7 +308,7 @@ console.log("\n=== selecionarAdaptador (05-04) — config do SA_AI ===");
   const sujo = { choices: [{ message: { content: JSON.stringify({ texto: "veja www.perigo.com", ehFinal: false }) } }] };
   const { t: tSujo } = transporteFake(sujo);
   let guardou = false;
-  try { await selecionarAdaptador(cfg("openai", "gpt-mini"), { transporte: tSujo }).gerar("conte", TRECHO_JSON_SCHEMA); } catch { guardou = true; }
+  try { await selecionarAdaptador(cfg("openai", "gpt-5.4-mini"), { transporte: tSujo }).gerar("conte", TRECHO_JSON_SCHEMA); } catch { guardou = true; }
   assert(guardou, "GUARD sempre no caminho: saída suja do adaptador é bloqueada");
 }
 

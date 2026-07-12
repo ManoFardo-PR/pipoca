@@ -522,6 +522,71 @@
       idx = (idx + 1) % pool.length;
     return pool[idx];
   }
+  function normMarcador(s) {
+    return s.normalize("NFC").toLowerCase().replace(/[.,;:!?…"'()]/g, " ").replace(/\s+/g, " ").trim();
+  }
+  var MARCADORES_BASE = [
+    "agora",
+    "então",
+    "aí",
+    "depois",
+    "logo",
+    "de repente",
+    "foi quando",
+    "logo depois",
+    "pouco depois",
+    "no fim",
+    "por fim"
+  ];
+  function marcadoresIniciais(cenario) {
+    const set = new Set;
+    const conectivos = cenario.moldura.conectivos;
+    if (conectivos) {
+      for (const k of Object.keys(conectivos)) {
+        for (const c of conectivos[k] || [])
+          set.add(normMarcador(c));
+      }
+    }
+    for (const m of MARCADORES_BASE)
+      set.add(normMarcador(m));
+    for (const m of cenario.moldura.marcadores_iniciais || [])
+      set.add(normMarcador(m));
+    set.delete("");
+    return set;
+  }
+  function comecaComMarcador(texto, marcadores) {
+    const alvo = normMarcador(texto);
+    for (const m of marcadores) {
+      if (alvo === m || alvo.startsWith(m + " "))
+        return true;
+    }
+    return false;
+  }
+  function nomesProtegidos(cenario) {
+    const nomes = [];
+    const p = cenario.personagem;
+    if (typeof p === "string" && p.trim()) {
+      for (const w of p.split(/\s+/))
+        if (/^\p{Lu}/u.test(w))
+          nomes.push(w);
+    }
+    if (nomes.length === 0)
+      nomes.push("Joana");
+    for (const n of cenario.moldura.nomes_proprios || [])
+      nomes.push(n);
+    return new Set(nomes.map((n) => n.normalize("NFC").toLowerCase().replace(/[^\p{L}]/gu, "")));
+  }
+  function rebaixarInicial(texto, protegidos) {
+    if (!texto)
+      return texto;
+    const primeira = (texto.split(/\s+/)[0] || "").normalize("NFC").toLowerCase().replace(/[^\p{L}]/gu, "");
+    if (primeira && protegidos.has(primeira))
+      return texto;
+    const i = texto.search(/\p{L}/u);
+    if (i < 0)
+      return texto;
+    return texto.slice(0, i) + texto[i].toLowerCase() + texto.slice(i + 1);
+  }
   function textoDesfecho(estado, nivel, rng) {
     const d = estado.cenario.moldura.desfecho;
     if (estado.modos && estado.modos.desfecho === "aberto" && d.aberto && d.aberto.length) {
@@ -608,6 +673,8 @@
     if (abertura)
       partes.push(abertura);
     const pool = cenario.moldura.conectivos && cenario.moldura.conectivos[nk] || [];
+    const marcadores = marcadoresIniciais(cenario);
+    const protegidos = nomesProtegidos(cenario);
     let conectivoAnterior = "";
     for (let i = 0;i < estado.linha.length; i++) {
       const id = estado.linha[i];
@@ -615,9 +682,10 @@
       const ehMiolo = i > 0 && i < estado.linha.length - 1;
       if (conta && ehMiolo && pool.length) {
         const con = escolherConectivo(pool, rng, conectivoAnterior);
-        conectivoAnterior = con;
-        if (con)
-          conta = con + " " + conta;
+        if (con && !comecaComMarcador(conta, marcadores)) {
+          conta = con + " " + rebaixarInicial(conta, protegidos);
+          conectivoAnterior = con;
+        }
       }
       if (conta)
         partes.push(conta);
@@ -656,6 +724,19 @@
         erros.push(`${onde}.${nk}: variante vazia`);
     }
   }
+  function avisarMarcadorInicial(celula, marcadores, onde, avisos) {
+    for (const nk of NIVEIS) {
+      const t = celula && celula[nk];
+      if (t === undefined || t === null)
+        continue;
+      const pool = Array.isArray(t) ? t : [t];
+      for (const v of pool) {
+        if (comecaComMarcador(String(v || ""), marcadores)) {
+          avisos.push(`${onde}.${nk}: variante \`${v}\` abre por marcador — o conectivo será suprimido no miolo`);
+        }
+      }
+    }
+  }
   function lintCondicao(cond, onde, avisos) {
     const c = String(cond || "");
     if (c.indexOf("func:") === 0) {
@@ -681,14 +762,17 @@
         errosV3.push(`moldura.conectivos.n1: \`${con}\` tem mais de 1 palavra (n1 exige alta decodificabilidade)`);
       }
     }
+    const marcadores = marcadoresIniciais(cenario);
     for (const [id, obj] of Object.entries(cenario.objetos || {})) {
       lintCelula(obj.conta, `objetos.${id}.conta`, errosV3);
+      avisarMarcadorInicial(obj.conta, marcadores, `objetos.${id}.conta`, avisos);
       if (obj.genero !== "m" && obj.genero !== "f")
         errosV3.push(`objetos.${id}: falta \`genero\` ("m"|"f")`);
       if (obj.numero !== "sg" && obj.numero !== "pl")
         errosV3.push(`objetos.${id}: falta \`numero\` ("sg"|"pl")`);
       (obj.tempera || []).forEach((t, i) => {
         lintCelula(t.entao, `objetos.${id}.tempera[${i}].entao`, errosV3);
+        avisarMarcadorInicial(t.entao, marcadores, `objetos.${id}.tempera[${i}].entao`, avisos);
         const conds = Array.isArray(t.se) ? t.se : [t.se];
         for (const c of conds)
           lintCondicao(c, `objetos.${id}.tempera[${i}].se`, avisos);
@@ -946,8 +1030,8 @@
   // src/admin/ia_config.ts
   var MODELOS_POR_PROVEDOR = {
     claude: ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5"],
-    gemini: ["gemini-flash"],
-    openai: ["gpt-mini"],
+    gemini: ["gemini-2.5-flash"],
+    openai: ["gpt-5.4-mini"],
     deepseek: ["deepseek-chat"]
   };
   var CONFIG_IA_PADRAO = {
@@ -1068,6 +1152,9 @@
   var IDADE_MIN = 3;
   var IDADE_MAX = 12;
   var NIVEIS_VALIDOS = ["n1", "n2", "n3", "n4"];
+  function normalizarGenero(genero) {
+    return genero === "m" || genero === "f" ? genero : undefined;
+  }
   function validarPerfil(p) {
     const erros = [];
     if (typeof p !== "object" || p === null) {
@@ -1239,7 +1326,17 @@
     const erros = validarPerfil(r["perfil"]);
     if (erros.length > 0)
       return null;
-    return r["perfil"];
+    const perfil = r["perfil"];
+    const genero = normalizarGenero(perfil["genero"]);
+    if (genero !== perfil.genero) {
+      const copia = { ...perfil };
+      if (genero)
+        copia.genero = genero;
+      else
+        delete copia.genero;
+      return copia;
+    }
+    return perfil;
   }
   function validarEnvelopeSave(raw) {
     try {
@@ -1326,9 +1423,38 @@
   var ESQUEMA_HISTORIAS = "pipoca.historias.v1";
   var RETENCAO_HISTORIAS_DIAS = 20;
   var MAX_NAO_FAVORITAS = 30;
+  var MAX_INTERMEDIARIAS_NAO_FAVORITAS = 30;
   var MS_POR_DIA3 = 86400000;
   var NIVEIS3 = ["n1", "n2", "n3", "n4"];
   var DESFECHOS = ["convergente", "aberto"];
+  function sanearOrigem(raw) {
+    if (typeof raw !== "object" || raw === null)
+      return;
+    const r = raw;
+    if (r["fonte"] !== "llm" && r["fonte"] !== "fallback-a-mais")
+      return;
+    const origem = { fonte: r["fonte"] };
+    for (const campo of ["rota", "provedor", "modelo", "motivo"]) {
+      if (typeof r[campo] === "string")
+        origem[campo] = r[campo];
+    }
+    return origem;
+  }
+  function sanearPacoteOrigem(raw) {
+    if (typeof raw !== "object" || raw === null)
+      return;
+    const r = raw;
+    if (r["esquema"] !== "pipoca.pacote-composicao.v1")
+      return;
+    return raw;
+  }
+  function sanearParagrafos(raw) {
+    if (!Array.isArray(raw) || raw.length === 0)
+      return;
+    if (!raw.every((p) => typeof p === "string" && p.trim() !== ""))
+      return;
+    return raw.slice();
+  }
   function validarHistoriaSalva(raw) {
     if (typeof raw !== "object" || raw === null)
       return null;
@@ -1349,6 +1475,10 @@
       return null;
     if (typeof r["criadaEm"] !== "number" || !Number.isFinite(r["criadaEm"]))
       return null;
+    const origem = sanearOrigem(r["origem"]);
+    const pacoteOrigem = sanearPacoteOrigem(r["pacoteOrigem"]);
+    const paragrafos = sanearParagrafos(r["paragrafos"]);
+    const rodada = typeof r["rodada"] === "number" && Number.isInteger(r["rodada"]) && r["rodada"] >= 1 && r["rodada"] <= 4 ? r["rodada"] : undefined;
     return {
       id: r["id"],
       cenarioId: r["cenarioId"],
@@ -1359,7 +1489,12 @@
       titulo: r["titulo"],
       emoji: typeof r["emoji"] === "string" && r["emoji"] !== "" ? r["emoji"] : "✨",
       criadaEm: r["criadaEm"],
-      favorita: r["favorita"] === true
+      favorita: r["favorita"] === true,
+      ...origem ? { origem } : {},
+      ...pacoteOrigem ? { pacoteOrigem } : {},
+      ...rodada !== undefined ? { rodada } : {},
+      ...r["intermediaria"] === true ? { intermediaria: true } : {},
+      ...paragrafos ? { paragrafos } : {}
     };
   }
   function dentroDaRetencaoHistoria(h, agora, retencaoDias = RETENCAO_HISTORIAS_DIAS) {
@@ -1377,11 +1512,18 @@
     const vivas = [...porId.values()].filter((h) => dentroDaRetencaoHistoria(h, agora)).sort((a, b) => b.criadaEm - a.criadaEm);
     const resultado = [];
     let naoFavoritas = 0;
+    let intermediarias = 0;
     for (const h of vivas) {
       if (!h.favorita) {
-        if (naoFavoritas >= MAX_NAO_FAVORITAS)
-          continue;
-        naoFavoritas++;
+        if (h.intermediaria === true) {
+          if (intermediarias >= MAX_INTERMEDIARIAS_NAO_FAVORITAS)
+            continue;
+          intermediarias++;
+        } else {
+          if (naoFavoritas >= MAX_NAO_FAVORITAS)
+            continue;
+          naoFavoritas++;
+        }
       }
       resultado.push(h);
     }
@@ -1503,9 +1645,21 @@
       return envelopes.map((e) => validarHistoriaSalva(e.historia)).filter((h) => h !== null).sort((a, b) => b.criadaEm - a.criadaEm);
     }
     async salvarHistoria(perfilId, historia) {
-      const envelopes = lerArrayEnvelopes(chaveHistorias(perfilId), ESQUEMA_HISTORIAS);
+      const chave = chaveHistorias(perfilId);
+      const envelopes = lerArrayEnvelopes(chave, ESQUEMA_HISTORIAS);
       const semEsta = envelopes.filter((e) => e.historia?.id !== historia.id);
-      gravarItem(chaveHistorias(perfilId), [...semEsta, criarEnvelopeHistoria({ ...historia })]);
+      let lista = [...semEsta, criarEnvelopeHistoria({ ...historia })];
+      if (gravarItem(chave, lista))
+        return;
+      const podavel = (e, intermediaria) => !!e.historia && e.historia.favorita !== true && e.historia.id !== historia.id && e.historia.intermediaria === true === intermediaria;
+      for (const faseIntermediarias of [true, false]) {
+        const candidatas = lista.filter((e) => podavel(e, faseIntermediarias)).sort((a, b) => (a.historia?.criadaEm ?? 0) - (b.historia?.criadaEm ?? 0));
+        for (const vitima of candidatas) {
+          lista = lista.filter((e) => e !== vitima);
+          if (gravarItem(chave, lista))
+            return;
+        }
+      }
     }
     async apagarHistoria(perfilId, historiaId) {
       const envelopes = lerArrayEnvelopes(chaveHistorias(perfilId), ESQUEMA_HISTORIAS);
@@ -2206,6 +2360,159 @@
     };
   }
 
+  // src/core/realizador/prompt_template.ts
+  var DESCRICAO_NIVEL = {
+    n1: "Primeiras palavras — sílabas e palavras soltas",
+    n2: "Frases curtas — uma linha",
+    n3: "Pequenos textos — frases ligadas",
+    n4: "Parágrafos — histórias mais longas"
+  };
+  var MAXIMO_PALAVRAS = {
+    n1: [31, 44, 58, 71],
+    n2: [55, 77, 100, 122],
+    n3: [91, 125, 159, 193],
+    n4: [200, 268, 335, 403]
+  };
+  function rodadaDoPacote(pacote) {
+    const r = pacote.beats.length - 2;
+    return r < 1 ? 1 : r > 4 ? 4 : r;
+  }
+  function maximoPalavrasDoPacote(pacote) {
+    return MAXIMO_PALAVRAS[pacote.nivel][rodadaDoPacote(pacote) - 1];
+  }
+  var FEWSHOT_POR_NIVEL = {
+    n1: [
+      {
+        entrada: "ELEMENTOS: vagalume → folha → vento · PERSONAGEM: Joana (menina)",
+        saida: "O quintal sussurra segredos, Joana quer ver tudo. A grama fria toca seu pé. Uma luz pisca no fundo, os olhos de Joana seguem. Uma folha desce rodando, o dedo de Joana segue. O vento pula o muro, a pele de Joana sente o fresco. O quintal conta tudo, Joana sente os segredos."
+      }
+    ],
+    n2: [
+      {
+        entrada: "ELEMENTOS: vagalume → vento → frasco · PERSONAGEM: Joana (menina)",
+        saida: "O quintal sussurra segredos. Joana sente a grama fria, quer ver tudo. Seus olhos seguem o vaga-lume piscando no fundo. Ela chega perto na ponta dos pés, e a faísca entra no pote, vira sua lanterninha. O vento pula o muro e corre, fresco, mexendo em tudo. A pele de Joana arrepia, o cabelo mexe. Ela segura o pote de vidro frio e liso com as duas mãos, espiando o mundo lá dentro."
+      },
+      {
+        entrada: "ELEMENTOS: folha → frasco → gato → vento · PERSONAGEM: Pietro (menino)",
+        saida: "O quintal sussurra segredos. A grama fria no pé de Pietro faz a vontade de ver tudo. Uma folha solta do galho, desce rodando. O dedo de Pietro acompanha, os olhos dançam. Um pote frio e liso espera na grama. Pietro o segura, espia o mundo. Um gato quieto aparece na cerca, olhos verdes. Pietro silencia, prende a respiração. O gato vê a folha, pula, brincando. O vento pula o muro, corre, fresco. A pele de Pietro arrepia, o cabelo mexe. O quintal continua a sussurrar segredos."
+      }
+    ],
+    n3: [
+      {
+        entrada: "ELEMENTOS: vento → vagalume → gato → frasco · PERSONAGEM: Pietro (menino)",
+        saida: `O quintal sussurra segredos; a grama fria nos pés de Pietro traz vontade de descobrir. O vento rola pelo muro, corre no quintal, fresco de longe, mexe de leve. Os braços de Pietro arrepiam, o cabelo mexe. No canto escuro, luzinha acende e apaga; vaga-lume pisca devagar como estrela. Os olhos de Pietro seguem a pisca, querendo perto.
+
+Na cerca, gato aparece sem barulho, quieto feito sombra, olhos verdes acesos feito lanternas. Pietro fica em silêncio, prende a respiração, troca olhar com o gato, que espia a luzinha. Então, Pietro vê pote de vidro escondido na grama, frio e liso feito pedra de rio, que entorta o mundo. Ele o segura com as duas mãos, fecha um olho para espiar. A faísca do vaga-lume entra no pote, piscando lá dentro — uma lanterninha viva pra carregar. Pietro agora tem um segredo do quintal, guardado bem perto.`
+      },
+      {
+        entrada: "ELEMENTOS: vagalume → folha → gato → frasco · PERSONAGEM: Pietro (menino)",
+        saida: "O quintal sussurra segredos, um por um. A grama fria nos pés de Pietro traz a vontade de descobrir. No canto escuro, um vaga-lume acende e apaga, estrelinha pra brincar. Os olhos de Pietro seguem a pisca, e ele na ponta dos pés quer chegar perto. A faísca entra no pote de vidro, virando lanterninha viva. Uma folha se solta do galho alto, descendo rodando no ar. O dedo de Pietro acompanha cada volta, sua mão aberta, esperando. Na cerca, um gato aparece sem barulho, quieto feito sombra, olhos verdes acesos. Pietro fica em silêncio, prende a respiração, e troca um olhar demorado. O gato espia a luzinha piscando, movendo a cabeça. Um pote de vidro, frio e liso feito pedra de rio, está na grama, entortando o mundo. Pietro o segura com as duas mãos, fecha um olho e espia, colhendo os segredos do quintal."
+      }
+    ],
+    n4: [
+      {
+        entrada: "ELEMENTOS: folha → vagalume → frasco · PERSONAGEM: Pietro (menino)",
+        saida: "O quintal sussurra segredos, e a grama fria nos pés de Pietro faz seu coração bater forte de vontade de saber. Do galho alto, uma folha se despede e desce no ar escuro, rodando leve. O dedo de Pietro acompanha as voltas, e sua mão se abre feito ninho, esperando a folha pousar. No canto escuro perto da cerca, uma luzinha acende e apaga, um vaga-lume. Os olhos de Pietro seguem a pisca, e a vontade o move na ponta dos pés, prendendo a respiração, até um pote de vidro na grama. A faísca entra no pote frio e liso, piscando lá dentro, presa e livre, uma lanterninha viva. Pietro o segura com as duas mãos, ergue contra a luz, fecha um olho e espia o mundo que entorta e brilha, pequeno e curvo, e a vontade de saber se colhe no brilho da lanterninha viva."
+      },
+      {
+        entrada: "ELEMENTOS: frasco → vento → gato → vagalume · PERSONAGEM: Pietro (menino)",
+        saida: `O quintal sussurra segredos para quem vem ver, e a grama fria nos pés descalços de Pietro faz seu coração bater forte de vontade de saber. Ele segura um pote de vidro com as duas mãos, erguendo-o contra a luz, e fecha um olho para espiar o mundo que entorta lá dentro, virando devagar. O pote vazio parece à espera, e Pietro sente a certeza boa de que a noite ainda vai mandar uma coisinha brilhante para morar ali.
+
+O vento chega rolando por cima do muro, balançando a grama e cheirando a terra molhada. A pele dos braços de Pietro arrepia, ele fecha os olhos e respira fundo, deixando o vento passar como se fosse noite. Em cima da cerca, um gato já está sentado, e Pietro fica em silêncio, prendendo a respiração, trocando um olhar demorado e piscando devagar de volta. No canto do quintal, uma luzinha acende e apaga, flutuando. Os olhos de Pietro seguem a pisca, e a vontade de chegar perto o guia, então a faísca roda no ar, encontra o pote e entra devagarinho, piscando quentinha, como quem chega em casa.`
+      }
+    ]
+  };
+  function rotuloGenero(genero) {
+    return genero === "f" ? "menina" : "menino";
+  }
+  function montarPromptRealizador(pacote) {
+    const nivel = pacote.nivel;
+    const nome = pacote.personagem.nome;
+    const genero = rotuloGenero(pacote.personagem.genero);
+    const maximo = maximoPalavrasDoPacote(pacote);
+    const linhasUser = [];
+    linhasUser.push(`LUGAR: ${pacote.cenario.descricao}`);
+    linhasUser.push(`VOZ DO LUGAR: ${pacote.cenario.voz_do_contador}`);
+    linhasUser.push(`O QUE O LUGAR FAZ SENTIR: ${pacote.cenario.sensacao_no_personagem}`);
+    linhasUser.push(`PERSONAGEM: ${nome} (${genero})`);
+    linhasUser.push("", "ELEMENTOS, NA ORDEM:");
+    pacote.beats.forEach((beat, i) => {
+      linhasUser.push(`${i + 1}. ${beat.objeto} (${beat.papel})`);
+      linhasUser.push(`   O QUE É: ${beat.descricao}`);
+      linhasUser.push(`   CORPO: ${beat.corpo}`);
+      for (const relacao of beat.relacoes) {
+        linhasUser.push(`   INTERAÇÃO (com ${relacao.alvo}): ${relacao.interacao}`);
+      }
+    });
+    const linhasSystem = [
+      "Escreva uma história infantil curta a partir do MATERIAL abaixo.",
+      `O corpo de ${nome} guia cada cena: use os gestos dados em CORPO, não invente emoções abstratas.`,
+      "O lugar é o contador: a voz do lugar abre e costura a história.",
+      "Plante a vontade na abertura; feche colhendo essa vontade no corpo.",
+      "NÃO invente acontecimentos, objetos, personagens ou falas.",
+      "NÃO remova nenhum elemento. NÃO mude a ordem dos elementos.",
+      `NÃO troque o nome (${nome}), o gênero (${genero}) ou a idade.`,
+      "Escreva no tempo PRESENTE (a história acontece agora), como nos exemplos abaixo.",
+      `Não use "ele" ou "ela" para objetos — repita o nome do objeto.`,
+      `Mantenha o vocabulário do nível ${nivel} (${DESCRICAO_NIVEL[nivel]}) — nem mais simples, nem mais difícil.`
+    ];
+    if (nivel === "n1") {
+      linhasSystem.push("Nível n1: frases bem curtas, UMA sensação de corpo por elemento.", 'Integre a sensação de corpo na frase do evento com "e" — no máximo 2 frases por elemento.', "Repetir o nome do objeto ou da personagem é bem-vindo (repetição coesiva).", "No máximo 1 fragmento exclamativo em todo o texto.");
+    } else {
+      linhasSystem.push('Uma frase pode unir-se à outra com "e", "mas", "então", "depois". Menos pontos finais, sem frases picadas.');
+    }
+    const exemplos = FEWSHOT_POR_NIVEL[nivel];
+    if (exemplos.length > 0) {
+      linhasSystem.push("", `EXEMPLOS do nível ${nivel} (siga o tom, o ritmo e o comprimento):`);
+      exemplos.forEach((exemplo, i) => {
+        linhasSystem.push(`EXEMPLO ${i + 1} — ${exemplo.entrada}`, exemplo.saida, "");
+      });
+    }
+    if (pacote.eco !== null) {
+      linhasSystem.push(`Termine ecoando ${pacote.eco.abre_com} com as próprias palavras.`);
+    }
+    const paragrafosTxt = pacote.restricoes.paragrafos === 1 ? "1 parágrafo" : `${pacote.restricoes.paragrafos} parágrafos`;
+    linhasSystem.push(`Escreva em ${paragrafosTxt} (separados por uma linha em branco). Máximo ${maximo} palavras no total.`, "Devolva só o texto final.");
+    return { system: linhasSystem.join(`
+`), user: linhasUser.join(`
+`) };
+  }
+
+  // src/backend/proxy_realizador.ts
+  function criarProxyRealizador(op) {
+    const transporte = op.transporte || transportePadrao();
+    const base = op.url.replace(/\/+$/, "");
+    return async (pacote, opcoes = {}) => {
+      const token = await op.obterToken();
+      if (!token)
+        throw new Error("ProxyRealizador: sem sessão para realizar.");
+      const tenant = op.tenantId ? op.tenantId() : null;
+      const prompt = montarPromptRealizador(pacote);
+      const resp = await transporte(base + "/functions/v1/realizador", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          apikey: op.anonKey,
+          Authorization: "Bearer " + token
+        },
+        body: JSON.stringify({
+          pacote,
+          prompt,
+          ...opcoes.temperatura !== undefined ? { temperatura: opcoes.temperatura } : {},
+          ...tenant ? { tenantId: tenant } : {}
+        })
+      });
+      if (resp.status !== 200) {
+        throw new Error("ProxyRealizador: HTTP " + resp.status + " — fallback A+ v3 local.");
+      }
+      const j = await resp.json();
+      if (!j || typeof j.texto !== "string" || j.texto.trim() === "" || !Array.isArray(j.paragrafos) || !j.veredito || j.veredito.pass !== true || !j.origem || j.origem.fonte !== "llm") {
+        throw new Error("ProxyRealizador: resposta fora do contrato do realizador.");
+      }
+      return j;
+    };
+  }
+
   // src/backend/tenant.ts
   function escopoTenant(sessao) {
     if (!sessao || !sessao.uid)
@@ -2383,7 +2690,13 @@
       obterToken: () => auth.obterToken(),
       tenantId: () => escopoTenant(auth.sessaoAtual())
     });
-    return { auth, repo, proxyIA, sincronizar: () => sincronizarInicial(local, remoto) };
+    const realizador = criarProxyRealizador({
+      url: cfg.supabaseUrl,
+      anonKey: cfg.supabaseAnonKey,
+      obterToken: () => auth.obterToken(),
+      tenantId: () => escopoTenant(auth.sessaoAtual())
+    });
+    return { auth, repo, proxyIA, realizador, sincronizar: () => sincronizarInicial(local, remoto) };
   }
   async function espelharConfigIA(tenantId, dados, config, transporte) {
     const cfg = config || configDoAmbiente();

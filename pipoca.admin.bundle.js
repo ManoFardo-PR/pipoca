@@ -3,37 +3,27 @@
   var __getOwnPropNames = Object.getOwnPropertyNames;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
-  function __accessProp(key) {
-    return this[key];
-  }
+  var __moduleCache = /* @__PURE__ */ new WeakMap;
   var __toCommonJS = (from) => {
-    var entry = (__moduleCache ??= new WeakMap).get(from), desc;
+    var entry = __moduleCache.get(from), desc;
     if (entry)
       return entry;
     entry = __defProp({}, "__esModule", { value: true });
-    if (from && typeof from === "object" || typeof from === "function") {
-      for (var key of __getOwnPropNames(from))
-        if (!__hasOwnProp.call(entry, key))
-          __defProp(entry, key, {
-            get: __accessProp.bind(from, key),
-            enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-          });
-    }
+    if (from && typeof from === "object" || typeof from === "function")
+      __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
+        get: () => from[key],
+        enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+      }));
     __moduleCache.set(from, entry);
     return entry;
   };
-  var __moduleCache;
-  var __returnValue = (v) => v;
-  function __exportSetter(name, newValue) {
-    this[name] = __returnValue.bind(null, newValue);
-  }
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, {
         get: all[name],
         enumerable: true,
         configurable: true,
-        set: __exportSetter.bind(all, name)
+        set: (newValue) => all[name] = () => newValue
       });
   };
 
@@ -204,13 +194,15 @@
   var TELA_SA_CONTENT = 4;
   var TELA_SA_AI = 5;
   var TELA_SA_SAFE = 6;
+  var TELA_SA_IA_GLOBAL = 7;
   var ROTAS_ADMIN = {
     SA_LOGIN: TELA_SA_LOGIN,
     SA_HOME: TELA_SA_HOME,
     SA_TENANT: TELA_SA_TENANT,
     SA_CONTENT: TELA_SA_CONTENT,
     SA_AI: TELA_SA_AI,
-    SA_SAFE: TELA_SA_SAFE
+    SA_SAFE: TELA_SA_SAFE,
+    SA_IA_GLOBAL: TELA_SA_IA_GLOBAL
   };
   var TELAS_VALIDAS = [
     TELA_SA_LOGIN,
@@ -218,7 +210,8 @@
     TELA_SA_TENANT,
     TELA_SA_CONTENT,
     TELA_SA_AI,
-    TELA_SA_SAFE
+    TELA_SA_SAFE,
+    TELA_SA_IA_GLOBAL
   ];
   function guardarRotaAdmin(telaDestino, sessao, agora) {
     if (telaDestino === TELA_SA_LOGIN)
@@ -1120,6 +1113,120 @@
     try {
       st.setItem(CHAVE_IA, JSON.stringify(mapa));
     } catch {}
+  }
+
+  // src/admin/ia_global.ts
+  var CONFIG_IA_GLOBAL_PADRAO = {
+    modeloPadrao: { claude: null, gemini: null, openai: null, deepseek: null },
+    cadeiaFallback: []
+  };
+  var PROVEDORES2 = ["claude", "gemini", "openai", "deepseek"];
+  function validarConfigIaGlobal(c) {
+    const erros = [];
+    if (!c || typeof c !== "object" || Array.isArray(c))
+      return ["configuração deve ser um objeto"];
+    const r = c;
+    const mp = r["modeloPadrao"];
+    if (!mp || typeof mp !== "object" || Array.isArray(mp)) {
+      erros.push("modeloPadrao deve ser um objeto provedor→modelo");
+    } else {
+      for (const [prov, modelo] of Object.entries(mp)) {
+        if (PROVEDORES2.indexOf(prov) < 0) {
+          erros.push("modeloPadrao com provedor desconhecido: " + prov);
+          continue;
+        }
+        if (modelo !== null) {
+          const catalogo = MODELOS_POR_PROVEDOR[prov];
+          if (typeof modelo !== "string" || catalogo.indexOf(modelo) < 0) {
+            erros.push("modelo padrão fora do catálogo do provedor " + prov);
+          }
+        }
+      }
+    }
+    const cadeia = r["cadeiaFallback"];
+    if (!Array.isArray(cadeia)) {
+      erros.push("cadeiaFallback deve ser uma lista de provedores");
+    } else {
+      const vistos = {};
+      for (const p of cadeia) {
+        if (PROVEDORES2.indexOf(p) < 0)
+          erros.push("cadeiaFallback com provedor desconhecido");
+        else if (vistos[p])
+          erros.push("cadeiaFallback não pode repetir provedor");
+        vistos[p] = true;
+      }
+    }
+    if (JSON.stringify(c).toLowerCase().includes("chave")) {
+      erros.push("chaves não pertencem ao cliente (server-side, fase06)");
+    }
+    return erros;
+  }
+  function normalizarConfigIaGlobal(raw) {
+    if (validarConfigIaGlobal(raw).length > 0) {
+      return { modeloPadrao: { ...CONFIG_IA_GLOBAL_PADRAO.modeloPadrao }, cadeiaFallback: [] };
+    }
+    const r = raw;
+    const modeloPadrao = { ...CONFIG_IA_GLOBAL_PADRAO.modeloPadrao };
+    for (const p of PROVEDORES2) {
+      const m = r.modeloPadrao[p];
+      modeloPadrao[p] = typeof m === "string" ? m : null;
+    }
+    return { modeloPadrao, cadeiaFallback: r.cadeiaFallback.slice() };
+  }
+  function provedorEfetivoGlobal(cfg, global) {
+    if (cfg && cfg.provedor !== null)
+      return cfg.provedor;
+    return global && global.cadeiaFallback[0] || null;
+  }
+  function modeloEfetivoGlobal(provedor, cfg, global) {
+    if (provedor === null)
+      return null;
+    if (cfg && cfg.provedor === provedor && cfg.modelo)
+      return cfg.modelo;
+    return global && global.modeloPadrao[provedor] || null;
+  }
+  function fallbacksEfetivosGlobal(cfg, global) {
+    if (cfg && cfg.fallback !== null)
+      return [cfg.fallback];
+    const primario = provedorEfetivoGlobal(cfg, global);
+    return (global && global.cadeiaFallback || []).filter((p) => p !== primario);
+  }
+  var CHAVE_IA_GLOBAL = "pipoca.admin.iaglobal.v1";
+  function storagePadrao6() {
+    try {
+      const g = globalThis;
+      return g.localStorage ?? null;
+    } catch {
+      return null;
+    }
+  }
+  function carregarConfigIaGlobal(armazem) {
+    const st = armazem ?? storagePadrao6();
+    if (!st)
+      return normalizarConfigIaGlobal(null);
+    try {
+      const raw = st.getItem(CHAVE_IA_GLOBAL);
+      if (raw === null)
+        return normalizarConfigIaGlobal(null);
+      return normalizarConfigIaGlobal(JSON.parse(raw));
+    } catch {
+      return normalizarConfigIaGlobal(null);
+    }
+  }
+  function salvarConfigIaGlobal(c, armazem) {
+    const st = armazem ?? storagePadrao6();
+    if (!st)
+      return;
+    try {
+      st.setItem(CHAVE_IA_GLOBAL, JSON.stringify(normalizarConfigIaGlobal(c)));
+    } catch {}
+  }
+  function rotuloStatusChave(s) {
+    if (!s || s.configurada !== true)
+      return "não configurada";
+    const mascara = typeof s.mascarada === "string" && /^\*{4}.{0,4}$/.test(s.mascarada) ? s.mascarada : "****";
+    const fonte = s.fonte === "ambiente" ? " · secret do ambiente" : "";
+    return "configurada · " + mascara + fonte;
   }
 
   // src/core/modos.ts
@@ -2425,6 +2532,23 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
   function rotuloGenero(genero) {
     return genero === "f" ? "menina" : "menino";
   }
+  function personalizarExemplo(ex, nomeAlvo, generoAlvo) {
+    const m = ex.entrada.match(/PERSONAGEM:\s*([^()]+?)\s*\((menina|menino)\)/);
+    if (!m)
+      return ex;
+    const nomeFonte = m[1].trim();
+    const generoFonte = m[2] === "menina" ? "f" : "m";
+    const trocar = (s) => {
+      let out = s.replace(new RegExp("\\b" + nomeFonte.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g"), nomeAlvo);
+      if (generoFonte !== generoAlvo) {
+        const pares = generoAlvo === "m" ? [["menina", "menino"], ["Ela", "Ele"], ["ela", "ele"], ["Dela", "Dele"], ["dela", "dele"]] : [["menino", "menina"], ["Ele", "Ela"], ["ele", "ela"], ["Dele", "Dela"], ["dele", "dela"]];
+        for (const [de, para] of pares)
+          out = out.replace(new RegExp("\\b" + de + "\\b", "g"), para);
+      }
+      return out;
+    };
+    return { entrada: trocar(ex.entrada), saida: trocar(ex.saida) };
+  }
   function montarPromptRealizador(pacote) {
     const nivel = pacote.nivel;
     const nome = pacote.personagem.nome;
@@ -2464,7 +2588,8 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
     const exemplos = FEWSHOT_POR_NIVEL[nivel];
     if (exemplos.length > 0) {
       linhasSystem.push("", `EXEMPLOS do nível ${nivel} (siga o tom, o ritmo e o comprimento):`);
-      exemplos.forEach((exemplo, i) => {
+      exemplos.forEach((exemploBruto, i) => {
+        const exemplo = personalizarExemplo(exemploBruto, nome, pacote.personagem.genero);
         linhasSystem.push(`EXEMPLO ${i + 1} — ${exemplo.entrada}`, exemplo.saida, "");
       });
     }
@@ -2862,6 +2987,110 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
       return null;
     }
   }
+  var ID_CONFIG_IA_GLOBAL = "plataforma:global";
+  async function espelharConfigIaGlobal(cfg, config, transporte) {
+    if (validarConfigIaGlobal(cfg).length > 0)
+      return false;
+    const ctx = await contextoOperador(config, transporte);
+    if (!ctx)
+      return false;
+    return upsert(ctx, "/config_ia?on_conflict=tenant_id", [
+      { tenant_id: ID_CONFIG_IA_GLOBAL, dados: normalizarConfigIaGlobal(cfg) }
+    ]);
+  }
+  async function puxarConfigIaGlobal(config, transporte) {
+    const ctx = await contextoOperador(config, transporte);
+    if (!ctx)
+      return null;
+    try {
+      const linhas = await lerLinhas(ctx, "/config_ia?select=dados&tenant_id=eq." + encodeURIComponent(ID_CONFIG_IA_GLOBAL));
+      const dados = linhas[0] ? linhas[0].dados : null;
+      if (!dados || validarConfigIaGlobal(dados).length > 0)
+        return null;
+      const cfg = normalizarConfigIaGlobal(dados);
+      salvarConfigIaGlobal(cfg);
+      return cfg;
+    } catch {
+      return null;
+    }
+  }
+  async function chamarAdminChavesIa(corpo, config, transporte) {
+    const cfg = config || configDoAmbiente();
+    if (cfg.provedor !== "supabase" || !cfg.supabaseUrl || !cfg.supabaseAnonKey)
+      return null;
+    try {
+      const auth = criarAuthSupabase({
+        url: cfg.supabaseUrl,
+        anonKey: cfg.supabaseAnonKey,
+        ...transporte ? { transporte } : {}
+      });
+      const s = auth.sessaoAtual();
+      if (!s || s.tipo !== "superadmin")
+        return null;
+      const token = await auth.obterToken();
+      if (!token)
+        return null;
+      const t = transporte || transportePadrao();
+      const resp = await t(cfg.supabaseUrl.replace(/\/+$/, "") + "/functions/v1/admin-chaves-ia", {
+        method: "POST",
+        headers: {
+          apikey: cfg.supabaseAnonKey,
+          Authorization: "Bearer " + token,
+          "content-type": "application/json"
+        },
+        body: JSON.stringify(corpo)
+      });
+      if (resp.status < 200 || resp.status >= 300)
+        return null;
+      return await resp.json();
+    } catch {
+      return null;
+    }
+  }
+  function sanearStatus(raw) {
+    if (!raw || typeof raw !== "object")
+      return null;
+    const r = raw;
+    const provedores = ["claude", "gemini", "openai", "deepseek"];
+    if (provedores.indexOf(r["provedor"]) < 0)
+      return null;
+    const mascarada = typeof r["mascarada"] === "string" ? r["mascarada"] : null;
+    if (mascarada !== null && !/^\*{4}.{0,4}$/.test(mascarada))
+      return null;
+    return {
+      provedor: r["provedor"],
+      configurada: r["configurada"] === true,
+      mascarada,
+      fonte: r["fonte"] === "banco" || r["fonte"] === "ambiente" ? r["fonte"] : null
+    };
+  }
+  async function statusChavesIa(config, transporte) {
+    const resp = await chamarAdminChavesIa({ acao: "status" }, config, transporte);
+    if (!resp || typeof resp !== "object")
+      return null;
+    const lista = resp.provedores;
+    if (!Array.isArray(lista))
+      return null;
+    const saneados = [];
+    for (const item of lista) {
+      const s = sanearStatus(item);
+      if (s)
+        saneados.push(s);
+    }
+    return saneados;
+  }
+  async function salvarChaveIa(provedor, chave, config, transporte) {
+    const resp = await chamarAdminChavesIa({ acao: "salvar", provedor, chave }, config, transporte);
+    if (!resp || typeof resp !== "object")
+      return null;
+    return sanearStatus(resp.provedor);
+  }
+  async function testarChaveIa(provedor, config, transporte) {
+    const resp = await chamarAdminChavesIa({ acao: "testar", provedor }, config, transporte);
+    if (!resp || typeof resp !== "object")
+      return null;
+    return resp.ok === true;
+  }
   function envolverRepoTenantComEspelho(repo, config, transporte) {
     return {
       listarTenants: (escopo) => repo.listarTenants(escopo),
@@ -2898,7 +3127,8 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
       TELA_SA_TENANT,
       TELA_SA_CONTENT,
       TELA_SA_AI,
-      TELA_SA_SAFE
+      TELA_SA_SAFE,
+      TELA_SA_IA_GLOBAL
     },
     tenants: {
       criarRepositorioTenant,
@@ -2929,6 +3159,17 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
       carregarConfigIA,
       salvarConfigIA
     },
+    iaGlobal: {
+      CONFIG_IA_GLOBAL_PADRAO,
+      validarConfigIaGlobal,
+      normalizarConfigIaGlobal,
+      carregarConfigIaGlobal,
+      salvarConfigIaGlobal,
+      provedorEfetivoGlobal,
+      modeloEfetivoGlobal,
+      fallbacksEfetivosGlobal,
+      rotuloStatusChave
+    },
     flags: {
       FLAGS_PADRAO,
       definirFlag,
@@ -2949,7 +3190,12 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
       espelharFlagsRemotas,
       espelharVinculoConta,
       puxarAdminDoServidor,
-      envolverRepoTenantComEspelho
+      envolverRepoTenantComEspelho,
+      espelharConfigIaGlobal,
+      puxarConfigIaGlobal,
+      statusChavesIa,
+      salvarChaveIa,
+      testarChaveIa
     }
   };
   globalThis.PipocaAdminCanonico = PipocaAdminCanonico;

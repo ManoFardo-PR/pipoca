@@ -14,6 +14,7 @@ export const TELA_SA_TENANT = 3;
 export const TELA_SA_CONTENT = 4;
 export const TELA_SA_AI = 5;
 export const TELA_SA_SAFE = 6;
+export const TELA_SA_IA_GLOBAL = 7;
 
 /** Mapa nó da arquitetura → tela interna do admin. */
 export const ROTAS_ADMIN: Record<string, number> = {
@@ -23,6 +24,7 @@ export const ROTAS_ADMIN: Record<string, number> = {
   SA_CONTENT: TELA_SA_CONTENT,
   SA_AI: TELA_SA_AI,
   SA_SAFE: TELA_SA_SAFE,
+  SA_IA_GLOBAL: TELA_SA_IA_GLOBAL,
 };
 
 const TELAS_VALIDAS = [
@@ -32,6 +34,7 @@ const TELAS_VALIDAS = [
   TELA_SA_CONTENT,
   TELA_SA_AI,
   TELA_SA_SAFE,
+  TELA_SA_IA_GLOBAL,
 ];
 
 /** Devolve a tela permitida: destino se a sessão vale; senão SA_LOGIN (fail-closed). */

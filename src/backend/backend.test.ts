@@ -28,7 +28,14 @@ import {
   espelharVinculoConta,
   puxarAdminDoServidor,
   envolverRepoTenantComEspelho,
+  espelharConfigIaGlobal,
+  puxarConfigIaGlobal,
+  statusChavesIa,
+  salvarChaveIa,
+  testarChaveIa,
+  ID_CONFIG_IA_GLOBAL,
 } from "./espelho_admin.js";
+import { carregarConfigIaGlobal, CONFIG_IA_GLOBAL_PADRAO, type ConfigIaGlobal } from "../admin/ia_global.js";
 import { puxarFlagsGlobais } from "./flags_globais.js";
 import { limitesDaFamilia } from "./limites_familia.js";
 import { criarRepositorioTenant, novoTenant } from "../admin/tenant/repositorioTenant.js";
@@ -1274,6 +1281,88 @@ console.log("\n=== limites da família — teto do plano no app (UX acolhedora) 
   const srvPodre2 = servidorSupabaseFake();
   srvPodre2.tenants.set("familia:uid-9", { id: "familia:uid-9", dados: { esquema: "outro" } });
   assert((await limitesDaFamilia(agora, cfgSupa, srvPodre2.t)) === null, "envelope corrompido → null");
+  armazem.limpar();
+}
+
+console.log("\n=== SA_IA_GLOBAL (tarefa #31) · espelho global + chaves write-only ===");
+{
+  armazem.limpar();
+  const cfgSupa = { provedor: "supabase" as const, supabaseUrl: URL_SUPA, supabaseAnonKey: "anon-k" };
+  const agora = Date.now();
+  const sessaoDe = (tipo: string) =>
+    JSON.stringify({
+      access_token: "tokOp", refresh_token: "r1",
+      expiraTokenEm: agora + 3_600_000, validaAte: agora + 86_400_000,
+      uid: "op-1", tipo,
+    });
+  const globalOk: ConfigIaGlobal = {
+    modeloPadrao: { claude: "claude-haiku-4-5", gemini: null, openai: null, deepseek: null },
+    cadeiaFallback: ["claude", "deepseek"],
+  };
+
+  // guardas: recusas NUNCA tocam a rede (mesma lei dos outros espelhos)
+  const { t: tMudo, chamadas: chMudo } = transporteRotas([]);
+  assert((await espelharConfigIaGlobal(globalOk, { provedor: "local" })) === false, "backend local → no-op silencioso");
+  assert((await espelharConfigIaGlobal(globalOk, cfgSupa, tMudo)) === false && chMudo.length === 0, "sem sessão → não espelha e NÃO toca a rede");
+  armazem.setItem(CHAVE_SESSAO_BACKEND, sessaoDe("familia"));
+  assert((await statusChavesIa(cfgSupa, tMudo)) === null && chMudo.length === 0, "sessão de FAMÍLIA → sem status e sem rede");
+  assert((await salvarChaveIa("claude", "sk-ant-123456789", cfgSupa, tMudo)) === null && chMudo.length === 0, "família não envia chave nenhuma");
+
+  // operador: config global vai para a LINHA RESERVADA com upsert idempotente
+  armazem.setItem(CHAVE_SESSAO_BACKEND, sessaoDe("superadmin"));
+  const { t: tCfg, chamadas: chCfg } = transporteRotas([
+    { casa: (u) => u.indexOf("/rest/v1/config_ia") >= 0, responder: () => ({ status: 201, json: null }) },
+  ]);
+  assert((await espelharConfigIaGlobal(globalOk, cfgSupa, tCfg)) === true, "operador → upsert da config global");
+  assert(chCfg[0]!.url.indexOf("on_conflict=tenant_id") >= 0, "upsert idempotente por tenant_id");
+  assert(JSON.stringify(chCfg[0]!.corpo).indexOf(ID_CONFIG_IA_GLOBAL) >= 0, "viaja na linha reservada plataforma:global");
+  const podre = { modeloPadrao: { claude: "inventado" }, cadeiaFallback: [] } as unknown as ConfigIaGlobal;
+  const { t: tNunca, chamadas: chNunca } = transporteRotas([]);
+  assert((await espelharConfigIaGlobal(podre, cfgSupa, tNunca)) === false && chNunca.length === 0, "config inválida barra ANTES da rede");
+
+  // pull: servidor vence e grava o espelho local; lixo no servidor → null e local intacto
+  const { t: tPull } = transporteRotas([
+    { casa: (u) => u.indexOf("/rest/v1/config_ia") >= 0, responder: () => ({ status: 200, json: [{ dados: globalOk }] }) },
+  ]);
+  const puxada = await puxarConfigIaGlobal(cfgSupa, tPull);
+  assert(!!puxada && puxada.cadeiaFallback[0] === "claude", "pull devolve a config do servidor");
+  assert(carregarConfigIaGlobal().modeloPadrao.claude === "claude-haiku-4-5", "pull grava o espelho local (servidor vence)");
+  const { t: tPodre } = transporteRotas([
+    { casa: (u) => u.indexOf("/rest/v1/config_ia") >= 0, responder: () => ({ status: 200, json: [{ dados: { qualquer: 1 } }] }) },
+  ]);
+  assert((await puxarConfigIaGlobal(cfgSupa, tPodre)) === null, "dados inválidos no servidor → null");
+  assert(carregarConfigIaGlobal().cadeiaFallback.length === 2, "…e o espelho local fica intacto");
+
+  // status: só o formato MASCARADO passa pelo saneamento (fail-closed)
+  const { t: tStatus } = transporteRotas([
+    { casa: (u) => u.indexOf("/functions/v1/admin-chaves-ia") >= 0, responder: () => ({ status: 200, json: { provedores: [
+      { provedor: "claude", configurada: true, mascarada: "****ab12", fonte: "banco" },
+      { provedor: "openai", configurada: true, mascarada: "sk-proj-CHAVE-INTEIRA-VAZADA", fonte: "banco" },
+      { provedor: "gemini", configurada: false, mascarada: null, fonte: null },
+      { provedor: "torradeira", configurada: true, mascarada: "****zz", fonte: "banco" },
+    ] } }) },
+  ]);
+  const status = await statusChavesIa(cfgSupa, tStatus);
+  assert(!!status && status.length === 2, "saneamento descarta provedor desconhecido E resposta não-mascarada");
+  assert(status!.every((s) => s.mascarada === null || /^\*{4}/.test(s.mascarada)), "nada além de '****xxxx' entra no cliente");
+
+  // salvar chave: write-only — vai no corpo, volta só o status, NADA no storage
+  const { t: tSalvar, chamadas: chSalvar } = transporteRotas([
+    { casa: (u) => u.indexOf("/functions/v1/admin-chaves-ia") >= 0, responder: () => ({ status: 200, json: { provedor: { provedor: "claude", configurada: true, mascarada: "****6789", fonte: "banco" } } }) },
+  ]);
+  const salvo = await salvarChaveIa("claude", "sk-ant-teste-123456789", cfgSupa, tSalvar);
+  assert(!!salvo && salvo.mascarada === "****6789", "salvar devolve APENAS o status mascarado");
+  assert(JSON.stringify(chSalvar[0]!.corpo).indexOf("sk-ant-teste-123456789") >= 0, "a chave viaja no corpo rumo ao servidor (write-only)");
+  assert(armazem.dump().indexOf("sk-ant-teste-123456789") < 0, "a chave NUNCA encosta no localStorage");
+
+  // testar: booleano do servidor; falha de rede → null (sem inventar sucesso)
+  const { t: tTeste } = transporteRotas([
+    { casa: (u) => u.indexOf("/functions/v1/admin-chaves-ia") >= 0, responder: () => ({ status: 200, json: { ok: true } }) },
+  ]);
+  assert((await testarChaveIa("claude", cfgSupa, tTeste)) === true, "teste de conexão repassa o veredito do servidor");
+  const tOff: Transporte = async () => { throw new Error("offline"); };
+  assert((await testarChaveIa("claude", cfgSupa, tOff)) === null, "rede caída → null (não finge ok nem falha)");
+  assert(CONFIG_IA_GLOBAL_PADRAO.cadeiaFallback.length === 0, "padrão global é fail-closed (sem cadeia — tenant sem config fica sem IA)");
   armazem.limpar();
 }
 

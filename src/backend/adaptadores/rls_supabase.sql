@@ -100,6 +100,18 @@ create table uso_ia (
   primary key (tenant_id, mes)
 );
 
+-- chaves_ia: CHAVES dos provedores de IA (tarefa #31 · SA_IA_GLOBAL).
+-- SEM policy nenhuma = deny-all para anon/authenticated (como uso_ia): só as
+-- Edge Functions (service role) leem/escrevem. O painel do operador grava via
+-- admin-chaves-ia e só recebe status MASCARADO — a chave nunca volta ao cliente.
+-- A config GLOBAL de IA (modelos padrão + cadeia de fallback) reusa `config_ia`
+-- na linha reservada tenant_id = 'plataforma:global' (dados = ConfigIaGlobal).
+create table chaves_ia (
+  provedor      text primary key,            -- claude | gemini | openai | deepseek
+  chave         text not null,
+  atualizado_em timestamptz not null default now()
+);
+
 create index perfis_dono_idx on perfis(dono);
 create index telemetria_dono_perfil_idx on telemetria(dono, perfil_id);
 create index historias_dono_perfil_idx on historias(dono, perfil_id);
@@ -116,6 +128,8 @@ alter table operadores  enable row level security;
 alter table tenants     enable row level security;
 alter table config_ia   enable row level security;
 alter table uso_ia      enable row level security;
+alter table chaves_ia   enable row level security;
+-- chaves_ia: NENHUMA policy → invisível/intocável do cliente (só service role).
 
 -- família: cada linha pertence ao dono (auth.uid())
 create policy perfis_dono on perfis for all

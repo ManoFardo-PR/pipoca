@@ -53,6 +53,9 @@
               <button class="pip-ia-btn" onClick="{{ p.escolher }}" style="{{ p.style }}">{{ p.nome }}</button>
             </sc-for>
           </div>
+          <sc-if value="{{ temHerancaProvedor }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:8px;font-family:'Nunito';font-size:12px;color:#8a7a62;">🌐 padrão global: <b>{{ herancaProvedor }}</b> (herdado enquanto o tenant não define)</div>
+          </sc-if>
 
           <sc-if value="{{ temModelos }}" hint-placeholder-val="{{ false }}">
             <div style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#2c241a;margin-top:14px;">Modelo</div>
@@ -78,6 +81,9 @@
               <button class="pip-ia-btn" onClick="{{ f.escolher }}" style="{{ f.style }}">{{ f.nome }}</button>
             </sc-for>
           </div>
+          <sc-if value="{{ temHerancaFallback }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:8px;font-family:'Nunito';font-size:12px;color:#8a7a62;">🌐 cadeia global herdada: <b>{{ herancaFallback }}</b> (usada enquanto o tenant não define a própria)</div>
+          </sc-if>
 
           <!-- Chaves: server-side por decisão de arquitetura (nunca input aqui) -->
           <div style="margin-top:16px;border-top:1px dashed #e4dcc9;padding-top:12px;font-family:'Nunito';font-size:12px;line-height:1.6;color:#8a7a62;">
@@ -188,7 +194,20 @@ class Component extends DCLogic {
       style: optBase + (cfg.fallback === f ? sel : off),
     }));
 
+    // tarefa #31 · herança do global (só EXIBIÇÃO — o formato salvo por
+    // tenant não muda; a resolução de verdade acontece no ProxyIA).
+    const globalCfg = C && C.iaGlobal ? C.iaGlobal.carregarConfigIaGlobal() : { modeloPadrao: {}, cadeiaFallback: [] };
+    const herdaProvedor = cfg.provedor === null && globalCfg.cadeiaFallback.length > 0;
+    const provedorHerdado = herdaProvedor && C ? C.iaGlobal.provedorEfetivoGlobal(cfg, globalCfg) : null;
+    const cadeiaHerdada = cfg.fallback === null && C && C.iaGlobal ? C.iaGlobal.fallbacksEfetivosGlobal(cfg, globalCfg) : [];
+
     return {
+      temHerancaProvedor: !!provedorHerdado,
+      herancaProvedor: provedorHerdado
+        ? nomesProv[provedorHerdado] + (C.iaGlobal.modeloEfetivoGlobal(provedorHerdado, cfg, globalCfg) ? ' · ' + C.iaGlobal.modeloEfetivoGlobal(provedorHerdado, cfg, globalCfg) : '')
+        : '',
+      temHerancaFallback: cadeiaHerdada.length > 0,
+      herancaFallback: cadeiaHerdada.map((p) => nomesProv[p]).join(' → '),
       chipsTenants: s.tenants.map((t) => ({
         nome: t.nome,
         escolher: () => this._selecionar(t.id),

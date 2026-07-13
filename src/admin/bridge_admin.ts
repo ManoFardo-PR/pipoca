@@ -34,6 +34,7 @@ import {
   TELA_SA_CONTENT,
   TELA_SA_AI,
   TELA_SA_SAFE,
+  TELA_SA_IA_GLOBAL,
 } from "./rotasAdmin.js";
 import {
   PLANOS_PADRAO,
@@ -66,6 +67,19 @@ import {
   carregarConfigIA,
   salvarConfigIA,
 } from "./ia_config.js";
+// tarefa #31: config GLOBAL de IA (modelos padrão + cadeia de fallback) e
+// status MASCARADO das chaves — a chave em si nunca chega a este bundle.
+import {
+  CONFIG_IA_GLOBAL_PADRAO,
+  validarConfigIaGlobal,
+  normalizarConfigIaGlobal,
+  carregarConfigIaGlobal,
+  salvarConfigIaGlobal,
+  provedorEfetivoGlobal,
+  modeloEfetivoGlobal,
+  fallbacksEfetivosGlobal,
+  rotuloStatusChave,
+} from "./ia_global.js";
 import {
   FLAGS_PADRAO,
   definirFlag,
@@ -89,6 +103,11 @@ import {
   espelharVinculoConta,
   puxarAdminDoServidor,
   envolverRepoTenantComEspelho,
+  espelharConfigIaGlobal,
+  puxarConfigIaGlobal,
+  statusChavesIa,
+  salvarChaveIa,
+  testarChaveIa,
 } from "../backend/espelho_admin.js";
 
 const PipocaAdminCanonico = {
@@ -114,6 +133,7 @@ const PipocaAdminCanonico = {
     TELA_SA_CONTENT,
     TELA_SA_AI,
     TELA_SA_SAFE,
+    TELA_SA_IA_GLOBAL,
   },
   tenants: {
     criarRepositorioTenant,
@@ -144,6 +164,19 @@ const PipocaAdminCanonico = {
     carregarConfigIA,
     salvarConfigIA,
   },
+  // tarefa #31 · SA_IA_GLOBAL: chaves são write-only rumo ao servidor; aqui
+  // só validação/persistência da config global e o status mascarado.
+  iaGlobal: {
+    CONFIG_IA_GLOBAL_PADRAO,
+    validarConfigIaGlobal,
+    normalizarConfigIaGlobal,
+    carregarConfigIaGlobal,
+    salvarConfigIaGlobal,
+    provedorEfetivoGlobal,
+    modeloEfetivoGlobal,
+    fallbacksEfetivosGlobal,
+    rotuloStatusChave,
+  },
   flags: {
     FLAGS_PADRAO,
     definirFlag,
@@ -166,6 +199,11 @@ const PipocaAdminCanonico = {
     espelharVinculoConta,
     puxarAdminDoServidor,
     envolverRepoTenantComEspelho,
+    espelharConfigIaGlobal,
+    puxarConfigIaGlobal,
+    statusChavesIa,
+    salvarChaveIa,
+    testarChaveIa,
   },
 };
 

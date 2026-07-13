@@ -27,6 +27,13 @@ import {
 } from "../admin/validar_grafo.js";
 import type { FeatureFlags } from "../admin/flags.js";
 import { normalizarFlags, salvarFlags } from "../admin/flags.js";
+import type { ConfigIaGlobal, StatusChaveIa } from "../admin/ia_global.js";
+import {
+  normalizarConfigIaGlobal,
+  salvarConfigIaGlobal,
+  validarConfigIaGlobal,
+} from "../admin/ia_global.js";
+import type { ProvedorIaId } from "../admin/ia_config.js";
 import { configDoAmbiente, type ConfigBackend } from "./config.js";
 import { criarAuthSupabase } from "./adaptadores/auth_supabase.js";
 import { transportePadrao, type Transporte } from "../ia/provedor.js";
@@ -205,6 +212,151 @@ export async function puxarAdminDoServidor(
   } catch {
     return null;
   }
+}
+
+// ─── Config GLOBAL de IA + chaves (tarefa #31 · SA_IA_GLOBAL) ────────────────
+
+/** Linha reservada em `config_ia` para a config GLOBAL (dados = ConfigIaGlobal). */
+export const ID_CONFIG_IA_GLOBAL = "plataforma:global";
+
+/**
+ * Upsert da config global de IA na linha reservada de `config_ia` (o ProxyIA
+ * lê essa linha server-side para herança de modelo padrão e cadeia de
+ * fallback). Recusa payload inválido — inclusive qualquer "chave" (a mesma
+ * lei do por-tenant: chave nunca sai do servidor nem entra pelo cliente).
+ */
+export async function espelharConfigIaGlobal(
+  cfg: ConfigIaGlobal,
+  config?: ConfigBackend,
+  transporte?: Transporte
+): Promise<boolean> {
+  if (validarConfigIaGlobal(cfg).length > 0) return false;
+  const ctx = await contextoOperador(config, transporte);
+  if (!ctx) return false;
+  return upsert(ctx, "/config_ia?on_conflict=tenant_id", [
+    { tenant_id: ID_CONFIG_IA_GLOBAL, dados: normalizarConfigIaGlobal(cfg) },
+  ]);
+}
+
+/**
+ * Pull da config global (SERVIDOR VENCE): valida, grava o espelho local e
+ * devolve a config. Sem linha/inválida → null (local intacto — o seed é o
+ * 1º salvamento na tela).
+ */
+export async function puxarConfigIaGlobal(
+  config?: ConfigBackend,
+  transporte?: Transporte
+): Promise<ConfigIaGlobal | null> {
+  const ctx = await contextoOperador(config, transporte);
+  if (!ctx) return null;
+  try {
+    const linhas = await lerLinhas(
+      ctx,
+      "/config_ia?select=dados&tenant_id=eq." + encodeURIComponent(ID_CONFIG_IA_GLOBAL)
+    );
+    const dados = linhas[0] ? linhas[0].dados : null;
+    if (!dados || validarConfigIaGlobal(dados).length > 0) return null;
+    const cfg = normalizarConfigIaGlobal(dados);
+    salvarConfigIaGlobal(cfg);
+    return cfg;
+  } catch {
+    return null;
+  }
+}
+
+/** POST autenticado na Edge Function admin-chaves-ia — ou null (guarda comum). */
+async function chamarAdminChavesIa(
+  corpo: Record<string, unknown>,
+  config?: ConfigBackend,
+  transporte?: Transporte
+): Promise<unknown | null> {
+  const cfg = config || configDoAmbiente();
+  if (cfg.provedor !== "supabase" || !cfg.supabaseUrl || !cfg.supabaseAnonKey) return null;
+  try {
+    const auth = criarAuthSupabase({
+      url: cfg.supabaseUrl,
+      anonKey: cfg.supabaseAnonKey,
+      ...(transporte ? { transporte } : {}),
+    });
+    const s = auth.sessaoAtual();
+    if (!s || s.tipo !== "superadmin") return null;
+    const token = await auth.obterToken();
+    if (!token) return null;
+    const t = transporte || transportePadrao();
+    const resp = await t(cfg.supabaseUrl.replace(/\/+$/, "") + "/functions/v1/admin-chaves-ia", {
+      method: "POST",
+      headers: {
+        apikey: cfg.supabaseAnonKey,
+        Authorization: "Bearer " + token,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(corpo),
+    });
+    if (resp.status < 200 || resp.status >= 300) return null;
+    return (await resp.json()) as unknown;
+  } catch {
+    return null;
+  }
+}
+
+/** O que veio do servidor vira StatusChaveIa saneado — e NUNCA contém chave inteira. */
+function sanearStatus(raw: unknown): StatusChaveIa | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  const provedores: ProvedorIaId[] = ["claude", "gemini", "openai", "deepseek"];
+  if (provedores.indexOf(r["provedor"] as ProvedorIaId) < 0) return null;
+  const mascarada = typeof r["mascarada"] === "string" ? r["mascarada"] : null;
+  // fail-closed: só aceita o FORMATO mascarado ("****" + até 4) — nada além disso
+  if (mascarada !== null && !/^\*{4}.{0,4}$/.test(mascarada)) return null;
+  return {
+    provedor: r["provedor"] as ProvedorIaId,
+    configurada: r["configurada"] === true,
+    mascarada,
+    fonte: r["fonte"] === "banco" || r["fonte"] === "ambiente" ? (r["fonte"] as "banco" | "ambiente") : null,
+  };
+}
+
+/** Status mascarado das chaves dos 4 provedores — ou null (sem backend/operador). */
+export async function statusChavesIa(
+  config?: ConfigBackend,
+  transporte?: Transporte
+): Promise<StatusChaveIa[] | null> {
+  const resp = await chamarAdminChavesIa({ acao: "status" }, config, transporte);
+  if (!resp || typeof resp !== "object") return null;
+  const lista = (resp as { provedores?: unknown }).provedores;
+  if (!Array.isArray(lista)) return null;
+  const saneados: StatusChaveIa[] = [];
+  for (const item of lista) {
+    const s = sanearStatus(item);
+    if (s) saneados.push(s);
+  }
+  return saneados;
+}
+
+/**
+ * Envia a chave ao servidor (write-only) e devolve APENAS o status mascarado.
+ * A chave não é validada nem retida aqui — passa direto e morre com a chamada.
+ */
+export async function salvarChaveIa(
+  provedor: ProvedorIaId,
+  chave: string,
+  config?: ConfigBackend,
+  transporte?: Transporte
+): Promise<StatusChaveIa | null> {
+  const resp = await chamarAdminChavesIa({ acao: "salvar", provedor, chave }, config, transporte);
+  if (!resp || typeof resp !== "object") return null;
+  return sanearStatus((resp as { provedor?: unknown }).provedor);
+}
+
+/** Teste de conexão server-side — true/false, ou null se a chamada não rolou. */
+export async function testarChaveIa(
+  provedor: ProvedorIaId,
+  config?: ConfigBackend,
+  transporte?: Transporte
+): Promise<boolean | null> {
+  const resp = await chamarAdminChavesIa({ acao: "testar", provedor }, config, transporte);
+  if (!resp || typeof resp !== "object") return null;
+  return (resp as { ok?: unknown }).ok === true;
 }
 
 /**

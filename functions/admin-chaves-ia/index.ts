@@ -1,0 +1,200 @@
+// Pipoca — AdminChavesIA (Supabase Edge Function) · tarefa #31
+// --------------------------------------------------------------
+// Gestão server-side das CHAVES dos provedores de IA para o painel do
+// operador (SA_IA_GLOBAL). A chave entra por aqui (write-only) e vive na
+// tabela `chaves_ia` (deny-all p/ clientes — só service role). A resposta
+// NUNCA contém a chave: apenas status mascarado ("****ab12").
+//
+// Gate duplo: verify_jwt (plataforma) + uid PRECISA estar em `operadores`
+// (mesmo gate SECURITY DEFINER do RLS, checado via service role).
+//
+// Ações (POST JSON {acao,...}):
+//   {acao:"status"}                     → { provedores: StatusChaveIa[] }
+//   {acao:"salvar", provedor, chave}    → { provedor: StatusChaveIa }  (upsert)
+//   {acao:"testar", provedor}           → { ok: boolean }              (ping real)
+//
+// Erros (JSON {erro}): 401 nao_autenticado · 403 nao_autorizado ·
+// 400 requisicao_invalida · 503 nao_configurado. Self-contained (Deno),
+// fora de src/ — não entra no tsc do app (mesma disciplina do proxy-ia).
+
+declare const Deno: {
+  env: { get(nome: string): string | undefined };
+  serve(handler: (req: Request) => Promise<Response> | Response): void;
+};
+
+const CORS: Record<string, string> = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+function json(obj: unknown, status: number): Response {
+  return new Response(JSON.stringify(obj), { status, headers: { ...CORS, "content-type": "application/json" } });
+}
+
+function cabecalhosServico(chave: string): Record<string, string> {
+  return { apikey: chave, Authorization: "Bearer " + chave, "content-type": "application/json" };
+}
+
+// A ASSINATURA é validada pela plataforma (deploy com verify_jwt, como o
+// proxy-ia). Aqui, defesa em profundidade: token expirado é recusado mesmo
+// que a checagem da borda falhe em alguma configuração.
+function uidDoJwt(jwt: string): string | null {
+  try {
+    const payload = jwt.split(".")[1];
+    if (!payload) return null;
+    const d = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+    if (typeof d.exp === "number" && d.exp * 1000 < Date.now()) return null;
+    return typeof d.sub === "string" && d.sub ? d.sub : null;
+  } catch {
+    return null;
+  }
+}
+
+const PROVEDORES = ["claude", "gemini", "openai", "deepseek"] as const;
+type Provedor = (typeof PROVEDORES)[number];
+
+const SECRET_POR_PROVEDOR: Record<Provedor, string> = {
+  claude: "ANTHROPIC_API_KEY",
+  openai: "OPENAI_API_KEY",
+  gemini: "GEMINI_API_KEY",
+  deepseek: "DEEPSEEK_API_KEY",
+};
+
+function ehProvedor(p: unknown): p is Provedor {
+  return typeof p === "string" && (PROVEDORES as readonly string[]).indexOf(p) >= 0;
+}
+
+/** "****" + últimos 4 — NUNCA a chave inteira sai daqui. */
+function mascarar(chave: string): string {
+  return "****" + chave.slice(-4);
+}
+
+async function ehOperador(url: string, srk: string, uid: string): Promise<boolean> {
+  try {
+    const r = await fetch(url + "/rest/v1/operadores?select=uid&uid=eq." + encodeURIComponent(uid), {
+      headers: cabecalhosServico(srk),
+    });
+    if (!r.ok) return false;
+    const linhas = (await r.json()) as unknown[];
+    return Array.isArray(linhas) && linhas.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+async function lerChavesBanco(url: string, srk: string): Promise<Record<string, string>> {
+  try {
+    const r = await fetch(url + "/rest/v1/chaves_ia?select=provedor,chave", { headers: cabecalhosServico(srk) });
+    if (!r.ok) return {};
+    const linhas = (await r.json()) as Array<{ provedor?: string; chave?: string }>;
+    const mapa: Record<string, string> = {};
+    for (const l of linhas) {
+      if (l && typeof l.provedor === "string" && typeof l.chave === "string" && l.chave) mapa[l.provedor] = l.chave;
+    }
+    return mapa;
+  } catch {
+    return {};
+  }
+}
+
+interface StatusChave {
+  provedor: Provedor;
+  configurada: boolean;
+  mascarada: string | null;
+  fonte: "banco" | "ambiente" | null;
+}
+
+function statusDe(provedor: Provedor, banco: Record<string, string>): StatusChave {
+  const doBanco = banco[provedor];
+  if (doBanco) return { provedor, configurada: true, mascarada: mascarar(doBanco), fonte: "banco" };
+  const doAmbiente = Deno.env.get(SECRET_POR_PROVEDOR[provedor]);
+  if (doAmbiente) return { provedor, configurada: true, mascarada: mascarar(doAmbiente), fonte: "ambiente" };
+  return { provedor, configurada: false, mascarada: null, fonte: null };
+}
+
+/** Ping barato e real no provedor (lista de modelos) — roda SÓ no servidor. */
+async function testarProvedor(provedor: Provedor, chave: string): Promise<boolean> {
+  try {
+    if (provedor === "claude") {
+      const r = await fetch("https://api.anthropic.com/v1/models", {
+        headers: { "x-api-key": chave, "anthropic-version": "2023-06-01" },
+      });
+      return r.ok;
+    }
+    if (provedor === "openai") {
+      const r = await fetch("https://api.openai.com/v1/models", { headers: { Authorization: "Bearer " + chave } });
+      return r.ok;
+    }
+    if (provedor === "deepseek") {
+      const r = await fetch("https://api.deepseek.com/models", { headers: { Authorization: "Bearer " + chave } });
+      return r.ok;
+    }
+    if (provedor === "gemini") {
+      const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models", {
+        headers: { "x-goog-api-key": chave },
+      });
+      return r.ok;
+    }
+  } catch {
+    return false;
+  }
+  return false;
+}
+
+Deno.serve(async (req: Request): Promise<Response> => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  if (req.method !== "POST") return json({ erro: "metodo_invalido" }, 405);
+
+  const jwt = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
+  const uid = uidDoJwt(jwt);
+  if (!uid) return json({ erro: "nao_autenticado" }, 401);
+
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
+  const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  if (!SUPABASE_URL || !SERVICE_KEY) return json({ erro: "nao_configurado" }, 503);
+
+  // gate de OPERADOR (fail-closed): usuário comum não enxerga nem status
+  if (!(await ehOperador(SUPABASE_URL, SERVICE_KEY, uid))) return json({ erro: "nao_autorizado" }, 403);
+
+  const corpo = (await req.json().catch(() => null)) as {
+    acao?: string;
+    provedor?: string;
+    chave?: string;
+  } | null;
+  if (!corpo || typeof corpo.acao !== "string") return json({ erro: "requisicao_invalida" }, 400);
+
+  if (corpo.acao === "status") {
+    const banco = await lerChavesBanco(SUPABASE_URL, SERVICE_KEY);
+    return json({ provedores: PROVEDORES.map((p) => statusDe(p, banco)) }, 200);
+  }
+
+  if (corpo.acao === "salvar") {
+    if (!ehProvedor(corpo.provedor)) return json({ erro: "requisicao_invalida" }, 400);
+    const chave = typeof corpo.chave === "string" ? corpo.chave.trim() : "";
+    if (chave.length < 8 || chave.length > 512 || /\s/.test(chave)) return json({ erro: "requisicao_invalida" }, 400);
+    try {
+      const r = await fetch(SUPABASE_URL + "/rest/v1/chaves_ia?on_conflict=provedor", {
+        method: "POST",
+        headers: { ...cabecalhosServico(SERVICE_KEY), Prefer: "resolution=merge-duplicates,return=minimal" },
+        body: JSON.stringify([{ provedor: corpo.provedor, chave, atualizado_em: new Date().toISOString() }]),
+      });
+      if (!(r.status >= 200 && r.status < 300)) return json({ erro: "nao_configurado" }, 503);
+    } catch {
+      return json({ erro: "nao_configurado" }, 503);
+    }
+    // resposta SEMPRE mascarada — a chave nunca volta ao cliente
+    return json({ provedor: { provedor: corpo.provedor, configurada: true, mascarada: mascarar(chave), fonte: "banco" } }, 200);
+  }
+
+  if (corpo.acao === "testar") {
+    if (!ehProvedor(corpo.provedor)) return json({ erro: "requisicao_invalida" }, 400);
+    const banco = await lerChavesBanco(SUPABASE_URL, SERVICE_KEY);
+    const chave = banco[corpo.provedor] || Deno.env.get(SECRET_POR_PROVEDOR[corpo.provedor]) || "";
+    if (!chave) return json({ ok: false, motivo: "sem_chave" }, 200);
+    const ok = await testarProvedor(corpo.provedor, chave);
+    return json({ ok }, 200);
+  }
+
+  return json({ erro: "requisicao_invalida" }, 400);
+});

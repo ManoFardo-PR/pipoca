@@ -2,7 +2,8 @@
      ─────────────────────────────────────────────────────────────
      Espelho enxuto do Shell do app: assina window.PipocaRoteador +
      window.PipocaAdmin e monta a tela SA_* ativa por componente-irmão.
-     Numeração interna: 1 login · 2 hub · 3 tenants · 4 conteúdo · 5 IA · 6 segurança.
+     Numeração interna: 1 login · 2 hub · 3 tenants · 4 conteúdo · 5 IA ·
+     6 segurança · 7 IA global (chaves/modelos/fallback — tarefa #31).
      O guard vive em estadoAdmin.js (setState); aqui só se renderiza.
 -->
 <x-dc>
@@ -32,6 +33,7 @@
     <sc-if value="{{ ehSA4 }}" hint-placeholder-val="{{ false }}"><dc-import name="Conteudo"></dc-import></sc-if>
     <sc-if value="{{ ehSA5 }}" hint-placeholder-val="{{ false }}"><dc-import name="ConfigIA"></dc-import></sc-if>
     <sc-if value="{{ ehSA6 }}" hint-placeholder-val="{{ false }}"><dc-import name="Seguranca"></dc-import></sc-if>
+    <sc-if value="{{ ehSA7 }}" hint-placeholder-val="{{ false }}"><dc-import name="IaGlobal"></dc-import></sc-if>
   </div>
 
 </div>
@@ -66,6 +68,7 @@ class Component extends DCLogic {
       ehSA4: t === 4,
       ehSA5: t === 5,
       ehSA6: t === 6,
+      ehSA7: t === 7,
     };
   }
 }

@@ -1,0 +1,268 @@
+<!-- IaGlobal.dc.html — IA · Provedores & Chaves (SA_IA_GLOBAL, tela 7) · tarefa #31
+     ─────────────────────────────────────────────────────────────
+     O lado GLOBAL da IA: status das chaves (SEMPRE mascarado — a chave é
+     write-only rumo ao servidor e NUNCA volta nem fica em localStorage),
+     teste de conexão server-side, modelo padrão por provedor e a cadeia de
+     fallback global herdada pelos tenants. Sem backend remoto (modo local),
+     a tela abre SOMENTE-LEITURA com aviso — fail-closed, sem fingir salvar.
+     Seam: PipocaAdminCanonico.iaGlobal + .backend (statusChavesIa etc.).
+-->
+<x-dc>
+<helmet>
+  <style>
+    .pip-iag-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-iag-btn:active { transform:scale(.98); }
+    .pip-iag-campo { flex:1;min-width:180px;padding:10px 12px;border-radius:12px;border:2px solid #d8cfbd;background:#fffdf8;font-family:'Nunito';font-size:14px;color:#2c241a;outline:none; }
+    .pip-iag-campo:focus { border-color:#b09a72; }
+  </style>
+</helmet>
+
+<div style="position:absolute;inset:0;overflow-y:auto;padding:32px 20px;">
+  <div style="max-width:680px;margin:0 auto;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div>
+        <div style="font-family:'Baloo 2';font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#8a7a62;">IA · plataforma inteira</div>
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:24px;color:#2c241a;line-height:1.1;margin-top:2px;">Provedores &amp; Chaves</div>
+      </div>
+      <button class="pip-iag-btn" onClick="{{ voltar }}" style="border:1px solid #d8cfbd;border-radius:999px;background:transparent;padding:9px 16px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6c56;cursor:pointer;">↩ Painel</button>
+    </div>
+    <p style="color:#7a6c56;font-family:'Nunito';font-size:14px;line-height:1.5;margin:0 0 14px;">A chave digitada vai direto ao servidor e nunca volta — o painel só mostra o status mascarado. Modelos padrão e a cadeia de fallback valem para todo tenant que não define os próprios.</p>
+
+    <sc-if value="{{ somenteLeitura }}" hint-placeholder-val="{{ false }}">
+      <div role="status" style="background:#fdf6ea;border:1px solid #e0c98f;border-radius:14px;padding:14px 16px;margin-bottom:14px;font-family:'Nunito';font-size:13px;line-height:1.6;color:#7a5c2e;">
+        ⚠️ Sem backend remoto configurado (modo local): chaves e teste de conexão exigem o servidor. Esta tela está em <b>somente leitura</b> — nada aqui finge salvar.
+      </div>
+    </sc-if>
+
+    <!-- Cards por provedor: status mascarado · chave write-only · teste · modelo padrão -->
+    <sc-for list="{{ cards }}" as="c" hint-placeholder-count="4">
+      <div style="background:#fffdf8;border:1px solid #e4dcc9;border-radius:14px;padding:16px 18px;margin-bottom:12px;box-shadow:0 10px 28px -20px rgba(44,36,26,.35);">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:#2c241a;">{{ c.nome }}</div>
+          <div style="font-family:'Nunito';font-size:12px;font-weight:700;border-radius:999px;padding:4px 10px;{{ c.statusStyle }}">🔑 {{ c.statusRotulo }}</div>
+          <sc-if value="{{ c.temTeste }}" hint-placeholder-val="{{ false }}">
+            <div style="font-family:'Nunito';font-size:12px;font-weight:700;color:#5a4c3a;">{{ c.testeRotulo }}</div>
+          </sc-if>
+        </div>
+
+        <div style="{{ formStyle }}">
+          <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">
+            <input class="pip-iag-campo" type="password" autocomplete="off" placeholder="colar nova chave (write-only)" value="{{ c.chave }}" onInput="{{ c.setChave }}" aria-label="Nova chave do provedor (não é exibida depois)" />
+            <button class="pip-iag-btn" onClick="{{ c.salvarChave }}" style="min-height:40px;border:none;border-radius:10px;padding:0 14px;font-family:'Baloo 2';font-weight:800;font-size:13px;color:#fff;background:linear-gradient(150deg,#4a5a3f,#39472f);">Enviar ao servidor</button>
+            <button class="pip-iag-btn" onClick="{{ c.testar }}" style="min-height:40px;border:2px solid #d8cfbd;border-radius:10px;background:#fffdf8;padding:0 14px;font-family:'Baloo 2';font-weight:800;font-size:13px;color:#2c241a;">Testar conexão</button>
+          </div>
+
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#2c241a;margin-top:12px;">Modelo padrão</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+            <sc-for list="{{ c.modelos }}" as="m" hint-placeholder-count="2">
+              <button class="pip-iag-btn" onClick="{{ m.escolher }}" style="{{ m.style }}">{{ m.nome }}</button>
+            </sc-for>
+          </div>
+        </div>
+
+        <sc-if value="{{ c.temAviso }}" hint-placeholder-val="{{ false }}">
+          <div role="status" aria-live="polite" style="margin-top:8px;font-family:'Nunito';font-size:12px;color:#8a4a3a;">{{ c.aviso }}</div>
+        </sc-if>
+      </div>
+    </sc-for>
+
+    <!-- Cadeia de fallback global -->
+    <div style="background:#fffdf8;border:1px solid #e4dcc9;border-radius:14px;padding:16px 18px;margin-bottom:12px;">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:#2c241a;">Cadeia de fallback global</div>
+      <p style="font-family:'Nunito';font-size:12px;line-height:1.5;color:#8a7a62;margin:4px 0 10px;">Ordem que o servidor tenta quando o tenant não define fallback próprio. Clique para incluir/remover na ordem do clique.</p>
+      <div style="{{ formStyle }}">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+          <sc-for list="{{ elos }}" as="e" hint-placeholder-count="4">
+            <button class="pip-iag-btn" onClick="{{ e.alternar }}" style="{{ e.style }}">{{ e.nome }}</button>
+          </sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap;">
+          <div style="font-family:'Nunito';font-size:13px;color:#5a4c3a;">Ordem atual: <b>{{ cadeiaRotulo }}</b></div>
+          <button class="pip-iag-btn" onClick="{{ limparCadeia }}" style="border:1px solid #d8cfbd;border-radius:999px;background:transparent;padding:6px 12px;font-family:'Nunito';font-weight:700;font-size:12px;color:#7a6c56;">Limpar</button>
+        </div>
+      </div>
+    </div>
+
+    <sc-if value="{{ temErros }}" hint-placeholder-val="{{ false }}">
+      <div role="status" aria-live="polite" style="margin-bottom:10px;font-family:'Nunito';font-size:13px;color:#8a4a3a;">
+        <sc-for list="{{ erros }}" as="e" hint-placeholder-count="0"><div>— {{ e }}</div></sc-for>
+      </div>
+    </sc-if>
+
+    <div style="display:flex;align-items:center;gap:12px;{{ formStyle }}">
+      <button class="pip-iag-btn" onClick="{{ salvar }}" style="min-height:44px;border:none;border-radius:12px;padding:0 20px;font-family:'Baloo 2';font-weight:800;font-size:14px;color:#fff;background:linear-gradient(150deg,#4a5a3f,#39472f);">Salvar padrões globais</button>
+    </div>
+
+    <sc-if value="{{ temAviso }}" hint-placeholder-val="{{ false }}">
+      <div role="status" aria-live="polite" style="margin-top:12px;font-family:'Nunito';font-size:13px;color:#5a4c3a;">{{ aviso }}</div>
+    </sc-if>
+
+    <div style="height:24px;"></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  // chavesDigitadas fica SÓ na memória do componente (write-only) e é limpa
+  // após o envio — nunca em estado persistido nem em localStorage.
+  state = { config: null, remoto: false, statusPorProvedor: {}, chavesDigitadas: {}, testes: {}, avisosChave: {}, erros: [], aviso: '' };
+
+  componentDidMount() {
+    const A = window.PipocaAdmin;
+    const C = window.PipocaAdminCanonico;
+    if (!A || !C) return;
+    if (!C.auth.sessaoSuperAdminValida(A.estado.sessao, Date.now())) { A.irParaTela(1); return; }
+    const cfgBackend = C.backend.configDoAmbiente();
+    const remoto = cfgBackend && cfgBackend.provedor === 'supabase';
+    this.setState({ remoto, config: C.iaGlobal.carregarConfigIaGlobal() });
+    if (remoto) this._puxarDoServidor();
+  }
+
+  async _puxarDoServidor() {
+    const C = window.PipocaAdminCanonico;
+    try {
+      // servidor vence na config global; status das chaves sempre mascarado
+      const [cfg, status] = await Promise.all([
+        C.backend.puxarConfigIaGlobal(),
+        C.backend.statusChavesIa(),
+      ]);
+      const porProvedor = {};
+      (status || []).forEach((s) => { porProvedor[s.provedor] = s; });
+      this.setState({
+        config: cfg || this.state.config,
+        statusPorProvedor: porProvedor,
+      });
+    } catch (_) { /* fica no espelho local (leitura) */ }
+  }
+
+  _patchConfig(parcial) {
+    this.setState({ config: Object.assign({}, this.state.config, parcial), erros: [], aviso: '' });
+  }
+
+  _setModeloPadrao(provedor, modelo) {
+    const mp = Object.assign({}, this.state.config.modeloPadrao);
+    mp[provedor] = modelo;
+    this._patchConfig({ modeloPadrao: mp });
+  }
+
+  _alternarNaCadeia(provedor) {
+    const atual = this.state.config.cadeiaFallback.slice();
+    const i = atual.indexOf(provedor);
+    if (i >= 0) atual.splice(i, 1); else atual.push(provedor);
+    this._patchConfig({ cadeiaFallback: atual });
+  }
+
+  _salvarGlobal() {
+    const C = window.PipocaAdminCanonico;
+    if (!this.state.remoto) return; // somente leitura — fail-closed
+    const erros = C.iaGlobal.validarConfigIaGlobal(this.state.config);
+    if (erros.length) { this.setState({ erros }); return; }
+    C.iaGlobal.salvarConfigIaGlobal(this.state.config);
+    C.backend.espelharConfigIaGlobal(this.state.config).catch(() => {});
+    this.setState({ aviso: 'Padrões globais salvos (espelhados no servidor).', erros: [] });
+  }
+
+  async _salvarChave(provedor) {
+    const C = window.PipocaAdminCanonico;
+    if (!this.state.remoto) return;
+    const chave = (this.state.chavesDigitadas[provedor] || '').trim();
+    if (chave.length < 8) { this._avisoChave(provedor, 'Chave curta demais — cole a chave inteira.'); return; }
+    this._avisoChave(provedor, 'Enviando…');
+    const status = await C.backend.salvarChaveIa(provedor, chave);
+    // a chave digitada morre aqui, com ou sem sucesso (write-only)
+    const limpas = Object.assign({}, this.state.chavesDigitadas); limpas[provedor] = '';
+    if (status) {
+      const porProvedor = Object.assign({}, this.state.statusPorProvedor); porProvedor[provedor] = status;
+      this.setState({ chavesDigitadas: limpas, statusPorProvedor: porProvedor });
+      this._avisoChave(provedor, 'Chave guardada no servidor.');
+    } else {
+      this.setState({ chavesDigitadas: limpas });
+      this._avisoChave(provedor, 'Não deu para guardar a chave (backend/sessão). Nada foi salvo aqui.');
+    }
+  }
+
+  async _testar(provedor) {
+    const C = window.PipocaAdminCanonico;
+    if (!this.state.remoto) return;
+    const testes = Object.assign({}, this.state.testes); testes[provedor] = 'testando';
+    this.setState({ testes });
+    const ok = await C.backend.testarChaveIa(provedor);
+    const fim = Object.assign({}, this.state.testes);
+    fim[provedor] = ok === true ? 'ok' : 'falhou';
+    this.setState({ testes: fim });
+  }
+
+  _avisoChave(provedor, msg) {
+    const avisos = Object.assign({}, this.state.avisosChave); avisos[provedor] = msg;
+    this.setState({ avisosChave: avisos });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const A = window.PipocaAdmin;
+    const C = window.PipocaAdminCanonico;
+    const cfg = s.config || (C ? C.iaGlobal.CONFIG_IA_GLOBAL_PADRAO : { modeloPadrao: {}, cadeiaFallback: [] });
+    const somenteLeitura = !s.remoto;
+    const optBase = 'min-height:38px;border-radius:10px;border:2px solid;font-family:Nunito;font-weight:700;font-size:12px;cursor:pointer;padding:6px 10px;';
+    const sel = 'background:#4a5a3f;border-color:#4a5a3f;color:#fff;';
+    const off = 'background:#fffdf8;border-color:#d8cfbd;color:#2c241a;';
+    const nomesProv = { claude: 'Claude', gemini: 'Gemini', openai: 'OpenAI', deepseek: 'DeepSeek' };
+    const provedores = ['claude', 'gemini', 'openai', 'deepseek'];
+
+    const cards = provedores.map((p) => {
+      const status = s.statusPorProvedor[p] || null;
+      const rotulo = C ? C.iaGlobal.rotuloStatusChave(status) : 'não configurada';
+      const configurada = !!(status && status.configurada);
+      const teste = s.testes[p] || '';
+      const modelosCatalogo = (C ? C.ia.MODELOS_POR_PROVEDOR[p] : []) || [];
+      const modelos = [{ id: null, nome: 'nenhum' }].concat(modelosCatalogo.map((m) => ({ id: m, nome: m }))).map((m) => ({
+        nome: m.nome,
+        escolher: () => this._setModeloPadrao(p, m.id),
+        style: optBase + ((cfg.modeloPadrao[p] || null) === m.id ? sel : off),
+      }));
+      return {
+        nome: nomesProv[p],
+        statusRotulo: somenteLeitura ? 'status no servidor (backend remoto necessário)' : rotulo,
+        statusStyle: configurada ? 'background:#e8f0e2;color:#39472f;' : 'background:#f4ece0;color:#8a7a62;',
+        temTeste: !!teste,
+        testeRotulo: teste === 'testando' ? '⏳ testando…' : teste === 'ok' ? '✅ conexão OK' : '❌ falhou',
+        chave: s.chavesDigitadas[p] || '',
+        setChave: (e) => {
+          const c = Object.assign({}, this.state.chavesDigitadas); c[p] = e.target.value;
+          this.setState({ chavesDigitadas: c });
+        },
+        salvarChave: () => this._salvarChave(p),
+        testar: () => this._testar(p),
+        modelos,
+        temAviso: !!s.avisosChave[p],
+        aviso: s.avisosChave[p] || '',
+      };
+    });
+
+    const elos = provedores.map((p) => {
+      const pos = cfg.cadeiaFallback.indexOf(p);
+      return {
+        nome: (pos >= 0 ? (pos + 1) + 'º · ' : '') + nomesProv[p],
+        alternar: () => this._alternarNaCadeia(p),
+        style: optBase + (pos >= 0 ? sel : off),
+      };
+    });
+
+    return {
+      somenteLeitura,
+      formStyle: somenteLeitura ? 'opacity:.45;pointer-events:none;' : '',
+      cards,
+      elos,
+      cadeiaRotulo: cfg.cadeiaFallback.length ? cfg.cadeiaFallback.map((p) => nomesProv[p]).join(' → ') : 'nenhuma (tenant sem fallback fica sem)',
+      limparCadeia: () => this._patchConfig({ cadeiaFallback: [] }),
+      erros: s.erros,
+      temErros: s.erros.length > 0,
+      salvar: () => this._salvarGlobal(),
+      aviso: s.aviso || '',
+      temAviso: !!s.aviso,
+      voltar: () => { if (A) A.irParaTela(2); },
+    };
+  }
+}
+</script>

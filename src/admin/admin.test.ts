@@ -58,6 +58,18 @@ import {
   type ConfigIaTenant,
 } from "./ia_config.js";
 import {
+  CONFIG_IA_GLOBAL_PADRAO,
+  validarConfigIaGlobal,
+  normalizarConfigIaGlobal,
+  carregarConfigIaGlobal,
+  salvarConfigIaGlobal,
+  provedorEfetivoGlobal,
+  modeloEfetivoGlobal,
+  fallbacksEfetivosGlobal,
+  rotuloStatusChave,
+  type ConfigIaGlobal,
+} from "./ia_global.js";
+import {
   FLAGS_PADRAO,
   definirFlag,
   killSwitch,
@@ -433,6 +445,60 @@ console.log("\n=== espelho remoto (pós-fase06) · envelopes e substituição in
   const stC = new ArmazemMem();
   substituirCenariosLocais([c1], stC);
   assert(listarCenarios(stC).length === 1 && listarCenarios(stC)[0]!.cenarioId === "quintal_x", "substituirCenariosLocais grava a biblioteca inteira");
+}
+
+console.log("\n=== SA_IA_GLOBAL (tarefa #31) · núcleo global, herança e status mascarado ===");
+{
+  // padrão fail-closed: sem modelos padrão e sem cadeia — ninguém herda IA de graça
+  assert(CONFIG_IA_GLOBAL_PADRAO.cadeiaFallback.length === 0, "padrão nasce sem cadeia de fallback");
+  assert(Object.values(CONFIG_IA_GLOBAL_PADRAO.modeloPadrao).every((m) => m === null), "padrão nasce sem modelo padrão nenhum");
+
+  // validação: catálogo, provedores conhecidos, sem repetição, sem 'chave'
+  const boa: ConfigIaGlobal = {
+    modeloPadrao: { claude: "claude-haiku-4-5", gemini: null, openai: null, deepseek: null },
+    cadeiaFallback: ["claude", "deepseek"],
+  };
+  assert(validarConfigIaGlobal(boa).length === 0, "config global válida passa");
+  assert(validarConfigIaGlobal({ ...boa, modeloPadrao: { ...boa.modeloPadrao, claude: "inventado" } }).length > 0, "modelo fora do catálogo é barrado");
+  assert(validarConfigIaGlobal({ ...boa, modeloPadrao: { torradeira: null } }).length > 0, "provedor desconhecido no modeloPadrao é barrado");
+  assert(validarConfigIaGlobal({ ...boa, cadeiaFallback: ["claude", "claude"] }).length > 0, "cadeia não pode repetir provedor");
+  assert(validarConfigIaGlobal({ ...boa, cadeiaFallback: ["torradeira"] }).length > 0, "cadeia só aceita provedores conhecidos");
+  assert(validarConfigIaGlobal({ ...boa, chaveApi: "sk-x" } as unknown).length > 0, "'chave' em QUALQUER campo é rejeitada (server-side only)");
+  assert(validarConfigIaGlobal(null).length > 0 && validarConfigIaGlobal([]).length > 0, "lixo estrutural é rejeitado");
+
+  // normalização: lixo → padrão fail-closed; válida → cópia saneada
+  assert(normalizarConfigIaGlobal("podre").cadeiaFallback.length === 0, "normalizar lixo → padrão fail-closed");
+  const norm = normalizarConfigIaGlobal({ modeloPadrao: { claude: "claude-haiku-4-5" }, cadeiaFallback: ["gemini"] });
+  assert(norm.modeloPadrao.claude === "claude-haiku-4-5" && norm.modeloPadrao.gemini === null, "normalizar completa os provedores ausentes com null");
+
+  // persistência: roundtrip + corrompido volta ao padrão
+  const st = new ArmazemMem();
+  salvarConfigIaGlobal(boa, st);
+  assert(carregarConfigIaGlobal(st).cadeiaFallback[1] === "deepseek", "salvar/carregar preserva a cadeia");
+  st.setItem("pipoca.admin.iaglobal.v1", "{corrompido");
+  assert(carregarConfigIaGlobal(st).cadeiaFallback.length === 0, "storage corrompido → padrão fail-closed");
+  assert(carregarConfigIaGlobal(new ArmazemMem()).cadeiaFallback.length === 0, "storage vazio → padrão fail-closed");
+
+  // herança (a MESMA regra que o ProxyIA espelha no servidor)
+  const tenantCom: ConfigIaTenant = { provedor: "gemini", modelo: "gemini-2.5-flash", cotaMensal: 100, custoMaxMensal: 10, fallback: null };
+  const tenantSem: ConfigIaTenant = { provedor: null, modelo: null, cotaMensal: 100, custoMaxMensal: 10, fallback: null };
+  assert(provedorEfetivoGlobal(tenantCom, boa) === "gemini", "tenant com provedor próprio VENCE o global");
+  assert(provedorEfetivoGlobal(tenantSem, boa) === "claude", "tenant sem provedor herda o 1º da cadeia global");
+  assert(provedorEfetivoGlobal(tenantSem, CONFIG_IA_GLOBAL_PADRAO) === null, "sem tenant e sem cadeia → null (segue sem IA)");
+  assert(modeloEfetivoGlobal("gemini", tenantCom, boa) === "gemini-2.5-flash", "modelo do tenant vence quando o provedor é o dele");
+  assert(modeloEfetivoGlobal("claude", tenantSem, boa) === "claude-haiku-4-5", "provedor herdado usa o modelo padrão global");
+  assert(modeloEfetivoGlobal(null, tenantSem, boa) === null, "sem provedor efetivo → sem modelo");
+  const tenantComFallback: ConfigIaTenant = { ...tenantCom, fallback: "openai" };
+  assert(JSON.stringify(fallbacksEfetivosGlobal(tenantComFallback, boa)) === JSON.stringify(["openai"]), "fallback do tenant VENCE (vira lista de 1)");
+  assert(JSON.stringify(fallbacksEfetivosGlobal(tenantSem, boa)) === JSON.stringify(["deepseek"]), "sem fallback do tenant → cadeia global SEM o provedor efetivo");
+  assert(fallbacksEfetivosGlobal(tenantSem, CONFIG_IA_GLOBAL_PADRAO).length === 0, "sem cadeia global → sem fallback nenhum");
+
+  // status mascarado: só o formato '****xxxx' vira rótulo de configurada
+  assert(rotuloStatusChave({ provedor: "claude", configurada: true, mascarada: "****ab12", fonte: "banco" }) === "configurada · ****ab12", "status configurado mostra a máscara");
+  assert(rotuloStatusChave({ provedor: "claude", configurada: true, mascarada: "sk-inteira-vazada", fonte: "banco" }) === "configurada · ****", "mascarada fora do formato NÃO é exibida (fail-closed)");
+  assert(rotuloStatusChave({ provedor: "openai", configurada: true, mascarada: "****zz99", fonte: "ambiente" }).indexOf("secret do ambiente") > 0, "fonte 'ambiente' aparece no rótulo");
+  assert(rotuloStatusChave(null) === "não configurada" && rotuloStatusChave(undefined) === "não configurada", "sem status → não configurada");
+  assert(rotuloStatusChave({ provedor: "gemini", configurada: false, mascarada: null, fonte: null }) === "não configurada", "não configurada é o rótulo honesto");
 }
 
 console.log(`\n${"=".repeat(50)}`);

@@ -73,6 +73,49 @@ async function lerConfigIa(url: string, chave: string, tenant: string): Promise<
   }
 }
 
+// ── config GLOBAL (tarefa #31): linha reservada 'plataforma:global' em config_ia ──
+// dados = ConfigIaGlobal { modeloPadrao: provedor→modelo|null, cadeiaFallback: provedor[] }
+interface ConfigIaGlobal {
+  modeloPadrao: Record<string, string | null>;
+  cadeiaFallback: string[];
+}
+
+const GLOBAL_VAZIA: ConfigIaGlobal = { modeloPadrao: {}, cadeiaFallback: [] };
+
+async function lerConfigIaGlobal(url: string, chave: string): Promise<ConfigIaGlobal> {
+  try {
+    const r = await fetch(url + "/rest/v1/config_ia?select=dados&tenant_id=eq." + encodeURIComponent("plataforma:global"), {
+      headers: cabecalhosServico(chave),
+    });
+    if (!r.ok) return GLOBAL_VAZIA;
+    const linhas = (await r.json()) as Array<{ dados?: Partial<ConfigIaGlobal> }>;
+    const d = linhas && linhas[0] && linhas[0].dados;
+    if (!d || typeof d !== "object") return GLOBAL_VAZIA;
+    return {
+      modeloPadrao: d.modeloPadrao && typeof d.modeloPadrao === "object" ? d.modeloPadrao : {},
+      cadeiaFallback: Array.isArray(d.cadeiaFallback) ? d.cadeiaFallback.filter((p) => typeof p === "string") : [],
+    };
+  } catch {
+    return GLOBAL_VAZIA;
+  }
+}
+
+// ── chaves dos provedores: tabela `chaves_ia` (deny-all) primeiro; env vars como fallback ──
+async function lerChavesBanco(url: string, chave: string): Promise<Record<string, string>> {
+  try {
+    const r = await fetch(url + "/rest/v1/chaves_ia?select=provedor,chave", { headers: cabecalhosServico(chave) });
+    if (!r.ok) return {};
+    const linhas = (await r.json()) as Array<{ provedor?: string; chave?: string }>;
+    const mapa: Record<string, string> = {};
+    for (const l of linhas) {
+      if (l && typeof l.provedor === "string" && typeof l.chave === "string" && l.chave) mapa[l.provedor] = l.chave;
+    }
+    return mapa;
+  } catch {
+    return {};
+  }
+}
+
 async function lerUso(url: string, chave: string, tenant: string, mes: string): Promise<{ chamadas: number; custo: number }> {
   try {
     const r = await fetch(
@@ -149,10 +192,12 @@ async function gerarCom(
   modelo: string | null,
   prompt: string,
   schema: unknown,
-  opts: { system?: string; maxTokens?: number }
+  opts: { system?: string; maxTokens?: number },
+  chavesBanco: Record<string, string>
 ): Promise<ResultadoGeracao> {
+  // tarefa #31: chave do banco (admin-chaves-ia) primeiro; env var como fallback
   const nomeSecret = SECRET_POR_PROVEDOR[provedor];
-  const chave = nomeSecret ? Deno.env.get(nomeSecret) : undefined;
+  const chave = chavesBanco[provedor] || (nomeSecret ? Deno.env.get(nomeSecret) : undefined);
   if (!chave) return { ok: false, semChave: true };
   const m = modelo || MODELO_PADRAO[provedor] || "";
   const maxTokens = opts.maxTokens || 400;
@@ -267,7 +312,23 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const tenant = (typeof corpo.tenantId === "string" && corpo.tenantId) || "familia:" + uid;
   const config = await lerConfigIa(SUPABASE_URL, SERVICE_KEY, tenant);
   const configEfetiva = config || (await lerConfigIa(SUPABASE_URL, SERVICE_KEY, "plataforma"));
-  if (!configEfetiva || !configEfetiva.provedor) return json({ erro: "nao_configurado" }, 503);
+  if (!configEfetiva) return json({ erro: "nao_configurado" }, 503);
+
+  // tarefa #31 · herança do GLOBAL: tenant > global > nao_configurado.
+  // Provedor: o do tenant; senão o 1º da cadeia global. Modelo: o do tenant
+  // (se o provedor é o dele); senão o modelo padrão global do provedor.
+  // A COTA continua sendo a do tenant (a config global não abre cota nenhuma).
+  // NOTA sobre a linha legada 'plataforma' (acima): ela é uma ConfigIaTenant
+  // completa (COM cota) usada como default quando o tenant não tem linha —
+  // ela precede a global de propósito, porque a global sozinha não carrega
+  // cota e sem cota o gate ficaria sem régua (fail-closed exige a linha).
+  const global = await lerConfigIaGlobal(SUPABASE_URL, SERVICE_KEY);
+  const provedorEfetivo = configEfetiva.provedor || global.cadeiaFallback[0] || null;
+  if (!provedorEfetivo) return json({ erro: "nao_configurado" }, 503);
+  const modeloEfetivo =
+    (configEfetiva.provedor === provedorEfetivo ? configEfetiva.modelo : null) ||
+    global.modeloPadrao[provedorEfetivo] ||
+    null;
 
   // cota/custo ANTES da chamada (05-10)
   const mes = new Date().toISOString().slice(0, 7);
@@ -282,9 +343,18 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const schema = corpo.schema && typeof corpo.schema === "object" ? corpo.schema : SCHEMA_TRECHO;
   const opts = corpo.opts || {};
 
-  let resultado = await gerarCom(configEfetiva.provedor, configEfetiva.modelo, corpo.prompt, schema, opts);
-  if (!resultado.ok && configEfetiva.fallback) {
-    resultado = await gerarCom(configEfetiva.fallback, null, corpo.prompt, schema, opts);
+  // tarefa #31: fallback do tenant (1 provedor) VENCE; sem ele, a cadeia
+  // global entra na ordem (pulando o provedor primário). Modelos dos
+  // fallbacks: o padrão global do provedor (senão o default barato).
+  const chavesBanco = await lerChavesBanco(SUPABASE_URL, SERVICE_KEY);
+  const fallbacks: string[] = configEfetiva.fallback
+    ? [configEfetiva.fallback]
+    : global.cadeiaFallback.filter((p) => p !== provedorEfetivo);
+
+  let resultado = await gerarCom(provedorEfetivo, modeloEfetivo, corpo.prompt, schema, opts, chavesBanco);
+  for (const alternativo of fallbacks) {
+    if (resultado.ok) break;
+    resultado = await gerarCom(alternativo, global.modeloPadrao[alternativo] || null, corpo.prompt, schema, opts, chavesBanco);
   }
   if (!resultado.ok) {
     return resultado.semChave ? json({ erro: "nao_configurado" }, 503) : json({ erro: "provedor_falhou" }, 502);

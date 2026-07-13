@@ -57,6 +57,7 @@ class Component extends DCLogic {
       { id: 'tenants',   titulo: 'Contas, tenants e planos',   descricao: 'quem usa a plataforma e com quais limites', emoji: '🏫', rota: 'SA_TENANT' },
       { id: 'conteudo',  titulo: 'Biblioteca de conteúdo',     descricao: 'grafos autorais: validar, versionar, publicar', emoji: '📚', rota: 'SA_CONTENT' },
       { id: 'ia',        titulo: 'Configuração de IA',         descricao: 'provedores, cotas e fallback por tenant', emoji: '🤖', rota: 'SA_AI' },
+      { id: 'iaGlobal',  titulo: 'IA · Provedores & Chaves',   descricao: 'chaves no servidor, modelos padrão e fallback global', emoji: '🔑', rota: 'SA_IA_GLOBAL' },
       { id: 'seguranca', titulo: 'Segurança e feature flags',  descricao: 'kill-switches e defaults seguros', emoji: '🛡️', rota: 'SA_SAFE' },
     ];
     const areas = defs.map((d) => {

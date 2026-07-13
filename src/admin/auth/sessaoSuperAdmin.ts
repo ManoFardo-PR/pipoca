@@ -11,7 +11,7 @@ import type { SessaoSuperAdmin, TenantId } from "./tiposAdmin.js";
 export const DURACAO_SESSAO_ADMIN_MS = 12 * 3_600_000;
 
 /** Áreas do hub (SA_HOME): cartões que distribuem para as telas SA_*. */
-export type AreaAdminId = "tenants" | "conteudo" | "ia" | "seguranca";
+export type AreaAdminId = "tenants" | "conteudo" | "ia" | "iaGlobal" | "seguranca";
 
 /** Cria a sessão do operador a partir de `agora` (epoch ms da borda). */
 export function criarSessaoSuperAdmin(

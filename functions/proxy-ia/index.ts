@@ -175,6 +175,21 @@ interface Trecho {
 
 type ResultadoGeracao = { ok: true; trecho: Trecho } | { ok: false; semChave?: boolean };
 
+/** Remove `additionalProperties` recursivamente — a API do Gemini não aceita
+ *  o campo no responseSchema (400 INVALID_ARGUMENT: "Unknown name"). */
+function sanearSchemaGemini(schema: unknown): unknown {
+  if (Array.isArray(schema)) return schema.map(sanearSchemaGemini);
+  if (schema && typeof schema === "object") {
+    const limpo: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(schema as Record<string, unknown>)) {
+      if (k === "additionalProperties") continue;
+      limpo[k] = sanearSchemaGemini(v);
+    }
+    return limpo;
+  }
+  return schema;
+}
+
 function parseTrecho(textoJson: string): Trecho | null {
   try {
     const t = JSON.parse(textoJson);
@@ -260,7 +275,10 @@ async function gerarCom(
         body: JSON.stringify({
           ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
           contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: "application/json", responseSchema: schema },
+          // Gemini rejeita `additionalProperties` no responseSchema (400
+          // INVALID_ARGUMENT) — o schema vai SANEADO (mesmo padrão do
+          // realizador, cujo SCHEMA_TEXTO nasce sem o campo).
+          generationConfig: { responseMimeType: "application/json", responseSchema: sanearSchemaGemini(schema) },
         }),
       });
       if (!r.ok) return { ok: false };

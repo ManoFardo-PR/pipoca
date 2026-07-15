@@ -1,5 +1,19 @@
 /**
- * Experimento B1.5 — tipos compartilhados entre o gerador e o avaliador.
+ * [tipos.ts] — tipos/contratos TypeScript compartilhados entre o gerador e o
+ *   avaliador do experimento B1.5 (história-base, resposta-LLM, vereditos,
+ *   agregados, monitoramento).
+ *
+ * PAPEL: experimento (B1.5 · offline — só tipos, sem runtime)
+ * POR QUE EXISTE: manter um único vocabulário de dados para os dois scripts e
+ *   os arquivos gravados em saida/ não divergirem.
+ * ENTRA: nada (arquivo de tipos).
+ * SAI: interfaces/tipos (HistoriaBase, RespostaLLM, Par, VereditoCamada1/2,
+ *   ParAvaliado, Grade, AgregadoHistoria, etc.).
+ * CHAMA: src/core/composicao.js (só o tipo NivelKey).
+ * É CHAMADO POR: gerar-historias.ts, avaliar-pares.ts, camada1-fidelidade.ts,
+ *   camada2-juiz.ts, relatorios.ts, persistencia.ts, linha-aleatoria.ts (e os
+ *   .test.ts).
+ * RODA POR: importado por todo o experimento (só tipos, sem efeito em runtime).
  */
 
 import type { NivelKey } from "../../src/core/composicao.js";

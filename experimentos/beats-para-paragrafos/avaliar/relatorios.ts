@@ -1,4 +1,21 @@
 /**
+ * [relatorios.ts] — formata os 3 artefatos de decisão do avaliador B1.5 a
+ *   partir dos pares avaliados: a grade rodada×nível e dois markdowns de
+ *   leitura humana.
+ *
+ * PAPEL: experimento (B1.5 · offline)
+ * POR QUE EXISTE: transformar a lista de ParAvaliado numa visão de decisão —
+ *   onde a fidelidade cai (grade), o que ler primeiro (piores em fluidez) e por
+ *   que cada reprovado caiu (insumo para endurecer o gerador).
+ * ENTRA: ParAvaliado[] (base + resposta + veredito das duas camadas).
+ * SAI: Grade (objeto) via montarGrade; strings markdown via montarParaLeitura
+ *   e montarReprovados. Funções puras — não escrevem em disco.
+ * CHAMA: src/core/composicao.js (tipo NivelKey), ../tipos.js.
+ * É CHAMADO POR: avaliar-pares.ts (montarGrade, montarParaLeitura,
+ *   montarReprovados); avaliar-pares.test.ts.
+ * RODA POR: importado por avaliar-pares.ts (dentro do avaliador).
+ *
+ * — detalhe preservado —
  * Experimento B1.5 — monta os 3 artefatos de decisão do avaliador:
  * grade.json (matriz rodada×nível), para-leitura.md (aprovados, piores
  * primeiro) e reprovados.md (motivos, insumo para endurecer o gerador).

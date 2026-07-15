@@ -1,4 +1,26 @@
 /**
+ * [gramatica-andaime.ts] — avaliação de condições da gramática v3 + seleção D5
+ *   de relações e as tabelas-semente de orçamento de palavras/parágrafos.
+ *
+ * PAPEL: experimento (arquivado)
+ * POR QUE EXISTE: era o mínimo de gramática v3 para montar o prompt do
+ *   experimento em escala — hoje LEGADO preservado como registro: o compositor
+ *   de produção (fase 11) o superou. NÃO está mais no caminho ativo.
+ * ENTRA: condição/`se`, id de objeto, linha de objetos; palavrasMaterial,
+ *   nível, rodada.
+ * SAI: avaliarCondicao/casaSe (bool), selecionarRelacoes (RelacaoAtiva[]),
+ *   derivarPapel, paragrafosPorRodada, alvoPalavras e as tabelas
+ *   PALAVRAS_POR_PARAGRAFO/PISO_PALAVRAS/TETO_PALAVRAS/FATOR_MATERIAL.
+ * CHAMA: só tipos de src/core/fichas/tipos.js:FichaRelacao e ../tipos.js:RelacaoAtiva.
+ * É CHAMADO POR: _andaime-arquivado/montar-prompt.ts (só ele). Fora do caminho
+ *   ativo (arquivado).
+ * RODA POR: offline — não roda sozinho; importado por montar-prompt.ts (andaime
+ *   arquivado).
+ * CUIDADO: legado preservado como REGISTRO — PROIBIDO promover a src/core
+ *   (compositor de produção da fase 11 é o herdeiro). Semântica espelhada de
+ *   src/core/composicao.ts:200-231. Offline (sem rede/API).
+ *
+ * — detalhe preservado —
  * ⚠️ ANDAIME DESCARTÁVEL — SÓ DESTE EXPERIMENTO. ⚠️
  * Avaliação de condições da gramática v3 + seleção D5, no mínimo necessário
  * para montar o prompt da validação em escala. É PROIBIDO promover este

@@ -1,4 +1,23 @@
 /**
+ * [smoke.ts] — smoke do experimento fichas→histórias: 2 chamadas reais (1
+ *   Gemini + 1 OpenAI) para validar ids de modelo e chaves ANTES do lote caro.
+ *
+ * PAPEL: smoke (GASTA API paga)
+ * POR QUE EXISTE: barato antes do caro — confirma que GEMINI_MODEL/OPENAI_MODEL
+ *   e as chaves respondem, evitando rodar o lote inteiro para descobrir um id
+ *   de modelo errado.
+ * ENTRA: env GEMINI_API_KEY, OPENAI_API_KEY, GEMINI_MODEL (default
+ *   gemini-2.5-flash), OPENAI_MODEL (default gpt-4o-mini); .env na raiz.
+ * SAI: log ✓/✗ por provedor; process.exitCode = 1 se alguma chamada falhar.
+ * CHAMA: ./gemini-cliente-fichas.js:gerarComGemini,
+ *   ../beats-para-paragrafos/avaliar/camada2-juiz.js:julgarPar,
+ *   ../beats-para-paragrafos/carregar-env.js:carregarEnv.
+ * É CHAMADO POR: entrypoint rodado à mão (ninguém importa).
+ * RODA POR: `bun run experimentos/fichas-para-historias/smoke.ts`.
+ * CUIDADO: GASTA API paga — 2 chamadas reais (1 Gemini, 1 OpenAI). As chaves são
+ *   do Manoel (shell ou .env na raiz). Rode-o ANTES de gerar.ts/avaliar.ts.
+ *
+ * — detalhe preservado —
  * Experimento fichas→histórias — SMOKE: 2 chamadas reais (1 Gemini, 1 OpenAI)
  * para validar ids de modelo ANTES do lote. As chaves são do Manoel:
  *   export GEMINI_API_KEY=... ; export OPENAI_API_KEY=...   (ou .env na raiz)

@@ -1,20 +1,48 @@
-// Pipoca — SMOKE REAL da edge `realizador` (produção) · gate do P0 (análise A3)
-// -----------------------------------------------------------------------------
-// Prova que a edge COMPLETA uma realização de verdade (origem llm, não fallback):
-// cria um usuário DESCARTÁVEL, faz login, POSTa um Pacote real (Pietro/m) na
-// edge e exige 200 com texto contendo "Pietro" + veredito PASS + origem llm.
-// Sem o 200: a edge está morta e NADA abaixo compensa (PARAR e diagnosticar).
-//
-// SEM CHAVE DE PROVEDOR: só o anon key (público) + o bearer do usuário criado.
-// As chaves dos provedores vivem só como secrets da edge.
-//
-// USO:
-//   SUPA_URL=... ANON_KEY=... SMOKE_EMAIL=... SMOKE_SENHA=... \
-//     bun run scripts/smoke-realizador.mjs <fase>
-//   <fase> = "signup"  → cria o usuário e imprime o e-mail (confirmar via SQL)
-//   <fase> = "run"     → login + POST na edge + asserções (o gate de verdade)
-// A confirmação de e-mail e a limpeza do usuário são feitas via MCP/SQL fora
-// deste script (o script é keyless e não tem service role).
+/**
+ * [smoke-realizador.mjs] — smoke REAL da edge `realizador` em produção: cria um
+ *   usuário descartável, loga, POSTa um Pacote real (Pietro/m) e exige que a
+ *   edge complete uma realização de verdade (origem llm, não fallback).
+ *
+ * PAPEL: smoke (gate do P0 · análise A3 · GASTA API paga)
+ * POR QUE EXISTE: provar de ponta a ponta que a edge de produção COMPLETA uma
+ *   realização (200 + texto com "Pietro" + veredito PASS + origem llm). Sem o
+ *   200 a edge está morta e nada abaixo compensa — parar e diagnosticar.
+ * ENTRA: env SUPA_URL, ANON_KEY, SMOKE_EMAIL, SMOKE_SENHA; argv[2] = fase
+ *   ("signup" cria o usuário e imprime o e-mail | "run" = login + POST +
+ *   asserções); o Pacote real Pietro/m vem embutido no script.
+ * SAI: logs no console + process.exitCode (0 ok · 1 asserção falhou · 2 sem
+ *   bearer). Efeito real: cria usuário no Auth de produção e chama a edge.
+ * CHAMA: src/core/realizador/prompt_template.ts:montarPromptRealizador; fetch
+ *   direto ao /auth/v1 e /functions/v1/realizador do Supabase.
+ * É CHAMADO POR: ninguém — entrypoint rodado à mão (não está no package.json).
+ * RODA POR: `node scripts/smoke-realizador.mjs <fase>` com env
+ *   SUPA_URL/ANON_KEY/SMOKE_EMAIL (e SMOKE_SENHA).
+ * CUIDADO: GASTA API paga — bate na edge `realizador` de produção, que usa a
+ *   chave do provedor (secret da edge). KEYLESS: só o anon key (público) + o
+ *   bearer do usuário criado; nenhuma chave de provedor mora aqui. Cria um
+ *   usuário DESCARTÁVEL no Auth real — confirmar o e-mail e limpar o usuário
+ *   são feitos via SQL/MCP fora deste script (keyless, sem service role).
+ *   tenantId é omitido de propósito para exercitar o fallback "plataforma".
+ *
+ * — detalhe preservado —
+ * Pipoca — SMOKE REAL da edge `realizador` (produção) · gate do P0 (análise A3)
+ * -----------------------------------------------------------------------------
+ * Prova que a edge COMPLETA uma realização de verdade (origem llm, não fallback):
+ * cria um usuário DESCARTÁVEL, faz login, POSTa um Pacote real (Pietro/m) na
+ * edge e exige 200 com texto contendo "Pietro" + veredito PASS + origem llm.
+ * Sem o 200: a edge está morta e NADA abaixo compensa (PARAR e diagnosticar).
+ *
+ * SEM CHAVE DE PROVEDOR: só o anon key (público) + o bearer do usuário criado.
+ * As chaves dos provedores vivem só como secrets da edge.
+ *
+ * USO:
+ *   SUPA_URL=... ANON_KEY=... SMOKE_EMAIL=... SMOKE_SENHA=... \
+ *     bun run scripts/smoke-realizador.mjs <fase>
+ *   <fase> = "signup"  → cria o usuário e imprime o e-mail (confirmar via SQL)
+ *   <fase> = "run"     → login + POST na edge + asserções (o gate de verdade)
+ * A confirmação de e-mail e a limpeza do usuário são feitas via MCP/SQL fora
+ * deste script (o script é keyless e não tem service role).
+ */
 
 import { montarPromptRealizador } from "../src/core/realizador/prompt_template.ts";
 

@@ -1,4 +1,26 @@
 /**
+ * [persistencia.ts] — camada de escrita em disco do experimento B1.5: resolve
+ *   caminhos, garante diretórios e grava incrementalmente cada lote de
+ *   histórias-base, respostas-llm, agregados e monitoramento em saida/.
+ *
+ * PAPEL: experimento (B1.5 · offline)
+ * POR QUE EXISTE: fazer a execução sobreviver a uma interrupção — nada fica só
+ *   em memória até o fim; o consolidado é recomputado a partir do que está no
+ *   disco.
+ * ENTRA: raiz de saída + os objetos a gravar (HistoriaBase[], RespostaLLM[],
+ *   ArquivoAgregados, MonitoramentoLote, MetaExecucao).
+ * SAI: arquivos .json em saida/{historias-base,respostas-llm,monitoramento,
+ *   historias-base/agregados}; atualizarConsolidado devolve o consolidado.
+ * CHAMA: node:fs/promises, node:path, ./tipos.js.
+ * É CHAMADO POR: gerar-historias.ts, avaliar/avaliar-pares.ts,
+ *   gerar-historias.test.ts.
+ * RODA POR: importado por gerar-historias.ts e avaliar-pares.ts.
+ * CUIDADO: OFFLINE. Escrita incremental proposital — respostas-llm reescreve o
+ *   arquivo do lote a cada resposta; o consolidado é recomputado de TODOS os
+ *   lote-*.json em disco (não só da memória). Os .json de saida/ são calibração
+ *   — não editar à mão nem regenerar sem intenção.
+ *
+ * — detalhe preservado —
  * Experimento B1.5 — escrita incremental dos lotes em disco. Nunca acumula
  * os ~97 registros em memória até o fim: histórias-base gravam assim que
  * geradas; respostas-llm reescreve o arquivo do lote a cada resposta

@@ -1,4 +1,27 @@
 /**
+ * [montar-prompt.ts] — monta o prompt (system + user) do realizador DIRETO das
+ *   fichas, resolvidas no nível, com orçamento de palavras proporcional.
+ *
+ * PAPEL: experimento (arquivado)
+ * POR QUE EXISTE: era o formato-semente do prompt do realizador do experimento
+ *   — hoje LEGADO preservado como registro: o prompt-template de produção
+ *   (src/core/realizador/prompt_template.ts) o superou. NÃO está mais no
+ *   caminho ativo.
+ * ENTRA: EstadoExperimento + Catalogos (fichas objetos/relações/cenários v1).
+ * SAI: MaterialPrompt { system, user, palavrasMaterial, alvoPalavras,
+ *   relacoesAtivas, paragrafosAlvo, palavrasPorParagrafo }.
+ * CHAMA: ./gramatica-andaime.js:{PALAVRAS_POR_PARAGRAFO,alvoPalavras,derivarPapel,
+ *   paragrafosPorRodada,selecionarRelacoes}; tipos de src/core/composicao.js,
+ *   src/core/fichas/tipos.js e ../tipos.js.
+ * É CHAMADO POR: _andaime-arquivado/micro-sanidade.ts (só ele). Fora do caminho
+ *   ativo (arquivado).
+ * RODA POR: offline — não roda sozinho; importado por micro-sanidade.ts
+ *   (andaime arquivado).
+ * CUIDADO: legado preservado como REGISTRO — PROIBIDO promover a src/core (o
+ *   realizador de produção da fase 12/13 é o herdeiro). Offline: só monta
+ *   strings, sem rede/API (o gasto de API é de quem envia o prompt).
+ *
+ * — detalhe preservado —
  * ⚠️ ANDAIME DESCARTÁVEL — SÓ DESTE EXPERIMENTO. ⚠️
  * Monta o prompt do realizador DIRETO das fichas (formato-semente registrado
  * em docs/plans02/fase12_b1_5_realizador/12-01: as 3 leis como método, as

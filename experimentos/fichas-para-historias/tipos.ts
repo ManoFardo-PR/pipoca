@@ -1,4 +1,20 @@
 /**
+ * [tipos.ts] — tipos compartilhados do experimento fichas→histórias (estado,
+ *   registros de geração/realização, veredito e grade).
+ *
+ * PAPEL: experimento (offline: tipos)
+ * POR QUE EXISTE: contrato único entre gerador, avaliador, matriz e o andaime —
+ *   um só lugar para o formato dos estados e dos artefatos persistidos.
+ * ENTRA: —
+ * SAI: interfaces/tipos (EstadoExperimento, RegistroGeracao/Realizacao,
+ *   ArquivoLote*, VereditoCamada1Fichas, CelulaGrade, ...).
+ * CHAMA: src/core/composicao.js:NivelKey e src/core/fichas/tipos.js:FichaRelacao
+ *   (só tipos).
+ * É CHAMADO POR: matriz.ts, gerar.ts, avaliar/avaliar.ts e os arquivos do
+ *   _andaime-arquivado/ (camada1-fichas.ts, micro-sanidade.ts, montar-prompt.ts).
+ * RODA POR: offline — só tipos (zero runtime); compilado com quem importa.
+ *
+ * — detalhe preservado —
  * Experimento fichas→histórias — tipos compartilhados entre gerador e avaliador.
  * Consome as fichas reais de docs/fichas/*.v1.json (contrato pipoca.fichas.v1).
  */

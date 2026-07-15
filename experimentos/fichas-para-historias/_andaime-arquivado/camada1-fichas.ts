@@ -1,4 +1,28 @@
 /**
+ * [camada1-fichas.ts] — gate determinístico de fidelidade do experimento
+ *   (Camada 1): confere presença por beat, gênero, teto de crescimento e ritmo
+ *   n1 do texto realizado.
+ *
+ * PAPEL: experimento (arquivado)
+ * POR QUE EXISTE: era a Camada 1 do ciclo 1 (avaliação sem LLM) — hoje LEGADO
+ *   preservado como registro: esta é a LINHAGEM que foi promovida ao validador
+ *   canônico de produção (src/core/realizador/validador.ts, que cita este
+ *   arquivo como origem). NÃO está mais no caminho ativo.
+ * ENTRA: EstadoExperimento, palavrasMaterial, alvoPalavras, paragrafosAlvo e o
+ *   texto realizado.
+ * SAI: VereditoCamada1Fichas { pass, motivos, avisos, ritmoN1?, presencaPorBeat };
+ *   exporta ANCORAS_POR_OBJETO.
+ * CHAMA: só tipos de ../tipos.js (EstadoExperimento, VereditoCamada1Fichas);
+ *   lógica self-contained.
+ * É CHAMADO POR: ninguém no caminho ativo (andaime arquivado). Sua semântica
+ *   vive hoje em src/core/realizador/validador.ts (herdeiro de produção).
+ * RODA POR: offline — não roda no fluxo atual; historicamente parte da
+ *   avaliação do ciclo 1.
+ * CUIDADO: legado preservado como REGISTRO, fora do caminho ativo — superado
+ *   pelo validador canônico de produção que nasceu daqui. Offline (gate
+ *   determinístico, sem rede/API).
+ *
+ * — detalhe preservado —
  * Experimento fichas→histórias — Camada 1: gate DETERMINÍSTICO de fidelidade,
  * adaptado às fichas (linhagem: ../beats-para-paragrafos/avaliar/camada1-fidelidade.ts,
  * com as mudanças fixadas em docs/plans02/fase12_b1_5_realizador/12-03):

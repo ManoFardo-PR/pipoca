@@ -1,4 +1,29 @@
 /**
+ * [avaliar.ts] — avaliador do experimento fichas→histórias (ciclo 2): lê os
+ *   lotes gerados e produz os artefatos da Parada de Voz (grade + relatórios).
+ *
+ * PAPEL: experimento (ciclo 2 / fase 12 · GASTA API paga)
+ * POR QUE EXISTE: transformar os lotes do gerador em decisão de leitura —
+ *   consolida a Camada 1 (veredito do validador de produção, já gravado na
+ *   geração) e roda o juiz LLM (Camada 2) só nos aprovados.
+ * ENTRA: lotes JSON de saida/geracao/ (readdir NÃO recursivo); env
+ *   OPENAI_API_KEY, OPENAI_MODEL (default gpt-4o-mini); .env na raiz.
+ * SAI: saida/avaliacao/ — grade.json, para-leitura.md, reprovados.md,
+ *   consolidado.md.
+ * CHAMA: ../../beats-para-paragrafos/avaliar/camada2-juiz.js:julgarPar,
+ *   ../../beats-para-paragrafos/carregar-env.js:carregarEnv,
+ *   tipos de ../tipos.js e ../../beats-para-paragrafos/tipos.js.
+ * É CHAMADO POR: entrypoint rodado à mão (ninguém importa).
+ * RODA POR: `bun run experimentos/fichas-para-historias/avaliar/avaliar.ts`.
+ * CUIDADO: GASTA API paga — juiz OpenAI (Camada 2, modelo ≠ gerador, só nos
+ *   aprovados). O veredito da Camada 1 NÃO é recalculado aqui: vem do validador
+ *   canônico de produção (src/core/realizador/validador.ts), gravado na geração.
+ *   Sem OPENAI_API_KEY a grade sai só com Camada 1 (limitação registrada).
+ *   readdir NÃO recursivo por design (subpastas _ciclo1-pr21/, _amostra/,
+ *   _pre-recalibracao/, _micro/ ficam fora da grade). Preços do consolidado.md
+ *   são SEMENTE do gemini-2.5-flash, calibráveis.
+ *
+ * — detalhe preservado —
  * Experimento fichas→histórias — Script 2 (avaliador), CICLO 2 (fase 12):
  * lê os lotes de saida/geracao/ (registros do realizador REAL — o veredito da
  * Camada 1 já vem do validador de produção, `src/core/realizador/validador.ts`)

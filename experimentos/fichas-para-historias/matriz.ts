@@ -1,4 +1,26 @@
 /**
+ * [matriz.ts] — monta a matriz de estados do experimento (rodada × nível ×
+ *   gênero + testemunha) com as linhas de objetos já ordenadas.
+ *
+ * PAPEL: experimento (offline: matriz de amostragem)
+ * POR QUE EXISTE: define o espaço amostral do experimento de forma
+ *   determinística e reprodutível, montando a linha de objetos com as regras de
+ *   rodada do v3 para o gerador consumir.
+ * ENTRA: temperatura, seedBase (default 42), estadosPorCelula (default 6).
+ * SAI: EstadoExperimento[] (id, seed, rodada, nível, gênero, personagem, linha,
+ *   temperatura); exporta ESTADOS_POR_CELULA e LINHA_TESTEMUNHA.
+ * CHAMA: ../beats-para-paragrafos/rng.js:{criarRng,embaralhar,indiceAleatorio},
+ *   tipos de ./tipos.js e src/core/composicao.js:NivelKey.
+ * É CHAMADO POR: gerar.ts ({montarMatriz,ESTADOS_POR_CELULA}),
+ *   _andaime-arquivado/micro-sanidade.ts (montarMatriz),
+ *   fichas-experimento.test.ts.
+ * RODA POR: offline — importado pelos scripts do experimento e pelo teste
+ *   (parte de `bun run test`); sem rede/API.
+ * CUIDADO: replay determinístico — linhas via rng seedado (seedBase/id). O modo
+ *   AMOSTRA (estadosPorCelula < 6) é um PREFIXO da matriz cheia (mesmos
+ *   ids/seeds/linhas dos primeiros p), não outra amostragem.
+ *
+ * — detalhe preservado —
  * Experimento fichas→histórias — a matriz de estados: rodada(R1..R4) ×
  * nível(n1..n4) × 6 estados por célula (3 Joana/f + 3 Pietro/m — eixo de
  * gênero do veredito A-1) + a testemunha da tira real (R4×n3).

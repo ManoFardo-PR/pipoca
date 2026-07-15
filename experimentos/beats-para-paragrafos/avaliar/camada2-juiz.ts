@@ -1,4 +1,26 @@
 /**
+ * [camada2-juiz.ts] — Camada 2 do avaliador B1.5: juiz LLM (OpenAI) que pontua
+ *   fluidez/adequação/naturalidade (0–5) do texto realizado e devolve um
+ *   comentário curto, com schema JSON estrito.
+ *
+ * PAPEL: experimento (B1.5 · juiz LLM · GASTA API paga)
+ * POR QUE EXISTE: julgar a QUALIDADE da prosa (não a fidelidade — isso é a
+ *   Camada 1), usando um provedor diferente do gerador (Gemini) para não
+ *   auto-avaliar.
+ * ENTRA: nível (NivelKey), textoBase, textoLimpo e OpcoesJuiz (modelo, chave,
+ *   temperatura, urlBase/transporte opcionais).
+ * SAI: ResultadoJuiz { ok, veredito? (VereditoCamada2), erro? }.
+ * CHAMA: src/core/composicao.js (tipo NivelKey), ../tipos.js (VereditoCamada2);
+ *   fetch real ao OpenAI via transportePadrao() (injetável).
+ * É CHAMADO POR: avaliar-pares.ts:julgarPar; avaliar-pares.test.ts (Transporte
+ *   fake, sem rede).
+ * RODA POR: importado por avaliar-pares.ts; nos testes,
+ *   `bun run experimentos/beats-para-paragrafos/avaliar/avaliar-pares.test.ts`.
+ * CUIDADO: GASTA API paga — fetch real a api.openai.com/v1/chat/completions com
+ *   Authorization: Bearer opts.chave. Só deve rodar nos pares que já passaram a
+ *   Camada 1 (contrato de avaliar-pares.ts).
+ *
+ * — detalhe preservado —
  * Experimento B1.5 — Camada 2: juiz LLM (OpenAI, diferente do gerador para
  * eliminar auto-avaliação). Só roda nos pares que já passaram a Camada 1.
  * Endpoint/auth confirmados em functions/proxy-ia/index.ts:184-195

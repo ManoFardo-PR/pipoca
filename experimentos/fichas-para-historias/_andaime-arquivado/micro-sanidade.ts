@@ -1,4 +1,27 @@
 /**
+ * [micro-sanidade.ts] — micro-lote de sanidade do experimento: gera 4 estados
+ *   R1-n1 pelo andaime e IMPRIME os textos (barato antes do caro).
+ *
+ * PAPEL: experimento (arquivado)
+ * POR QUE EXISTE: era o teste manual da recalibração C-1/C-2 antes do lote caro
+ *   — hoje LEGADO preservado como registro: usa o andaime montar-prompt.js (não
+ *   o prompt-template de produção). NÃO está mais no caminho ativo.
+ * ENTRA: env GEMINI_API_KEY, GEMINI_MODEL (default gemini-2.5-flash), SEED_BASE
+ *   (default 42); fichas docs/fichas/*.v1.json; .env na raiz.
+ * SAI: 4 textos no log + saida/geracao/_micro/micro-sanidade-r1n1.json (fora da
+ *   grade do avaliador); process.exitCode = 1 se houver falha.
+ * CHAMA: ./montar-prompt.js:{montarPromptFichas,contarPalavras},
+ *   ../gemini-cliente-fichas.js:gerarComGemini, ../matriz.js:montarMatriz,
+ *   ../../beats-para-paragrafos/carregar-env.js:carregarEnv, tipos de ../tipos.js.
+ * É CHAMADO POR: entrypoint rodado à mão, hoje arquivado (ninguém importa).
+ * RODA POR: `bun run experimentos/fichas-para-historias/_andaime-arquivado/micro-sanidade.ts`
+ *   (o "Uso" abaixo cita o caminho pré-arquivamento).
+ * CUIDADO: legado preservado como REGISTRO, fora do caminho ativo — usa o
+ *   andaime (montar-prompt.js), não o pipeline de produção. GASTA API paga se
+ *   rodado: chamadas reais ao Gemini via gerarComGemini. Escreve em
+ *   saida/geracao/_micro/ (readdir do avaliador é não recursivo, ignora a subpasta).
+ *
+ * — detalhe preservado —
  * Experimento fichas→histórias — micro-lote de SANIDADE da recalibração (C-1/C-2):
  * gera SÓ 4 estados R1-n1 (2 Joana + 2 Pietro) com o orçamento proporcional e
  * IMPRIME os textos no log (barato antes do caro). Critério de prosseguir para

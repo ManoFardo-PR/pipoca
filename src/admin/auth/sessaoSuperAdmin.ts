@@ -1,4 +1,24 @@
 /**
+ * [sessaoSuperAdmin.ts] — cria e valida a sessão do operador e decide o que o
+ *   escopo autoriza (tenant específico e áreas do hub SA_HOME).
+ *
+ * PAPEL: admin (sessão e escopo — puro, fail-closed)
+ * POR QUE EXISTE: concentrar num só módulo puro as regras de validade da sessão
+ *   e de autorização por escopo, para o guard e as telas confiarem numa fonte única.
+ * ENTRA: adminId/escopo/token/agora (criar); SessaoSuperAdmin e agora (validar);
+ *   escopo + tenantId/área (autorizar).
+ * SAI: SessaoSuperAdmin, booleans de validade/autorização, DURACAO_SESSAO_ADMIN_MS.
+ * CHAMA: ./tiposAdmin (SessaoSuperAdmin, TenantId — só tipos).
+ * É CHAMADO POR: ./autenticacaoSuperAdmin.ts, ../rotasAdmin.ts,
+ *   ../tenant/repositorioTenant.ts (escopoAutoriza), bridge_admin.ts,
+ *   ../../backend/backend.ts, admin.test.ts.
+ * RODA POR: boot do admin — bundled em pipoca.admin.bundle.js via `bun run build:admin`.
+ * CUIDADO: fail-closed em toda dúvida — sessão/escopo inválidos nunca abrem porta.
+ *   `agora` é injetado pela borda (nunca Date.now() aqui). Sessão vale 12h. Áreas
+ *   conteudo/ia/iaGlobal/seguranca exigem escopo "todos" (operador raiz); só
+ *   tenants abre para escopo restrito.
+ *
+ * — detalhe preservado —
  * Pipoca — Sessão e escopo do super admin (SA_LOGIN/SA_HOME) · docs fase04-04-01/02
  * ----------------------------------------------------------------------------------
  * Funções PURAS (`agora` injetado pela borda, nunca Date.now() aqui).

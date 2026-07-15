@@ -1,4 +1,32 @@
 /**
+ * [espelho_admin.ts] — Espelho remoto (admin-only) do painel do operador:
+ *   upserts/pulls de tenants, conteúdo, flags e config-IA no PostgREST + cliente
+ *   KEYLESS da Edge Function admin-chaves-ia.
+ *
+ * PAPEL: admin (espelho remoto do operador; cliente keyless da edge admin-chaves-ia)
+ * POR QUE EXISTE: tirar tenants/conteúdo/flags/config-IA do localStorage-só e
+ *   dar espelho no servidor para operadores em navegadores diferentes
+ *   convergirem; e gerenciar as chaves de IA via edge (write-only).
+ * ENTRA: Tenant/CenarioVersionado/FeatureFlags/ConfigIaGlobal/ProvedorIaId +
+ *   chave crua (write-only); ConfigBackend e Transporte opcionais.
+ * SAI: upserts fire-and-forget (boolean); pulls que substituem o local
+ *   (SERVIDOR VENCE); StatusChaveIa mascarado; decorator
+ *   envolverRepoTenantComEspelho.
+ * CHAMA: config.ts, adaptadores/auth_supabase.ts:criarAuthSupabase,
+ *   ia/provedor:transportePadrao, admin/{tenant,validar_grafo,flags,ia_global,
+ *   ia_config}.
+ * É CHAMADO POR: admin/bridge_admin.ts (SÓ), backend.test.ts.
+ * RODA POR: boot do admin (bundle); cliente das Edge Functions.
+ * CUIDADO: importado SÓ por bridge_admin.ts — NÃO entra no bundle da criança.
+ *   Guarda de TODAS as funções: provedor supabase + sessão de OPERADOR + token;
+ *   qualquer outra situação → false/null em silêncio, nunca lança. Cliente
+ *   KEYLESS de admin-chaves-ia: manda apenas o bearer do OPERADOR + a anon key
+ *   pública — NENHUMA chave de provedor vive no cliente; a chave passa
+ *   write-only e morre com a chamada, e sanearStatus é fail-closed (só aceita o
+ *   formato mascarado "****"+até 4). SERVIDOR VENCE no pull: escrita local
+ *   offline que nunca espelhou é sobrescrita no próximo login.
+ *
+ * — detalhe preservado —
  * Pipoca — Espelho remoto do painel do operador (pós-fase06)
  * -----------------------------------------------------------
  * Tenants, conteúdo e flags saem do localStorage-só e ganham espelho no

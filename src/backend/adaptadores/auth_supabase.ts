@@ -1,4 +1,31 @@
 /**
+ * [auth_supabase.ts] — Adaptador ServicoAuth sobre o GoTrue do Supabase via REST
+ *   puro (sem SDK): sessão espelhada em storage e token renovado sob demanda.
+ *
+ * PAPEL: backend (adaptador auth · Supabase/GoTrue)
+ * POR QUE EXISTE: implementar o contrato de auth (família + operador) sem SDK,
+ *   mantendo sessaoAtual() síncrono no boot; só a anon key pública chega ao
+ *   cliente (RLS protege os dados no servidor).
+ * ENTRA: OpcoesAuthSupabase {url, anonKey, transporte?, agora?}; credenciais;
+ *   token de recuperação.
+ * SAI: AuthSupabase (ServicoAuth + obterToken/renovarSessao); grava espelhos em
+ *   pipoca.backend.sessao.v1 e nos espelhos da conta (pipoca.conta.v1 /
+ *   pipoca.sessao-conta.v1).
+ * CHAMA: ia/provedor:transportePadrao, core/contaFamilia:criarSessao/
+ *   DURACAO_SESSAO_MS, servicos/conta_repo (espelhos), auth.ts (tipos + erros
+ *   neutros).
+ * É CHAMADO POR: backend.ts, espelho_admin.ts, flags_globais.ts,
+ *   limites_familia.ts, backend.test.ts.
+ * RODA POR: boot do app/admin (bundle); cliente das Edge Functions.
+ * CUIDADO: sessaoAtual() é SÍNCRONO (o boot não espera rede); o access_token
+ *   (~1h) é RENOVADO sob demanda em obterToken() e o espelho REGRAVADO — nunca
+ *   capturado em closure. Família: password grant com signup automático no 1º
+ *   uso (exige "Confirm email" OFF). Operador: SEM signup — o uid precisa
+ *   existir na tabela `operadores` (RLS), senão erro NEUTRO + logout. Erros de
+ *   login/cadastro são NEUTROS. Só a anon key pública vive aqui; nenhuma chave
+ *   de provedor.
+ *
+ * — detalhe preservado —
  * Pipoca — Auth Supabase (GoTrue via REST) · doc fase06-06-02
  * ------------------------------------------------------------
  * `ServicoAuth` sobre a API de auth do Supabase SEM SDK: requisições puras

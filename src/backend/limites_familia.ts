@@ -1,4 +1,26 @@
 /**
+ * [limites_familia.ts] — Resolve os limites VIGENTES do plano do próprio tenant
+ *   lendo a linha em `tenants` (mesma régua do trigger do servidor).
+ *
+ * PAPEL: backend (leitura de limites no app da família)
+ * POR QUE EXISTE: a UI mostrar o teto de perfis do plano da casa sem carregar o
+ *   runtime admin; o enforcement real é o trigger do servidor.
+ * ENTRA: agora? + ConfigBackend + Transporte opcionais; lê a linha `tenants` do
+ *   próprio escopo (escopoTenant).
+ * SAI: LimitesPlano vigente (Freemium vencido degrada aos limites do Grátis) ou
+ *   null.
+ * CHAMA: config.ts, adaptadores/auth_supabase.ts, tenant.ts:escopoTenant,
+ *   admin/tenant/tiposTenant:limitesVigentes/validarEnvelopeTenant,
+ *   ia/provedor:transportePadrao.
+ * É CHAMADO POR: app/bridge.ts, backend.test.ts.
+ * RODA POR: boot do app (bundle); cliente das Edge Functions.
+ * CUIDADO: fail-soft por contrato — qualquer dúvida (não-supabase, sem sessão
+ *   de família, sem token, HTTP≠2xx, envelope inválido) → null = "sem
+ *   informação: deixa criar". O trigger `teto_perfis` do servidor é o
+ *   enforcement REAL; aqui é UX acolhedora. Importa só o módulo puro
+ *   tiposTenant (nada do runtime admin entra no bundle da criança).
+ *
+ * — detalhe preservado —
  * Pipoca — Limites do plano da FAMÍLIA (pós-fase06, iteração 2)
  * ---------------------------------------------------------------
  * O app da criança/cuidador resolve os limites VIGENTES do próprio tenant

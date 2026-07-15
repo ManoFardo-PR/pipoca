@@ -1,21 +1,57 @@
-// Pipoca — AdminChavesIA (Supabase Edge Function) · tarefa #31
-// --------------------------------------------------------------
-// Gestão server-side das CHAVES dos provedores de IA para o painel do
-// operador (SA_IA_GLOBAL). A chave entra por aqui (write-only) e vive na
-// tabela `chaves_ia` (deny-all p/ clientes — só service role). A resposta
-// NUNCA contém a chave: apenas status mascarado ("****ab12").
-//
-// Gate duplo: verify_jwt (plataforma) + uid PRECISA estar em `operadores`
-// (mesmo gate SECURITY DEFINER do RLS, checado via service role).
-//
-// Ações (POST JSON {acao,...}):
-//   {acao:"status"}                     → { provedores: StatusChaveIa[] }
-//   {acao:"salvar", provedor, chave}    → { provedor: StatusChaveIa }  (upsert)
-//   {acao:"testar", provedor}           → { ok: boolean }              (ping real)
-//
-// Erros (JSON {erro}): 401 nao_autenticado · 403 nao_autorizado ·
-// 400 requisicao_invalida · 503 nao_configurado. Self-contained (Deno),
-// fora de src/ — não entra no tsc do app (mesma disciplina do proxy-ia).
+/**
+ * [admin-chaves-ia/index.ts] — Edge Function admin-chaves-ia: gestão
+ *   write-only das chaves dos provedores de IA (painel do operador
+ *   SA_IA_GLOBAL); a resposta é SEMPRE mascarada.
+ *
+ * PAPEL: edge (admin — gestão write-only das chaves; resposta mascarada)
+ * POR QUE EXISTE: deixar o operador cadastrar/testar as chaves pagas sem
+ *   nunca expô-las — a chave entra por aqui e vive na tabela chaves_ia
+ *   (deny-all p/ clientes, só service role); o painel só recebe status
+ *   mascarado.
+ * ENTRA: POST JSON { acao, provedor?, chave? } + header Authorization: Bearer
+ *   <JWT> (verify_jwt). acao ∈ {status, salvar, testar}. Secrets do ambiente:
+ *   ANTHROPIC_API_KEY/OPENAI_API_KEY/GEMINI_API_KEY/DEEPSEEK_API_KEY (fonte
+ *   "ambiente"), SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY. Lê operadores e
+ *   chaves_ia.
+ * SAI: 200 status→{provedores:StatusChave[]}, salvar→{provedor:StatusChave}
+ *   (upsert), testar→{ok:boolean} (ping real no provedor); ou não-200 {erro}:
+ *   401 nao_autenticado, 403 nao_autorizado, 400 requisicao_invalida,
+ *   503 nao_configurado, 405 metodo_invalido.
+ * CHAMA: nada do repo — self-contained (Deno). APIs externas (ping "testar"):
+ *   Anthropic/OpenAI/DeepSeek/Gemini (endpoint /models); PostgREST do Supabase
+ *   (service role).
+ * É CHAMADO POR: src/backend/espelho_admin.ts (POST em
+ *   /functions/v1/admin-chaves-ia).
+ * RODA POR: Supabase Edge Function (Deno), deploy na plataforma; acionada
+ *   pelos clientes em src/backend/.
+ * CUIDADO: AS CHAVES DOS PROVEDORES VIVEM SÓ AQUI (secrets do ambiente:
+ *   ANTHROPIC_API_KEY/OPENAI_API_KEY/GEMINI_API_KEY/DEEPSEEK_API_KEY, lidas
+ *   via Deno.env.get; e a tabela chaves_ia, gravada pela ação "salvar"). A
+ *   CHAVE NUNCA VOLTA AO CLIENTE: toda resposta é mascarada ("****ab12"), é
+ *   write-only. Gate duplo fail-closed: verify_jwt + uid PRECISA estar em
+ *   `operadores` (usuário comum não vê nem status). Fica fora de src/ — não
+ *   entra no tsc do app.
+ *
+ * — detalhe preservado —
+ * Pipoca — AdminChavesIA (Supabase Edge Function) · tarefa #31
+ * --------------------------------------------------------------
+ * Gestão server-side das CHAVES dos provedores de IA para o painel do
+ * operador (SA_IA_GLOBAL). A chave entra por aqui (write-only) e vive na
+ * tabela `chaves_ia` (deny-all p/ clientes — só service role). A resposta
+ * NUNCA contém a chave: apenas status mascarado ("****ab12").
+ *
+ * Gate duplo: verify_jwt (plataforma) + uid PRECISA estar em `operadores`
+ * (mesmo gate SECURITY DEFINER do RLS, checado via service role).
+ *
+ * Ações (POST JSON {acao,...}):
+ *   {acao:"status"}                     → { provedores: StatusChaveIa[] }
+ *   {acao:"salvar", provedor, chave}    → { provedor: StatusChaveIa }  (upsert)
+ *   {acao:"testar", provedor}           → { ok: boolean }              (ping real)
+ *
+ * Erros (JSON {erro}): 401 nao_autenticado · 403 nao_autorizado ·
+ * 400 requisicao_invalida · 503 nao_configurado. Self-contained (Deno),
+ * fora de src/ — não entra no tsc do app (mesma disciplina do proxy-ia).
+ */
 
 declare const Deno: {
   env: { get(nome: string): string | undefined };

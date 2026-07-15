@@ -1,4 +1,22 @@
 /**
+ * [migracao.ts] — `migrar(de, para)` copia perfis, saves e histórias entre dois
+ *   RepositorioPersistencia pelo seam (serve para qualquer par de adaptadores).
+ *
+ * PAPEL: backend (utilitário de portabilidade)
+ * POR QUE EXISTE: portar dados entre adaptadores (local↔Supabase↔Firebase)
+ *   usando os schemas congelados, operando só pelo seam.
+ * ENTRA: dois RepositorioPersistencia (de, para).
+ * SAI: ResultadoMigracao {perfis, saves}; grava no destino, não apaga a origem.
+ * CHAMA: core/persistencia:RepositorioPersistencia (tipo).
+ * É CHAMADO POR: sync.ts:sincronizarInicial (passo 3, push local→remoto),
+ *   backend.test.ts.
+ * RODA POR: boot do app/admin (bundle); cliente das Edge Functions.
+ * CUIDADO: idempotente no destino (salvarPerfil/salvarSave sobrescrevem por id)
+ *   e não apaga a origem — mas migrar() cru SOBRESCREVE a edição local se usado
+ *   sozinho num pull; por isso sync.ts só o usa no PUSH (o pull só puxa ids
+ *   ausentes). Histórias são best-effort e não travam a migração de perfis.
+ *
+ * — detalhe preservado —
  * Pipoca — Migração entre adaptadores de persistência · doc fase06-06-03
  * -----------------------------------------------------------------------
  * `migrar(de, para)` copia perfis e saves de um `RepositorioPersistencia` para outro,

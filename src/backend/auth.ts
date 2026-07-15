@@ -1,4 +1,24 @@
 /**
+ * [auth.ts] — Contrato/tipos ÚNICO do serviço de autenticação (família +
+ *   operador): a UI de login não conhece o provedor.
+ *
+ * PAPEL: backend (contrato/tipos — sem lógica de runtime)
+ * POR QUE EXISTE: dar UM contrato de auth que app e admin compartilham; o
+ *   tipo da sessão separa família de operador sem a UI saber qual BaaS há atrás.
+ * ENTRA: (só tipos) CredenciaisLogin {email, senha}; nada em runtime.
+ * SAI: interfaces SessaoAuth/CredenciaisLogin/ServicoAuth + constantes de erro
+ *   neutro (ERRO_LOGIN_NEUTRO, ERRO_CRIAR_CONTA).
+ * CHAMA: nada (arquivo só de tipos/constantes).
+ * É CHAMADO POR: backend.ts, adaptadores/auth_supabase.ts,
+ *   adaptadores/auth_firebase.ts, tenant.ts, backend.test.ts.
+ * RODA POR: boot do app/admin (bundle); cliente das Edge Functions.
+ * CUIDADO: sessaoAtual() é SÍNCRONO por contrato (o boot não espera rede — os
+ *   adaptadores espelham a sessão em storage e renovam token em background).
+ *   Erros de login/cadastro são NEUTROS de propósito: nunca revelam se
+ *   e-mail/conta existe. Métodos criar/recuperar/alterar são aditivo-opcionais
+ *   (adaptadores antigos seguem válidos).
+ *
+ * — detalhe preservado —
  * Pipoca — Tipos do serviço de autenticação (fase06-06-02)
  * ---------------------------------------------------------
  * Contrato ÚNICO de auth para família e operador (ipsis litteris do doc /

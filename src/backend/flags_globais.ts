@@ -1,4 +1,25 @@
 /**
+ * [flags_globais.ts] — Puxa as feature-flags globais (kill-switch) do servidor
+ *   no boot/login da FAMÍLIA e grava na MESMA chave local que o app já lê.
+ *
+ * PAPEL: backend (leitura de flags no app da família)
+ * POR QUE EXISTE: fazer o kill-switch do operador alcançar TODAS as famílias —
+ *   antes as flags viviam só no navegador do operador.
+ * ENTRA: ConfigBackend + Transporte opcionais; lê a linha `flags_admin`
+ *   id='global' via REST autenticado (qualquer sessão autenticada lê).
+ * SAI: FeatureFlags normalizadas (grava via salvarFlags — a mesma chave que
+ *   _modosEfetivos lê) ou null.
+ * CHAMA: config.ts, adaptadores/auth_supabase.ts,
+ *   admin/flags:normalizarFlags/salvarFlags, ia/provedor:transportePadrao.
+ * É CHAMADO POR: app/bridge.ts (exposto em Canon.backend; app/estado.js chama
+ *   via Canon.backend.puxarFlagsGlobais), backend.test.ts.
+ * RODA POR: boot do app (bundle); cliente das Edge Functions.
+ * CUIDADO: fail-soft/fail-closed — sem provedor supabase/sessão/linha ou com
+ *   erro → null e o local fica INTOCADO (offline, as últimas flags puxadas
+ *   "grudam": desligar IA continua desligado sem rede — desejável). Módulo
+ *   pequeno SEPARADO de espelho_admin.ts porque ESTE entra no bundle da criança.
+ *
+ * — detalhe preservado —
  * Pipoca — Flags globais no app da FAMÍLIA (pós-fase06, iteração 2)
  * -------------------------------------------------------------------
  * O kill-switch do SA_SAFE só valia no navegador do operador (as flags

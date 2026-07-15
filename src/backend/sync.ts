@@ -1,4 +1,28 @@
 /**
+ * [sync.ts] — Sincronização inicial local↔remoto no login/boot: drena
+ *   tombstones, puxa os ids ausentes e empurra o local (união com preferência
+ *   local).
+ *
+ * PAPEL: backend (sincronização de perfis)
+ * POR QUE EXISTE: convergir dados entre aparelhos sem sobrescrever a edição
+ *   local; os ids de perfil são UUIDs estáveis entre aparelhos.
+ * ENTRA: dois RepositorioPersistencia (local = base, remoto = espelho).
+ * SAI: ResultadoSync {apagadosDrenados, puxados, empurrados}.
+ * CHAMA: migracao.ts:migrar (push), adaptadores/repo_sincronizado:
+ *   lerTombstones/removerTombstone, core/persistencia:RepositorioPersistencia
+ *   (tipo).
+ * É CHAMADO POR: backend.ts (criarBackendSupabase → sincronizar), app/bridge.ts,
+ *   backend.test.ts.
+ * RODA POR: boot do app (bundle, fire-and-forget na borda); cliente das Edge
+ *   Functions.
+ * CUIDADO: ORDEM importa — tombstones PRIMEIRO (LGPD: apagar vence; senão
+ *   perfis apagados offline ressuscitariam no pull). O pull só puxa ids AUSENTES
+ *   localmente (nunca sobrescreve edição local); só o push usa migrar() cru
+ *   (upsert, local vence no mesmo id). Limite MVP: edição concorrente do MESMO
+ *   perfil em dois aparelhos na mesma janela fica com o último push.
+ *   Histórias/telemetria são best-effort e não travam o sync.
+ *
+ * — detalhe preservado —
  * Pipoca — Sincronização inicial local↔remoto · doc fase06-06-03
  * ----------------------------------------------------------------
  * Roda no login/boot com sessão válida (borda, fire-and-forget com catch).

@@ -1,4 +1,25 @@
 /**
+ * [config.ts] — Lê e normaliza a ConfigBackend pública (provedor + URL + anon
+ *   key) de window.PIPOCA_CONFIG, com fail-safe para "local".
+ *
+ * PAPEL: backend (config)
+ * POR QUE EXISTE: dar ao seam a config do BaaS sem hardcode; só valores
+ *   PÚBLICOS (URL + anon key, protegidos por RLS); leitura lazy para o e2e
+ *   injetar {provedor:"local"} via addInitScript.
+ * ENTRA: window.PIPOCA_CONFIG (globalThis) — ou um raw unknown em
+ *   normalizarConfigBackend.
+ * SAI: ConfigBackend {provedor, supabaseUrl?, supabaseAnonKey?, opcoes?};
+ *   constante CONFIG_LOCAL.
+ * CHAMA: nada externo.
+ * É CHAMADO POR: backend.ts, espelho_admin.ts, flags_globais.ts,
+ *   limites_familia.ts, app/bridge.ts, admin/bridge_admin.ts, backend.test.ts.
+ * RODA POR: boot do app/admin (bundle); cliente das Edge Functions.
+ * CUIDADO: FAIL-SAFE — ausente/malformado, ou supabase sem credencial pública,
+ *   → "local" (offline-first). Leitura é LAZY (na chamada, nunca no load do
+ *   módulo) — senão o e2e não conseguiria injetar a config. Só valores
+ *   públicos aqui; nenhuma chave de provedor.
+ *
+ * — detalhe preservado —
  * Pipoca — Config do backend trocável (fase06-06-06)
  * ---------------------------------------------------
  * `ConfigBackend { provedor: "supabase"|"firebase"|"local"; ... }` vem de

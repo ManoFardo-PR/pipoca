@@ -1,4 +1,27 @@
 /**
+ * [repo_sincronizado.ts] — Repositório "remoto com fallback local": leitura
+ *   sempre do local, escrita local+espelho remoto fire-and-forget, apagar com
+ *   tombstone.
+ *
+ * PAPEL: backend (adaptador composto local+remoto)
+ * POR QUE EXISTE: fazer o remoto espelhar o local sem nunca quebrar o offline —
+ *   o localStorage segue sendo a BASE (a criança nunca vê erro).
+ * ENTRA: dois RepositorioPersistencia (local = base, remoto = espelho); também
+ *   expõe lerTombstones/removerTombstone/adicionarTombstone (chave
+ *   pipoca.sync.apagados.v1).
+ * SAI: RepositorioPersistencia composto; tombstones persistidos.
+ * CHAMA: core/perfil, core/estado, core/historias, core/persistencia (tipos).
+ * É CHAMADO POR: backend.ts (criarRepositorioSincronizado), sync.ts (tombstones),
+ *   backend.test.ts.
+ * RODA POR: boot do app (bundle); cliente das Edge Functions.
+ * CUIDADO: leitura SEMPRE do local; escrita = local await + remoto
+ *   fire-and-forget com catch EXPLÍCITO (unhandled rejection viraria pageerror
+ *   no e2e). apagar deixa TOMBSTONE se o remoto falhar (offline), drenado no
+ *   próximo sync — senão o perfil ressuscitaria na próxima puxada (LGPD, 06-03).
+ *   Histórias SEM tombstone por item (a poda remota é DELETE por filtro
+ *   idempotente).
+ *
+ * — detalhe preservado —
  * Pipoca — Repositório sincronizado (local base + espelho remoto) · fase06-06-03
  * -------------------------------------------------------------------------------
  * "Remoto com fallback local": o localStorage continua sendo a BASE — sem

@@ -1,4 +1,22 @@
 /**
+ * [sessao.ts] — Sessão de leitura com bloco de foco (SESS/Pomodoro): iniciar, tick,
+ *   fim do bloco, formatação do tempo e normalização/validação.
+ *
+ * PAPEL: core-lógica (sessão e bloco de foco · SESS)
+ * POR QUE EXISTE: modelar o bloco Pomodoro da leitura de forma calma — sem pressa punitiva,
+ *   com encerramento suave e pausa em background.
+ * ENTRA: perfilId, blocoMin (10|15|20|25), agora (epoch ms), deltaSeg (tick), raw (normalizar/validar).
+ * SAI: Sessao imutável (iniciarSessao/tick), boolean (blocoTerminou), "MM:SS" (formatarRestante),
+ *   null (encerrarSessao), erros de validação.
+ * CHAMA: nada externo.
+ * É CHAMADO POR: src/core/limites.ts, src/core/onboarding.ts, src/dados/schemas.ts, src/app/bridge.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js); coberto de forma transversal em `bun run test`.
+ * CUIDADO: iniciarSessao tem default `agora = Date.now()` — o ÚNICO ponto do módulo com relógio;
+ *   o resto é puro (a borda deve passar `agora`). O fim do bloco é encerramento calmo (não
+ *   interrompe a história); app em background → pausa o timer. Sessao (bloco de foco) ≠ SessaoConta
+ *   (sessão de conta, contaFamilia.ts).
+ *
+ * — detalhe preservado —
  * Pipoca — Sessão e bloco de foco (SESS)
  * ----------------------------------------
  * Modela a sessão de leitura com bloco Pomodoro.

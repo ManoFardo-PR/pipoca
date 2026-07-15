@@ -1,4 +1,29 @@
 /**
+ * [cascata.ts] — Política de falha em cascata: tenta os provedores em ordem, valida
+ *   cada texto e, esgotada a cascata, cai no fallback A+ v3 — sempre fiel.
+ *
+ * PAPEL: core-lógica (realizador · fase 12 · máquina de falha / rede de segurança)
+ * POR QUE EXISTE: garante que a criança receba texto FIEL ou nada — distingue falha de
+ *   provedor (retry curto) de falha de fidelidade (pula de provedor) e, no fim, usa o
+ *   Motor A+ v3 no próprio dispositivo.
+ * ENTRA: PacoteComposicao, PromptRealizador, a lista de ProvedorRealizador e
+ *   OpcoesRealizar (tetos, temperatura, atraso de retry, estadoFallback).
+ * SAI: Promise<ResultadoRealizar> (texto + paragrafos + veredito + origem + metadados);
+ *   ou lança ErroRealizacaoEsgotada quando nem o A+ está disponível.
+ * CHAMA: composicao.ts:montar (fallback A+ v3, chamado como função), validador.ts:
+ *   validar, provedor_realizador.ts:Erro{Recusa,Provedor}Realizador/ProvedorRealizador,
+ *   prompt_template.ts:PromptRealizador (tipo), compositor/pacote.ts (tipo).
+ * É CHAMADO POR: realizador/realizar.ts (realizarComCascata), realizador.test.ts. Os
+ *   tipos (OpcoesRealizar, ResultadoRealizar, MetadadosRealizacao) viajam para
+ *   geracao/geracao.ts e backend/proxy_realizador.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes —
+ *   `bun run src/core/realizador/realizador.test.ts` (dentro de `bun run test`).
+ * CUIDADO: `montar` (A+ v3) é INTOCÁVEL — chamado como função aqui; recusa (SAFETY)
+ *   NUNCA repete no mesmo provedor; retry curto é 1× e só em erro transitório; texto
+ *   reprovado não se "reconserta" (próximo da cascata); teto GLOBAL de chamadas LLM
+ *   (semente 4); origem do texto SEMPRE sinalizada; nenhuma chave de IA vive aqui.
+ *
+ * — detalhe preservado —
  * Pipoca — Política de falha em cascata (cascata.ts)
  * --------------------------------------------------
  * Máquina do fase12-12-04: distingue falha de PROVEDOR (retry curto 1× só em

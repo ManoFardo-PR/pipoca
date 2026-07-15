@@ -1,9 +1,10 @@
 /**
- * Pipoca — Testes da fase05 (IA e fala) · `bun run src/ia/ia.test.ts`
+ * Pipoca — Testes da fase05 (IA e fala).
  * --------------------------------------------------------------------
  * Grupos por doc: prompt (05-02) · guardrails (05-08) · provedor/simulado/
  * adaptadores (05-04..07) · orquestrador (05-10) · ASR (05-09).
  * Formato dos demais testes do repo: assert local + throw no fim.
+ * RODA POR: bun run src/ia/ia.test.ts (parte de `bun run test`)
  */
 
 import { PROMPT_BASE, montarPrompt, type MontarPromptContext } from "./prompt.js";

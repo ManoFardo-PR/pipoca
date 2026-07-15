@@ -1,9 +1,10 @@
 /**
- * Pipoca — Testes da fase06 (backend trocável) · `bun run src/backend/backend.test.ts`
+ * Pipoca — Testes da fase06 (backend trocável).
  * -------------------------------------------------------------------------------------
  * Grupos por doc: config/fachada (06-01/06-06) · escopoTenant (06-04) ·
  * auth (06-02) · repositórios/sync (06-03) · proxy (06-05).
  * 100% OFFLINE: storage fake global + Transporte fake (padrão da fase05).
+ * RODA POR: bun run src/backend/backend.test.ts (parte de `bun run test`)
  */
 
 import { CONFIG_LOCAL, configDoAmbiente, normalizarConfigBackend } from "./config.js";

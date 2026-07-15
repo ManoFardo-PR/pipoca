@@ -1,4 +1,22 @@
 /**
+ * [historia.ts] — Estado da história (objetos commitados) + a mecânica da tira/strip
+ *   (bandeja → tira → portão → commit), graph-driven e imutável.
+ *
+ * PAPEL: core-lógica (estado da história · HIST · mecânica de puzzle da tira)
+ * POR QUE EXISTE: guardar a fonte de verdade dos objetos commitados e mover o puzzle
+ *   (ordenar objetos, validar ordem, ler no portão, commitar, destravar o próximo).
+ * ENTRA: cenarioId, ids de objetos, MotorNarrativa (texto), ValidadorOrdem (ordem), nivel.
+ * SAI: HistoriaState/EstadoTira imutáveis, Trecho do commit, bandeja derivada, validação.
+ * CHAMA: ./grafo/tipos.js:{MotorNarrativa,Trecho,Nivel}.
+ * É CHAMADO POR: src/app/bridge.ts, src/dados/schemas.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js); coberto de forma transversal em `bun run test`.
+ * CUIDADO: regra de ouro — um objeto só entra em `objetos` APÓS leitura confirmada no portão
+ *   (commitarObjeto). ValidadorOrdem é registro VIVO de mecânica SUPERSEDED: o módulo v1
+ *   (src/motores/validador_ordem.ts) foi arquivado em old/ na implantação do A+ v3 (fase00-00-20).
+ *   EstadoTira é UI transitória (NÃO persistida). Este HistoriaState coexiste com o homônimo
+ *   (mesmo shape) em estado.ts.
+ *
+ * — detalhe preservado —
  * Pipoca — Estado da história (HIST)
  * ------------------------------------
  * Fonte única de verdade dos objetos commitados.

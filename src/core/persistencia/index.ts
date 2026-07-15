@@ -1,4 +1,25 @@
 /**
+ * [index.ts] — Fábrica e contrato do repositório de persistência: a interface
+ *   RepositorioPersistencia + criarRepositorio() (o LOCAL, base do aparelho).
+ *
+ * PAPEL: core-lógica (persistência · seam de leitura/escrita)
+ * POR QUE EXISTE: LEI DO SEAM — nenhuma tela toca localStorage ou Supabase direto;
+ *   toda leitura/escrita (perfis, save, telemetria, histórias) passa por este contrato.
+ * ENTRA: nada (fábrica sem parâmetros).
+ * SAI: a interface RepositorioPersistencia + criarRepositorio() →
+ *   RepositorioLocalStorage; re-exporta RepositorioLocalStorage.
+ * CHAMA: RepositorioLocalStorage.ts (impl local) + tipos de perfil.ts, estado.ts,
+ *   historias.ts.
+ * É CHAMADO POR: app/bridge.ts (criarRepositorio no boot), backend/backend.ts e
+ *   adaptadores/{repo_supabase,repo_sincronizado,repo_firebase,repo_local}.ts,
+ *   backend/{sync,migracao}.ts, core/{captura,lgpd}.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes.
+ * CUIDADO: o adaptador REMOTO real (fase06) vive em src/backend/adaptadores/
+ *   (repo_supabase + repo_sincronizado) e chega às telas pela fachada `obterBackend()`,
+ *   NUNCA por esta fábrica; os métodos de histórias/poda são OPCIONAIS por contrato
+ *   aditivo (consumidores usam guardas).
+ *
+ * — detalhe preservado —
  * Pipoca — Fábrica do repositório de persistência
  * -------------------------------------------------
  * LEI DO SEAM: nenhuma tela importa localStorage ou Supabase diretamente.

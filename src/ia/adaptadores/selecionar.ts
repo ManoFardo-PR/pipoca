@@ -1,4 +1,25 @@
 /**
+ * [selecionar.ts] — escolhe o adaptador de IA a partir da config do tenant e o
+ *   entrega já embrulhado em guardrails (GUARD sempre no caminho).
+ *
+ * PAPEL: core-lógica (orquestração de IA · GERAÇÃO 1 · seleção AIPROV)
+ * POR QUE EXISTE: mapeia provedor+modelo da config (SA_AI) para o adaptador
+ *   certo por branch explícito, garantindo que ninguém use um provedor sem GUARD.
+ * ENTRA: ConfigIaTenant (provedor, modelo) e DepsSelecao {transporte?, guardrails?}.
+ * SAI: um ProvedorIA (adaptador embrulhado em envolverComGuardrails); lança se a
+ *   config não tiver provedor/modelo/adaptador.
+ * CHAMA: ../../admin/ia_config.js:{MODELOS_POR_PROVEDOR, ConfigIaTenant},
+ *   ../guardrails.js:{envolverComGuardrails, Guardrails}, ../provedor.js:
+ *   {ProvedorIA, Transporte}, ./claude.js, ./gemini.js, ./openai.js, ./deepseek.js.
+ * É CHAMADO POR: ia/ia.test.ts (no MVP; o consumidor real é a edge proxy-ia).
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes; `bun run src/ia/ia.test.ts`
+ *   (dentro de `bun run test`).
+ * CUIDADO: cliente KEYLESS — a ConfigIaTenant NÃO carrega chave e nenhuma chave
+ *   vive aqui (nem em src/): a credencial mora nos secrets da Edge Function
+ *   proxy-ia. Branches EXPLÍCITOS por provedor (fallthrough silencioso rotearia
+ *   provedor novo p/ URL errada). GUARD sempre no caminho: AIPROV → GUARD → adaptador.
+ *
+ * — detalhe preservado —
  * Pipoca — Seleção de adaptador por config (AIPROV) · doc fase05-05-04
  * ---------------------------------------------------------------------
  * `selecionarAdaptador(config)` → adaptador Claude | Gemini | OpenAI já

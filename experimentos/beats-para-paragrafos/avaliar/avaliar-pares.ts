@@ -1,4 +1,28 @@
 /**
+ * [avaliar-pares.ts] — Script 2 (avaliador) do experimento B1.5: para cada par
+ *   história-base × resposta-LLM roda a Camada 1 (gate factual) e, só quando
+ *   passa, a Camada 2 (juiz LLM), e grava agregados + grade/relatórios.
+ *
+ * PAPEL: experimento (B1.5 · avaliador · GASTA API paga)
+ * POR QUE EXISTE: decidir quais realizações são fiéis e boas, gerando insumo
+ *   para endurecer o gerador (o par lê saida/ do Script 1).
+ * ENTRA: saida/historias-base/ e saida/respostas-llm/ (lote a lote, mesmo nome
+ *   de arquivo); env OPENAI_API_KEY/OPENAI_MODEL/OPENAI_TEMPERATURE (.env raiz
+ *   ou shell).
+ * SAI: saida/historias-base/agregados/ (base+resposta+veredito por lote) +
+ *   saida/avaliacao/ (grade.json, para-leitura.md, reprovados.md).
+ * CHAMA: carregar-env.ts:carregarEnv, persistencia.ts:{escreverAgregados,
+ *   garantirDiretorios,resolverCaminhos}, camada1-fidelidade.ts:avaliarCamada1,
+ *   camada2-juiz.ts:julgarPar, relatorios.ts:{montarGrade,montarParaLeitura,
+ *   montarReprovados}; ../tipos.js; node:fs.
+ * É CHAMADO POR: ninguém — entrypoint rodado à mão. (avaliar-pares.test.ts
+ *   exercita os helpers, não o main.)
+ * RODA POR: `bun run experimentos/beats-para-paragrafos/avaliar/avaliar-pares.ts`.
+ * CUIDADO: GASTA API paga — a Camada 2 (juiz OpenAI, via julgarPar) roda em
+ *   CADA par que passou a Camada 1. Chave OPENAI_API_KEY do .env raiz/shell.
+ *   Precisa do gerador (gerar-historias.ts) rodado antes para haver saida/.
+ *
+ * — detalhe preservado —
  * Experimento B1.5 — Script 2 (avaliador). Lê historias-base + respostas-llm
  * LOTE A LOTE (mesmo nome de arquivo nas duas pastas), roda Camada 1 (gate
  * factual, sempre) e Camada 2 (juiz LLM, só nos pares que passaram a Camada

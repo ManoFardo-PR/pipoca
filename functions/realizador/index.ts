@@ -1,31 +1,67 @@
-// Pipoca — Realizador (Supabase Edge Function) · fase13-13-03
-// -------------------------------------------------------------
-// A rota edge da GERAÇÃO 2, irmã de `proxy-ia` (mesma disciplina):
-// AS CHAVES DOS PROVEDORES VIVEM SÓ AQUI (secrets do ambiente da função):
-//   ANTHROPIC_API_KEY · OPENAI_API_KEY · GEMINI_API_KEY · DEEPSEEK_API_KEY
-// Deploy com verify_jwt: a plataforma rejeita requisições sem bearer válido.
-//
-// O SERVIDOR decide provedor/modelo pela config_ia do tenant (o cliente não
-// escolhe) e verifica cota/custo em uso_ia ANTES de chamar. A CASCATA do
-// fase12-12-04 roda INTEIRA aqui (uma viagem de rede por realização): recusa
-// não repete; retry 1× só em falha transitória; FAIL de fidelidade = 1
-// tentativa por provedor; teto global 4 chamadas. O fallback A+ v3 NÃO vive
-// aqui — roda no dispositivo (o fallback não depende do edge, 13-03).
-//
-// Entrada: POST { pacote, prompt: {system, user}, temperatura?, tenantId? }.
-// O prompt vem montado do cliente (determinístico, 100% derivado do Pacote,
-// sem segredo — precedente do proxy-ia, em que o cliente manda o prompt).
-// A VALIDAÇÃO de fidelidade roda aqui: espelho compacto do CANÔNICO
-// `src/core/realizador/validador.ts` + tabela canônica de comprimento do
-// `prompt_template.ts` (mesmo precedente do guardrails-lite do proxy-ia —
-// o canônico é o do repo; recalibrações lá exigem redeploy daqui).
-// Self-contained: nada importado do repo (Deno); fica FORA de src/ para não
-// entrar no tsc do app.
-//
-// Erros (JSON {erro}): 401 nao_autenticado · 400 requisicao_invalida ·
-// 503 nao_configurado (sem config/chave) · 403 cota_excedida ·
-// 422 conteudo_bloqueado · 502 realizacao_esgotada. O cliente converte
-// QUALQUER não-200 em fallback A+ v3 local — a criança nunca vê erro.
+/**
+ * [realizador/index.ts] — Edge Function realizador: a rota edge da GERAÇÃO 2
+ *   que roda a CASCATA inteira no servidor (chama o LLM, valida a fidelidade
+ *   e devolve o texto realizado); irmã do proxy-ia.
+ *
+ * PAPEL: edge (GERAÇÃO 2 — cascata completa no servidor)
+ * POR QUE EXISTE: rodar a cascata do fase12-12-04 numa única viagem de rede,
+ *   com as chaves pagas fora do cliente; o app manda Pacote + prompt já
+ *   montado e o servidor decide provedor/modelo, checa cota, chama a API
+ *   paga, valida a fidelidade e responde.
+ * ENTRA: POST JSON { pacote, prompt:{system,user}, temperatura?, tenantId? } +
+ *   header Authorization: Bearer <JWT> (verify_jwt). Secrets do ambiente:
+ *   ANTHROPIC_API_KEY/OPENAI_API_KEY/GEMINI_API_KEY/DEEPSEEK_API_KEY,
+ *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY. Lê config_ia/uso_ia.
+ * SAI: 200 { texto, paragrafos, veredito, origem, metadados }; ou não-200
+ *   {erro}: 401 nao_autenticado, 400 requisicao_invalida, 503 nao_configurado
+ *   (sem config/chave), 403 cota_excedida, 422 conteudo_bloqueado,
+ *   502 realizacao_esgotada, 405 metodo_invalido. Efeito: registra uso em
+ *   uso_ia (falha na telemetria nunca derruba a geração).
+ * CHAMA: nada do repo — self-contained (Deno). APIs externas: Anthropic,
+ *   OpenAI, DeepSeek, Gemini; PostgREST do Supabase (service role).
+ * É CHAMADO POR: src/backend/proxy_realizador.ts (cliente keyless, POST em
+ *   /functions/v1/realizador).
+ * RODA POR: Supabase Edge Function (Deno), deploy na plataforma; acionada
+ *   pelos clientes em src/backend/.
+ * CUIDADO: AS CHAVES DOS PROVEDORES VIVEM SÓ AQUI (secrets do ambiente:
+ *   ANTHROPIC_API_KEY/OPENAI_API_KEY/GEMINI_API_KEY/DEEPSEEK_API_KEY, lidas
+ *   via Deno.env.get); o cliente é keyless; qualquer não-200 vira fallback no
+ *   cliente (fallback A+ v3 LOCAL, no dispositivo — NÃO vive aqui, a criança
+ *   nunca vê erro). O validador e a tabela de comprimento aqui são ESPELHO
+ *   dos canônicos (src/core/realizador/validador.ts e prompt_template.ts):
+ *   recalibrar lá exige redeploy daqui. Fica FORA de src/ para não entrar no
+ *   tsc do app.
+ *
+ * — detalhe preservado —
+ * Pipoca — Realizador (Supabase Edge Function) · fase13-13-03
+ * -------------------------------------------------------------
+ * A rota edge da GERAÇÃO 2, irmã de `proxy-ia` (mesma disciplina):
+ * AS CHAVES DOS PROVEDORES VIVEM SÓ AQUI (secrets do ambiente da função):
+ *   ANTHROPIC_API_KEY · OPENAI_API_KEY · GEMINI_API_KEY · DEEPSEEK_API_KEY
+ * Deploy com verify_jwt: a plataforma rejeita requisições sem bearer válido.
+ *
+ * O SERVIDOR decide provedor/modelo pela config_ia do tenant (o cliente não
+ * escolhe) e verifica cota/custo em uso_ia ANTES de chamar. A CASCATA do
+ * fase12-12-04 roda INTEIRA aqui (uma viagem de rede por realização): recusa
+ * não repete; retry 1× só em falha transitória; FAIL de fidelidade = 1
+ * tentativa por provedor; teto global 4 chamadas. O fallback A+ v3 NÃO vive
+ * aqui — roda no dispositivo (o fallback não depende do edge, 13-03).
+ *
+ * Entrada: POST { pacote, prompt: {system, user}, temperatura?, tenantId? }.
+ * O prompt vem montado do cliente (determinístico, 100% derivado do Pacote,
+ * sem segredo — precedente do proxy-ia, em que o cliente manda o prompt).
+ * A VALIDAÇÃO de fidelidade roda aqui: espelho compacto do CANÔNICO
+ * `src/core/realizador/validador.ts` + tabela canônica de comprimento do
+ * `prompt_template.ts` (mesmo precedente do guardrails-lite do proxy-ia —
+ * o canônico é o do repo; recalibrações lá exigem redeploy daqui).
+ * Self-contained: nada importado do repo (Deno); fica FORA de src/ para não
+ * entrar no tsc do app.
+ *
+ * Erros (JSON {erro}): 401 nao_autenticado · 400 requisicao_invalida ·
+ * 503 nao_configurado (sem config/chave) · 403 cota_excedida ·
+ * 422 conteudo_bloqueado · 502 realizacao_esgotada. O cliente converte
+ * QUALQUER não-200 em fallback A+ v3 local — a criança nunca vê erro.
+ */
 
 declare const Deno: {
   env: { get(nome: string): string | undefined };

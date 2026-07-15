@@ -1,4 +1,43 @@
 /**
+ * [estado.js] — o "cérebro" de estado e navegação do app: expõe window.PipocaApp,
+ *   o seam único que as telas .dc.html leem e escrevem.
+ *
+ * PAPEL: app-ui (IIFE · cérebro de estado/navegação · seam window.PipocaApp)
+ * POR QUE EXISTE: as telas canônicas (.dc.html) precisam de UMA fonte de estado
+ *   (perfil, economia, história, modos, a11y, portão) e de navegação; este módulo
+ *   centraliza isso e faz a ponte com a lógica canônica de src/ (via
+ *   window.PipocaCanonico), sem reimplementar regra de narrativa/acesso.
+ * ENTRA: interações das telas (setState/patch, selecionarPerfil, PIN, login);
+ *   leituras de window.PipocaCanonico e window.PipocaRoteador; fetch de
+ *   docs/quintal.v3.json (grafo v3) e docs/fichas/*.v1.json (fichas); localStorage
+ *   (perfis da chave legada pipoca.perfis.v1).
+ * SAI: window.PipocaApp (getters estado/cenarioV2/fichasProntas; setState,
+ *   subscribe, repo, selecionarPerfil, verificarPinCuidador, abrirPortao,
+ *   iniciarComposicao, prepararLeituraPortao, aplicarComposicao,
+ *   favoritarHistoria…); efeitos: navegação (PipocaRoteador), gravação de
+ *   saves/histórias/telemetria pelo repo (local ou sincronizado).
+ * CHAMA: window.PipocaCanonico.* (composicao, geracao, modoApp, acesso, conta,
+ *   backend, sessao, telemetria, leitura, historias) e window.PipocaRoteador;
+ *   nenhum import ESM — IIFE puro carregado como script.
+ * É CHAMADO POR: as telas .dc.html (Shell, Perfis, Onboarding, PedirGenero,
+ *   Tela2..Tela7, PortaoParental, LoginFamilia, ContaCuidador, PainelCuidador,
+ *   LeitorHistoria…) leem/escrevem window.PipocaApp; carregado por index.html
+ *   DEPOIS de pipoca.bundle.js.
+ * RODA POR: boot do app — carregado como `<script src="./src/app/estado.js">`
+ *   direto em index.html (IIFE, sem bundler; NÃO entra no pipoca.bundle.js).
+ * CUIDADO: KEYLESS — orquestra a geração (realizadorRemoto, cascata LLM) mas
+ *   NENHUMA chave de provedor vive aqui; as 4 chaves moram só nas 3 Edge
+ *   Functions. "salvo === lido": o texto realizado é memoizado em
+ *   _realizacaoPendente.resultado ANTES de liberar a leitura, e o commit reusa
+ *   (não re-espera). Fallback SILENCIOSO A+ cru quando o teto (8s, override e2e
+ *   PIPOCA_CONFIG.tetoRealizacaoMs) estoura ou o LLM cai — origem sinalizada. O
+ *   save NUNCA leva o state cru: _projetarSave + whitelist SLICES_PERSISTIVEIS
+ *   (gate/comp/showA11y não vazam); o perfilId é capturado no AGENDAMENTO (o
+ *   timer da criança A nunca grava sob o id da B); as bordas drenam com
+ *   flushSavePendente. Guarda KIDMODE no setState({tela}) (modoApp): no modo
+ *   criança, pedir superfície adulta redireciona à T2.
+ *
+ * — detalhe preservado —
  * Pipoca — Estado do app (browser build)
  * --------------------------------------
  * Versão IIFE do "cérebro" do app, carregável como <script> em index.html sem

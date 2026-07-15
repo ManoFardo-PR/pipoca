@@ -3,7 +3,7 @@
  * ---------------------------------------------------------------
  * Os blocos do contrato grafo-autoral-v3 §6 (1–7) + golden v3 (8), compor (9) e
  * lapidação da costura §4.1 (10). Rodam sem IA, ASR ou UI.
- * Execute com: bun run src/core/composicao.test.ts
+ * RODA POR: bun run src/core/composicao.test.ts (parte de `bun run test`)
  */
 
 import {

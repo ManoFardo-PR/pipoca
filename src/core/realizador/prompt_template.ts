@@ -1,4 +1,28 @@
 /**
+ * [prompt_template.ts] — Monta o prompt (system+user) do realizador 100% a partir do
+ *   Pacote: MÉTODO (as 3 leis + proibições + few-shot) no system, MATÉRIA no user.
+ *
+ * PAPEL: core-lógica (realizador · fase 12 · montagem de prompt)
+ * POR QUE EXISTE: concentra AQUI o método editorial (leis, proibições parametrizadas
+ *   pela identidade do Pacote, few-shot por nível, tabela de comprimento canônico) sem
+ *   nunca tocar fichas/gramática/BD — a montagem é função pura do Pacote.
+ * ENTRA: PacoteComposicao.
+ * SAI: PromptRealizador { system, user }; + helpers exportados (rodadaDoPacote,
+ *   maximoPalavrasDoPacote, personalizarExemplo) e tabelas (MAXIMO_PALAVRAS,
+ *   FEWSHOT_POR_NIVEL, DESCRICAO_NIVEL).
+ * CHAMA: composicao.ts:NivelKey (tipo), compositor/pacote.ts:PacoteComposicao (tipo).
+ * É CHAMADO POR: realizador/realizar.ts (montarPromptRealizador), validador.ts
+ *   (maximoPalavrasDoPacote), cascata.ts (tipo PromptRealizador), realizador.test.ts,
+ *   backend/proxy_realizador.ts, functions/realizador/index.ts (edge).
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes —
+ *   `bun run src/core/realizador/realizador.test.ts` (dentro de `bun run test`).
+ * CUIDADO: as saídas few-shot são VERBATIM do PR #21 — PROIBIDO reescrever (edição é
+ *   privilégio do autor, D-12.2); `personalizarExemplo` só troca NOME e tokens de
+ *   gênero (adjetivos concordam com substantivos, não se tocam); a rodada é DERIVADA
+ *   de beats.length (o contrato v1 não carrega rodada); MAXIMO_PALAVRAS usa "Máximo"
+ *   deliberadamente (a instrução branda foi ignorada em 291 casos).
+ *
+ * — detalhe preservado —
  * Pipoca — Template de prompt do realizador (prompt_template.ts)
  * --------------------------------------------------------------
  * Montagem 100% derivada do PacoteComposicao — nunca acessa fichas, gramática

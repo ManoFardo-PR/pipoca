@@ -1,4 +1,28 @@
 /**
+ * [ia_config.ts] — configuração de IA POR TENANT (provedor, modelo, cotas, custo,
+ *   fallback); valida a config e decide se a IA fica efetivamente disponível.
+ *
+ * PAPEL: admin (SA_AI — config por tenant; sem IA por default)
+ * POR QUE EXISTE: dar ao operador o controle de qual provedor/modelo cada tenant
+ *   usa, com catálogo de modelos REAIS e um gate triplo antes de qualquer chamada paga.
+ * ENTRA: ConfigIaTenant, LimitesPlano, FeatureFlags; leitura de localStorage
+ *   (chave "pipoca.admin.ia.v1") por tenantId.
+ * SAI: MODELOS_POR_PROVEDOR, CONFIG_IA_PADRAO, lista de erros de validação,
+ *   boolean iaEfetivaDisponivel, persistência local por tenant.
+ * CHAMA: ./auth/tiposAdmin (StorageLike/TenantId), ./tenant/tiposTenant:LimitesPlano,
+ *   ./flags:killSwitchAtivo.
+ * É CHAMADO POR: bridge_admin.ts (PipocaAdminCanonico.ia), ./ia_global.ts
+ *   (MODELOS_POR_PROVEDOR + tipos), ../backend/espelho_admin.ts,
+ *   ../ia/adaptadores/selecionar.ts, ia.test.ts, admin.test.ts.
+ * RODA POR: boot do admin — bundled em pipoca.admin.bundle.js via `bun run
+ *   build:admin`; também entra em pipoca.bundle.js (build:app) via src/ia.
+ * CUIDADO: CHAVES NUNCA NO CLIENTE — este tipo não tem campo de chave; a chave e
+ *   o teste de conexão vivem nas Edge Functions. validarConfigIA até rejeita
+ *   config que contenha a palavra "chave". MODELOS_POR_PROVEDOR usa ids REAIS
+ *   conferidos 2026-07-12 (ids inventados = falha de provedor). Gate triplo:
+ *   plano ∧ config válida ∧ flag global — fail-closed em qualquer dúvida.
+ *
+ * — detalhe preservado —
  * Pipoca — Configuração de IA por tenant (SA_AI) · doc fase04-04-05
  * -------------------------------------------------------------------
  * Provedor/modelo/cotas/custo/fallback POR TENANT. Default: SEM IA até

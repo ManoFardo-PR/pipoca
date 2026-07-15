@@ -1,7 +1,23 @@
 /**
- * src/telas/avatares.ts — Definições de avatares da Tela 2
- * Portado do protótipo Pipoca.dc.html (linhas 683–709).
- * IDs canônicos: "pingo" | "fubá" | "cacau" | "lua" | "tuca"
+ * [avatares.ts] — definições e desenho SVG dos 5 avatares da Tela 2
+ *   (Pingo, Fubá, Cacau, Lua, Tuca).
+ *
+ * PAPEL: app-ui (módulo-fonte de dados de tela)
+ * POR QUE EXISTE: guarda a definição canônica de cada avatar (cor de fundo,
+ *   tipo de orelha, cor do pelo) e a função que monta o SVG. Portado do
+ *   protótipo Pipoca.dc.html (linhas 683–709). IDs canônicos: "pingo" | "fubá"
+ *   | "cacau" | "lua" | "tuca".
+ * ENTRA: _avatarSVG recebe um AvatarDef (id, name, bg, ear, fur).
+ * SAI: _avatarDefs() → AvatarDef[]; _avatarSVG(d) → string SVG do avatar.
+ * CHAMA: nada — módulo puro, self-contained.
+ * É CHAMADO POR: NENHUM importador (analise-modularidade: "avatares.ts sem
+ *   imports"). As telas .dc.html NÃO importam este arquivo — Tela2/Tela3/Tela7
+ *   carregam cópias INLINE de _avatarDefs/_avatarSVG (dc-runtime: telas
+ *   self-contained). Este .ts é a fonte-de-verdade espelhada.
+ * RODA POR: não roda por comando próprio — módulo-fonte TS; a mesma lógica vive
+ *   inline nas telas .dc.html.
+ * CUIDADO: definições DUPLICADAS — mexer aqui NÃO altera as telas (que têm cópia
+ *   inline); manter em sincronia com Tela2/Tela3/Tela7 à mão.
  */
 
 export interface AvatarDef {

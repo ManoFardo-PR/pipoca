@@ -1,4 +1,20 @@
 /**
+ * [a11y.ts] — Helpers puros que traduzem A11yPrefs em CSS concreto (fonte,
+ *   paleta de contraste, transição, animação de cena).
+ *
+ * PAPEL: core-lógica (helpers de estilo · puro, sem UI, sem estado)
+ * POR QUE EXISTE: separar a decisão de acessibilidade (o que a criança/cuidador
+ *   ligou) da string CSS que a tela aplica — evita espalhar `if a11y.x` pelas telas.
+ * ENTRA: A11yPrefs (textScale 1|1.2|1.45, dyslexia, syllable, contrast, reduceMotion).
+ * SAI: strings CSS — estiloLeitura (fonte/spacing/size), paletaContraste
+ *   (tinta/realce/realceStuck), transicao(css), animacaoCena.
+ * CHAMA: nada em runtime — só importa o tipo A11yPrefs de ./estado.js (re-exportado).
+ * É CHAMADO POR: src/app/bridge.ts (que serve as telas .dc.html em renderVals()).
+ * RODA POR: boot do app (via pipoca.bundle.js); coberto de forma transversal em `bun run test`.
+ * CUIDADO: reduceMotion → transicao/animacaoCena devolvem "" (cena estática) — o
+ *   chamador não deve supor um valor. Estes helpers só devolvem CSS; quem aplica é a tela.
+ *
+ * — detalhe preservado —
  * src/core/a11y.ts — Helpers de estilo derivados de A11yPrefs
  * Puro, sem UI, sem estado. Telas chamam estes helpers em renderVals().
  *

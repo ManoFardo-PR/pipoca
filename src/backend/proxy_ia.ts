@@ -1,4 +1,27 @@
 /**
+ * [proxy_ia.ts] — Cliente KEYLESS da Edge Function proxy-ia (geração 1): manda
+ *   {prompt, schema, opts} + o bearer do usuário; o servidor escolhe
+ *   provedor/modelo e checa cota.
+ *
+ * PAPEL: backend (cliente keyless da edge proxy-ia · geração 1)
+ * POR QUE EXISTE: gerar trechos por LLM sem que a chave do provedor toque o
+ *   cliente; o servidor decide provedor/modelo pela config_ia do tenant e
+ *   verifica cota/custo ANTES de chamar.
+ * ENTRA: OpcoesProxyIA {url, anonKey, obterToken, tenantId?, transporte?}; em
+ *   gerar(): {prompt, schema, opts?}.
+ * SAI: Trecho validado (validarTrechoGerado); provedorViaProxy encaixa como
+ *   ProvedorIA (orquestrador/Motor B).
+ * CHAMA: ia/provedor:transportePadrao/validarTrechoGerado,
+ *   backend.ts:ProxyIA (tipo), core/grafo/tipos:Trecho.
+ * É CHAMADO POR: backend.ts (criarBackendSupabase), backend.test.ts.
+ * RODA POR: boot do app (bundle); cliente da Edge Function proxy-ia.
+ * CUIDADO: KEYLESS — o cliente manda APENAS o bearer do USUÁRIO + a anon key
+ *   pública; NENHUMA chave de provedor vive aqui (vivem só no ambiente da edge).
+ *   O cliente NÃO escolhe provedor/modelo (senão contornaria cota/config).
+ *   QUALQUER não-200 vira throw → orquestrador degrada p/ simulado → Motor A (a
+ *   criança nunca vê erro).
+ *
+ * — detalhe preservado —
  * Pipoca — ProxyIA (cliente) · doc fase06-06-05
  * ----------------------------------------------
  * Cliente da Edge Function `proxy-ia`: as chaves dos provedores vivem SÓ

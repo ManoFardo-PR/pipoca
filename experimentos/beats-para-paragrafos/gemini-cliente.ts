@@ -1,4 +1,27 @@
 /**
+ * [gemini-cliente.ts] — cliente HTTP do Gemini (o "realizador" do experimento
+ *   B1.5): monta system instruction + schema, chama a API e devolve o texto
+ *   limpo com métricas de crescimento e retry para 429/5xx.
+ *
+ * PAPEL: experimento (B1.5 · GASTA API paga)
+ * POR QUE EXISTE: reescrever o texto base em prosa fluida sem inventar/remover
+ *   acontecimentos, com contrato PRÓPRIO (não o do Motor B), e transporte
+ *   injetável para poder testar sem rede.
+ * ENTRA: textoOriginal, nível (NivelKey) e OpcoesGemini (modelo, chave,
+ *   temperatura, urlBase/transporte opcionais).
+ * SAI: ResultadoChamadaGemini { ok, textoLimpo?, erro?, tentativas, palavras }.
+ * CHAMA: src/core/composicao.js (tipo NivelKey); fetch real ao Gemini via
+ *   transportePadrao() (injetável).
+ * É CHAMADO POR: gerar-historias.ts:limparTextoComGemini; gerar-historias.test.ts
+ *   (com Transporte fake, sem rede).
+ * RODA POR: importado por gerar-historias.ts; nos testes,
+ *   `bun run experimentos/beats-para-paragrafos/gerar-historias.test.ts`.
+ * CUIDADO: GASTA API paga — fetch real a generativelanguage.googleapis.com com
+ *   header x-goog-api-key (a chave chega por opts.chave, do .env). O
+ *   responseSchema do Gemini é subset do OpenAPI 3.0: "additionalProperties"
+ *   NÃO existe e faz a API devolver HTTP 400 — não adicionar.
+ *
+ * — detalhe preservado —
  * Experimento B1.5 — chamada HTTP real ao Gemini (o "realizador"). Schema e
  * prompt PRÓPRIOS — não reaproveita TRECHO_JSON_SCHEMA/validarTrechoGerado
  * de src/ia/provedor.ts, que são do contrato do Motor B (sistema diferente).

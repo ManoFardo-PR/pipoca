@@ -1,4 +1,21 @@
 /**
+ * [agregadosTelemetria.ts] — Reduz EventoTelemetria[] a resumos e séries temporais
+ *   para o painel de evolução do cuidador (Tela 8). Read-only, puro.
+ *
+ * PAPEL: core-lógica (agregados de telemetria · PC_DASH · leitura/agregação)
+ * POR QUE EXISTE: dar ao cuidador uma visão calorosa do progresso (minutos, palavras,
+ *   histórias, sequência de dias, engajamento) sem tocar storage nem o motor.
+ * ENTRA: EventoTelemetria[], periodo ("semana"|"mes"|"tudo"), agora (epoch ms da borda), dia (ISO UTC).
+ * SAI: ResumoEvolucao, SeriesEvolucao (minutos/palavras/dia, histórias/semana, engajamento/dia 0..1),
+ *   rótulos ISO UTC (rotuloDia/chaveDia).
+ * CHAMA: só tipos de ./telemetria.js (EventoTelemetria, DadosLeituraConfirmada, DadosSessaoEncerrada).
+ * É CHAMADO POR: src/app/bridge.ts, src/core/parciais.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js); testes em `bun run src/core/parciais.test.ts` (dentro de `bun run test`).
+ * CUIDADO: nenhuma função chama Date.now() — a janela vem de `agora`; rótulos em UTC
+ *   (determinísticos, independem do fuso). `engajamento` é índice 0..1, NUNCA nota/percentual
+ *   punitivo. Minutos clampados por TETO_MINUTOS_SESSAO (60) contra sessão deixada aberta.
+ *
+ * — detalhe preservado —
  * Pipoca — Agregados de telemetria (PC_DASH) · doc dono fase03-03-02
  * ------------------------------------------------------------------
  * Funções PURAS que transformam `EventoTelemetria[]` em resumos e séries para o

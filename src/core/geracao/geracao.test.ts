@@ -5,7 +5,7 @@
  * fase 11: política de rota por nível respeitada, fallback A+ v3 acionado nos
  * caminhos infelizes, origem SEMPRE sinalizada, perfil legado sem gênero ⇒
  * personagem canônico ("Joana", f). Sem rede.
- * Execute com: bun run src/core/geracao/geracao.test.ts
+ * RODA POR: bun run src/core/geracao/geracao.test.ts (parte de `bun run test`)
  */
 
 import { montar, type CenarioV2, type EstadoComp } from "../composicao.js";

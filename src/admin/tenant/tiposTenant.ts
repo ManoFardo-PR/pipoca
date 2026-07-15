@@ -1,4 +1,29 @@
 /**
+ * [tiposTenant.ts] — modelo multi-tenant (contas, tenants, planos e limites) +
+ *   funções puras de limites vigentes, dias restantes, teto de perfis e validação de envelope.
+ *
+ * PAPEL: admin (tipos + regras de plano — puro; envelope seguro no bundle da criança)
+ * POR QUE EXISTE: dar uma fonte única dos planos/limites e das regras de
+ *   vigência/rebaixamento, usável tanto pelo operador quanto pelo app da família
+ *   (que valida a própria linha de tenants sem arrastar o runtime do operador).
+ * ENTRA: planoId/Tenant/agora; envelope pipoca.tenant.v1 (validação).
+ * SAI: tipos (LimitesPlano, Plano, Tenant, Conta, IdPlano), PLANOS_PADRAO,
+ *   PLANO_INICIAL, PLANO_MAIS_RESTRITIVO, limitesDoPlano/limitesVigentes/
+ *   diasRestantes/excedeTetoPerfis, tenantValido/validarEnvelopeTenant.
+ * CHAMA: ../auth/tiposAdmin:TenantId (só tipo).
+ * É CHAMADO POR: ./repositorioTenant.ts, bridge_admin.ts, ../validar_grafo.ts,
+ *   ../ia_config.ts, ../../app/bridge.ts (excedeTetoPerfis), ../../backend/
+ *   limites_familia.ts e ../../backend/espelho_admin.ts, admin.test.ts.
+ * RODA POR: boot do admin — bundled em pipoca.admin.bundle.js via `bun run
+ *   build:admin`; o módulo puro também entra em pipoca.bundle.js (build:app) p/ a família.
+ * CUIDADO: defaults seguros — rebaixar plano NUNCA destrói dados (só bloqueia
+ *   criação acima do teto); suspender ≠ apagar. Freemium tem prazo (60d ancorado
+ *   no criadoEm); vencido degrada aos limites do Grátis via limitesVigentes. A
+ *   validação de envelope vive AQUI (não no repositório) de propósito, para ser
+ *   segura no bundle da criança. Nota: o código nasce o tenant no Freemium
+ *   (PLANO_INICIAL), apesar da prosa preservada dizer "plano mais restritivo".
+ *
+ * — detalhe preservado —
  * Pipoca — Tipos de tenant e plano (SA_TENANT) · doc fase04-04-03
  * ----------------------------------------------------------------
  * Modelo multi-tenant: contas, tenants e planos com limites efetivos.

@@ -1,4 +1,27 @@
 /**
+ * [ia_global.ts] — config GLOBAL de IA da plataforma (modelo padrão por provedor
+ *   + cadeia de fallback) que os tenants herdam, e o formato do status MASCARADO da chave.
+ *
+ * PAPEL: admin (SA_IA_GLOBAL — lado plataforma; herança de IA)
+ * POR QUE EXISTE: dar defaults de provedor/modelo e uma cascata de fallback comum
+ *   a todos os tenants sem forçar cada um a configurar, mantendo a MESMA regra de
+ *   herança que o ProxyIA aplica server-side.
+ * ENTRA: ConfigIaGlobal, ConfigIaTenant, StatusChaveIa; leitura de localStorage
+ *   (chave "pipoca.admin.iaglobal.v1").
+ * SAI: CONFIG_IA_GLOBAL_PADRAO, validação/normalização, helpers de herança
+ *   (provedor/modelo/fallbacks efetivos), rótulo do status mascarado, persistência local.
+ * CHAMA: ./auth/tiposAdmin:StorageLike, ./ia_config (MODELOS_POR_PROVEDOR,
+ *   ConfigIaTenant, ProvedorIaId).
+ * É CHAMADO POR: bridge_admin.ts (PipocaAdminCanonico.iaGlobal),
+ *   ../backend/espelho_admin.ts (tipos + helpers), admin.test.ts, backend.test.ts.
+ * RODA POR: boot do admin — bundled em pipoca.admin.bundle.js via `bun run build:admin`.
+ * CUIDADO: CHAVES NUNCA AQUI — chaves vivem na tabela deny-all `chaves_ia`, lida
+ *   só pela Edge Function; este módulo só conhece o STATUS MASCARADO (ex.:
+ *   "****ab12"). O storage local é só espelho de LEITURA — o servidor é a verdade.
+ *   Default fail-closed: sem modelo padrão e sem cadeia → tenant sem config
+ *   própria segue SEM IA. A regra de herança é espelhada no ProxyIA (mantê-las iguais).
+ *
+ * — detalhe preservado —
  * Pipoca — Configuração GLOBAL de IA (SA_IA_GLOBAL) · tarefa #31
  * ----------------------------------------------------------------
  * O lado da PLATAFORMA (não por tenant): modelo padrão por provedor e a

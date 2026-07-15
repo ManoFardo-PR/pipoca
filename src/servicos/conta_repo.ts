@@ -1,4 +1,21 @@
 /**
+ * [conta_repo.ts] — persiste a conta e a sessão da família (login) no
+ *   localStorage, no nível do dispositivo/família.
+ *
+ * PAPEL: core-lógica (serviço de persistência · HH_LOGIN)
+ * POR QUE EXISTE: conta e sessão não cabem na RepositorioPersistencia (que cuida
+ *   de perfis/saves/telemetria); ficam centralizadas aqui, sem localStorage ad-hoc.
+ * ENTRA: ContaFamilia / SessaoConta a salvar; nada para ler (chaves
+ *   pipoca.conta.v1 e pipoca.sessao-conta.v1).
+ * SAI: carregarConta/salvarConta, carregarSessaoConta/salvarSessaoConta,
+ *   limparSessaoConta; leitura corrompida → null.
+ * CHAMA: ../core/contaFamilia.js:{ContaFamilia, SessaoConta} (só tipos).
+ * É CHAMADO POR: app/bridge.ts, backend/backend.ts, backend/adaptadores/auth_supabase.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes.
+ * CUIDADO: escrita degrada em silêncio; leitura corrompida vira null; logout
+ *   (limparSessaoConta) remove a sessão mas mantém a conta cadastrada.
+ *
+ * — detalhe preservado —
  * Pipoca — Persistência da conta/sessão da família (HH_LOGIN) · doc fase02-02-01
  * ------------------------------------------------------------------------------
  * A `RepositorioPersistencia` (seam SAVE) cuida de perfis/saves/telemetria; conta e sessão

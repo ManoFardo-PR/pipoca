@@ -1,4 +1,23 @@
 /**
+ * [chaves.ts] — Convenções de nomes de chave do localStorage + helpers de leitura/
+ *   escrita segura de envelopes versionados (pipoca.*.v1).
+ *
+ * PAPEL: core-lógica (persistência · nomes de chave + I/O de envelope)
+ * POR QUE EXISTE: centraliza as chaves (perfis, save, telemetria, histórias) e a
+ *   leitura tolerante a corrupção — ausência/JSON inválido/esquema errado ⇒ null/[] em
+ *   vez de exceção; quota estourada ⇒ false em vez de lançar.
+ * ENTRA: chave + esquema esperado (leitura); chave + valor (escrita).
+ * SAI: CHAVE_PERFIS + funções chaveSave/chaveTelemetria/chaveHistorias;
+ *   lerEnvelope/lerArrayEnvelopes/gravarItem.
+ * CHAMA: nada — só localStorage e JSON.
+ * É CHAMADO POR: persistencia/RepositorioLocalStorage.ts, persistencia.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes —
+ *   `bun run src/core/persistencia/persistencia.test.ts` (dentro de `bun run test`).
+ * CUIDADO: nenhum código fora do repositório deve tocar localStorage direto; a leitura
+ *   VALIDA o campo `esquema` e descarta em silêncio o que não bate; gravarItem engole
+ *   quota estourada (retorna false, não lança).
+ *
+ * — detalhe preservado —
  * Pipoca — Chaves do localStorage e helpers de envelope
  * -------------------------------------------------------
  * Convenções de nomes de chave e helper para leitura segura de envelopes

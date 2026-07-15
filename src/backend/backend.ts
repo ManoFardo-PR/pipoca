@@ -1,4 +1,31 @@
 /**
+ * [backend.ts] — Fachada única do backend trocável: monta `Backend {auth,
+ *   repo, proxyIA, realizador?, sincronizar?}` e `obterBackend(config)` escolhe
+ *   o adaptador (local / supabase / firebase).
+ *
+ * PAPEL: backend (fachada/seam)
+ * POR QUE EXISTE: app/CORE/telas falam SÓ com o seam Backend; trocar de BaaS =
+ *   trocar adaptador. Offline-first: qualquer dúvida cai no local.
+ * ENTRA: ConfigBackend (lazy de configDoAmbiente/window.PIPOCA_CONFIG quando
+ *   não passada); para espelharConfigIA: tenantId + dados + transporte opcional.
+ * SAI: instância Backend; espelharConfigIA devolve boolean (upsert
+ *   fire-and-forget de config_ia por-tenant).
+ * CHAMA: config.ts:configDoAmbiente, auth.ts, adaptadores/{auth_supabase,
+ *   repo_supabase,repo_sincronizado,auth_firebase,repo_firebase},
+ *   proxy_ia.ts:criarProxyIA, proxy_realizador.ts:criarProxyRealizador,
+ *   tenant.ts:escopoTenant, sync.ts:sincronizarInicial,
+ *   core/persistencia:criarRepositorio, core/contaFamilia, servicos/conta_repo,
+ *   admin/auth (operador local), ia/provedor:transportePadrao.
+ * É CHAMADO POR: app/bridge.ts, admin/bridge_admin.ts, backend.test.ts.
+ * RODA POR: boot do app/admin (bundle); cliente das Edge Functions.
+ * CUIDADO: FAIL-SOFT — provedor/URL/anon incompletos caem no local (a criança
+ *   nunca vê erro). No auth local a FAMÍLIA tem precedência sobre o operador em
+ *   sair()/sessaoAtual() (mesmo navegador). espelharConfigIA só age com OPERADOR
+ *   logado no supabase; a chave de provedor NÃO vive aqui (só a anon key
+ *   pública). proxyIndisponivel rejeita limpo → orquestrador degrada p/ simulado
+ *   → Motor A.
+ *
+ * — detalhe preservado —
  * Pipoca — Fachada do backend trocável (fase06-06-01)
  * ----------------------------------------------------
  * `Backend { auth, repo, proxyIA }` + `obterBackend(config)`.

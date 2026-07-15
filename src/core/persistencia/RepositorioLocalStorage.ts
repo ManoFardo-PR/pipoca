@@ -1,4 +1,25 @@
 /**
+ * [RepositorioLocalStorage.ts] — Implementação localStorage de RepositorioPersistencia:
+ *   perfis, save, telemetria e histórias no dispositivo do cuidador.
+ *
+ * PAPEL: core-lógica (persistência · impl MVP local, base do aparelho)
+ * POR QUE EXISTE: a base offline do app — grava/lê tudo no localStorage, validando cada
+ *   envelope no load e degradando em silêncio na escrita.
+ * ENTRA: Perfil, EstadoApp, EventoTelemetria, HistoriaSalva (por método) + perfilId.
+ * SAI: os dados persistidos + os loads validados (null/[] quando corrompido).
+ * CHAMA: persistencia/chaves.ts (chaves + lerArrayEnvelopes/gravarItem), dados/
+ *   schemas.ts (validarEnvelopePerfil/Save), telemetria.ts:validarEvento, servicos/
+ *   telemetria_repo.ts (poda), historias.ts (envelope/normalização).
+ * É CHAMADO POR: persistencia/index.ts:criarRepositorio (+ re-export),
+ *   backend/adaptadores/repo_local.ts (re-export), persistencia.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes —
+ *   `bun run src/core/persistencia/persistencia.test.ts` (dentro de `bun run test`).
+ * CUIDADO: LGPD — apagarPerfil remove save + telemetria + histórias + entrada da lista;
+ *   TODOS os loads passam pelos validadores de schema (payload corrompido ⇒ descartado);
+ *   erro de escrita NUNCA interrompe a sessão da criança (degradação silenciosa);
+ *   salvarHistoria poda preventivamente ao estourar a quota.
+ *
+ * — detalhe preservado —
  * Pipoca — Repositório localStorage (impl MVP de RepositorioPersistencia)
  * -------------------------------------------------------------------------
  * Implementação local para MVP. Todos os dados ficam no dispositivo do cuidador.

@@ -1,4 +1,21 @@
 /**
+ * [cardapio.ts] — Modelo canônico do cardápio de recompensas + cenários liberados,
+ *   com defaults seguros e normalização do que vem do save/edição do cuidador.
+ *
+ * PAPEL: core-lógica (cardápio de recompensas + cenários liberados · PC_RULES)
+ * POR QUE EXISTE: dar um shape único ao menu que a Tela 7 resgata e o Controle Parental
+ *   edita (antes inline na tela), tolerando dados ausentes/corrompidos.
+ * ENTRA: raw desconhecido (ItemCardapio[]/string[] vindos do save ou da edição do cuidador).
+ * SAI: ItemCardapio[] normalizado (CARDAPIO_PADRAO se vazio/inválido) e string[] de cenários
+ *   liberados (CENARIOS_PADRAO = ["quintal_anoitecer"]); validarItemCardapio (type guard).
+ * CHAMA: nada externo.
+ * É CHAMADO POR: src/core/estado.ts (tipo ItemCardapio), src/dados/schemas.ts,
+ *   src/app/bridge.ts, src/core/parciais.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js); testes em `bun run src/core/parciais.test.ts` (dentro de `bun run test`).
+ * CUIDADO: normalização silenciosa — lista vazia/inválida cai para CARDAPIO_PADRAO /
+ *   CENARIOS_PADRAO. Sem dark patterns; custos (cost) transparentes.
+ *
+ * — detalhe preservado —
  * Pipoca — Cardápio de recompensas e cenários liberados (PC_RULES) · doc fase02-02-07
  * -----------------------------------------------------------------------------------
  * Modelo canônico do cardápio que a Tela 7 ([[fase01-01-11]]) resgata e que o Controle

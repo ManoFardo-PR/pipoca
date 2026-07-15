@@ -1,4 +1,19 @@
 /**
+ * [repo_firebase.ts] — Adaptador RepositorioPersistencia do Firebase: stub
+ *   honesto, toda leitura/escrita rejeita com erro limpo.
+ *
+ * PAPEL: backend (adaptador repo · stub honesto / paridade documentada)
+ * POR QUE EXISTE: mesma prova de portabilidade do auth_firebase — a
+ *   implementação real é só preencher este adaptador (lei do backend).
+ * ENTRA: Perfil/EstadoApp/EventoTelemetria (rejeitados).
+ * SAI: métodos que rejeitam com NAO_CONFIGURADO.
+ * CHAMA: core/perfil, core/estado, core/persistencia (tipos).
+ * É CHAMADO POR: backend.ts (criarBackendFirebase), backend.test.ts.
+ * RODA POR: boot do app/admin (bundle) quando provedor="firebase".
+ * CUIDADO: stub — paridade documentada em PARIDADE.md; não configurado neste
+ *   build.
+ *
+ * — detalhe preservado —
  * Pipoca — Repositório Firebase (stub honesto) · doc fase06-06-03
  * ----------------------------------------------------------------
  * Interface completa de RepositorioPersistencia com erro limpo em toda

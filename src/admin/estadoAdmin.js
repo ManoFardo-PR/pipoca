@@ -1,4 +1,30 @@
 /**
+ * [estadoAdmin.js] — o estado do operador no navegador (window.PipocaAdmin):
+ *   sessão, tela atual e erro; toda navegação passa pelo guard antes do roteador.
+ *
+ * PAPEL: admin (estado do operador + guarda fail-closed)
+ * POR QUE EXISTE: dar às telas SA_* um seam único de leitura/escrita de estado e
+ *   centralizar login/logout/navegação, para nenhuma tela burlar o guard chamando
+ *   o roteador direto.
+ * ENTRA: window.PipocaAdminCanonico (o bundle), window.PipocaRoteador,
+ *   window.PIPOCA_CONFIG (via backend.configDoAmbiente); email/senha no login.
+ * SAI: window.PipocaAdmin { estado, setState, subscribe, irParaTela,
+ *   entrarSuperAdmin, sairSuperAdmin, repoTenant }; efeitos: navegação e notify
+ *   dos subscribers.
+ * CHAMA: PipocaAdminCanonico.auth/rotas/tenants/backend (criarRepositorioAdmin,
+ *   guardarRotaAdmin, sessaoSuperAdminValida, criarSessaoSuperAdmin, obterBackend,
+ *   puxarAdminDoServidor, envolverRepoTenantComEspelho), window.PipocaRoteador.irParaTela.
+ * É CHAMADO POR: admin.html (carregado direto como <script src="./src/admin/
+ *   estadoAdmin.js">, depois do bundle); as telas SA_* (.dc.html) leem/escrevem
+ *   window.PipocaAdmin.
+ * RODA POR: boot do admin — admin.html carrega este arquivo DIRETO como <script>
+ *   (NÃO vai no bundle, ao contrário de bridge_admin).
+ * CUIDADO: guard fail-closed — sem bundle (PipocaAdminCanonico) ou sem sessão
+ *   válida, toda tela protegida cai no login. Telas nunca chamam PipocaRoteador
+ *   direto (bypassaria o guard). Caminho local (provedor "local") deve seguir
+ *   byte-idêntico ao remoto-null. Erro de login é NEUTRO (não distingue e-mail de senha).
+ *
+ * — detalhe preservado —
  * Pipoca — Estado do SUPER ADMIN (browser, IIFE) · fase04
  * --------------------------------------------------------
  * Cérebro da plataforma do operador (admin.html). Espelho enxuto do padrão de

@@ -1,4 +1,25 @@
 /**
+ * [run-reordenar-miolo.mjs] — Runner de integração de TELA (sem navegador):
+ *   instancia os componentes reais T4/T5 (.dc.html) sobre o seam+motor reais e
+ *   prova que reordenar o miolo muda a história lida no portão, com as pontas fixas.
+ *
+ * PAPEL: e2e (integração de tela · offline, SEM Playwright)
+ * POR QUE EXISTE: cobre o CAMINHO DA TELA (rascunho do miolo → prévia → commit)
+ *   que antes só existia por raciocínio manual; o motor já tem unit tests — aqui
+ *   é a costura T4→T5 rodando sobre o seam real.
+ * ENTRA: lê do disco pipoca.bundle.js, src/app/estado.js, src/telas/
+ *   Tela4Heroi.dc.html e Tela5Portao.dc.html, docs/quintal.v3.json.
+ * SAI: relatório ok/falha no console + process.exit(1) se algum assert falhar.
+ * CHAMA: node:fs (readFileSync), node:url, node:path; eval do bundle
+ *   (expõe globalThis.PipocaCanonico/PipocaApp) + shims mínimos de
+ *   localStorage/fetch/window; dirige App.* e os componentes extraídos dos .dc.html.
+ * É CHAMADO POR: script npm `test:e2e:reordenar` (package.json); é um entrypoint.
+ * RODA POR: `bun run test:e2e:reordenar`
+ * CUIDADO: NÃO usa Playwright (indisponível/offline no ambiente do agente) — roda
+ *   os componentes reais das telas via eval do bundle + shims de browser; depende
+ *   de pipoca.bundle.js estar BUILDADO (bun run build:app). Sem rede, sem chave.
+ *
+ * — detalhe preservado —
  * Runner de integração da TELA — "reordenar o meio muda a história lida".
  * ---------------------------------------------------------------------------
  * O motor (compor/podeCompor/montar) já está coberto por unit tests. Este

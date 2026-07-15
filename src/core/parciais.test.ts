@@ -3,7 +3,7 @@
  * ----------------------------------------------------------
  * Cobre: telemetria (03-01), captura (03-01), retenção (03-03),
  * acesso/PIN (02-03), modos.autorizarIA + fábrica (02-08), migração (06-03).
- * Execute com: bun run src/core/parciais.test.ts
+ * RODA POR: bun run src/core/parciais.test.ts (parte de `bun run test`)
  */
 
 import { criarEvento, validarEvento } from "./telemetria.js";

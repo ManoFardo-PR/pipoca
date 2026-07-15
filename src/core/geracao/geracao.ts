@@ -1,4 +1,29 @@
 /**
+ * [geracao.ts] — A costura App↔motores: recebe estado+perfil, roteia por nível,
+ *   chama compositor→realizador e devolve texto + origem (LLM ou fallback A+ v3).
+ *
+ * PAPEL: core-lógica (geração 2 · fase 13 · seam único entre app e motores)
+ * POR QUE EXISTE: dá ao app UMA porta — o app não sabe se o texto veio do LLM ou do
+ *   A+ v3, o realizador não vê fichas, o compositor não vê provedor; aplica a rota por
+ *   nível e a política de falha do 12-04.
+ * ENTRA: EntradaGeracao (estado, fichas|null, perfil, estadoFallback) + OpcoesGeracao
+ *   (rota, provedores, realizador injetável, temperatura, tetos).
+ * SAI: Promise<ResultadoGeracao> (texto, paragrafos, veredito|null, origem, metadados?,
+ *   pacote|null).
+ * CHAMA: composicao.ts:montar (fallback A+ v3), perfil.ts:NOME_PADRAO,
+ *   compositor/compor.ts:compor, realizador/realizar.ts:realizar (default injetável),
+ *   + tipos de compositor/pacote.ts, realizador/cascata.ts e validador.ts.
+ * É CHAMADO POR: src/app/bridge.ts (gerar), geracao.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes —
+ *   `bun run src/core/geracao/geracao.test.ts` (dentro de `bun run test`).
+ * CUIDADO: NÃO chamar de "orquestrador" (homonímia com src/ia/orquestrador.ts);
+ *   `personagem.nome` é SEMPRE o do perfil (nunca substituir por "Joana" — incidente
+ *   forense); gênero ausente ⇒ concordância FEMININA (nunca inferir do nome); nunca
+ *   lança pelo caminho infeliz do LLM quando há estadoFallback, mas LANÇA se nem o A+
+ *   está disponível (nunca texto "meio certo"); em produção a cascata roda NO EDGE
+ *   (realizador injetável keyless) — nenhuma chave de IA vive aqui.
+ *
+ * — detalhe preservado —
  * Pipoca — Módulo de geração (geracao.ts) · fase13-13-00 / 13-01
  * --------------------------------------------------------------
  * O módulo NOVO entre o app e os motores (D-13.1; nome fixado "geracao" —

@@ -1,7 +1,7 @@
 /**
  * Experimento B1.5 — testes do Script 2 (avaliador), sem rede.
  * Formato dos demais testes do repo: assert local + throw no fim.
- * Execute com: bun run avaliar/avaliar-pares.test.ts
+ * RODA POR: bun run experimentos/beats-para-paragrafos/avaliar/avaliar-pares.test.ts (rodado à mão — fora de `bun run test`)
  */
 
 import quintalRaw from "../../../docs/quintal.v3.json" with { type: "json" };

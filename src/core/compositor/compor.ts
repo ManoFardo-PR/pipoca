@@ -1,4 +1,30 @@
 /**
+ * [compor.ts] — O compositor: transforma o arranjo da criança + as fichas num
+ *   PacoteComposicao determinístico (a matéria que o realizador vai narrar).
+ *
+ * PAPEL: core-lógica (compositor · fase 11 · determinístico, fronteira fichas→Pacote)
+ * POR QUE EXISTE: separa a DECISÃO editorial (o que entra na história, já resolvido
+ *   no nível) da REDAÇÃO (o LLM): a partir do estado da partida e dos 3 catálogos de
+ *   fichas, monta os beats na ordem da linha — sem I/O, sem relógio, sem LLM.
+ * ENTRA: EstadoCompositor (cenarioId, linha ordenada, rodada, desfecho),
+ *   CatalogoFichas (objetos/relacoes/cenarios pipoca.fichas.v1) e PerfilCompositor
+ *   (nome, gênero, nível).
+ * SAI: PacoteComposicao (esquema pipoca.pacote-composicao.v1) — puro e byte-idêntico
+ *   para a mesma entrada, sem RNG.
+ * CHAMA: fichas/tipos.ts:ESQUEMA_FICHAS_V1/PorNivel, compositor/pacote.ts (tipos +
+ *   ESQUEMA_PACOTE_COMPOSICAO_V1), gramatica.ts:selecionarRelacoes/derivarEco,
+ *   composicao.ts:NivelKey (tipo).
+ * É CHAMADO POR: geracao/geracao.ts:gerar (rota "realizador"), compositor.test.ts,
+ *   experimentos/fichas-para-historias/gerar.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes —
+ *   `bun run src/core/compositor/compositor.test.ts` (dentro de `bun run test`).
+ * CUIDADO: célula ausente no nível LANÇA com objeto+campo+nível (nunca degrada para
+ *   outro nível — dupla barreira com o lint); a ordem das chaves do literal de retorno
+ *   é fixa de propósito (JSON.stringify byte-idêntico); NUNCA reordenar os beats
+ *   (seguem a linha da criança). Há DOIS `compor()` homônimos: este (fichas→Pacote) ≠
+ *   composicao.ts:461 (v3, recompõe o miolo).
+ *
+ * — detalhe preservado —
  * Pipoca — O compositor (compor.ts)
  * ---------------------------------
  * `compor(estado, fichas, perfil) → PacoteComposicao` — pura (sem I/O, sem

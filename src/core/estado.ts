@@ -1,4 +1,26 @@
 /**
+ * [estado.ts] — Estado CORE (EstadoApp): os tipos-raiz do app, o estadoInicial e os
+ *   seletores derivados. Fonte única de verdade de toda a app.
+ *
+ * PAPEL: core-lógica (modelo de estado do app · fonte única de verdade)
+ * POR QUE EXISTE: reunir num só lugar o shape do EstadoApp (perfil, sessão, história,
+ *   economia, modos, a11y, slices do cuidador) e as derivações puras sobre ele.
+ * ENTRA: EstadoApp + patch parcial (patchEstado); MotorNarrativa para derivar as linhas.
+ * SAI: EstadoApp imutável, seletores (perfilAtivo, nivelAtivo, storyLines), estadoInicial;
+ *   re-exporta tipos de economia/limites/cardapio/telemetria/grafo.
+ * CHAMA: ../core/grafo/tipos.js:{Nivel,ModoDesfecho,MotorNarrativa}, ./economia.js:Economia,
+ *   ./limites.js:Limites, ./cardapio.js:ItemCardapio, ./telemetria.js (re-export).
+ * É CHAMADO POR: src/app/bridge.ts, src/dados/schemas.ts, src/core/onboarding.ts,
+ *   src/core/modos.ts, src/core/captura.ts, src/core/a11y.ts, src/core/perfil.ts, os
+ *   repositórios (src/core/persistencia/, src/backend/adaptadores/) e os testes.
+ * RODA POR: boot do app (via pipoca.bundle.js); testes em `bun run src/core/parciais.test.ts` (dentro de `bun run test`).
+ * CUIDADO: HistoriaState.objetos é a fonte de verdade da história (lei-do-contrato). storyLines
+ *   REQUER o motor para gerar os trechos. patchEstado é imutável (spread). O tipo HistoriaState é
+ *   definido aqui E também (mesmo shape) em historia.ts — coexistem. Slices do cuidador (limites/
+ *   cardapio/cenariosLiberados) usam null = "não configurado" → a borda aplica o padrão;
+ *   coletaTelemetria segue ligada por padrão (PC_PRIV usa `!== false`).
+ *
+ * — detalhe preservado —
  * Pipoca — Estado CORE (EstadoApp)
  * ---------------------------------
  * Fonte única de verdade para toda a app.

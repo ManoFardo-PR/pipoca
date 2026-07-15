@@ -1,4 +1,29 @@
 /**
+ * [bridge_admin.ts] — junta todos os núcleos canônicos de src/admin num objeto só
+ *   e o publica em window.PipocaAdminCanonico para as telas SA_* e o estadoAdmin.js.
+ *
+ * PAPEL: admin (ponte/entrypoint do bundle do operador)
+ * POR QUE EXISTE: dar às telas do operador (que rodam no navegador) um ponto
+ *   único de acesso aos módulos puros de auth/tenants/conteúdo/IA/flags/backend,
+ *   sem cada tela importar dezenas de arquivos.
+ * ENTRA: os módulos de src/admin (auth, rotas, tenant, conteúdo, ia, iaGlobal,
+ *   flags), ../core/modos e a fachada ../backend.
+ * SAI: window.PipocaAdminCanonico (agrupado por área) + export default; efeito
+ *   colateral de instalar o objeto no globalThis.
+ * CHAMA: ./auth/autenticacaoSuperAdmin, ./auth/sessaoSuperAdmin, ./rotasAdmin,
+ *   ./tenant/tiposTenant, ./tenant/repositorioTenant, ./validar_grafo,
+ *   ./ia_config, ./ia_global, ./flags, ../core/modos:modosPadrao,
+ *   ../backend/backend, ../backend/config, ../backend/espelho_admin.
+ * É CHAMADO POR: admin.html (via <script src="./pipoca.admin.bundle.js">); o
+ *   bundle é lido por estadoAdmin.js e pelas telas SA_* (.dc.html). admin.test.ts
+ *   importa os mesmos módulos direto.
+ * RODA POR: boot do admin — bundled em pipoca.admin.bundle.js via `bun run build:admin`.
+ * CUIDADO: o bundle é COMMITADO — mexer em qualquer módulo exportado aqui exige
+ *   `bun run build:admin` + commit do bundle. CHAVES DE IA nunca passam por este
+ *   bundle: statusChavesIa/salvarChaveIa/testarChaveIa só trafegam status
+ *   MASCARADO ou write-only rumo ao servidor.
+ *
+ * — detalhe preservado —
  * Pipoca — Ponte dos núcleos do SUPER ADMIN → navegador (fase04)
  * ---------------------------------------------------------------
  * Empacotado por `npm run build:admin` (bun build → pipoca.admin.bundle.js,

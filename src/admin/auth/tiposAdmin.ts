@@ -1,4 +1,23 @@
 /**
+ * [tiposAdmin.ts] — tipos base do super admin: credencial, sessão, escopo,
+ *   TenantId e o StorageLike injetável.
+ *
+ * PAPEL: admin (tipos — sem runtime)
+ * POR QUE EXISTE: manter a trilha do operador totalmente separada da família em
+ *   nível de TIPO, sem contaminar EstadoApp com campos administrativos.
+ * ENTRA: nada (só declarações de tipo/interface).
+ * SAI: PapelAdmin, TenantId, CredencialSuperAdmin, SessaoSuperAdmin, StorageLike.
+ * CHAMA: nada (só tipos).
+ * É CHAMADO POR: praticamente todo src/admin (autenticacaoSuperAdmin,
+ *   sessaoSuperAdmin, rotasAdmin, flags, ia_config, ia_global, validar_grafo,
+ *   tenant/*) e ../../backend/backend.ts, admin.test.ts.
+ * RODA POR: boot do admin — bundled em pipoca.admin.bundle.js via `bun run
+ *   build:admin` (tipos apagados na compilação).
+ * CUIDADO: StorageLike é injetável DE PROPÓSITO — nunca referenciar `localStorage`
+ *   no top-level de módulo (bun/testes não têm). Credencial/sessão/storage do
+ *   operador jamais se misturam com os da casa (HH_LOGIN).
+ *
+ * — detalhe preservado —
  * Pipoca — Tipos do super admin (SA_LOGIN) · doc fase04-04-01
  * ------------------------------------------------------------
  * Trilha SEPARADA da família (HH_LOGIN): credencial, sessão e escopo do operador

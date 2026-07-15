@@ -1,4 +1,36 @@
 /**
+ * [gerar.ts] — gerador do experimento fichas→histórias (ciclo 2): dirige o
+ *   pipeline REAL compor()+realizar() sobre a matriz de estados e grava os
+ *   lotes de saída para o avaliador consumir.
+ *
+ * PAPEL: experimento (ciclo 2 / fase 12 · GASTA API paga)
+ * POR QUE EXISTE: calibrar o realizador de produção em escala — roda a matriz
+ *   inteira pelo compositor+realizador reais e mede a fidelidade (veredito do
+ *   validador canônico), persistindo cada lote em disco para retomada.
+ * ENTRA: env GEMINI_API_KEY, GEMINI_MODEL (default gemini-2.5-flash),
+ *   EXP_TEMPERATURAS (default "0.4"), SEED_BASE (default 42),
+ *   EXP_ESTADOS_POR_CELULA (default 6; <6 = modo AMOSTRA); fichas reais de
+ *   docs/fichas/*.v1.json; .env na raiz.
+ * SAI: lotes JSON em saida/geracao/ (ou saida/geracao/_amostra/ no modo
+ *   amostra), reescritos a cada resposta (persistência incremental); resumo no
+ *   log (chamadas, PASS camada 1, erros de provedor, leitura n1).
+ * CHAMA: src/core/compositor/compor.js:compor, src/core/realizador/realizar.js:realizar,
+ *   src/core/realizador/cascata.js:ErroRealizacaoEsgotada,
+ *   src/core/realizador/provedor_realizador.js:criarProvedorGeminiRealizador,
+ *   src/core/realizador/prompt_template.js:maximoPalavrasDoPacote,
+ *   ./matriz.js:{montarMatriz,ESTADOS_POR_CELULA},
+ *   ./gemini-cliente-fichas.js:transportePadrao,
+ *   ../beats-para-paragrafos/carregar-env.js:carregarEnv.
+ * É CHAMADO POR: entrypoint rodado à mão (import.meta.main); a export
+ *   `entradasDoEstado` é importada por fichas-experimento.test.ts.
+ * RODA POR: `bun run experimentos/fichas-para-historias/gerar.ts` (à mão).
+ * CUIDADO: GASTA API paga — Gemini real via compor()+realizar(). A chave é lida
+ *   AQUI e injetada por parâmetro; src/core/realizador NÃO lê env (invariante de
+ *   segredos 12-02). Disjuntor: >20% de erros de PROVEDOR nos 2 primeiros lotes
+ *   novos ⇒ process.exit(1) (retomável — lotes já em disco são pulados). FAIL de
+ *   fidelidade NÃO conta como erro: é o dado que a calibração mede.
+ *
+ * — detalhe preservado —
  * Experimento fichas→histórias — Script 1 (gerador), CICLO 2 (fase 12):
  * consome o pipeline REAL — `compor()` (src/core/compositor) monta o Pacote a
  * partir das fichas e `realizar()` (src/core/realizador) chama o LLM com o

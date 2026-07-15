@@ -1,4 +1,21 @@
 /**
+ * [leitura.ts] — Tokeniza o texto do portão em palavras e marca as que pedem atenção,
+ *   além de silabar. Puro, sem UI, sem TTS.
+ *
+ * PAPEL: core-lógica (tokenização + detecção de palavras difíceis + silabação)
+ * POR QUE EXISTE: substituir o _gateWords() hardcoded do protótipo — decidir, a partir do
+ *   próprio texto, o que destacar/silabar no portão de leitura.
+ * ENTRA: texto/palavra (string).
+ * SAI: string[] de tokens (tokenizarTrecho), boolean (ehPalavraDificil), string silabada com
+ *   · entre sílabas (silabar).
+ * CHAMA: nada externo.
+ * É CHAMADO POR: src/app/bridge.ts (telas do portão).
+ * RODA POR: boot do app (via pipoca.bundle.js); coberto de forma transversal em `bun run test`.
+ * CUIDADO: "difícil" é heurística NEUTRA (comprimento > 7, composto com hífen, dígrafos, acento)
+ *   — nunca significa "errada", só "precisa de atenção". silabar é heurística simplificada de
+ *   MVP (baseada em vogais), não separação silábica canônica.
+ *
+ * — detalhe preservado —
  * src/core/leitura.ts — Tokenização e detecção de palavras difíceis
  * Puro, sem UI, sem TTS. Substitui o _gateWords() hardcoded do protótipo.
  *

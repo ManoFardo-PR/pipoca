@@ -1,4 +1,28 @@
 /**
+ * [repo_supabase.ts] — Adaptador RepositorioPersistencia sobre PostgREST
+ *   (perfis/saves/telemetria/historias) via REST puro, sem SDK.
+ *
+ * PAPEL: backend (adaptador repo · Supabase/PostgREST)
+ * POR QUE EXISTE: espelhar os dados no servidor com os MESMOS envelopes do repo
+ *   local, revalidados na leitura (schema corrompido é descartado em silêncio).
+ * ENTRA: OpcoesRepoSupabase {url, anonKey, obterToken, tenant?, transporte?};
+ *   Perfil/EstadoApp/EventoTelemetria/HistoriaSalva.
+ * SAI: dados persistidos no PostgREST; leituras revalidadas pelos validadores
+ *   canônicos.
+ * CHAMA: dados/schemas:validarEnvelopePerfil/Save, core/telemetria:validarEvento,
+ *   core/historias (validador/constantes),
+ *   servicos/telemetria_repo:RETENCAO_DIAS_PADRAO, ia/provedor:transportePadrao.
+ * É CHAMADO POR: backend.ts (criarBackendSupabase), backend.test.ts.
+ * RODA POR: boot do app (bundle); cliente das Edge Functions.
+ * CUIDADO: o token é RELIDO a cada request (obterToken renova sob demanda —
+ *   nunca capturado em closure). A coluna `dono` NUNCA é enviada (default
+ *   auth.uid() + RLS dono=auth.uid() fecham spoofing); tenant_id vem de
+ *   escopoTenant. LGPD: apagarPerfil apaga telemetria+historias+saves+perfil no
+ *   servidor. podarTelemetria/podarHistorias devolvem 0 (return=minimal não
+ *   conta — o local reporta). Nenhuma chave de provedor aqui (só a anon key
+ *   pública).
+ *
+ * — detalhe preservado —
  * Pipoca — Repositório Supabase (PostgREST via REST) · doc fase06-06-03
  * ----------------------------------------------------------------------
  * `RepositorioPersistencia` sobre as tabelas `perfis`/`saves`/`telemetria`

@@ -1,4 +1,29 @@
 /**
+ * [validar_grafo.ts] — valida grafos autorais v3 (lint + fumaça de montagem real)
+ *   e gerencia a biblioteca de conteúdo: rascunho → versão → publicação.
+ *
+ * PAPEL: admin (SA_CONTENT — curadoria de conteúdo)
+ * POR QUE EXISTE: dar ao operador uma porta segura para publicar cenários,
+ *   reprovando grafos quebrados antes que cheguem à criança e impedindo tenants
+ *   de furar o teto de cenários customizados do plano.
+ * ENTRA: JSON do grafo autoral (envelope pipoca.grafo-autoral.v3), tenantId,
+ *   LimitesPlano, StorageLike; leitura de localStorage (chave "pipoca.admin.conteudo.v1").
+ * SAI: ResultadoValidacaoGrafo (ok/erros/avisos), CenarioVersionado(s),
+ *   persistência da biblioteca, resultado de publicação {ok, motivo?}.
+ * CHAMA: ../core/composicao (iniciar, ordenarR1, inserir, abrirProximaRodada,
+ *   montar, ESQUEMA_COMPOSICAO_V3, tipos), ../core/lint_grafo:lintGrafoV3,
+ *   ./auth/tiposAdmin, ./tenant/tiposTenant:LimitesPlano.
+ * É CHAMADO POR: bridge_admin.ts (PipocaAdminCanonico.conteudo),
+ *   ../backend/espelho_admin.ts (CenarioVersionado + validarEnvelopeCenario/
+ *   substituirCenariosLocais), admin.test.ts, backend.test.ts.
+ * RODA POR: boot do admin — bundled em pipoca.admin.bundle.js via `bun run build:admin`.
+ * CUIDADO: a fumaça de montagem chama o Motor A+ v3 REAL (composicao.ts, INTOCÁVEL)
+ *   nos 4 níveis × 2 desfechos e confere replay determinístico — não trocar por
+ *   mock. Publicar exige validarGrafoAutoral().ok; cenário de tenant respeita o
+ *   teto cenariosCustomizados (catálogo da plataforma, tenantId null, sem teto).
+ *   substituirCenariosLocais é pull do servidor (servidor vence).
+ *
+ * — detalhe preservado —
  * Pipoca — Biblioteca de conteúdo (SA_CONTENT) · doc fase04-04-04
  * ----------------------------------------------------------------
  * Curadoria de grafos autorais (`pipoca.grafo-autoral.v3`): validação DUPLA

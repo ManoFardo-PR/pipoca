@@ -1,4 +1,25 @@
 /**
+ * [autenticacaoSuperAdmin.ts] — autentica o operador: núcleo puro avaliarLogin
+ *   (semeia credencial no 1º uso, compara hash, atrasa força-bruta) + seam RepositorioAdmin.
+ *
+ * PAPEL: admin (SA_LOGIN — auth do operador; MVP local, real na fase06)
+ * POR QUE EXISTE: dar login ao operador da plataforma numa trilha SEPARADA da
+ *   família, com barreira anti força-bruta e sem nunca guardar a senha em claro.
+ * ENTRA: email/senha, RegistroCredencial persistido, agora e geradores de
+ *   sal/token (injetados); localStorage (chaves "pipoca.admin.credencial.v1" e "…sessao.v1").
+ * SAI: RepositorioAdmin (autenticar/carregarSessao/encerrarSessao),
+ *   ResultadoAutenticacao, SessaoSuperAdmin, hashSenha/adminIdDoEmail/calcularAtrasoMs.
+ * CHAMA: ./tiposAdmin (tipos), ./sessaoSuperAdmin:criarSessaoSuperAdmin.
+ * É CHAMADO POR: bridge_admin.ts (PipocaAdminCanonico.auth), ../../backend/backend.ts
+ *   (criarRepositorioAdmin), admin.test.ts.
+ * RODA POR: boot do admin — bundled em pipoca.admin.bundle.js via `bun run build:admin`.
+ * CUIDADO: erro NEUTRO — nunca distingue e-mail de senha (não vazar). A senha
+ *   NUNCA é guardada nem retornada (só o hash FNV-1a com sal). É MVP local:
+ *   FNV-1a NÃO é cripto; segurança real (senha no servidor, token do backend) é
+ *   fase06. Date.now()/aleatório vivem só na borda (criarRepositorioAdmin), nunca
+ *   no núcleo puro avaliarLogin.
+ *
+ * — detalhe preservado —
  * Pipoca — Autenticação do super admin (SA_LOGIN) · doc fase04-04-01
  * -------------------------------------------------------------------
  * Seam `RepositorioAdmin` + núcleo PURO `avaliarLogin` + implementação local (MVP).

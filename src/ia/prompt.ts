@@ -1,4 +1,26 @@
 /**
+ * [prompt.ts] — prompt base (system) e montador puro do prompt de usuário do
+ *   Motor B, para pedir UM Trecho no nível certo espelhando o grafo autoral.
+ *
+ * PAPEL: core-lógica (orquestração de IA · GERAÇÃO 1 · Motor B AIMODEL)
+ * POR QUE EXISTE: transforma o estado da história (objetos, nível, modo de
+ *   desfecho) numa instrução de LLM determinística e segura, com o tom do
+ *   cenário, sem lógica de rede.
+ * ENTRA: MontarPromptContext (tipo, historia[], objetoId?, nivel, modoDesfecho,
+ *   grafo) — função pura, sem Date/aleatório.
+ * SAI: PROMPT_BASE (system fixo), descricaoNivel (espelho por nível) e
+ *   montarPrompt(ctx) → string do prompt de usuário.
+ * CHAMA: ../core/grafo/tipos.js:{GrafoAutoral, ModoDesfecho, Nivel, Objeto} (tipos).
+ * É CHAMADO POR: ia/ia.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes; `bun run src/ia/ia.test.ts`
+ *   (dentro de `bun run test`).
+ * CUIDADO: cliente KEYLESS — nenhuma chave de provedor vive aqui (nem em src/):
+ *   a credencial mora nos secrets da Edge Function proxy-ia. A segurança do
+ *   próprio prompt é SABOR; a barreira dura é guardrails.ts. Sem Date/aleatório
+ *   (determinismo de borda). Este montarPrompt (Motor B) ≠ montarPromptRealizador
+ *   de core/realizador/prompt_template.ts.
+ *
+ * — detalhe preservado —
  * Pipoca — Prompt base do Motor B (AIMODEL) · doc fase05-05-02
  * -------------------------------------------------------------
  * `PROMPT_BASE` (system) + `montarPrompt(ctx)` PURA: mapeia

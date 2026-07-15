@@ -1,4 +1,25 @@
 /**
+ * [gemini.ts] — adaptador ProvedorIA para a API Google Gemini: monta
+ *   :generateContent e faz o parse do Trecho, sobre um Transporte injetável.
+ *
+ * PAPEL: core-lógica (orquestração de IA · GERAÇÃO 1 · adaptador Gemini)
+ * POR QUE EXISTE: encaixa o Gemini na interface única ProvedorIA sem mudar o
+ *   Motor B, restringindo a saída por responseSchema.
+ * ENTRA: OpcoesAdaptadorGemini {modelo, transporte?, urlBase?}; depois
+ *   prompt/schema/opts.
+ * SAI: um ProvedorIA cujo gerar() devolve Trecho; lança ErroRecusaProvedor em
+ *   bloqueio/recusa.
+ * CHAMA: ../provedor.js:{ErroRecusaProvedor, transportePadrao, validarTrechoGerado,
+ *   JsonSchema, OptsGeracao, ProvedorIA, Transporte}, ../../core/grafo/tipos.js:Trecho.
+ * É CHAMADO POR: ia/adaptadores/selecionar.ts, ia/ia.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes; `bun run src/ia/ia.test.ts`
+ *   (dentro de `bun run test`).
+ * CUIDADO: cliente KEYLESS — nenhuma chave Google vive aqui (nem em src/): a
+ *   credencial mora nos secrets da Edge Function proxy-ia (chamada real server-side).
+ *   promptFeedback.blockReason e finishReason "SAFETY" são tratados como recusa
+ *   ANTES de ler conteúdo.
+ *
+ * — detalhe preservado —
  * Pipoca — Adaptador Google Gemini (GEMINI) · doc fase05-05-06
  * -------------------------------------------------------------
  * Mesma interface `ProvedorIA` dos demais — intercambiável sem mudar o

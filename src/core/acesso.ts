@@ -1,4 +1,21 @@
 /**
+ * [acesso.ts] — Portão parental (PINGATE): define/verifica o PIN que protege as
+ *   telas adultas, com lockout suave e mensagens acolhedoras.
+ *
+ * PAPEL: core-lógica (portão parental / PIN · lógica pura e testável)
+ * POR QUE EXISTE: barrar os ajustes do cuidador atrás de um PIN sem punir a criança
+ *   em caso de erro (dica calma, não X vermelho; lockout curto e não punitivo).
+ * ENTRA: EstadoAcesso (pinHash|null, tentativas, bloqueioAte), pin (string), agora (epoch ms da borda).
+ * SAI: novo EstadoAcesso + ResultadoPin (ok, bloqueado, dica); definirPin/estaBloqueado.
+ * CHAMA: nada externo — self-contained (hash FNV-1a interno, sem dependências).
+ * É CHAMADO POR: src/app/bridge.ts, src/servicos/acesso_repo.ts, src/core/parciais.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js); testes em `bun run src/core/parciais.test.ts` (dentro de `bun run test`).
+ * CUIDADO: o PIN é hash FNV-1a NÃO-criptográfico (só gesto de barreira no MVP; auth/servidor
+ *   real é fase06). `agora` vem SEMPRE da borda — nada de Date.now(). Passar por aqui é a ÚNICA
+ *   forma de virar "cuidador" (ver modoApp.ts:aoPassarPortao). Ao atingir MAX_TENTATIVAS (5),
+ *   ativa lockout de LOCKOUT_MS (60s); a janela reinicia sozinha quando expira.
+ *
+ * — detalhe preservado —
  * Pipoca — Portão parental / verificação de PIN (PINGATE) · doc fase02-02-03
  * --------------------------------------------------------------------------
  * Protege os ajustes adultos atrás de um PIN, SEM culpar a criança em caso de erro.

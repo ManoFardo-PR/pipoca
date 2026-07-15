@@ -1,4 +1,23 @@
 /**
+ * [rng.ts] — PRNG seedado próprio do experimento B1.5: deriva um gerador
+ *   determinístico de (seedBase, id) e oferece embaralhamento/índice aleatório
+ *   para as escolhas estruturais das partidas.
+ *
+ * PAPEL: experimento (B1.5 · offline)
+ * POR QUE EXISTE: dar aleatoriedade REPRODUZÍVEL (mesmo seed → mesma sequência)
+ *   às escolhas de nível/desfecho/ordem/slots, sem depender do PRNG interno do
+ *   motor (que não é exportado).
+ * ENTRA: seedBase (string|number) + id; arrays a embaralhar; um Rng.
+ * SAI: criarRng → { seed, rng }; embaralhar (Fisher–Yates); indiceAleatorio.
+ * CHAMA: nada externo — self-contained.
+ * É CHAMADO POR: gerar-historias.ts:criarRng; linha-aleatoria.ts:{embaralhar,
+ *   indiceAleatorio}; gerar-historias.test.ts.
+ * RODA POR: importado por gerar-historias.ts e linha-aleatoria.ts.
+ * CUIDADO: OFFLINE. Replay determinístico — cópia local deliberada do fnv1a/
+ *   mulberry32 (domínio público); as versões de src/core/composicao.ts NÃO são
+ *   exportadas e servem a outro uso (variantes de texto por linha+nível).
+ *
+ * — detalhe preservado —
  * Experimento B1.5 — PRNG seedado próprio, só para as ESCOLHAS ESTRUTURAIS
  * deste experimento (nível/desfecho/ordem/slots). As versões fnv1a/mulberry32
  * de src/core/composicao.ts não são exportadas — são internas à renderização

@@ -1,4 +1,28 @@
 /**
+ * [repositorioTenant.ts] — repositório de tenants com o ESCOPO da sessão preso na
+ *   instância (toda leitura/escrita filtra por escopo) + o vínculo conta→tenants.
+ *
+ * PAPEL: admin (SA_TENANT — persistência de tenants; MVP local)
+ * POR QUE EXISTE: isolar tenants entre si (um operador restrito nunca vê/altera
+ *   fora do seu escopo) e concentrar criação/leitura de tenants num seam trocável
+ *   pelo backend.
+ * ENTRA: escopo da sessão, Tenant/TenantId, email; localStorage (chaves
+ *   "pipoca.admin.tenants.v1" e "…contas.v1").
+ * SAI: RepositorioTenant (listar/obter/salvar/planos/limites), novoTenant, contas,
+ *   substituirTenantsLocais; ERRO_FORA_DE_ESCOPO.
+ * CHAMA: ../auth/tiposAdmin, ../auth/sessaoSuperAdmin:escopoAutoriza, ./tiposTenant
+ *   (planos, limites, validação de envelope).
+ * É CHAMADO POR: bridge_admin.ts (PipocaAdminCanonico.tenants), estadoAdmin.js
+ *   (criarRepositorioTenant via canônico), ../../backend/espelho_admin.ts (envolve
+ *   com espelho remoto), backend.test.ts, admin.test.ts.
+ * RODA POR: boot do admin — bundled em pipoca.admin.bundle.js via `bun run build:admin`.
+ * CUIDADO: isolamento fail-closed — fora do escopo: obter → null (não revela
+ *   existência), salvar → erro NEUTRO sem gravar; criar tenant novo exige escopo
+ *   "todos". Tenant novo nasce no Freemium (60d de Família); vencido degrada aos
+ *   limites do Grátis SEM apagar dados. substituirTenantsLocais é pull do servidor
+ *   (servidor vence).
+ *
+ * — detalhe preservado —
  * Pipoca — Repositório de tenants (SA_TENANT) · doc fase04-04-03
  * ---------------------------------------------------------------
  * Seam `RepositorioTenant` com o ESCOPO da sessão preso na instância: TODA

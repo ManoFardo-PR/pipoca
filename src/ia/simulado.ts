@@ -1,4 +1,23 @@
 /**
+ * [simulado.ts] — provedor de IA LOCAL e OFFLINE: gera um Trecho determinístico
+ *   a partir do próprio prompt, sem rede e sem chave (fallback do runtime).
+ *
+ * PAPEL: core-lógica (orquestração de IA · GERAÇÃO 1 · provedor local offline, fallback)
+ * POR QUE EXISTE: dá ao runtime da criança um ProvedorIA que funciona sem
+ *   internet nem provedor real (até a fase06), determinístico para testes/e2e.
+ * ENTRA: GrafoAutoral (tom) e OpcoesSimulado {falhar?}; depois prompt/schema/opts.
+ * SAI: um ProvedorIA cujo gerar() devolve um Trecho determinístico marcado com "✨".
+ * CHAMA: ../core/grafo/tipos.js:{GrafoAutoral, Trecho}, ./provedor.js:{JsonSchema,
+ *   OptsGeracao, ProvedorIA} (só tipos).
+ * É CHAMADO POR: ia/ia.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes; `bun run src/ia/ia.test.ts`
+ *   (dentro de `bun run test`).
+ * CUIDADO: cliente KEYLESS — por natureza não tem rede nem chave (o offline é o
+ *   ponto); a credencial dos provedores reais mora nos secrets da Edge Function
+ *   proxy-ia. Determinístico (FNV, sem aleatório). `falhar:true` rejeita sempre
+ *   (teste de degradação p/ Motor A). Prefixo "✨" distingue do texto autoral.
+ *
+ * — detalhe preservado —
  * Pipoca — Provedor simulado (MVP local da fase05)
  * -------------------------------------------------
  * Implementa `ProvedorIA` SEM rede e SEM chave: gera um Trecho

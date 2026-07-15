@@ -1,6 +1,9 @@
-// Testes do lint de fichas (fase 10 da geração 2 — docs/plans02/fase10_modelo_de_fichas/10-05).
-// Padrão da casa: asserts manuais, executado com `bun run`, encadeado no script `test`.
-// Fixtures SINTÉTICAS (as fichas reais nascem na Etapa 2 e ganham bloco próprio então).
+/**
+ * Pipoca — Testes do lint de fichas (fase10 · geração 2, docs/plans02/fase10_modelo_de_fichas/10-05):
+ *   fixtures SINTÉTICAS exercem E1–E5 e A1–A2, e o BLOCO 11 valida as fichas
+ *   REAIS (docs/fichas/*.v1.json) no gate pós-veredito de 0 erros · 0 avisos.
+ * RODA POR: bun run src/core/fichas/fichas.test.ts (parte de `bun run test`)
+ */
 import { lintFichas } from "./lint_fichas.js";
 import { ESQUEMA_FICHAS_V1 } from "./tipos.js";
 import objetosReais from "../../../docs/fichas/objetos.v1.json";

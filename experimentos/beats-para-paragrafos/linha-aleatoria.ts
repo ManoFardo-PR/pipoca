@@ -1,4 +1,26 @@
 /**
+ * [linha-aleatoria.ts] — roda a mecânica real do motor A+ com escolhas
+ *   sorteadas (rng seedado) e emite um snapshot de `montar()` ao fim de CADA
+ *   rodada; também reconstrói o estado-testemunha por sequência fixa.
+ *
+ * PAPEL: experimento (B1.5 · offline — usa o motor local, sem LLM)
+ * POR QUE EXISTE: produzir as histórias-base do experimento cobrindo a matriz
+ *   rodada×nível (não só a linha final da R4), usando a composição de verdade.
+ * ENTRA: cenário (CenarioV2, de docs/quintal.v3.json), nível e um Rng.
+ * SAI: EstadoSnapshot[] (um por rodada) em gerarPartida; um EstadoSnapshot em
+ *   gerarTestemunha; a constante TEXTO_ESPERADO_TESTEMUNHA (régua de comparação).
+ * CHAMA: src/core/composicao.js:{iniciar,ordenarR1,abrirProximaRodada,inserir,
+ *   podeInserir,montar} (mecânica real do Motor A+ v3); rng.ts:{embaralhar,
+ *   indiceAleatorio}; ../tipos.js (Desfecho).
+ * É CHAMADO POR: gerar-historias.ts (gerarPartida, gerarTestemunha,
+ *   TEXTO_ESPERADO_TESTEMUNHA); gerar-historias.test.ts; avaliar-pares.test.ts.
+ * RODA POR: importado por gerar-historias.ts (dentro do gerador).
+ * CUIDADO: OFFLINE — nenhum LLM aqui; toda a aleatoriedade é replay
+ *   determinístico via rng seedado. Consome composicao.ts (ARQUIVO INTOCÁVEL)
+ *   só como função. TEXTO_ESPERADO_TESTEMUNHA é referência de comparação, não
+ *   fonte de verdade: o grafo pode ter evoluído desde a revisão.
+ *
+ * — detalhe preservado —
  * Experimento B1.5 — adapta a mecânica real do motor A+
  * (tests/fumaca-presenca-v3.ts é o padrão de referência, NÃO tocado aqui)
  * para escolhas ALEATÓRIAS (via rng seedado), emitindo um snapshot de

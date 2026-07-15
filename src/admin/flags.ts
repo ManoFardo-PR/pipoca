@@ -1,4 +1,25 @@
 /**
+ * [flags.ts] — feature flags globais da plataforma (mapa nome→bool) com
+ *   kill-switches e o efeito canônico das flags sobre os Modos da narrativa.
+ *
+ * PAPEL: admin (SA_SAFE — núcleo puro; persistência local MVP)
+ * POR QUE EXISTE: dar à plataforma a palavra final sobre recursos sensíveis
+ *   (IA/fala) por cima da autorização do cuidador, com defaults seguros p/ criança.
+ * ENTRA: mapa FeatureFlags, Modos (para aplicar), StorageLike opcional; leitura
+ *   de localStorage (chave "pipoca.admin.flags.v1").
+ * SAI: novos mapas de flags (funções puras), Modos ajustados, persistência local.
+ * CHAMA: ./auth/tiposAdmin:StorageLike, ../core/modos:Modos (só tipos).
+ * É CHAMADO POR: bridge_admin.ts (PipocaAdminCanonico.flags), ./ia_config.ts
+ *   (killSwitchAtivo), ../app/bridge.ts (aplicarFlagsAosModos/carregarFlags/
+ *   killSwitchAtivo), ../backend/flags_globais.ts e ../backend/espelho_admin.ts
+ *   (normalizarFlags/salvarFlags), admin.test.ts, backend.test.ts.
+ * RODA POR: boot do admin — bundled em pipoca.admin.bundle.js via `bun run
+ *   build:admin`; também entra em pipoca.bundle.js (build:app) pelo app da criança.
+ * CUIDADO: fail-closed — flag ausente/estranha conta como DESLIGADA
+ *   (killSwitchAtivo). IA global desligada IGNORA Modos.iaLigada do cuidador.
+ *   aplicarFlagsAosModos nunca muta o Modos original (devolve cópia).
+ *
+ * — detalhe preservado —
  * Pipoca — Feature flags globais e kill-switches (SA_SAFE) · doc fase04-04-06
  * ----------------------------------------------------------------------------
  * Mapa nome→bool com DEFAULTS SEGUROS para crianças (IA e fala desligadas até

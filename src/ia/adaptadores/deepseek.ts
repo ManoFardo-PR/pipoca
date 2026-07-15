@@ -1,4 +1,24 @@
 /**
+ * [deepseek.ts] — adaptador ProvedorIA para a API DeepSeek (OpenAI-compatível):
+ *   monta POST /chat/completions em JSON mode e revalida o Trecho.
+ *
+ * PAPEL: core-lógica (orquestração de IA · GERAÇÃO 1 · adaptador DeepSeek)
+ * POR QUE EXISTE: encaixa o DeepSeek na interface única ProvedorIA sem mudar o
+ *   Motor B, contornando que ele não aceita json_schema (só json_object).
+ * ENTRA: OpcoesAdaptadorDeepSeek {modelo, transporte?, urlBase?, maxTokensPadrao?};
+ *   depois prompt/schema/opts.
+ * SAI: um ProvedorIA cujo gerar() devolve Trecho; lança ErroRecusaProvedor em recusa.
+ * CHAMA: ../provedor.js:{ErroRecusaProvedor, transportePadrao, validarTrechoGerado,
+ *   JsonSchema, OptsGeracao, ProvedorIA, Transporte}, ../../core/grafo/tipos.js:Trecho.
+ * É CHAMADO POR: ia/adaptadores/selecionar.ts, ia/ia.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes; `bun run src/ia/ia.test.ts`
+ *   (dentro de `bun run test`).
+ * CUIDADO: cliente KEYLESS — nenhuma chave DeepSeek vive aqui (nem em src/): a
+ *   credencial mora nos secrets da Edge Function proxy-ia (chamada real server-side).
+ *   Só JSON mode ({type:"json_object"}): a palavra "json" e o schema vão descritos
+ *   no system, e a saída é revalidada por validarTrechoGerado (parse defensivo).
+ *
+ * — detalhe preservado —
  * Pipoca — Adaptador DeepSeek · fase06 (extensão do eixo AIPROV da fase05)
  * -------------------------------------------------------------------------
  * Mesma interface `ProvedorIA` — intercambiável sem mudar o Motor B.

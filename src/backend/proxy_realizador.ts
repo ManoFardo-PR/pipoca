@@ -1,4 +1,30 @@
 /**
+ * [proxy_realizador.ts] — Cliente KEYLESS da Edge Function realizador (geração
+ *   2): monta o prompt determinístico, manda {pacote, prompt} + o bearer; o
+ *   servidor roda a CASCATA inteira e valida a fidelidade.
+ *
+ * PAPEL: backend (cliente keyless da edge realizador · geração 2)
+ * POR QUE EXISTE: rodar a realização (LLM) da geração 2 no edge em UMA viagem,
+ *   sem chave no cliente; o servidor escolhe provedor/modelo, checa cota e roda
+ *   a cascata (fase12-12-04).
+ * ENTRA: OpcoesProxyRealizador {url, anonKey, obterToken, tenantId?,
+ *   transporte?}; em runtime: PacoteComposicao + OpcoesRealizar.
+ * SAI: ResultadoRealizar (texto + parágrafos + veredito PASS + origem "llm") —
+ *   ou throw.
+ * CHAMA: core/compositor/pacote:PacoteComposicao, core/realizador/cascata
+ *   (tipos), core/realizador/prompt_template:montarPromptRealizador,
+ *   ia/provedor:transportePadrao.
+ * É CHAMADO POR: backend.ts (criarBackendSupabase → realizador), backend.test.ts.
+ * RODA POR: boot do app (bundle); cliente da Edge Function realizador.
+ * CUIDADO: KEYLESS — manda APENAS o bearer do USUÁRIO + a anon key pública;
+ *   NENHUMA chave de provedor vive aqui. O prompt é montado no cliente
+ *   (montarPromptRealizador é determinístico e sem segredo), mas a VALIDAÇÃO de
+ *   fidelidade roda no servidor. QUALQUER não-200 OU resposta fora do contrato
+ *   (sem veredito PASS / origem≠llm) vira throw → o módulo de geração cai no
+ *   fallback A+ v3 LOCAL (o fallback não depende do edge). NUNCA entregar texto
+ *   sem PASS.
+ *
+ * — detalhe preservado —
  * Pipoca — ProxyRealizador (cliente) · fase13-13-03
  * --------------------------------------------------
  * Cliente KEYLESS da Edge Function `realizador` (irmã do `proxy-ia`): as

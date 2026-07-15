@@ -1,4 +1,23 @@
 /**
+ * [captura.ts] — Pontos de captura de telemetria: montam o EventoTelemetria a partir
+ *   do EstadoApp + contexto e o despacham ao repositório (fire-and-forget).
+ *
+ * PAPEL: core-lógica (pontos de captura de telemetria · TELE)
+ * POR QUE EXISTE: registrar progresso (leitura confirmada, objeto destravado, borda de
+ *   sessão, história concluída) sem que a persistência jamais trave a leitura/recompensa.
+ * ENTRA: EstadoApp, palavras/objetoId/resumo, agora (epoch ms da borda), RepositorioPersistencia,
+ *   jaEmitidos? (Set para idempotência).
+ * SAI: boolean (capturou?) + efeito: repo.registrarTelemetria(evento) disparado sem await.
+ * CHAMA: ./telemetria.js:criarEvento (+ tipos Dados*), ./estado.js:EstadoApp,
+ *   ./persistencia/index.js:RepositorioPersistencia.
+ * É CHAMADO POR: src/app/bridge.ts, src/core/parciais.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js); testes em `bun run src/core/parciais.test.ts` (dentro de `bun run test`).
+ * CUIDADO: fire-and-forget — falha de persistência NUNCA trava a UI (rejeição engolida de
+ *   propósito). Sem perfil ativo → não captura. `agora` sempre da borda (nada de Date.now()).
+ *   Não importa motor algum (lei do contrato). capturarObjetoDestravado é idempotente via
+ *   `jaEmitidos` (Set compartilhado) contra re-render/voltar de tela.
+ *
+ * — detalhe preservado —
  * Pipoca — Pontos de captura de telemetria (TELE) · doc fase03-03-01
  * -------------------------------------------------------------------
  * Funções puras que montam um `EventoTelemetria` a partir do `EstadoApp` + contexto

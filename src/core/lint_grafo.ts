@@ -1,4 +1,23 @@
 /**
+ * [lint_grafo.ts] — Lint autoral do grafo: fiscaliza o CONTEÚDO autorado (células,
+ *   metadados, pools) e devolve erros/avisos. Puro, sem I/O.
+ *
+ * PAPEL: core-lógica (lint autoral do grafo · contrato grafo-autoral-v3 §6.7)
+ * POR QUE EXISTE: pegar cedo defeitos de autoria (nível faltando, metadado ausente, conectivo
+ *   comprido, condição que nunca casa) antes que virem bug silencioso no runtime.
+ * ENTRA: cenario (CenarioV2), esquema opcional (ex.: "pipoca.grafo-autoral.v3").
+ * SAI: ResultadoLint { erros[], avisos[] } — quem decide falhar o build é o chamador.
+ * CHAMA: ./composicao.js:{comecaComMarcador, marcadoresIniciais} e os tipos CenarioV2/
+ *   CondicaoV3/NivelKey/TextoV3.
+ * É CHAMADO POR: src/admin/validar_grafo.ts (validação de grafo no admin), src/core/composicao.test.ts.
+ * RODA POR: testes em `bun run src/core/composicao.test.ts` (dentro de `bun run test`); em produção,
+ *   no fluxo de validação de grafo do admin.
+ * CUIDADO: as regras de ERRO só valem para grafos com esquema `.v3` (o v2 publicado NÃO é
+ *   re-auditado); os AVISOS de condição valem para v2 e v3. Importa de composicao.ts (o ARQUIVO
+ *   INTOCÁVEL) apenas funções puras — não altera nada lá. `func:*` é namespace RESERVADO
+ *   (aceito, nunca casa).
+ *
+ * — detalhe preservado —
  * Pipoca — Lint autoral do grafo (contrato grafo-autoral-v3 §6.7)
  * ----------------------------------------------------------------
  * Fiscaliza o CONTEÚDO autorado (células, metadados, pools) — puro, sem I/O.

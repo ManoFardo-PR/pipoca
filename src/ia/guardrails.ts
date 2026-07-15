@@ -1,4 +1,23 @@
 /**
+ * [guardrails.ts] — filtros de segurança infantil de entrada e saída, sempre
+ *   no caminho da IA, independentes de provedor.
+ *
+ * PAPEL: core-lógica (orquestração de IA · GERAÇÃO 1 · GUARD)
+ * POR QUE EXISTE: nada inseguro pode chegar à criança; envolve qualquer
+ *   provedor (decorator) filtrando prompt antes e Trecho depois, e degrada
+ *   por throw quando viola.
+ * ENTRA: prompt (string) e Trecho a filtrar; RESULTADO com permitir/motivo.
+ * SAI: Guardrails {filtrarEntrada, filtrarSaida} e envolverComGuardrails, que
+ *   embrulha um GeradorDeTrecho e lança em caso de violação.
+ * CHAMA: ../core/grafo/tipos.js:Trecho (só tipos; sem rede).
+ * É CHAMADO POR: ia/adaptadores/selecionar.ts (envolverComGuardrails), ia/ia.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes; `bun run src/ia/ia.test.ts`
+ *   (dentro de `bun run test`).
+ * CUIDADO: cliente KEYLESS — nenhuma chave de provedor vive aqui (nem em src/):
+ *   a credencial mora nos secrets da Edge Function proxy-ia. Violação → throw
+ *   (degrada p/ Motor A), NÃO reformula no MVP. Motivos/logs SEM PII: só a categoria.
+ *
+ * — detalhe preservado —
  * Pipoca — Guardrails de conteúdo infantil (GUARD) · doc fase05-05-08
  * --------------------------------------------------------------------
  * Filtros de entrada/saída INDEPENDENTES de provedor, sempre no caminho

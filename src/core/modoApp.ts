@@ -1,4 +1,22 @@
 /**
+ * [modoApp.ts] — Fronteira criança/cuidador (KIDMODE): guarda de rota que decide se uma
+ *   tela adulta pode ser acessada e como o modo alterna.
+ *
+ * PAPEL: core-lógica (modo do app · KIDMODE · pura, sem estado próprio)
+ * POR QUE EXISTE: manter as superfícies adultas invisíveis no modo criança e centralizar a
+ *   guarda de navegação, sem espalhar essa checagem pelas telas.
+ * ENTRA: modo ("crianca"|"cuidador"), tela (número), superficiesAdultas (lista do app).
+ * SAI: boolean (ehAdulta/podeNavegar), tela permitida (aplicarGuarda), novo modo
+ *   (aoPassarPortao → "cuidador", aoVoltarParaCrianca → "crianca").
+ * CHAMA: nada externo.
+ * É CHAMADO POR: src/app/bridge.ts, src/core/parciais.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js); testes em `bun run src/core/parciais.test.ts` (dentro de `bun run test`).
+ * CUIDADO: NÃO confundir com `Modos` (Palco/Ateliê, desfecho, verificação, iaLigada — config de
+ *   narrativa, modos.ts). O modoAtual é efêmero (recarregar reabre em "crianca"; o PIN protege a
+ *   reentrada). A ÚNICA forma de virar "cuidador" é o sucesso do PINGATE (acesso.ts). Pedido a
+ *   superfície adulta no modo criança → redireciona a TELA_CRIANCA (T2), sem mensagem assustadora.
+ *
+ * — detalhe preservado —
  * Pipoca — Modo do app (KIDMODE) · doc fase02-02-02
  * --------------------------------------------------
  * Fronteira criança/cuidador. NÃO confundir com `Modos` (Palco/Ateliê, desfecho, verificação,

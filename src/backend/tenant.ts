@@ -1,4 +1,23 @@
 /**
+ * [tenant.ts] — `escopoTenant(sessao)` deriva o tenant de uma SessaoAuth; toda
+ *   leitura/escrita remota filtra por ele.
+ *
+ * PAPEL: backend (escopo multi-tenant)
+ * POR QUE EXISTE: dar UMA regra de derivação do tenant para filtrar o acesso
+ *   remoto; a barreira dura é o RLS/Rules do provedor.
+ * ENTRA: SessaoAuth | null.
+ * SAI: string do tenant ("familia:<uid>" sintético ou o tenantId vinculado) ou
+ *   null.
+ * CHAMA: auth.ts:SessaoAuth (tipo).
+ * É CHAMADO POR: backend.ts, limites_familia.ts (repo_supabase/proxy recebem o
+ *   resultado por callback), backend.test.ts.
+ * RODA POR: boot do app/admin (bundle); cliente das Edge Functions.
+ * CUIDADO: é só derivação — o enforcement REAL é o RLS/Rules do servidor
+ *   (adaptadores/rls_supabase.sql). MVP sem vínculo: cada família é seu tenant
+ *   sintético "familia:<uid>". Superadmin não tem tenant próprio (o escopo vem
+ *   da sessão dele) → devolve null.
+ *
+ * — detalhe preservado —
  * Pipoca — Escopo de tenant (fase06-06-04)
  * -----------------------------------------
  * `escopoTenant(sessao)` deriva o tenant de uma `SessaoAuth` — TODA

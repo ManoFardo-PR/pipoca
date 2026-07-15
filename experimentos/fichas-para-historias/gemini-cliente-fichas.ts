@@ -1,4 +1,26 @@
 /**
+ * [gemini-cliente-fichas.ts] — cliente HTTP do experimento que faz a chamada
+ *   REAL ao Gemini (system+user próprios) e devolve o texto limpo.
+ *
+ * PAPEL: experimento (GASTA API paga · cliente Gemini)
+ * POR QUE EXISTE: o experimento fichas usa system+user PRÓPRIOS (o system vem
+ *   do montador de prompt, não é fixo como no experimento-beats), então precisa
+ *   do seu próprio cliente com transporte injetável e retry só em 429/5xx.
+ * ENTRA: system, user e OpcoesGeracao (modelo, chave, temperatura, urlBase?,
+ *   transporte?); a chave chega por parâmetro (nunca lida de env aqui).
+ * SAI: ResultadoGeracao { ok, texto?, erro?, tentativas, tokens? }; exporta
+ *   também transportePadrao/transporteCurl e SCHEMA_TEXTO.
+ * CHAMA: nada do repo — só fetch (ou curl via Bun.spawn) do runtime.
+ * É CHAMADO POR: gerar.ts (transportePadrao), smoke.ts (gerarComGemini),
+ *   _andaime-arquivado/micro-sanidade.ts (gerarComGemini).
+ * RODA POR: não é entrypoint — importado pelos scripts do experimento.
+ * CUIDADO: GASTA API paga — cliente Gemini de verdade. No ambiente remoto
+ *   (CCR_AGENT_PROXY_ENABLED=1) usa transporteCurl porque o fetch do Bun fecha o
+ *   socket no proxy que re-termina TLS. Timeout duro de 180s (sem ele, um socket
+ *   pendurado já segurou um lote por 78 min). SCHEMA_TEXTO é dialeto OpenAPI 3.0
+ *   SEM additionalProperties (Gemini rejeita com 400).
+ *
+ * — detalhe preservado —
  * Experimento fichas→histórias — chamada real ao Gemini com system+user
  * PRÓPRIOS (o system vem do montador de prompt, não é fixo como no
  * experimento-beats). Transporte injetável; retry só em 429/5xx.

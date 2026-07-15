@@ -3,7 +3,7 @@
  * ----------------------------------------------------------------
  * Valida que payloads corrompidos ou malformados são rejeitados na fronteira
  * de carregamento, nunca chegando ao runtime como estado inválido.
- * Execute com: bun run src/core/persistencia/persistencia.test.ts
+ * RODA POR: bun run src/core/persistencia/persistencia.test.ts (parte de `bun run test`)
  */
 
 import {

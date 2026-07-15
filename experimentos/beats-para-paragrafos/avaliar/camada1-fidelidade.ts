@@ -1,4 +1,25 @@
 /**
+ * [camada1-fidelidade.ts] — Camada 1 do avaliador B1.5: gate factual
+ *   determinístico (código puro, sem IA) que compara o texto realizado com a
+ *   história-base e devolve pass + motivos/avisos.
+ *
+ * PAPEL: experimento (B1.5 · gate factual · OFFLINE)
+ * POR QUE EXISTE: proteger a fidelidade (cobertura dos objetos, presença da
+ *   protagonista, nome/gênero, teto de crescimento) ANTES de gastar o juiz LLM
+ *   pago — é a fonte de verdade sobre fidelidade e o protótipo do validador de
+ *   runtime do B1.5.
+ * ENTRA: um Par { base, resposta } (history-base + resposta do LLM).
+ * SAI: VereditoCamada1 { pass, motivos, avisos, ritmoN1? }.
+ * CHAMA: termos-nucleo.ts:{ANCORAS_POR_OBJETO,contemAncora,
+ *   fracaoSentencasComProtagonista,palavrasDe}; ../tipos.js.
+ * É CHAMADO POR: avaliar-pares.ts:avaliarCamada1; avaliar-pares.test.ts.
+ * RODA POR: importado por avaliar-pares.ts; nos testes,
+ *   `bun run experimentos/beats-para-paragrafos/avaliar/avaliar-pares.test.ts`.
+ * CUIDADO: OFFLINE/grátis e determinístico — nenhuma IA. É o gate que decide se
+ *   a Camada 2 (juiz LLM pago) roda. Tokeniza com palavrasDe, nunca `\b` cru:
+ *   o `\b` do regex JS não reconhece acentos e casaria falso positivo em PT.
+ *
+ * — detalhe preservado —
  * Experimento B1.5 — Camada 1: gate factual determinístico (código, sem
  * IA). Protótipo do validador de runtime do B1.5 — fonte de verdade sobre
  * fidelidade; a Camada 2 (juiz LLM) só roda em cima do que passa aqui.

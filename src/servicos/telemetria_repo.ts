@@ -1,4 +1,22 @@
 /**
+ * [telemetria_repo.ts] — política de retenção da telemetria (janela por idade e
+ *   poda de eventos velhos), em funções puras.
+ *
+ * PAPEL: core-lógica (serviço de retenção · telemetria)
+ * POR QUE EXISTE: a telemetria não pode crescer para sempre; aqui mora a regra
+ *   de quanto tempo um evento vive e como podar, separada da gravação concreta.
+ * ENTRA: EventoTelemetria (ou lista), `agora` (ms) e retencaoDias opcional.
+ * SAI: RETENCAO_DIAS_PADRAO, dentroDaRetencao() → boolean, podarPorRetencao() →
+ *   nova lista filtrada (sem mutar a original).
+ * CHAMA: ../core/telemetria.js:EventoTelemetria (só tipo).
+ * É CHAMADO POR: core/persistencia/RepositorioLocalStorage.ts, backend/adaptadores/
+ *   repo_supabase.ts, core/parciais.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes; exercitado por
+ *   `bun run src/core/parciais.test.ts` (dentro de `bun run test`).
+ * CUIDADO: funções PURAS (não tocam localStorage) — a gravação concreta vive em
+ *   RepositorioLocalStorage.registrarTelemetria; poda devolve lista nova, nunca muta.
+ *
+ * — detalhe preservado —
  * Pipoca — Persistência/retenção da telemetria · doc fase03-03-03
  * ---------------------------------------------------------------
  * Onde a telemetria aterrissa em SAVE e a política de retenção (poda por idade).

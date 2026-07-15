@@ -1,4 +1,24 @@
 /**
+ * [termos-nucleo.ts] — léxico + tokenizador da Camada 1 do B1.5: tabela de
+ *   âncoras por objeto, termo-set da protagonista, e as funções que checam
+ *   cobertura/presença sobre texto em português.
+ *
+ * PAPEL: experimento (B1.5 · offline)
+ * POR QUE EXISTE: dar à Camada 1 um vocabulário estável para saber se cada
+ *   objeto deixou marca no texto e se a protagonista aparece — tokenizando
+ *   corretamente palavras acentuadas.
+ * ENTRA: strings de texto realizado; listas de termos/âncoras.
+ * SAI: ANCORAS_POR_OBJETO, TERMOS_PROTAGONISTA e funções palavrasDe,
+ *   contemAncora, temProtagonista, fracaoSentencasComProtagonista.
+ * CHAMA: nada externo — self-contained.
+ * É CHAMADO POR: avaliar/camada1-fidelidade.ts (ANCORAS_POR_OBJETO,
+ *   contemAncora, fracaoSentencasComProtagonista, palavrasDe).
+ * RODA POR: importado por avaliar/camada1-fidelidade.ts (dentro do avaliador).
+ * CUIDADO: OFFLINE. Cópias locais deliberadas — TERMOS_PROTAGONISTA replica
+ *   tests/fumaca-presenca-v3.ts (não exportado de lá). Use palavrasDe para
+ *   qualquer checagem de palavra/bigrama: `\b` cru quebra com acentos em PT.
+ *
+ * — detalhe preservado —
  * Experimento B1.5 — tabela de âncoras por objeto + termo-set da
  * protagonista, usados pela Camada 1 (gate factual). Cópias locais
  * deliberadas: as âncoras são específicas deste experimento (não existem em

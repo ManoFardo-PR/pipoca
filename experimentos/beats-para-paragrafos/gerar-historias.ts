@@ -1,4 +1,30 @@
 /**
+ * [gerar-historias.ts] — Script 1 (gerador) do experimento B1.5: gera a matriz
+ *   de histórias-base pela mecânica real do motor A+ e manda cada uma ao Gemini
+ *   "realizar" (beats/prosa determinística → prosa fluida).
+ *
+ * PAPEL: experimento (B1.5 · gerador · GASTA API paga)
+ * POR QUE EXISTE: reunir amostra representativa (rodada×nível) de textos base +
+ *   realizados pelo LLM, para calibrar/avaliar a hipótese "beats → parágrafos"
+ *   fora do produto, sem tocar o motor real.
+ * ENTRA: docs/quintal.v3.json (cenário v3); env GEMINI_API_KEY/GEMINI_MODEL/
+ *   GEMINI_TEMPERATURE + PLAYTHROUGHS_POR_NIVEL/TAMANHO_LOTE/SEED_BASE (do .env
+ *   da RAIZ ou do shell).
+ * SAI: arquivos em experimentos/beats-para-paragrafos/saida/ (historias-base,
+ *   respostas-llm, monitoramento), gravados lote a lote.
+ * CHAMA: carregar-env.ts:carregarEnv, rng.ts:criarRng, matriz-amostragem.ts:
+ *   montarMatriz/ID_TESTEMUNHA, linha-aleatoria.ts:gerarPartida/gerarTestemunha,
+ *   gemini-cliente.ts:limparTextoComGemini, persistencia.ts:* ; tipos em
+ *   src/core/composicao.js (CenarioV2) e ./tipos.js.
+ * É CHAMADO POR: ninguém — entrypoint rodado à mão. (gerar-historias.test.ts
+ *   exercita os helpers importados, não o main deste arquivo.)
+ * RODA POR: `bun run experimentos/beats-para-paragrafos/gerar-historias.ts`.
+ * CUIDADO: GASTA API paga — ~97 chamadas Gemini por execução completa (uma por
+ *   história, via limparTextoComGemini). A chave (GEMINI_API_KEY) vem do .env
+ *   da raiz/shell. Escrita incremental sobrevive a interrupção; rodar de novo
+ *   re-gasta a API. saida/ guarda .json de calibração — não editar/regenerar à toa.
+ *
+ * — detalhe preservado —
  * Experimento B1.5 — Script 1 (gerador). Monta a matriz de amostragem
  * (rodada×nível) via a mecânica real do motor A+, planta o
  * estado-testemunha, e manda cada história pro Gemini "realizar" o texto.

@@ -1,4 +1,23 @@
 /**
+ * [tipos.ts] — Tipos canônicos do grafo autoral: o vocabulário compartilhado
+ *   (Nivel, ModoDesfecho, Trecho, MotorNarrativa, GrafoAutoral) de core/ia/backend.
+ *
+ * PAPEL: core-lógica (grafo · schema v1 congelado · vocabulário vivo)
+ * POR QUE EXISTE: o schema v1 do grafo foi arquivado, mas seus tipos genéricos seguem
+ *   sendo a linguagem comum de níveis, desfechos e trechos por todo o app.
+ * ENTRA: nada em runtime (arquivo só de tipos).
+ * SAI: tipos/interfaces (Nivel, ModoDesfecho, PapelNoFim, Fragmento4, Regra, Objeto,
+ *   Cenario, GrafoAutoral, Trecho, MotorNarrativa).
+ * CHAMA: nada — sem imports.
+ * É CHAMADO POR: amplo em core/ia/backend/dados — ex.: core/{estado,historia,
+ *   historias,telemetria}.ts, ia/{provedor,orquestrador,prompt,guardrails,simulado}.ts
+ *   e adaptadores, backend/backend.ts, dados/niveis.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes.
+ * CUIDADO: schema v1 CONGELADO — NÃO renomear nem alterar a forma sem criar um novo
+ *   esquema; o grafo ATIVO é o v3 de src/core/composicao.ts (estes tipos são só o
+ *   vocabulário; o leitor/grafo v1 estão arquivados em old/).
+ *
+ * — detalhe preservado —
  * Pipoca — Tipos canônicos do grafo autoral (GRAPH)
  * --------------------------------------------------
  * Linhagem: schema v1 (congelado; grafo e leitor arquivados em old/ na

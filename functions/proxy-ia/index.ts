@@ -1,20 +1,55 @@
-// Pipoca — ProxyIA (Supabase Edge Function) · doc fase06-06-05
-// --------------------------------------------------------------
-// AS CHAVES DOS PROVEDORES VIVEM SÓ AQUI (secrets do ambiente da função):
-//   ANTHROPIC_API_KEY · OPENAI_API_KEY · GEMINI_API_KEY · DEEPSEEK_API_KEY
-// Deploy com verify_jwt: a plataforma rejeita requisições sem bearer válido.
-//
-// O SERVIDOR decide provedor/modelo pela config_ia do tenant (o cliente não
-// escolhe — senão contornaria cota/config) e verifica cota/custo em uso_ia
-// ANTES de chamar (05-10). Guardrails-lite de entrada/saída — espelho
-// compacto do CANÔNICO src/ia/guardrails.ts (defesa em profundidade: o
-// cliente também filtra). Self-contained: nada importado do repo (Deno);
-// fica FORA de src/ para não entrar no tsc do app.
-//
-// Erros (JSON {erro}): 401 sem usuário · 400 requisição inválida ·
-// 503 nao_configurado (sem config/chave) · 403 cota_excedida ·
-// 422 conteudo_bloqueado · 502 provedor_falhou. O cliente converte
-// QUALQUER não-200 em degradação para o simulado → Motor A.
+/**
+ * [proxy-ia/index.ts] — Edge Function proxy-ia: proxy keyless da GERAÇÃO 1
+ *   que, no servidor, escolhe provedor/modelo pela config do tenant, checa
+ *   cota e chama a API paga do LLM (com cadeia de fallback) p/ gerar 1 trecho.
+ *
+ * PAPEL: edge (proxy keyless da GERAÇÃO 1)
+ * POR QUE EXISTE: manter as chaves pagas FORA do cliente — o app manda só o
+ *   prompt/schema e o servidor decide provedor/modelo, verifica cota e fala
+ *   com a API paga; o cliente nunca vê chave nem escolhe provedor (senão
+ *   contornaria cota/config).
+ * ENTRA: POST JSON { prompt, schema?, opts?{system,maxTokens}, tenantId? } +
+ *   header Authorization: Bearer <JWT> (verify_jwt). Secrets do ambiente:
+ *   ANTHROPIC_API_KEY/OPENAI_API_KEY/GEMINI_API_KEY/DEEPSEEK_API_KEY,
+ *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY. Lê config_ia/uso_ia/chaves_ia.
+ * SAI: 200 { texto, ehFinal }; ou não-200 {erro}: 401 nao_autenticado,
+ *   400 requisicao_invalida, 503 nao_configurado (sem config/chave),
+ *   403 cota_excedida, 422 conteudo_bloqueado, 502 provedor_falhou,
+ *   405 metodo_invalido. Efeito: registra uso em uso_ia (falha na
+ *   telemetria nunca derruba a geração).
+ * CHAMA: nada do repo — self-contained (Deno). APIs externas: Anthropic,
+ *   OpenAI, DeepSeek, Gemini; PostgREST do Supabase (service role).
+ * É CHAMADO POR: src/backend/proxy_ia.ts (cliente keyless, POST em
+ *   /functions/v1/proxy-ia).
+ * RODA POR: Supabase Edge Function (Deno), deploy na plataforma; acionada
+ *   pelos clientes em src/backend/.
+ * CUIDADO: AS CHAVES DOS PROVEDORES VIVEM SÓ AQUI (secrets do ambiente:
+ *   ANTHROPIC_API_KEY/OPENAI_API_KEY/GEMINI_API_KEY/DEEPSEEK_API_KEY, lidas
+ *   via Deno.env.get; a tabela chaves_ia pode dar override, o env é
+ *   fallback); o cliente é keyless; qualquer não-200 vira fallback no
+ *   cliente (degradação para o simulado → Motor A). Guardrails-lite aqui são
+ *   ESPELHO do canônico src/ia/guardrails.ts (recalibrar lá exige redeploy
+ *   daqui). Fica FORA de src/ para não entrar no tsc do app.
+ *
+ * — detalhe preservado —
+ * Pipoca — ProxyIA (Supabase Edge Function) · doc fase06-06-05
+ * --------------------------------------------------------------
+ * AS CHAVES DOS PROVEDORES VIVEM SÓ AQUI (secrets do ambiente da função):
+ *   ANTHROPIC_API_KEY · OPENAI_API_KEY · GEMINI_API_KEY · DEEPSEEK_API_KEY
+ * Deploy com verify_jwt: a plataforma rejeita requisições sem bearer válido.
+ *
+ * O SERVIDOR decide provedor/modelo pela config_ia do tenant (o cliente não
+ * escolhe — senão contornaria cota/config) e verifica cota/custo em uso_ia
+ * ANTES de chamar (05-10). Guardrails-lite de entrada/saída — espelho
+ * compacto do CANÔNICO src/ia/guardrails.ts (defesa em profundidade: o
+ * cliente também filtra). Self-contained: nada importado do repo (Deno);
+ * fica FORA de src/ para não entrar no tsc do app.
+ *
+ * Erros (JSON {erro}): 401 sem usuário · 400 requisição inválida ·
+ * 503 nao_configurado (sem config/chave) · 403 cota_excedida ·
+ * 422 conteudo_bloqueado · 502 provedor_falhou. O cliente converte
+ * QUALQUER não-200 em degradação para o simulado → Motor A.
+ */
 
 declare const Deno: {
   env: { get(nome: string): string | undefined };

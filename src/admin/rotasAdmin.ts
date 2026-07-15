@@ -1,4 +1,22 @@
 /**
+ * [rotasAdmin.ts] — mapeia os nós SA_* para telas internas e é o guard puro que
+ *   decide qual tela pode aparecer conforme a sessão.
+ *
+ * PAPEL: admin (guard de rotas — puro, fail-closed)
+ * POR QUE EXISTE: garantir, num único ponto puro e testável, que nenhuma tela
+ *   protegida do operador abra sem SessaoSuperAdmin válida.
+ * ENTRA: telaDestino (número), SessaoSuperAdmin | null, agora (epoch ms da borda).
+ * SAI: constantes TELA_SA_*, mapa ROTAS_ADMIN e o número da tela permitida
+ *   (destino ou SA_LOGIN).
+ * CHAMA: ./auth/tiposAdmin:SessaoSuperAdmin, ./auth/sessaoSuperAdmin:sessaoSuperAdminValida.
+ * É CHAMADO POR: bridge_admin.ts (PipocaAdminCanonico.rotas), estadoAdmin.js
+ *   (guardarRotaAdmin dentro de setState), admin.test.ts.
+ * RODA POR: boot do admin — bundled em pipoca.admin.bundle.js via `bun run build:admin`.
+ * CUIDADO: fail-closed — tela desconhecida ou sessão inválida SEMPRE cai em
+ *   SA_LOGIN; só o login é incondicionalmente alcançável. `agora` vem da borda
+ *   (função pura, nunca Date.now() aqui).
+ *
+ * — detalhe preservado —
  * Pipoca — Guard de rotas do admin (SA_*) · doc fase04-04-01 (rotas de 04-02/03)
  * -------------------------------------------------------------------------------
  * Puro e fail-closed: sem `SessaoSuperAdmin` válida (ou tela desconhecida), toda

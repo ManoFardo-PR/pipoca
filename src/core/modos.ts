@@ -1,4 +1,22 @@
 /**
+ * [modos.ts] — Modos de narrativa (MODES): Palco/Ateliê, verificação do portão, desfecho
+ *   e iaLigada — com padrões, normalização, mutadores e validação.
+ *
+ * PAPEL: core-lógica (modos que governam a experiência de narrativa)
+ * POR QUE EXISTE: reunir num só tipo as escolhas do cuidador que moldam a apresentação e o
+ *   fluxo (não a fronteira criança/cuidador, que é modoApp.ts).
+ * ENTRA: Modos, raw (normalizar/validar), flags (autorizarIA/definirVerificacao/definirDesfecho).
+ * SAI: Modos normalizado/alternado (imutável), lista de erros de validação, modosPadrao.
+ * CHAMA: ./estado.js:ModoDesfecho (tipo).
+ * É CHAMADO POR: src/core/onboarding.ts, src/core/telemetria.ts (tipo Verificacao),
+ *   src/dados/schemas.ts, src/app/bridge.ts, src/admin/{bridge_admin,flags,admin.test}.ts,
+ *   src/backend/backend.test.ts, src/core/parciais.test.ts, old/motores/fabrica.ts (legado).
+ * RODA POR: boot do app (via pipoca.bundle.js); testes em `bun run src/core/parciais.test.ts` (dentro de `bun run test`).
+ * CUIDADO: iaLigada tem default seguro = false; a fábrica lê esta flag (Motor A vs B) e, sem
+ *   provedor configurado (fase04-04-05), permanece em Motor A na prática. `Modos` (config de
+ *   narrativa) ≠ `ModoApp` (criança/cuidador, modoApp.ts).
+ *
+ * — detalhe preservado —
  * Pipoca — Modos (MODES)
  * -----------------------
  * Centraliza os modos que governam a experiência.

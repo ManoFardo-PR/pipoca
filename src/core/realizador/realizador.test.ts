@@ -5,7 +5,7 @@
  * reaproveitados do experimento), política de falha com provedores FAKE
  * (12-04) e golden do prompt (Pacote-golden da fase 11 ⇒ prompt congelado;
  * política "nunca regenerar para passar"). Sem rede.
- * Execute com: bun run src/core/realizador/realizador.test.ts
+ * RODA POR: bun run src/core/realizador/realizador.test.ts (parte de `bun run test`)
  */
 
 import { montar, type CenarioV2, type EstadoComp } from "../composicao.js";

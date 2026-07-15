@@ -1,7 +1,25 @@
 /**
- * src/telas/cenas.ts — SVGs dos 5 ambientes da Tela 3
- * Portado do protótipo Pipoca.dc.html (linhas 721–784).
- * Injetados via _inject(el, _scene(key)) — nunca por {{ }}.
+ * [cenas.ts] — SVGs dos 5 ambientes da Tela 3 (quintal, quarto, floresta,
+ *   espaço, fundo do mar) + metadados da galeria.
+ *
+ * PAPEL: app-ui (módulo-fonte de dados de tela)
+ * POR QUE EXISTE: guarda o desenho SVG de cada ambiente e os metadados da
+ *   galeria (nome, descrição, badge, cenarioId, disponível). Portado do
+ *   protótipo Pipoca.dc.html (linhas 721–784). Só o Quintal está disponível
+ *   (cenarioId "quintal_anoitecer"); os outros 4 são "Em breve".
+ * ENTRA: _scene(key) recebe uma CenaKey ("quintal" | "quarto" | "floresta" |
+ *   "espaco" | "fundomar").
+ * SAI: _scene(key) → string SVG (cai em "quintal" se a chave não existir);
+ *   _envData() → EnvData[] da galeria.
+ * CHAMA: nada — módulo puro, self-contained.
+ * É CHAMADO POR: NENHUM importador (analise-modularidade: "cenas.ts sem
+ *   imports"). A Tela3 (.dc.html) NÃO importa — carrega cópia INLINE de _scene
+ *   (dc-runtime: telas self-contained). Este .ts é a fonte-de-verdade espelhada.
+ * RODA POR: não roda por comando próprio — módulo-fonte TS; a mesma lógica vive
+ *   inline na Tela3 .dc.html.
+ * CUIDADO: definição DUPLICADA — mexer aqui NÃO altera a Tela3 (cópia inline);
+ *   sincronizar à mão. Os SVGs são injetados via _inject(el, _scene(key)) —
+ *   nunca por {{ }} (subárvore imperativa, fora da interpolação do dc-runtime).
  */
 
 export type CenaKey = "quintal" | "quarto" | "floresta" | "espaco" | "fundomar";

@@ -1,4 +1,36 @@
 /**
+ * [bridge.ts] — Ponte CORE→navegador: reúne os módulos canônicos de src/ e os
+ *   expõe num único objeto global window.PipocaCanonico (a costura app↔core).
+ *
+ * PAPEL: app-ui (entrypoint do bundle pipoca.bundle.js · seam app↔core)
+ * POR QUE EXISTE: o app roda no navegador e precisa consumir a lógica canônica
+ *   de src/ (composição A+ v3, geração 2, backend trocável, telemetria, acesso…)
+ *   sem reimplementar nada nem instanciar motor por conta própria. Esta ponte
+ *   junta tudo numa API única que o cérebro do app (estado.js) e as telas leem.
+ * ENTRA: nada em runtime — só os `import` dos módulos de src/ (é o ponto de
+ *   entrada que o bundler segue a partir daqui).
+ * SAI: window.PipocaCanonico { composicao, geracao, estado, economia, historia,
+ *   modos, modoApp, limites, cardapio, lgpd, historias, perfil, onboarding,
+ *   sessao, a11y, leitura, acesso, conta, backend, flags, tts, asr,
+ *   criarRepositorio, telemetria, agregados }; export default + type
+ *   PipocaCanonicoAPI. Também grava globalThis.PipocaCanonico.
+ * CHAMA: ../core/composicao (compor/montar/convergiu…), ../core/geracao/geracao:
+ *   gerar, ../core/{estado,economia,historia,modos,modoApp,limites,cardapio,lgpd,
+ *   historias,perfil,onboarding,sessao,a11y,leitura,telemetria,captura,
+ *   agregadosTelemetria,acesso,contaFamilia}, ../core/persistencia:criarRepositorio,
+ *   ../backend/{backend:obterBackend,config,tenant,sync,flags_globais,
+ *   limites_familia}, ../admin/{flags,tenant/tiposTenant}, ../servicos/{tts,asr,
+ *   acesso_repo,conta_repo}.
+ * É CHAMADO POR: boot do app — é o ENTRYPOINT bundlado em pipoca.bundle.js,
+ *   carregado por index.html ANTES de src/app/estado.js. Em runtime,
+ *   window.PipocaCanonico é lido por src/app/estado.js e pelas telas .dc.html.
+ * RODA POR: boot do app — bundled em pipoca.bundle.js via `bun run build:app`.
+ * CUIDADO: KEYLESS — NENHUMA das 4 chaves de provedor (ANTHROPIC/OPENAI/GEMINI/
+ *   DEEPSEEK) vive aqui nem em qualquer módulo de src/; elas moram SÓ nas 3 Edge
+ *   Functions. O realizador remoto (geracao.realizadorRemoto) vem do backend
+ *   (edge keyless). LEI DO CONTRATO abaixo: o app nunca instancia motor próprio.
+ *
+ * — detalhe preservado —
  * Pipoca — Ponte CORE → navegador (Marco 1 · convergência) · doc TRILHA-DE-IMPLEMENTACAO
  * -------------------------------------------------------------------------------------
  * Empacotado por `bun build --target=browser` em `pipoca.bundle.js`, carregado pelo

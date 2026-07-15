@@ -1,4 +1,25 @@
 /**
+ * [realizar.ts] — Porta de entrada do realizador: recebe o Pacote, monta o prompt e
+ *   delega à cascata; devolve { texto, paragrafos, veredito, origem, metadados }.
+ *
+ * PAPEL: core-lógica (realizador · fase 12 · fachada da realização LLM)
+ * POR QUE EXISTE: dá um ponto único e fino para transformar um PacoteComposicao em
+ *   história narrada — valida o esquema, exige provedor OU estadoFallback, monta o
+ *   prompt e entrega a política de falha à cascata.
+ * ENTRA: PacoteComposicao + OpcoesRealizar (provedores, modelo, temperatura,
+ *   estadoFallback, tetos).
+ * SAI: Promise<ResultadoRealizar>.
+ * CHAMA: compositor/pacote.ts:ESQUEMA_PACOTE_COMPOSICAO_V1, prompt_template.ts:
+ *   montarPromptRealizador, cascata.ts:realizarComCascata.
+ * É CHAMADO POR: geracao/geracao.ts:gerar (realizador default), realizador.test.ts,
+ *   experimentos/fichas-para-historias/gerar.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes —
+ *   `bun run src/core/realizador/realizador.test.ts` (dentro de `bun run test`).
+ * CUIDADO: NENHUMA chave de IA vive aqui (cliente keyless) — em produção o SERVIDOR
+ *   decide provedor/modelo (edge); `opcoes` plena é só teste/calibração. Sem provedor
+ *   E sem estadoFallback ⇒ LANÇA de propósito (nunca gera texto no vazio).
+ *
+ * — detalhe preservado —
  * Pipoca — O realizador (realizar.ts)
  * -----------------------------------
  * `realizar(pacote, opcoes) → { texto, paragrafos, veredito }` (fase12-12-00,

@@ -1,4 +1,23 @@
 /**
+ * [perfil.ts] — Perfil da criança (PERF): tipo, constantes, normalizações e um
+ *   repositório em memória de perfis.
+ *
+ * PAPEL: core-lógica (perfil da criança + RepositorioPerfil in-memory)
+ * POR QUE EXISTE: dar um shape canônico e sempre-válido ao Perfil (idade/nome/nível/avatar/
+ *   gênero) e um cache síncrono de perfis para a camada de estado antes de persistir.
+ * ENTRA: id + params (nome, idade, nivel, avatarId, genero), raw (validar), Perfil (repositório).
+ * SAI: Perfil normalizado (criarPerfil), lista de erros (validarPerfil), RepositorioPerfil.
+ * CHAMA: ./estado.js:Nivel (tipo).
+ * É CHAMADO POR: src/core/onboarding.ts, src/core/geracao/geracao.ts, src/dados/schemas.ts,
+ *   os repositórios (src/core/persistencia/, src/backend/adaptadores/), src/app/bridge.ts e os testes.
+ * RODA POR: boot do app (via pipoca.bundle.js); testes em `bun run src/core/parciais.test.ts` (dentro de `bun run test`).
+ * CUIDADO: idade sofre clamp 3..12; nome vazio → NOME_PADRAO ("Pipoquinha"); avatarId fora de
+ *   AVATARES → AVATAR_PADRAO. `genero` é ADITIVO OPCIONAL no pipoca.perfil.v1 (fase13-13-01):
+ *   saneado, nunca rejeita; ausente ⇒ concordância FEMININA padrão com o NOME REAL do perfil
+ *   (NUNCA inferir do nome — "Joana" só em conteúdo legado/demonstração). RepositorioPerfil é
+ *   in-memory (produção usa RepositorioPersistencia).
+ *
+ * — detalhe preservado —
  * Pipoca — Perfil (PERF)
  * ----------------------
  * Define o perfil da criança e o repositório em memória de perfis.

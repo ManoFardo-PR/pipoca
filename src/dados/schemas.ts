@@ -1,4 +1,28 @@
 /**
+ * [schemas.ts] — valida e sela os envelopes pipoca.perfil.v1 e pipoca.save.v1
+ *   antes de qualquer dado externo virar estado do app.
+ *
+ * PAPEL: core-lógica (validadores de schema · borda de persistência)
+ * POR QUE EXISTE: dados vindos do localStorage/backend podem estar corrompidos
+ *   ou de outra versão; aqui são validados/saneados para que save ruim nunca
+ *   quebre o app (recai no estadoInicial).
+ * ENTRA: valores unknown crus (envelope de perfil/save) e Perfil/EstadoApp.
+ * SAI: Perfil|null, EstadoApp|null, EstadoApp com fallback estadoInicial e os
+ *   criadores de envelope; nunca lança.
+ * CHAMA: ../core/estado.js:estadoInicial, ../core/perfil.js:{normalizarGenero,
+ *   validarPerfil}, ../core/modos.js:validarModos, ../core/economia.js:
+ *   validarEconomia, ../core/historia.js:validarHistoriaState, ../core/sessao.js:
+ *   validarSessao, ../core/limites.js:normalizarLimites, ../core/cardapio.js:
+ *   validarItemCardapio.
+ * É CHAMADO POR: core/persistencia/RepositorioLocalStorage.ts, core/lgpd.ts,
+ *   backend/adaptadores/repo_supabase.ts, core/persistencia/persistencia.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes; exercitado por
+ *   `bun run src/core/persistencia/persistencia.test.ts` (dentro de `bun run test`).
+ * CUIDADO: contrato de versão — .v1 só aceita mudança ADITIVO-OPCIONAL (campo
+ *   novo opcional + saneamento, nunca rejeição); renomear/trocar tipo/remover = .v2.
+ *   Os slices por criança são SANEADOS (malformado → null), nunca derrubam o save.
+ *
+ * — detalhe preservado —
  * Pipoca — Validadores de schema (pipoca.perfil.v1 e pipoca.save.v1)
  * -------------------------------------------------------------------
  * Validação leve, sem dependência externa.

@@ -1,4 +1,21 @@
 /**
+ * [economia.ts] — Economia de vaga-lumes: creditar/gastar o token do esforço + sugestões
+ *   de gastar/poupar, tudo em funções puras e imutáveis.
+ *
+ * PAPEL: core-lógica (economia de vaga-lumes · ECON)
+ * POR QUE EXISTE: os vaga-lumes são o registro visível do esforço da criança; este módulo
+ *   guarda o saldo e as regras (2/3 gastar · 1/3 poupar) sem variabilidade manipulativa.
+ * ENTRA: Economia { vagalumes, poupado }, n (creditar/gastar), raw (normalizar/validar).
+ * SAI: nova Economia (imutável), resultado de gasto (ok/faltam), sugestões (spend/save/pct),
+ *   erros de validação.
+ * CHAMA: nada externo — funções puras de soma.
+ * É CHAMADO POR: src/core/estado.ts (tipo Economia), src/dados/schemas.ts, src/app/bridge.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js); coberto de forma transversal em `bun run test`.
+ * CUIDADO: a IDEMPOTÊNCIA mora na BORDA — creditarVagalumes credita 1x por objeto commitado;
+ *   a Economia NÃO guarda ledger próprio (a fonte de verdade é HISTORIA.objetos, lei-do-contrato #3).
+ *   Saldo nunca fica < 0 (gastarVagalumes recusa e informa `faltam`). Sem dark patterns.
+ *
+ * — detalhe preservado —
  * Pipoca — Economia de vaga-lumes (ECON)
  * ----------------------------------------
  * Vaga-lumes como token colecionável-narrativo: registro visível do esforço.

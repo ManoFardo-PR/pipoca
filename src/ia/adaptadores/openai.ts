@@ -1,4 +1,23 @@
 /**
+ * [openai.ts] — adaptador ProvedorIA para a API OpenAI: monta
+ *   /v1/chat/completions e faz o parse do Trecho, sobre um Transporte injetável.
+ *
+ * PAPEL: core-lógica (orquestração de IA · GERAÇÃO 1 · adaptador OpenAI)
+ * POR QUE EXISTE: encaixa a OpenAI na interface única ProvedorIA sem mudar o
+ *   Motor B, usando structured outputs (json_schema strict).
+ * ENTRA: OpcoesAdaptadorOpenAI {modelo, transporte?, urlBase?, maxTokensPadrao?};
+ *   depois prompt/schema/opts.
+ * SAI: um ProvedorIA cujo gerar() devolve Trecho; lança ErroRecusaProvedor em recusa.
+ * CHAMA: ../provedor.js:{ErroRecusaProvedor, transportePadrao, validarTrechoGerado,
+ *   JsonSchema, OptsGeracao, ProvedorIA, Transporte}, ../../core/grafo/tipos.js:Trecho.
+ * É CHAMADO POR: ia/adaptadores/selecionar.ts, ia/ia.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes; `bun run src/ia/ia.test.ts`
+ *   (dentro de `bun run test`).
+ * CUIDADO: cliente KEYLESS — nenhuma chave OpenAI vive aqui (nem em src/): a
+ *   credencial mora nos secrets da Edge Function proxy-ia (chamada real server-side).
+ *   O campo refusal da resposta é tratado ANTES de ler o conteúdo.
+ *
+ * — detalhe preservado —
  * Pipoca — Adaptador OpenAI (OPENAI) · doc fase05-05-07
  * ------------------------------------------------------
  * Mesma interface `ProvedorIA` — intercambiável sem mudar o Motor B.

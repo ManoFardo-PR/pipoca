@@ -1,4 +1,22 @@
 /**
+ * [onboarding.ts] — Núcleo do onboarding do cuidador: dos dados do formulário monta
+ *   Perfil + Modos + Sessao e devolve o EstadoApp inicial do perfil.
+ *
+ * PAPEL: core-lógica (onboarding do cuidador · PC_HOME · puro e testável)
+ * POR QUE EXISTE: reunir num só passo a criação coerente do estado de um perfil novo,
+ *   aterrissando já no modo criança (T2) com padrões seguros.
+ * ENTRA: DadosOnboarding (id, nome, idade, nivel, avatarId, genero?, modos?, blocoMin?), agora (borda).
+ * SAI: Perfil normalizado (perfilDoOnboarding) / EstadoApp inicial (montarEstadoOnboarding:
+ *   tela 2, perfil, modos, sessao).
+ * CHAMA: ./perfil.js:criarPerfil, ./modos.js:{modosPadrao,normalizarModos}, ./sessao.js:iniciarSessao,
+ *   ./estado.js:estadoInicial.
+ * É CHAMADO POR: src/app/bridge.ts, src/core/parciais.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js); testes em `bun run src/core/parciais.test.ts` (dentro de `bun run test`).
+ * CUIDADO: puro — a TELA coleta os campos, chama isto, persiste via RepositorioPersistencia
+ *   (salvarPerfil/salvarSave) e cria o PIN (acesso.ts). Modos parciais são mesclados SOBRE os
+ *   padrões seguros (iaLigada=false etc.). Não toca motor/validador. `agora` da borda.
+ *
+ * — detalhe preservado —
  * Pipoca — Onboarding do cuidador (PC_HOME) · doc fase02-02-04
  * ------------------------------------------------------------
  * Núcleo do hub que prepara a sessão: monta Perfil + Modos + Sessao a partir dos dados do

@@ -1,7 +1,28 @@
-// Lint determinístico das fichas — regras do docs/plans02/fase10_modelo_de_fichas/10-05.
-// ERRO bloqueia o lote; AVISO exige olhar humano (a validação célula a célula é a parada dura).
-// Determinístico e sem rede: só código, nenhuma chamada a LLM.
-// Precedente: src/core/lint_grafo.ts (lint do grafo v3, 0 erros como gate de teste).
+/**
+ * [lint_fichas.ts] — Lint determinístico dos 3 catálogos de fichas: valida estrutura
+ *   + níveis e devolve erros (bloqueiam o lote) e avisos (exigem olhar humano).
+ *
+ * PAPEL: core-lógica (fichas · fase 10 · lint/gate de qualidade dos catálogos)
+ * POR QUE EXISTE: barra fichas malformadas antes que virem histórias — checa esquema,
+ *   os 4 níveis, gênero/número, auto-relação, decodificação difícil no n1 (A1) e flexão
+ *   de gênero da protagonista (A2), tudo sem LLM.
+ * ENTRA: o JSON cru (unknown) de objetos.v1, relacoes.v1 e cenarios.v1.
+ * SAI: ResultadoLintFichas { erros, avisos }.
+ * CHAMA: fichas/tipos.ts:ESQUEMA_FICHAS_V1.
+ * É CHAMADO POR: fichas.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes —
+ *   `bun run src/core/fichas/fichas.test.ts` (dentro de `bun run test`).
+ * CUIDADO: ERRO bloqueia o lote, AVISO exige olhar humano (a validação célula a célula
+ *   é a parada dura); é determinístico e SEM rede (zero LLM); A1 tem allow-list nominal
+ *   (luzinha/olhos/folha) e a regra de dígrafo segue viva; A2 só acusa flexão em posição
+ *   PREDICATIVA (após verbo/gerúndio ou no início).
+ *
+ * — detalhe preservado —
+ * Lint determinístico das fichas — regras do docs/plans02/fase10_modelo_de_fichas/10-05.
+ * ERRO bloqueia o lote; AVISO exige olhar humano (a validação célula a célula é a parada dura).
+ * Determinístico e sem rede: só código, nenhuma chamada a LLM.
+ * Precedente: src/core/lint_grafo.ts (lint do grafo v3, 0 erros como gate de teste).
+ */
 import { ESQUEMA_FICHAS_V1 } from "./tipos.js";
 
 export interface ResultadoLintFichas {

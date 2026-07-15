@@ -1,4 +1,20 @@
 /**
+ * [acesso_repo.ts] — persiste o estado do acesso parental (PIN + lockout) no
+ *   localStorage, no nível do dispositivo/família.
+ *
+ * PAPEL: core-lógica (serviço de persistência · PINGATE)
+ * POR QUE EXISTE: o núcleo acesso.ts é puro; alguém precisa guardar/ler o
+ *   EstadoAcesso sem espalhar localStorage ad-hoc, degradando em silêncio.
+ * ENTRA: EstadoAcesso a salvar; nada para ler (lê da chave pipoca.acesso.v1).
+ * SAI: carregarAcesso() → EstadoAcesso (acessoInicial se vazio/corrompido),
+ *   salvarAcesso(), temPin() → boolean.
+ * CHAMA: ../core/acesso.js:{EstadoAcesso, acessoInicial}.
+ * É CHAMADO POR: app/bridge.ts (carregarAcesso, salvarAcesso, temPin).
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes.
+ * CUIDADO: leitura/escrita degradam em silêncio (quota/indisponível) — corrompido
+ *   vira acessoInicial; nunca lança, nunca trava a UI.
+ *
+ * — detalhe preservado —
  * Pipoca — Persistência do acesso parental (PINGATE) · doc fase02-02-03
  * ---------------------------------------------------------------------
  * Guarda o `EstadoAcesso` (PIN + lockout) no nível do dispositivo/família — NÃO por perfil

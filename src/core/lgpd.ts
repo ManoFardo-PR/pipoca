@@ -1,4 +1,22 @@
 /**
+ * [lgpd.ts] — Direitos LGPD do perfil: exportar (JSON dos schemas congelados) e apagar
+ *   todos os dados, operando pelo seam RepositorioPersistencia.
+ *
+ * PAPEL: core-lógica (privacidade e dados / LGPD · PC_PRIV)
+ * POR QUE EXISTE: dar ao cuidador o direito de levar embora (exportar) e apagar sem resíduos
+ *   os dados de uma criança, com minimização de PII.
+ * ENTRA: perfilId, repo (RepositorioPersistencia), agora (epoch ms da borda).
+ * SAI: ExportacaoDados (perfil + save + histórias, esquema pipoca.export.v1) / apagamento total.
+ * CHAMA: ./persistencia/index.js:RepositorioPersistencia, ./historias.js:HistoriaSalva,
+ *   ../dados/schemas.js:{criarEnvelopePerfil,criarEnvelopeSave}.
+ * É CHAMADO POR: src/app/bridge.ts, src/core/persistencia/persistencia.test.ts,
+ *   src/core/parciais.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js); testes em `bun run src/core/parciais.test.ts` (dentro de `bun run test`).
+ * CUIDADO: minimização — só nome/apelido, idade e progresso. apagarDados delega a
+ *   repo.apagarPerfil (remove perfil + save + telemetria + histórias, sem resíduos). O export
+ *   NUNCA quebra por causa das histórias (try/catch). `agora` da borda.
+ *
+ * — detalhe preservado —
  * Pipoca — Privacidade e dados / LGPD (PC_PRIV) · doc fase02-02-09
  * ----------------------------------------------------------------
  * Exportar e apagar os dados de um perfil, operando pelo seam `RepositorioPersistencia`.

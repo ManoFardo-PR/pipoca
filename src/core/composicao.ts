@@ -1,6 +1,27 @@
 /**
+ * [composicao.ts] — Motor de Composição Autoral A+ (v3): tece o texto determinístico
+ *   da história a partir do arranjo de objetos que a criança escolheu.
+ *
+ * PAPEL: core-lógica (Motor A+ v3 · ARQUIVO INTOCÁVEL · prévia do portão + fallback)
+ * POR QUE EXISTE: é a mecânica-coração do produto (a criança combina objetos e a
+ *   história nasce do arranjo) E a rede de segurança fiel: quando a cascata LLM
+ *   esgota ou está indisponível, `montar()` gera o texto no próprio dispositivo.
+ * ENTRA: EstadoComp com o cenário v3 (grafo `pipoca.grafo-autoral.v3`, ex.
+ *   docs/quintal.v3.json), nível (n1..n4) e a linha de objetos ordenada.
+ * SAI: texto da história (abertura + contas na ordem da linha + desfecho); funções
+ *   puras, replay determinístico.
+ * CHAMA: nada externo — self-contained, PRNG semeado internamente.
+ * É CHAMADO POR: realizador/cascata.ts (fallback final), geracao/geracao.ts (rota
+ *   "ap_cru" e fallback), src/app/estado.js (prévia do portão), composicao.test.ts.
+ * RODA POR: `bun run src/core/composicao.test.ts` (dentro de `bun run test`); em
+ *   produção, no boot do app (prévia/fallback).
+ * CUIDADO: INTOCÁVEL — chamado como função por cascata/geração; mexer aqui quebra o
+ *   fallback fiel. Replay determinístico: nenhum Math.random() (PRNG por
+ *   cenario.id/linha/nível). Tempero é SABOR, nunca PORTÃO. Há DOIS `compor()`
+ *   homônimos: este (v3, recompõe o miolo, :461) ≠ compositor/compor.ts (fichas→Pacote).
+ *
+ * — detalhe preservado —
  * Pipoca — Motor de COMPOSIÇÃO AUTORAL A+ (linha verde) · esquemas pipoca.grafo-autoral.v2 e .v3
- * ---------------------------------------------------------------------------------------------
  * Mecânica-coração do produto: a criança COMBINA múltiplos objetos numa cena e a
  * história nasce do arranjo dela. A história É a recompensa — cada leitura no portão
  * destrava uma nova rodada com MAIS DE UMA opção de objeto, e o texto CRESCE.

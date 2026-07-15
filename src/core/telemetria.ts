@@ -1,4 +1,22 @@
 /**
+ * [telemetria.ts] — Tipo canônico EventoTelemetria + união discriminada dos payloads +
+ *   fábrica pura (criarEvento) e type guard (validarEvento).
+ *
+ * PAPEL: core-lógica (telemetria de progresso · TELE · tipos + fábrica)
+ * POR QUE EXISTE: dar um formato único e privado por construção aos eventos de progresso, que
+ *   captura.ts monta, os repositórios gravam e agregadosTelemetria.ts resume.
+ * ENTRA: tipo, perfilId, dados (payload por tipo), agora (epoch ms da borda).
+ * SAI: EventoTelemetria (esquema pipoca.telemetria.v1); validarEvento (guard).
+ * CHAMA: ./grafo/tipos.js:Nivel, ./modos.js:Verificacao (tipos).
+ * É CHAMADO POR: src/core/captura.ts, src/core/agregadosTelemetria.ts, src/core/estado.ts
+ *   (re-export), src/servicos/telemetria_repo.ts, os repositórios (RepositorioLocalStorage,
+ *   repo_supabase), src/app/bridge.ts e os testes.
+ * RODA POR: boot do app (via pipoca.bundle.js); testes em `bun run src/core/parciais.test.ts` (dentro de `bun run test`).
+ * CUIDADO: nenhuma função chama Date.now() — o `ts` entra SEMPRE via `agora` (criarEvento LANÇA
+ *   se `agora` não for número finito). PRIVADO POR CONSTRUÇÃO (LGPD): `dados` só carrega métricas
+ *   e ids opacos (perfilId/cenarioId/objetoId/nivel/verificacao) — NUNCA texto lido nem PII.
+ *
+ * — detalhe preservado —
  * Pipoca — Telemetria de progresso (TELE) · doc dono fase03-03-01
  * ----------------------------------------------------------------
  * Tipo canônico `EventoTelemetria` + união discriminada dos payloads + fábrica pura.

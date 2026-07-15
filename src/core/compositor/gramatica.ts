@@ -1,4 +1,26 @@
 /**
+ * [gramatica.ts] — Gramática de decisão do compositor: avalia as condições `se` e
+ *   SELECIONA as fichas de relação que entram no Pacote (decide arranjo, não redação).
+ *
+ * PAPEL: core-lógica (compositor · fase 11 · espelho semântico do v3)
+ * POR QUE EXISTE: o compositor precisa decidir QUAIS relações objeto×objeto valem
+ *   para a linha da criança; reimplementa a gramática do v3 (mesma semântica) para
+ *   manter os módulos independentes, mas com EFEITO diferente (seleciona fichas).
+ * ENTRA: condição `se` (string|string[]), objeto dono e a linha de objetos; para a
+ *   seleção, a lista de FichaRelacao (objeto_x_objeto) e a linha.
+ * SAI: booleanos de casamento (avaliarCondicao/casaSe), as ≤2 relações vencedoras por
+ *   Pacote (selecionarRelacoes) e o eco de arranjo (derivarEco).
+ * CHAMA: fichas/tipos.ts:FichaRelacao (tipo), compositor/pacote.ts:EstadoCompositor
+ *   (tipo). Nada em runtime — funções puras.
+ * É CHAMADO POR: compositor/compor.ts (selecionarRelacoes, derivarEco),
+ *   compositor.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes —
+ *   `bun run src/core/compositor/compositor.test.ts` (dentro de `bun run test`).
+ * CUIDADO: semântica ESPELHADA do v3 (composicao.ts:200-231) — divergir aqui quebra a
+ *   paridade; `func:*` e qualquer condição desconhecida NUNCA casam e nunca lançam; o
+ *   teto de 2 relações é POR PACOTE, não por beat; desempate é pela ordem do array.
+ *
+ * — detalhe preservado —
  * Pipoca — Gramática de decisão do compositor (gramatica.ts)
  * ----------------------------------------------------------
  * A gramática do v3 REIMPLEMENTADA com semântica idêntica — não importada — para

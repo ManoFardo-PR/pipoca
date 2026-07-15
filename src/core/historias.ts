@@ -1,4 +1,25 @@
 /**
+ * [historias.ts] — Modelo puro das histórias salvas: tipos, validação/saneamento,
+ *   retenção/poda, título e envelope do esquema pipoca.historias.v1.
+ *
+ * PAPEL: core-lógica (histórias salvas · pós-fase06 · puro)
+ * POR QUE EXISTE: guardar toda história concluída (até 20 dias; favorita = para sempre) com
+ *   o texto fiel capturado na convergência + linha/nível/desfecho para re-derivação futura.
+ * ENTRA: lista crua de histórias, agora (epoch ms da borda), HistoriaSalva/raw.
+ * SAI: HistoriaSalva validada, normalizarHistorias (dedupe+retenção+poda+teto), título/data
+ *   relativa, EnvelopeHistoriaV1 pronto para serializar.
+ * CHAMA: ./grafo/tipos.js:{Nivel,ModoDesfecho}, ./compositor/pacote.js:PacoteComposicao (tipos).
+ * É CHAMADO POR: src/core/lgpd.ts, os repositórios (src/core/persistencia/, src/backend/
+ *   adaptadores/repo_sincronizado.ts, repo_supabase.ts), src/app/bridge.ts e os testes.
+ * RODA POR: boot do app (via pipoca.bundle.js); testes em `bun run src/core/parciais.test.ts` (dentro de `bun run test`).
+ * CUIDADO: puro — sem localStorage, sem Date.now() (`agora` da borda; a gravação vive no
+ *   RepositorioLocalStorage, espelhado no Supabase). validarHistoriaSalva é REJEITADOR por item
+ *   (corrompido descartado em silêncio), SALVO os campos ADITIVOS opcionais (origem/pacoteOrigem/
+ *   rodada/intermediaria/paragrafos) que são saneados sem derrubar o registro (retrocompat por
+ *   design). Intermediárias têm teto PRÓPRIO e são podadas primeiro. `.v1` evolui aditivamente;
+ *   `.v2` fica reservado para mudança que QUEBRE o shape.
+ *
+ * — detalhe preservado —
  * Pipoca — Histórias salvas (pós-fase06)
  * ----------------------------------------
  * Toda história CONCLUÍDA é guardada automaticamente por até 20 dias; a que

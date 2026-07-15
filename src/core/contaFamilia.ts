@@ -1,4 +1,22 @@
 /**
+ * [contaFamilia.ts] — Conta e sessão da família (uma conta por casa): login stub de MVP
+ *   que valida formato e cria ContaFamilia + SessaoConta.
+ *
+ * PAPEL: core-lógica (conta e sessão da família · HH_LOGIN · auth é STUB de MVP)
+ * POR QUE EXISTE: dar identidade mínima à casa antes da narrativa, sem pedir senha a cada
+ *   leitura (sessão de conta longa) e sem guardar PII além do necessário.
+ * ENTRA: email, senha, agora (epoch ms da borda), duracaoMs (padrão 30 dias).
+ * SAI: ResultadoLogin (ContaFamilia + SessaoConta) ou erro acolhedor; sessaoValida (bool),
+ *   criarSessao.
+ * CHAMA: nada externo — self-contained (id opaco via FNV-1a interno).
+ * É CHAMADO POR: src/backend/backend.ts, src/backend/adaptadores/auth_supabase.ts,
+ *   src/servicos/conta_repo.ts, src/app/bridge.ts, src/core/parciais.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js); testes em `bun run src/core/parciais.test.ts` (dentro de `bun run test`).
+ * CUIDADO: auth aqui é STUB de MVP (valida só e-mail/senha não-vazios e formato) — integração
+ *   real (ServicoAuth/servidor) é fase06. NUNCA guarda a senha. SessaoConta (sessão de conta) ≠
+ *   Sessao (bloco de foco, sessao.ts). `agora` da borda; não toca motor/validador.
+ *
+ * — detalhe preservado —
  * Pipoca — Conta e sessão da família (HH_LOGIN) · doc fase02-02-01
  * ----------------------------------------------------------------
  * Uma conta por casa. Tipos LOCAIS desta fase (não estão em tipos-core):

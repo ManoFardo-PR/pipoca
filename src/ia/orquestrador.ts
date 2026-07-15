@@ -1,4 +1,25 @@
 /**
+ * [orquestrador.ts] — percorre a cascata de provedores de IA (primário →
+ *   fallback) aplicando teto de cota e de custo por chamada.
+ *
+ * PAPEL: core-lógica (orquestração de IA · GERAÇÃO 1 · fallback/cotas/custo)
+ * POR QUE EXISTE: dá uma cadeia de fallback resiliente sobre vários provedores
+ *   e um freio de cota/custo local, expondo tudo como um único ProvedorIA.
+ * ENTRA: cadeiaFallback (ProvedorIA[]) e OpcoesOrquestrador (cotaMensal,
+ *   custoMaxMensal, custoPorChamada, aoRegistrarUso); depois prompt/schema/opts.
+ * SAI: um Orquestrador (ProvedorIA + uso()); gerar() devolve Trecho ou lança
+ *   quando cota/custo esgotam ou todos falham.
+ * CHAMA: ./provedor.js:{JsonSchema, OptsGeracao, ProvedorIA} (tipos),
+ *   ../core/grafo/tipos.js:Trecho.
+ * É CHAMADO POR: ia/ia.test.ts e backend/backend.test.ts (cobertura da cascata).
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes; `bun run src/ia/ia.test.ts`
+ *   (dentro de `bun run test`).
+ * CUIDADO: cliente KEYLESS — nenhuma chave de provedor vive aqui (nem em src/):
+ *   a credencial mora nos secrets da Edge Function proxy-ia. O degrau final é o
+ *   THROW — quem degrada p/ Motor A é o consumidor. Cota/custo no MVP são pool
+ *   LOCAL em memória (não persistido). Telemetria de uso SEM PII: só números.
+ *
+ * — detalhe preservado —
  * Pipoca — Fallback, cotas e custo · doc fase05-05-10
  * ----------------------------------------------------
  * Orquestra a cadeia de provedores (primário → fallback); o degrau final

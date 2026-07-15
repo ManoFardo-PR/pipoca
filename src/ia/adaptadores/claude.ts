@@ -1,4 +1,24 @@
 /**
+ * [claude.ts] — adaptador ProvedorIA para a API Anthropic Claude: monta a
+ *   requisição /v1/messages e faz o parse do Trecho, sobre um Transporte injetável.
+ *
+ * PAPEL: core-lógica (orquestração de IA · GERAÇÃO 1 · adaptador Claude)
+ * POR QUE EXISTE: encaixa o Claude na interface única ProvedorIA sem SDK e sem
+ *   chave no cliente, para o motor não saber qual provedor está atrás.
+ * ENTRA: OpcoesAdaptadorClaude {modelo, transporte?, urlBase?, maxTokensPadrao?};
+ *   depois prompt/schema/opts.
+ * SAI: um ProvedorIA cujo gerar() devolve Trecho; lança ErroRecusaProvedor em recusa.
+ * CHAMA: ../provedor.js:{ErroRecusaProvedor, transportePadrao, validarTrechoGerado,
+ *   JsonSchema, OptsGeracao, ProvedorIA, Transporte}, ../../core/grafo/tipos.js:Trecho.
+ * É CHAMADO POR: ia/adaptadores/selecionar.ts, ia/ia.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes; `bun run src/ia/ia.test.ts`
+ *   (dentro de `bun run test`).
+ * CUIDADO: cliente KEYLESS — nenhuma chave Anthropic vive aqui (nem em src/): a
+ *   credencial mora nos secrets da Edge Function proxy-ia (autenticação/chamada
+ *   real server-side). stop_reason "refusal" é tratado ANTES de ler conteúdo;
+ *   NUNCA enviar temperature/top_p/budget_tokens (400 no 4.8).
+ *
+ * — detalhe preservado —
  * Pipoca — Adaptador Anthropic Claude (CLAUDE) · doc fase05-05-05
  * ----------------------------------------------------------------
  * Implementa `ProvedorIA` como montador de requisição + parser sobre um

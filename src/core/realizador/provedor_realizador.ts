@@ -1,4 +1,26 @@
 /**
+ * [provedor_realizador.ts] — Interface do provedor plugável do realizador + o
+ *   adaptador Gemini: recebe prompt+config, devolve texto+metadados.
+ *
+ * PAPEL: core-lógica (realizador · fase 12 · porta de provedor / adaptador Gemini)
+ * POR QUE EXISTE: isola o realizador de QUAL LLM responde — a cascata fala só com a
+ *   interface ProvedorRealizador; erros de provedor e de recusa viram tipos próprios
+ *   para a política de falha decidir retry ou pular.
+ * ENTRA: prompt (string) + ConfigGeracao (modelo, temperatura, maxTokens, system);
+ *   OpcoesGemini (modelo, apiKey, transporte, urlBase) na criação do adaptador.
+ * SAI: RespostaProvedor { texto, metadados }; classes ErroRecusaRealizador e
+ *   ErroProvedorRealizador; criarProvedorGeminiRealizador.
+ * CHAMA: ../../ia/provedor.ts:transportePadrao/Transporte (reuso da geração 1).
+ * É CHAMADO POR: realizador/cascata.ts (interface + classes de erro), geracao/
+ *   geracao.ts (tipo), realizador.test.ts, experimentos/fichas-para-historias/gerar.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes —
+ *   `bun run src/core/realizador/realizador.test.ts` (dentro de `bun run test`).
+ * CUIDADO: CHAVE NUNCA NO CLIENTE nem lida aqui — `apiKey` chega por PARÂMETRO (na
+ *   calibração o script lê o env; em produção a Edge Function tem os secrets). ZERO
+ *   process.env neste módulo. SAFETY/blockReason vira recusa tipada ANTES de ler o
+ *   conteúdo; retry é política da cascata (uma chamada por gerarTexto).
+ *
+ * — detalhe preservado —
  * Pipoca — Provedor plugável do realizador (provedor_realizador.ts)
  * -----------------------------------------------------------------
  * Interface `ProvedorRealizador` (fase12-12-02): texto+config → texto+metadados.

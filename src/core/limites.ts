@@ -1,4 +1,21 @@
 /**
+ * [limites.ts] — Limites do cuidador: bloco de foco (Pomodoro) + tempo de tela diário
+ *   opcional, com normalização e reinício do timer da sessão.
+ *
+ * PAPEL: core-lógica (limites: tempo de tela + bloco de foco · PC_LIM)
+ * POR QUE EXISTE: encapsular as regras de tempo que o cuidador ajusta, sem castigo — o fim
+ *   do bloco é um encerramento calmo, não uma interrupção.
+ * ENTRA: Sessao, blocoMin (BlocoMin), agora (epoch ms da borda), raw (normalizar).
+ * SAI: Limites normalizado (LIMITES_PADRAO como base), Sessao reiniciada com o novo bloco.
+ * CHAMA: ./sessao.js:{iniciarSessao, normalizarBlocoMin, BlocoMin, Sessao}.
+ * É CHAMADO POR: src/core/estado.ts (tipo Limites), src/dados/schemas.ts, src/app/bridge.ts,
+ *   src/core/parciais.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js); testes em `bun run src/core/parciais.test.ts` (dentro de `bun run test`).
+ * CUIDADO: o fim do bloco é encerramento calmo — a história em curso NÃO é interrompida.
+ *   blocoMin mora na Sessao (SESS); o tempo de tela é config à parte (null = sem limite).
+ *   `agora` vem da borda.
+ *
+ * — detalhe preservado —
  * Pipoca — Limites: tempo de tela e bloco de foco (PC_LIM) · doc fase02-02-06
  * ---------------------------------------------------------------------------
  * Bloco curto e visível (Pomodoro) + tempo de tela diário opcional. Sem castigo: o fim do

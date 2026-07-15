@@ -1,4 +1,25 @@
 /**
+ * [validador.ts] — Validador de fidelidade do texto realizado: confere âncoras,
+ *   corpo, gênero, comprimento e ritmo e devolve um veredito (pass/motivos/avisos).
+ *
+ * PAPEL: core-lógica (realizador · fase 12 · gate de fidelidade determinístico)
+ * POR QUE EXISTE: o texto do LLM só chega à criança se for FIEL ao Pacote — este é o
+ *   juiz determinístico (Camada 1 do experimento promovida a runtime) que a cascata
+ *   consulta a cada tentativa.
+ * ENTRA: PacoteComposicao, o texto realizado (string|undefined) e os parágrafos.
+ * SAI: VereditoRealizador { pass, motivos, avisos, ritmoN1?, presencaPorBeat }.
+ * CHAMA: compositor/pacote.ts:PacoteComposicao (tipo), prompt_template.ts:
+ *   maximoPalavrasDoPacote.
+ * É CHAMADO POR: realizador/cascata.ts (validar, a cada tentativa), realizador.test.ts.
+ *   O tipo VereditoRealizador viaja para geracao/geracao.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes —
+ *   `bun run src/core/realizador/realizador.test.ts` (dentro de `bun run test`).
+ * CUIDADO: `pass = motivos.length === 0` — FAIL NUNCA chega à criança (a cascata troca
+ *   de provedor / cai no fallback A+ v3); ritmo n1 é GATE (não só aviso); tempo verbal
+ *   e parágrafos são AVISO, não bloqueiam; âncoras com sufixo `*` são PREFIXO de token
+ *   (ex.: `gota*` casa gota/gotas/gotinha — correção do orvalho).
+ *
+ * — detalhe preservado —
  * Pipoca — Validador de fidelidade do realizador (validador.ts)
  * -------------------------------------------------------------
  * A Camada 1 do experimento PROMOVIDA a runtime (fase12-12-03). Porte de

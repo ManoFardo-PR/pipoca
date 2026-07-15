@@ -1,4 +1,26 @@
 /**
+ * [pacote.ts] — Tipos do contrato pipoca.pacote-composicao.v1: a fronteira de dados
+ *   entre o compositor (determinístico) e o realizador (LLM).
+ *
+ * PAPEL: core-lógica (contrato de tipos · fase 11 · fronteira compositor↔realizador)
+ * POR QUE EXISTE: define o formato do Pacote (cenário, personagem, nível, beats, eco,
+ *   restrições) + os tipos de entrada do compositor (EstadoCompositor,
+ *   PerfilCompositor, CatalogoFichas), para que os dois lados nunca compartilhem
+ *   fichas nem lógica — só o Pacote atravessa.
+ * ENTRA: nada em runtime (arquivo só de tipos + a constante de esquema).
+ * SAI: interfaces/tipos exportados + ESQUEMA_PACOTE_COMPOSICAO_V1.
+ * CHAMA: composicao.ts:NivelKey (tipo), fichas/tipos.ts:ArquivoObjetos/Relacoes/
+ *   CenariosV1 (tipos).
+ * É CHAMADO POR: compositor/compor.ts e gramatica.ts (produzem/decidem), realizador
+ *   {realizar,prompt_template,validador,cascata}.ts (consomem), geracao/geracao.ts,
+ *   backend/proxy_realizador.ts, core/historias.ts, compositor.test.ts.
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes —
+ *   `bun run src/core/compositor/compositor.test.ts` (dentro de `bun run test`).
+ * CUIDADO: o Pacote carrega só MATÉRIA (fatos/sensações já resolvidos no nível) — as
+ *   3 leis editoriais são MÉTODO e vivem no prompt-template do realizador (D-11.1),
+ *   NUNCA aqui; os `beats` seguem a ordem da linha da criança (nunca reordenar).
+ *
+ * — detalhe preservado —
  * Pipoca — Pacote de Composição v1 (pacote.ts)
  * --------------------------------------------
  * Tipos do contrato `pipoca.pacote-composicao.v1` — a fronteira entre o

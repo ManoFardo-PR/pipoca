@@ -6,7 +6,7 @@
  * falha explícita e golden. Blocos 1–5 usam catálogo mínimo em memória; o
  * bloco 6 usa as células canônicas/ilustrativas do exemplo do 11-00 — nenhum
  * bloco depende de docs/fichas/ no disco (por design, 11-03).
- * Execute com: bun run src/core/compositor/compositor.test.ts
+ * RODA POR: bun run src/core/compositor/compositor.test.ts (parte de `bun run test`)
  */
 
 import type { FichaIdentidade, FichaRelacao, PorNivel } from "../fichas/tipos.js";

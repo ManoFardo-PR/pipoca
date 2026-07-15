@@ -1,4 +1,27 @@
 /**
+ * [run-admin.mjs] — Runner e2e da PLATAFORMA DO OPERADOR (super admin): sobe o
+ *   server, dirige /admin.html com Playwright e prova isolamento, guard
+ *   fail-closed, 1º uso do SA_LOGIN, tenants, conteúdo, ConfigIA sem chaves e
+ *   kill-switch persistente.
+ *
+ * PAPEL: e2e (offline · admin bundle num Chromium headless)
+ * POR QUE EXISTE: garante que o admin (pipoca.admin.bundle.js + src/admin/
+ *   estadoAdmin.js + telas SA_*) sobe ISOLADO do app da criança e que os núcleos
+ *   do operador funcionam ponta-a-ponta — sem jamais tocar os dados da família.
+ * ENTRA: env E2E_ADMIN_PORT (5138), PW_CORE/PW_CHROME (playwright-core e Chromium
+ *   em cache), server.js; injeta PIPOCA_CONFIG={provedor:"local"}.
+ * SAI: relatório ✓/✗ no console + process.exit(1) se algum assert falhar.
+ * CHAMA: node:child_process (spawn "node server.js"), node:net (espera a porta),
+ *   playwright-core (chromium); dirige window.PipocaAdmin/PipocaAdminCanonico.
+ * É CHAMADO POR: script npm `test:e2e:admin` (package.json); é um entrypoint
+ *   (nenhum módulo o importa).
+ * RODA POR: `bun run test:e2e:admin`
+ * CUIDADO: roda SEMPRE offline (PIPOCA_CONFIG local injetado antes de tudo);
+ *   caminhos ABSOLUTOS de máquina em PW_CORE/PW_CHROME (sobrescrevíveis por env);
+ *   porta 5138 dedicada (5137 é do e2e canônico, 5000 é outro dev server). SA_AI
+ *   é keyless por construção — nenhuma chave de IA no cliente.
+ *
+ * — detalhe preservado —
  * Runner e2e da PLATAFORMA DO OPERADOR (fase04 · admin.html).
  * ------------------------------------------------------------
  * Aponta para "/admin.html": entry fino que carrega pipoca.admin.bundle.js +

@@ -1,4 +1,25 @@
 /**
+ * [fumaca-presenca-v3.ts] — Fumaça de presença da protagonista: monta 30 arranjos
+ *   × 4 níveis × 2 modos pela mecânica real do A+ v3 e afere a Lei 1 (a
+ *   protagonista aparece em ≥60% dos slots do miolo).
+ *
+ * PAPEL: fumaça (offline · régua do centro gravitacional, Oficina A2)
+ * POR QUE EXISTE: guarda de qualidade autoral — garante que o grafo publicado
+ *   (docs/quintal.v3.json) mantém a protagonista presente no miolo em toda
+ *   combinação, além de montagem não-vazia, sem "undefined" e replay determinístico.
+ * ENTRA: docs/quintal.v3.json (grafo ativo); nenhuma env, nenhuma rede.
+ * SAI: resumo no console (histórias, pior presença, falhas) + process.exit(1) se
+ *   alguma história ficar abaixo do limiar de 60%.
+ * CHAMA: src/core/composicao.js:{iniciar, ordenarR1, abrirProximaRodada, inserir,
+ *   montar} — o Motor A+ v3, chamado como funções puras.
+ * É CHAMADO POR: scripts npm `test:presenca` e `test` (package.json); é um
+ *   entrypoint (nenhum módulo o importa).
+ * RODA POR: `bun run test:presenca` (também em `bun run test`)
+ * CUIDADO: lê o grafo PUBLICADO (docs/quintal.v3.json) — regenerar o grafo pode
+ *   derrubar a régua de 60%; a lista TERMOS (nome/corpo) é a definição de
+ *   "presença" e precisa acompanhar o vocabulário do grafo. Sem rede, sem chave.
+ *
+ * — detalhe preservado —
  * Pipoca — Fumaça de presença da protagonista (Oficina A2 · centro gravitacional)
  * -------------------------------------------------------------------------------
  * Monta 30 arranjos × 4 níveis × 2 modos pela MECÂNICA REAL (iniciar → ordenarR1

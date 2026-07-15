@@ -4,7 +4,7 @@
  * Auth/sessão/escopo/guard (04-01/02) · tenants (04-03) · conteúdo (04-04) ·
  * IA (04-05) · flags (04-06). Rodam sem DOM: storage fake injetado (bun não
  * tem localStorage). Tempo sempre injetado.
- * Execute com: bun run src/admin/admin.test.ts
+ * RODA POR: bun run src/admin/admin.test.ts (parte de `bun run test`)
  */
 
 import type { StorageLike } from "./auth/tiposAdmin.js";

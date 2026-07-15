@@ -3,6 +3,7 @@
  * a cola entre a matriz do experimento e o pipeline real compor()+realizar().
  * A gramática/montador/Camada 1 do ciclo 1 estão em _andaime-arquivado/ e seus
  * casos vivem promovidos em src/core/{compositor,realizador}/*.test.ts.
+ * RODA POR: bun run experimentos/fichas-para-historias/fichas-experimento.test.ts (parte de `bun run test`)
  */
 
 import objetosRaw from "../../docs/fichas/objetos.v1.json";

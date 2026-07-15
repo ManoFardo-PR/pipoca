@@ -1,4 +1,28 @@
 /**
+ * [run-linha-verde-canonico.mjs] — Runner e2e da LINHA VERDE CANÔNICA: sobe o
+ *   server, dirige o app da criança em /app com Playwright e verifica o caminho
+ *   ponta-a-ponta (boot, composição A+ v3, telas T2–T7 e os fluxos M-B).
+ *
+ * PAPEL: e2e (offline · prova de vida do bundle real num Chromium headless)
+ * POR QUE EXISTE: garante que o app montado (pipoca.bundle.js + src/app/estado.js
+ *   + telas .dc.html) sobe e caminha ponta-a-ponta — pega regressões de
+ *   integração que os unit tests não veem (PINGATE/KIDMODE/onboarding, flags,
+ *   fala, login, save por perfil, histórias salvas, conta & segurança).
+ * ENTRA: env E2E_PORT (5137), PW_CORE/PW_CHROME (playwright-core e Chromium em
+ *   cache), server.js servindo o repo; injeta PIPOCA_CONFIG={provedor:"local"}.
+ * SAI: relatório ✓/✗ no console + process.exit(1) se algum assert falhar.
+ * CHAMA: node:child_process (spawn "node server.js"), node:net (espera a porta),
+ *   node:fs (lê docs/quintal.v3.json p/ prova de vida do v3), playwright-core
+ *   (chromium); dirige window.PipocaApp/PipocaCanonico/PipocaRoteador do bundle.
+ * É CHAMADO POR: scripts npm `test:e2e` e `test:e2e:canonico` (package.json);
+ *   é um entrypoint (nenhum módulo o importa).
+ * RODA POR: `bun run test:e2e:canonico`
+ * CUIDADO: roda SEMPRE offline — PIPOCA_CONFIG local é injetado ANTES de qualquer
+ *   script e vence o pipoca.config.js commitado; depende de caminhos ABSOLUTOS
+ *   de máquina (PW_CORE/PW_CHROME em C:/Users/mfard/...), sobrescrevíveis por env,
+ *   e do bundle BUILDADO (bun run build:app). Cliente keyless: nenhuma chave de IA.
+ *
+ * — detalhe preservado —
  * Runner e2e da LINHA VERDE CANÔNICA (TRILHA Marco M-A).
  * --------------------------------------------------------
  * Aponta para "/app" (index.html — a raiz "/" virou a landing pública, Task #18):

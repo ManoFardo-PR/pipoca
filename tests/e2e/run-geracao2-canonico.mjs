@@ -1,4 +1,29 @@
 /**
+ * [run-geracao2-canonico.mjs] — Runner e2e da GERAÇÃO 2: dirige o app em /app com
+ *   Playwright e um provedor FAKE no seam (Canon.geracao.realizadorRemoto),
+ *   cobrindo o fluxo compor→realizar→validar→exibir→salvar sem rede nem chave.
+ *
+ * PAPEL: e2e (offline · fluxo da geração 2 com realizador fake)
+ * POR QUE EXISTE: variante nova do e2e canônico (fase14-14-00) para o fluxo do
+ *   realizador — prévia determinística no portão (zero LLM por MOVIMENTO),
+ *   realização 1×/rodada na ENTRADA, salvo===lido, intermediárias+completa
+ *   salvas, e os caminhos infelizes (edge fora do ar, teto) caindo no A+ v3 cru
+ *   sem a criança ver erro. Cobre também a identidade pós-incidente (nome sempre).
+ * ENTRA: env E2E_PORT (5139), PW_CORE/PW_CHROME (playwright-core e Chromium em
+ *   cache), server.js; injeta PIPOCA_CONFIG={provedor:"local"} e
+ *   tetoRealizacaoMs p/ não esperar os 8s reais.
+ * SAI: relatório ✓/✗ no console + process.exit(1) se algum assert falhar.
+ * CHAMA: node:child_process (spawn "node server.js"), node:net, node:fs (lê
+ *   docs/quintal.v3.json p/ prova de vida), playwright-core (chromium); dirige
+ *   window.PipocaApp/PipocaCanonico e injeta o fake em Canon.geracao.realizadorRemoto.
+ * É CHAMADO POR: script npm `test:e2e:geracao2` (package.json); é um entrypoint.
+ * RODA POR: `bun run test:e2e:geracao2`
+ * CUIDADO: o realizador é SEMPRE um fake injetado no seam — nenhuma rede, nenhuma
+ *   chave paga (o cliente é keyless; as chaves vivem só nas Edge Functions). Roda
+ *   offline (PIPOCA_CONFIG local antes de tudo); caminhos ABSOLUTOS em
+ *   PW_CORE/PW_CHROME; porta 5139 dedicada; depende do bundle buildado.
+ *
+ * — detalhe preservado —
  * Runner e2e da GERAÇÃO 2 (fase13 · fluxo compor→realizar→validar→exibir→salvar).
  * --------------------------------------------------------------------------------
  * Variante NOVA do e2e canônico (fase14-14-00: o canônico segue vivo como prova

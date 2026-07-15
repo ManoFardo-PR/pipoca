@@ -1,7 +1,7 @@
 /**
  * Experimento B1.5 — testes do Script 1 (gerador), sem rede.
  * Formato dos demais testes do repo: assert local + throw no fim.
- * Execute com: bun run gerar-historias.test.ts
+ * RODA POR: bun run experimentos/beats-para-paragrafos/gerar-historias.test.ts (rodado à mão — fora de `bun run test`)
  */
 
 import { mkdtemp, rm } from "node:fs/promises";

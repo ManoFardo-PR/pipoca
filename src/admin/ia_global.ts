@@ -43,7 +43,7 @@ export interface ConfigIaGlobal {
 }
 
 export const CONFIG_IA_GLOBAL_PADRAO: ConfigIaGlobal = {
-  modeloPadrao: { claude: null, gemini: null, openai: null, deepseek: null },
+  modeloPadrao: { claude: null, gemini: "gemini-2.5-flash", openai: null, deepseek: null },
   cadeiaFallback: [],
 };
 

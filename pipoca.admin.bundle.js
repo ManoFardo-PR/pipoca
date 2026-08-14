@@ -1117,7 +1117,7 @@
 
   // src/admin/ia_global.ts
   var CONFIG_IA_GLOBAL_PADRAO = {
-    modeloPadrao: { claude: null, gemini: null, openai: null, deepseek: null },
+    modeloPadrao: { claude: null, gemini: "gemini-2.5-flash", openai: null, deepseek: null },
     cadeiaFallback: []
   };
   var PROVEDORES2 = ["claude", "gemini", "openai", "deepseek"];

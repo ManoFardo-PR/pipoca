@@ -841,6 +841,29 @@
       return false;
     }
   }
+  function lerArrayBruto(chave) {
+    try {
+      const raw = localStorage.getItem(chave);
+      if (raw === null)
+        return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  function particionarPorEsquema(itens, esquemaEsperado) {
+    const conhecidos = [];
+    const resto = [];
+    for (const item of itens) {
+      if (typeof item === "object" && item !== null && item["esquema"] === esquemaEsperado) {
+        conhecidos.push(item);
+      } else {
+        resto.push(item);
+      }
+    }
+    return { conhecidos, resto };
+  }
 
   // src/core/persistencia/RepositorioLocalStorage.ts
   class RepositorioLocalStorage {
@@ -855,13 +878,13 @@
       return validos;
     }
     async salvarPerfil(p) {
-      const raw = lerArrayEnvelopes(CHAVE_PERFIS, "pipoca.perfil.v1");
-      const semEste = raw.filter((e) => e.perfil?.id !== p.id);
+      const { conhecidos, resto } = particionarPorEsquema(lerArrayBruto(CHAVE_PERFIS), "pipoca.perfil.v1");
+      const semEste = conhecidos.filter((e) => e.perfil?.id !== p.id);
       const novoEnvelope = {
         esquema: "pipoca.perfil.v1",
         perfil: { ...p }
       };
-      gravarItem(CHAVE_PERFIS, [...semEste, novoEnvelope]);
+      gravarItem(CHAVE_PERFIS, [...resto, ...semEste, novoEnvelope]);
     }
     async carregarSave(perfilId) {
       try {
@@ -880,7 +903,19 @@
         perfilId,
         estado
       };
-      gravarItem(chaveSave(perfilId), envelope);
+      if (gravarItem(chaveSave(perfilId), envelope))
+        return;
+      try {
+        const chaveTel = chaveTelemetria(perfilId);
+        const bruto = lerArrayBruto(chaveTel);
+        if (bruto.length > 0) {
+          gravarItem(chaveTel, bruto.slice(Math.floor(bruto.length / 2)));
+          if (gravarItem(chaveSave(perfilId), envelope))
+            return;
+          gravarItem(chaveTel, []);
+          gravarItem(chaveSave(perfilId), envelope);
+        }
+      } catch {}
     }
     async registrarTelemetria(evento) {
       const chave = chaveTelemetria(evento.perfilId);
@@ -922,33 +957,37 @@
     }
     async salvarHistoria(perfilId, historia) {
       const chave = chaveHistorias(perfilId);
-      const envelopes = lerArrayEnvelopes(chave, ESQUEMA_HISTORIAS);
+      const { conhecidos, resto } = particionarPorEsquema(lerArrayBruto(chave), ESQUEMA_HISTORIAS);
+      const envelopes = conhecidos;
       const semEsta = envelopes.filter((e) => e.historia?.id !== historia.id);
       let lista = [...semEsta, criarEnvelopeHistoria({ ...historia })];
-      if (gravarItem(chave, lista))
+      if (gravarItem(chave, [...resto, ...lista]))
         return;
       const podavel = (e, intermediaria) => !!e.historia && e.historia.favorita !== true && e.historia.id !== historia.id && e.historia.intermediaria === true === intermediaria;
       for (const faseIntermediarias of [true, false]) {
         const candidatas = lista.filter((e) => podavel(e, faseIntermediarias)).sort((a, b) => (a.historia?.criadaEm ?? 0) - (b.historia?.criadaEm ?? 0));
         for (const vitima of candidatas) {
           lista = lista.filter((e) => e !== vitima);
-          if (gravarItem(chave, lista))
+          if (gravarItem(chave, [...resto, ...lista]))
             return;
         }
       }
     }
     async apagarHistoria(perfilId, historiaId) {
-      const envelopes = lerArrayEnvelopes(chaveHistorias(perfilId), ESQUEMA_HISTORIAS);
+      const chave = chaveHistorias(perfilId);
+      const { conhecidos, resto } = particionarPorEsquema(lerArrayBruto(chave), ESQUEMA_HISTORIAS);
+      const envelopes = conhecidos;
       const restantes = envelopes.filter((e) => e.historia?.id !== historiaId);
       if (restantes.length !== envelopes.length)
-        gravarItem(chaveHistorias(perfilId), restantes);
+        gravarItem(chave, [...resto, ...restantes]);
     }
     async podarHistorias(perfilId, agora) {
       const antes = await this.carregarHistorias(perfilId);
       const mantidas = normalizarHistorias(antes, agora);
       const removidas = antes.length - mantidas.length;
       if (removidas > 0) {
-        gravarItem(chaveHistorias(perfilId), mantidas.map(criarEnvelopeHistoria));
+        const resto = particionarPorEsquema(lerArrayBruto(chaveHistorias(perfilId)), ESQUEMA_HISTORIAS).resto;
+        gravarItem(chaveHistorias(perfilId), [...resto, ...mantidas.map(criarEnvelopeHistoria)]);
       }
       return removidas;
     }
@@ -962,9 +1001,9 @@
       try {
         localStorage.removeItem(chaveHistorias(perfilId));
       } catch {}
-      const envelopes = lerArrayEnvelopes(CHAVE_PERFIS, "pipoca.perfil.v1");
-      const filtrado = envelopes.filter((e) => e.perfil?.id !== perfilId);
-      gravarItem(CHAVE_PERFIS, filtrado);
+      const { conhecidos, resto } = particionarPorEsquema(lerArrayBruto(CHAVE_PERFIS), "pipoca.perfil.v1");
+      const filtrado = conhecidos.filter((e) => e.perfil?.id !== perfilId);
+      gravarItem(CHAVE_PERFIS, [...resto, ...filtrado]);
     }
   }
 

@@ -105,3 +105,45 @@ export function gravarItem(chave: string, valor: unknown): boolean {
     return false;
   }
 }
+
+/**
+ * Lê o array CRU de envelopes (sem filtrar por esquema). Serve às escritas que
+ * regravam a lista inteira: elas precisam PRESERVAR os itens de versão
+ * desconhecida (ex.: um `pipoca.perfil.v2` gravado por um app mais novo) em vez
+ * de deixá-los cair na filtragem — senão um downgrade de versão apaga dados.
+ */
+export function lerArrayBruto(chave: string): unknown[] {
+  try {
+    const raw = localStorage.getItem(chave);
+    if (raw === null) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Particiona um array cru em `conhecidos` (esquema esperado) e `resto` (tudo o
+ * mais — versões futuras/desconhecidas a preservar ao regravar). O chamador
+ * mexe só nos conhecidos e regrava `[...resto, ...conhecidos]`.
+ */
+export function particionarPorEsquema(
+  itens: unknown[],
+  esquemaEsperado: string
+): { conhecidos: Array<Record<string, unknown>>; resto: unknown[] } {
+  const conhecidos: Array<Record<string, unknown>> = [];
+  const resto: unknown[] = [];
+  for (const item of itens) {
+    if (
+      typeof item === "object" &&
+      item !== null &&
+      (item as Record<string, unknown>)["esquema"] === esquemaEsperado
+    ) {
+      conhecidos.push(item as Record<string, unknown>);
+    } else {
+      resto.push(item);
+    }
+  }
+  return { conhecidos, resto };
+}

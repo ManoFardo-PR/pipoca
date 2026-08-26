@@ -51,6 +51,8 @@ import {
   chaveTelemetria,
   chaveHistorias,
   lerArrayEnvelopes,
+  lerArrayBruto,
+  particionarPorEsquema,
   gravarItem,
 } from "./chaves.js";
 
@@ -80,13 +82,14 @@ export class RepositorioLocalStorage implements RepositorioPersistencia {
   }
 
   async salvarPerfil(p: Perfil): Promise<void> {
-    const raw = lerArrayEnvelopes<EnvelopePerfil>(CHAVE_PERFIS, "pipoca.perfil.v1");
-    const semEste = raw.filter((e) => e.perfil?.id !== p.id);
+    // D-09: preserva envelopes de versão desconhecida (`resto`) ao regravar.
+    const { conhecidos, resto } = particionarPorEsquema(lerArrayBruto(CHAVE_PERFIS), "pipoca.perfil.v1");
+    const semEste = (conhecidos as unknown as EnvelopePerfil[]).filter((e) => e.perfil?.id !== p.id);
     const novoEnvelope: EnvelopePerfil = {
       esquema: "pipoca.perfil.v1",
       perfil: { ...p },
     };
-    gravarItem(CHAVE_PERFIS, [...semEste, novoEnvelope]);
+    gravarItem(CHAVE_PERFIS, [...resto, ...semEste, novoEnvelope]);
   }
 
   /**
@@ -111,7 +114,23 @@ export class RepositorioLocalStorage implements RepositorioPersistencia {
       perfilId,
       estado,
     };
-    gravarItem(chaveSave(perfilId), envelope);
+    if (gravarItem(chaveSave(perfilId), envelope)) return;
+    // D-10: quota cheia — o save (progresso da criança) é o dado mais precioso,
+    // não pode sumir em silêncio. Abre espaço podando a telemetria DESTE perfil
+    // (analytics: o dado mais volumoso e descartável) e tenta de novo; só então
+    // degrada em silêncio (regra da casa: nunca interromper a sessão).
+    try {
+      const chaveTel = chaveTelemetria(perfilId);
+      const bruto = lerArrayBruto(chaveTel);
+      if (bruto.length > 0) {
+        gravarItem(chaveTel, bruto.slice(Math.floor(bruto.length / 2))); // mantém a metade mais recente
+        if (gravarItem(chaveSave(perfilId), envelope)) return;
+        gravarItem(chaveTel, []); // ainda não coube: descarta toda a telemetria e tenta a última vez
+        gravarItem(chaveSave(perfilId), envelope);
+      }
+    } catch {
+      /* degradação silenciosa */
+    }
   }
 
   async registrarTelemetria(evento: EventoTelemetria): Promise<void> {
@@ -187,10 +206,12 @@ export class RepositorioLocalStorage implements RepositorioPersistencia {
    */
   async salvarHistoria(perfilId: string, historia: HistoriaSalva): Promise<void> {
     const chave = chaveHistorias(perfilId);
-    const envelopes = lerArrayEnvelopes<EnvelopeHistoriaV1>(chave, ESQUEMA_HISTORIAS);
+    // D-09: `resto` (versões desconhecidas) é preservado em toda regravação.
+    const { conhecidos, resto } = particionarPorEsquema(lerArrayBruto(chave), ESQUEMA_HISTORIAS);
+    const envelopes = conhecidos as unknown as EnvelopeHistoriaV1[];
     const semEsta = envelopes.filter((e) => e.historia?.id !== historia.id);
     let lista = [...semEsta, criarEnvelopeHistoria({ ...historia })];
-    if (gravarItem(chave, lista)) return;
+    if (gravarItem(chave, [...resto, ...lista])) return;
     const podavel = (e: EnvelopeHistoriaV1, intermediaria: boolean): boolean =>
       !!e.historia && e.historia.favorita !== true && e.historia.id !== historia.id &&
       (e.historia.intermediaria === true) === intermediaria;
@@ -200,18 +221,18 @@ export class RepositorioLocalStorage implements RepositorioPersistencia {
         .sort((a, b) => (a.historia?.criadaEm ?? 0) - (b.historia?.criadaEm ?? 0));
       for (const vitima of candidatas) {
         lista = lista.filter((e) => e !== vitima);
-        if (gravarItem(chave, lista)) return;
+        if (gravarItem(chave, [...resto, ...lista])) return;
       }
     }
   }
 
   async apagarHistoria(perfilId: string, historiaId: string): Promise<void> {
-    const envelopes = lerArrayEnvelopes<EnvelopeHistoriaV1>(
-      chaveHistorias(perfilId),
-      ESQUEMA_HISTORIAS
-    );
+    const chave = chaveHistorias(perfilId);
+    // D-09: preserva `resto` (versões desconhecidas) ao regravar.
+    const { conhecidos, resto } = particionarPorEsquema(lerArrayBruto(chave), ESQUEMA_HISTORIAS);
+    const envelopes = conhecidos as unknown as EnvelopeHistoriaV1[];
     const restantes = envelopes.filter((e) => e.historia?.id !== historiaId);
-    if (restantes.length !== envelopes.length) gravarItem(chaveHistorias(perfilId), restantes);
+    if (restantes.length !== envelopes.length) gravarItem(chave, [...resto, ...restantes]);
   }
 
   /**
@@ -223,7 +244,9 @@ export class RepositorioLocalStorage implements RepositorioPersistencia {
     const mantidas = normalizarHistorias(antes, agora);
     const removidas = antes.length - mantidas.length;
     if (removidas > 0) {
-      gravarItem(chaveHistorias(perfilId), mantidas.map(criarEnvelopeHistoria));
+      // D-09: `resto` (versões desconhecidas) sobrevive à poda.
+      const resto = particionarPorEsquema(lerArrayBruto(chaveHistorias(perfilId)), ESQUEMA_HISTORIAS).resto;
+      gravarItem(chaveHistorias(perfilId), [...resto, ...mantidas.map(criarEnvelopeHistoria)]);
     }
     return removidas;
   }
@@ -236,8 +259,9 @@ export class RepositorioLocalStorage implements RepositorioPersistencia {
     try { localStorage.removeItem(chaveSave(perfilId)); } catch {}
     try { localStorage.removeItem(chaveTelemetria(perfilId)); } catch {}
     try { localStorage.removeItem(chaveHistorias(perfilId)); } catch {}
-    const envelopes = lerArrayEnvelopes<EnvelopePerfil>(CHAVE_PERFIS, "pipoca.perfil.v1");
-    const filtrado = envelopes.filter((e) => e.perfil?.id !== perfilId);
-    gravarItem(CHAVE_PERFIS, filtrado);
+    // D-09: preserva `resto` (versões desconhecidas) ao remover o perfil da lista.
+    const { conhecidos, resto } = particionarPorEsquema(lerArrayBruto(CHAVE_PERFIS), "pipoca.perfil.v1");
+    const filtrado = (conhecidos as unknown as EnvelopePerfil[]).filter((e) => e.perfil?.id !== perfilId);
+    gravarItem(CHAVE_PERFIS, [...resto, ...filtrado]);
   }
 }

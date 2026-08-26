@@ -479,6 +479,38 @@ console.log("\n=== histórias salvas — repo local (upsert, poda, LGPD) ===");
   assert(aposQuota.some((h) => h.id === "completa"), "a história completa sobrevive à poda preventiva");
 }
 
+// --- D-09: envelope de versão DESCONHECIDA sobrevive às regravações locais ---
+// (regressão: antes, lerArrayEnvelopes filtrava por esquema e a lista filtrada
+// era regravada, apagando um futuro pipoca.perfil.v2 na primeira escrita v1.)
+{
+  console.log("\n=== D-09 — versão futura não é destruída no caminho local ===");
+  const mem = new Map<string, string>();
+  (globalThis as Record<string, unknown>)["localStorage"] = {
+    getItem: (k: string) => (mem.has(k) ? (mem.get(k) as string) : null),
+    setItem: (k: string, v: string) => { mem.set(k, String(v)); },
+    removeItem: (k: string) => { mem.delete(k); },
+  };
+  const repo = new RepositorioLocalStorage();
+
+  // um envelope v2 (app mais novo) convive com um v1 no mesmo array
+  mem.set("pipoca.perfil.v1", JSON.stringify([
+    { esquema: "pipoca.perfil.v2", perfil: { id: "futuro", coisaNova: true } },
+    criarEnvelopePerfil(criarPerfil("velho", { nome: "Ana", idade: 7, nivel: "n2", avatarId: "lua" })),
+  ]));
+
+  await repo.salvarPerfil(criarPerfil("velho", { nome: "Ana2", idade: 8, nivel: "n2", avatarId: "lua" }));
+  let bruto = JSON.parse(mem.get("pipoca.perfil.v1") as string) as Array<{ esquema: string; perfil?: { id: string } }>;
+  assert(
+    bruto.some((e) => e.esquema === "pipoca.perfil.v2" && e.perfil?.id === "futuro"),
+    "salvarPerfil v1 PRESERVA o envelope pipoca.perfil.v2"
+  );
+  assert((await repo.carregarPerfis()).some((p) => p.id === "velho"), "o perfil v1 atualizado segue legível");
+
+  await repo.apagarPerfil("velho");
+  bruto = JSON.parse(mem.get("pipoca.perfil.v1") as string) as Array<{ esquema: string; perfil?: { id: string } }>;
+  assert(bruto.some((e) => e.esquema === "pipoca.perfil.v2"), "apagarPerfil v1 NÃO leva o envelope v2 junto");
+}
+
 console.log(`\n${"=".repeat(50)}`);
 console.log(`Total: ${passou + falhou} | ✓ ${passou} passou | ✗ ${falhou} falhou`);
 if (falhou > 0) throw new Error(`${falhou} teste(s) falharam`);

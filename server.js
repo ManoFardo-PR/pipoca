@@ -40,6 +40,30 @@ function resolverCaminho(urlPath) {
   return path.join(__dirname, urlPath);
 }
 
+// CONTENÇÃO DO DOCROOT (auditoria S-01): o repo inteiro é a pasta servida, então
+// sem allowlist um GET /.env entrega as chaves e /.git/* o histórico. Servimos
+// só o que o app de fato busca: os arquivos-raiz do boot, src/** (html/js/css) e
+// as imagens de attached_assets. Todo o resto (.env, .git, functions, scripts,
+// docs, .ts, .sql, o próprio server.js) e qualquer '..' que escape do docroot → 404.
+const RAIZ_PERMITIDA = new Set([
+  "index.html", "admin.html", "landing.html",
+  "support.js", "pipoca.config.js", "pipoca.bundle.js", "pipoca.admin.bundle.js",
+]);
+const EXT_SRC = new Set([".html", ".js", ".css"]);
+const EXT_ASSET = new Set([".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".webp"]);
+
+function ehServivel(filePathAbs) {
+  const rel = path.relative(__dirname, filePathAbs);
+  if (rel === "" || rel.startsWith("..") || path.isAbsolute(rel)) return false; // traversal
+  const relUrl = rel.split(path.sep).join("/");
+  const ext = path.extname(relUrl).toLowerCase();
+  if (!relUrl.includes("/")) return RAIZ_PERMITIDA.has(relUrl);          // arquivos da raiz: allowlist
+  if (relUrl.startsWith("src/")) return EXT_SRC.has(ext);                // src/**: só html/js/css
+  if (relUrl.startsWith("attached_assets/")) return EXT_ASSET.has(ext);  // assets: só imagens
+  if (relUrl.startsWith("docs/")) return ext === ".json";               // dados: grafo autoral + fichas (não .md/.mjs)
+  return false;                                                          // qualquer outra pasta: negado
+}
+
 const server = http.createServer((req, res) => {
   let urlPath = req.url.split("?")[0];
 
@@ -62,6 +86,14 @@ const server = http.createServer((req, res) => {
   }
 
   const filePath = resolverCaminho(urlPath);
+
+  // Contenção do docroot (S-01): fora da allowlist → 404, antes de tocar o disco.
+  if (!ehServivel(filePath)) {
+    res.writeHead(404, { "Content-Type": "text/plain" });
+    res.end("Not Found");
+    return;
+  }
+
   const servindoLanding = filePath === path.join(__dirname, "landing.html");
 
   fs.readFile(filePath, (err, data) => {

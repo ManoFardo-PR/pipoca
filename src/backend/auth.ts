@@ -64,6 +64,17 @@ export interface ServicoAuth {
    * endereço — o e-mail só muda de fato após o clique.
    */
   alterarEmail?(novoEmail: string): Promise<void>;
+  /**
+   * Inicia o login com Google pelo provedor OAuth do backend (redireciona o
+   * navegador ao consentimento). Aditivo-opcional. `redirecionarPara` é a URL
+   * de retorno após o consentimento (default: origin + "/app").
+   */
+  entrarComGoogle?(redirecionarPara?: string): void;
+  /**
+   * No boot, se a URL traz o retorno do OAuth (tokens no fragmento), assenta a
+   * sessão e resolve com ela (limpando o fragmento da URL); senão resolve null.
+   */
+  capturarRetornoOAuth?(): Promise<SessaoAuth | null>;
 }
 
 /** Erro neutro padrão de login (não distingue e-mail de senha — regra das fases 02/04). */

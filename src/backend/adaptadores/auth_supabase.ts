@@ -350,6 +350,66 @@ export function criarAuthSupabase(op: OpcoesAuthSupabase): AuthSupabase {
       if (resp.status !== 200) throw new Error("Não deu para trocar o e-mail agora. Tente de novo.");
     },
 
+    // Login com Google pelo GoTrue (fluxo OAuth do provedor, sem SDK): redireciona
+    // o navegador ao consentimento; o retorno volta com os tokens no fragmento da
+    // URL (fluxo implícito). Não bloqueia — a navegação sai daqui.
+    entrarComGoogle(redirecionarPara?: string): void {
+      const g = globalThis as unknown as {
+        location?: { origin?: string; href?: string; assign?: (u: string) => void };
+      };
+      const origin = (g.location && g.location.origin) || "";
+      const destino = redirecionarPara || (origin ? origin + "/app" : "");
+      const url =
+        base +
+        "/auth/v1/authorize?provider=google" +
+        (destino ? "&redirect_to=" + encodeURIComponent(destino) : "");
+      if (g.location) {
+        if (typeof g.location.assign === "function") g.location.assign(url);
+        else g.location.href = url;
+      }
+    },
+
+    // Retorno do OAuth: tokens no fragmento (#access_token & refresh_token). O
+    // fragmento NÃO traz o objeto user — buscamos em /auth/v1/user. O fragmento é
+    // SEMPRE limpo (não deixar token na URL/histórico), mesmo em falha.
+    async capturarRetornoOAuth(): Promise<SessaoAuth | null> {
+      const g = globalThis as unknown as {
+        location?: { hash?: string; pathname?: string; search?: string };
+        history?: { replaceState?: (a: unknown, b: string, url: string) => void };
+      };
+      const hash = (g.location && g.location.hash) || "";
+      if (hash.length < 2) return null;
+      const frag = new URLSearchParams(hash.charAt(0) === "#" ? hash.slice(1) : hash);
+      const access = frag.get("access_token");
+      const refresh = frag.get("refresh_token");
+      const limparFragmento = (): void => {
+        try {
+          if (g.history && g.history.replaceState && g.location) {
+            g.history.replaceState(null, "", (g.location.pathname || "/") + (g.location.search || ""));
+          }
+        } catch {
+          /* melhor esforço */
+        }
+      };
+      if (!access || !refresh) return null; // não é retorno OAuth (ou veio #error=...)
+      let user: { id?: string; email?: string } | null = null;
+      try {
+        const resp = await transporte(base + "/auth/v1/user", { method: "GET", headers: cabecalhos(access) });
+        if (resp.status === 200) user = (await resp.json()) as { id?: string; email?: string };
+      } catch {
+        /* tratado abaixo (user null) */
+      }
+      limparFragmento();
+      if (!user || !user.id) return null;
+      const r: RespostaToken = {
+        access_token: access,
+        refresh_token: refresh,
+        expires_in: Number(frag.get("expires_in")) || 3600,
+        user,
+      };
+      return assentarSessao(r, "familia", await tenantVinculado(access));
+    },
+
     async sair(): Promise<void> {
       const s = lerSessaoBackend();
       // Espelhos limpos PRIMEIRO (um reload imediato não pode ressuscitar a

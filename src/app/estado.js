@@ -607,6 +607,21 @@
     return Promise.resolve({ ok: true });
   }
 
+  // Login com Google pelo seam: só redireciona ao consentimento do provedor; o
+  // retorno (tokens no fragmento) é assentado no boot por capturarRetornoOAuth.
+  // Devolve false quando o backend não suporta (bundle/adaptador sem OAuth).
+  function entrarComGoogle() {
+    try {
+      var Canon = window.PipocaCanonico;
+      var b = Canon && Canon.backend ? Canon.backend.obterBackend() : null;
+      if (b && b.auth && typeof b.auth.entrarComGoogle === "function") {
+        b.auth.entrarComGoogle();
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
   function _backend() {
     var Canon = window.PipocaCanonico;
     try { if (Canon && Canon.backend) return Canon.backend.obterBackend(); } catch (_) {}
@@ -1247,6 +1262,7 @@
     abrirPortao: abrirPortao,
     aoVoltarParaCrianca: aoVoltarParaCrianca,
     entrarNaConta: entrarNaConta,
+    entrarComGoogle: entrarComGoogle,
     criarConta: criarConta,
     recuperarSenha: recuperarSenha,
     redefinirSenha: redefinirSenha,
@@ -1280,28 +1296,56 @@
   // com sessão → modo criança (T2). O boot navega por _irPara (anterior à guarda).
   // O check continua SÍNCRONO no espelho local — o adaptador remoto (fase06)
   // grava os mesmos espelhos, então nada muda aqui.
-  var _telaInicial = 2;
-  try {
-    var C0 = window.PipocaCanonico && window.PipocaCanonico.conta;
-    if (C0 && !C0.sessaoValida(C0.carregarSessaoConta(), Date.now())) _telaInicial = 9;
-  } catch (_) {}
-  _irPara(_telaInicial);
-  // fase06 · com sessão de família e backend remoto: renova o token e roda a
-  // sincronização inicial na largada (fire-and-forget; sem rede, nada muda).
-  try {
-    var _CanonB = window.PipocaCanonico && window.PipocaCanonico.backend;
-    if (_CanonB && _telaInicial === 2) {
-      var _b0 = _CanonB.obterBackend();
-      var _s0 = _b0.auth.sessaoAtual();
-      if (_s0 && _s0.tipo === "familia") {
-        _puxarFlagsGlobais(); // kill-switch global alcança a casa no boot
-        if (typeof _b0.sincronizar === "function") {
-          _b0.sincronizar()
-            .then(function () { return repo.carregarPerfis(); })
-            .then(function () { notify(); })
-            .catch(function () {});
+  // Decide a tela inicial pela sessão e, com família + backend remoto, dispara a
+  // sincronização inicial (fire-and-forget; sem rede, nada muda). Extraída para
+  // poder rodar DEPOIS de assentar o retorno do OAuth do Google.
+  function _decidirTelaEEntrar() {
+    var _telaInicial = 2;
+    try {
+      var C0 = window.PipocaCanonico && window.PipocaCanonico.conta;
+      if (C0 && !C0.sessaoValida(C0.carregarSessaoConta(), Date.now())) _telaInicial = 9;
+    } catch (_) {}
+    _irPara(_telaInicial);
+    try {
+      var _CanonB = window.PipocaCanonico && window.PipocaCanonico.backend;
+      if (_CanonB && _telaInicial === 2) {
+        var _b0 = _CanonB.obterBackend();
+        var _s0 = _b0.auth.sessaoAtual();
+        if (_s0 && _s0.tipo === "familia") {
+          _puxarFlagsGlobais(); // kill-switch global alcança a casa no boot
+          if (typeof _b0.sincronizar === "function") {
+            _b0.sincronizar()
+              .then(function () { return repo.carregarPerfis(); })
+              .then(function () { notify(); })
+              .catch(function () {});
+          }
         }
       }
-    }
+    } catch (_) {}
+  }
+
+  // Retorno do login com Google: se a URL traz o fragmento do OAuth, assenta a
+  // sessão ANTES de decidir a tela (senão o boot iria para o login e perderia o
+  // token). Caso contrário, boot normal.
+  var _temRetornoOAuth = false;
+  try {
+    _temRetornoOAuth =
+      typeof window.location.hash === "string" && window.location.hash.indexOf("access_token=") >= 0;
   } catch (_) {}
+  var _authOAuth = null;
+  if (_temRetornoOAuth) {
+    try {
+      var _bkOA = window.PipocaCanonico && window.PipocaCanonico.backend;
+      var _bOA = _bkOA ? _bkOA.obterBackend() : null;
+      _authOAuth = _bOA && _bOA.auth && typeof _bOA.auth.capturarRetornoOAuth === "function" ? _bOA.auth : null;
+    } catch (_) { _authOAuth = null; }
+  }
+  if (_authOAuth) {
+    _irPara(9); // breve, enquanto troca o token pela sessão
+    _authOAuth.capturarRetornoOAuth()
+      .then(function () { _decidirTelaEEntrar(); })
+      .catch(function () { _decidirTelaEEntrar(); });
+  } else {
+    _decidirTelaEEntrar();
+  }
 })();

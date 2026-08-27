@@ -5,6 +5,9 @@ justificativa-fim. Aqui cada **onda** vira uma pasta e cada **subtarefa** vira u
 autocontido: quem pegar um arquivo consegue executar e concluir a subtarefa sem abrir o
 catálogo. Nenhuma subtarefa foi executada ao criar este plano.
 
+**Como executar:** ver `01-PLANO-DE-EXECUCAO.md` (folha de decisões, sequência/paralelismo,
+gates, git/deploy/rollback, protocolo de sessão, estimativas, riscos).
+
 ## Mapa das ondas
 
 | Onda | Pasta | Grupos | Unidade de deploy | Subtarefas |

@@ -46,7 +46,7 @@
 
 // fase05: consumo das flags da plataforma pelo runtime da criança (previsto na
 // TRILHA). Módulo puro + storage versionado — NADA do runtime admin vem junto.
-import { aplicarFlagsAosModos, carregarFlags, killSwitchAtivo } from "../admin/flags.js";
+import { aplicarFlagsAosModos, carregarFlags, killSwitchAtivo, iaEfetivamenteLigada } from "../admin/flags.js";
 // fase06: backend trocável (config pública + fachada + sync). O runtime fala
 // SÓ com a fachada — lei do backend.
 import { obterBackend } from "../backend/backend.js";
@@ -270,7 +270,9 @@ const PipocaCanonico = {
   },
 
   // --- flags da plataforma (kill-switches do SA_SAFE, fase04→05) ---
-  flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos },
+  // A1 (Plan03): iaEfetivamenteLigada = cuidador autorizou E sem kill-switch — o gate
+  // de consentimento que estado.js consulta antes de chamar o realizador remoto.
+  flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos, iaEfetivamenteLigada },
 
   // --- serviços / seams ---
   tts,

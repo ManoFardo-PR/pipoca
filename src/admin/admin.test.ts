@@ -75,6 +75,7 @@ import {
   killSwitch,
   killSwitchAtivo,
   aplicarFlagsAosModos,
+  iaEfetivamenteLigada,
   carregarFlags,
   salvarFlags,
   normalizarFlags,
@@ -397,6 +398,12 @@ console.log("\n=== SA_SAFE · flags, kill-switch e efeito nos Modos ===");
   assert(aplicarFlagsAosModos(modosComIa, FLAGS_PADRAO).iaLigada === false, "IA global desligada IGNORA Modos.iaLigada");
   const aplicado = aplicarFlagsAosModos(modosComIa, ligada);
   assert(aplicado.iaLigada === true && aplicado.desfecho === modosPadrao.desfecho, "IA global ligada respeita o cuidador (demais campos intactos)");
+
+  // Plan03 · A1 — gate único de consentimento: cuidador E plataforma, fail-closed.
+  assert(iaEfetivamenteLigada(modosComIa, ligada) === true, "A1 iaEfetivamenteLigada: cuidador autorizou + plataforma liberada ⇒ ligada");
+  assert(iaEfetivamenteLigada(modosComIa, FLAGS_PADRAO) === false, "A1 iaEfetivamenteLigada: kill-switch global vence a autorização do cuidador");
+  assert(iaEfetivamenteLigada(modosPadrao, ligada) === false, "A1 iaEfetivamenteLigada: sem autorização do cuidador ⇒ desligada mesmo com a plataforma liberada");
+  assert(iaEfetivamenteLigada(modosPadrao, {}) === false, "A1 iaEfetivamenteLigada: flags ausentes ⇒ desligada (fail-closed)");
 
   // fase05 · kill-switch de FALA degrada a verificação (o portão nunca fica sem caminho)
   const modosComFala = { ...modosPadrao, verificacao: "fala" as const, iaLigada: true };

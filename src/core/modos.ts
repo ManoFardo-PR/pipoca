@@ -12,8 +12,10 @@
  *   src/dados/schemas.ts, src/app/bridge.ts, src/admin/{bridge_admin,flags,admin.test}.ts,
  *   src/backend/backend.test.ts, src/core/parciais.test.ts, old/motores/fabrica.ts (legado).
  * RODA POR: boot do app (via pipoca.bundle.js); testes em `bun run src/core/parciais.test.ts` (dentro de `bun run test`).
- * CUIDADO: iaLigada tem default seguro = false; a fábrica lê esta flag (Motor A vs B) e, sem
- *   provedor configurado (fase04-04-05), permanece em Motor A na prática. `Modos` (config de
+ * CUIDADO: iaLigada tem default seguro = false. Quem a LÊ é o gate único de consentimento do
+ *   app — `_dispararRealizacao` (src/app/estado.js) via `iaEfetivamenteLigada` (src/admin/
+ *   flags.ts: cuidador E plataforma sem kill-switch) — antes de chamar o realizador remoto
+ *   (Plan03 · A1). A "fábrica Motor A vs B" foi arquivada (old/motores). `Modos` (config de
  *   narrativa) ≠ `ModoApp` (criança/cuidador, modoApp.ts).
  *
  * — detalhe preservado —
@@ -22,7 +24,7 @@
  * Centraliza os modos que governam a experiência.
  * Palco vs Ateliê: variações de apresentação da mesma mecânica.
  * Verificacao: define o fluxo do portão.
- * iaLigada: decide Motor A vs B na fábrica.
+ * iaLigada: autorização do cuidador para a geração por IA (o gate do app decide).
  *
  * Mapeamento do protótipo:
  *   heroVariant A/B → palco: "Palco" | "Ateliê"
@@ -83,9 +85,10 @@ export function alternarPalco(modos: Modos): Modos {
 }
 
 /**
- * Autoriza (ou não) a geração por IA (Motor B) para a criança — ação `autorizarIA` (PC_AI).
- * Default seguro = desligado; a fábrica ([[fase00-00-19]]) lê esta flag. Sem provedor
- * configurado ([[fase04-04-05]]), a fábrica permanece em Motor A na prática.
+ * Autoriza (ou não) a geração por IA para a criança — ação `autorizarIA` (PC_AI).
+ * Default seguro = desligado. Efeito real: o gate de consentimento do app (Plan03 · A1,
+ * `_dispararRealizacao` em src/app/estado.js) só chama o realizador remoto quando esta
+ * autorização E a flag global `ia` (kill-switch da plataforma) estão ligadas.
  */
 export function autorizarIA(modos: Modos, on: boolean): Modos {
   return { ...modos, iaLigada: !!on };

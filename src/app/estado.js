@@ -798,6 +798,24 @@
     return Canon && Canon.geracao ? Canon.geracao : null;
   }
 
+  // Plan03 · A1 — gate ÚNICO de consentimento. O realizador remoto (edge → LLM)
+  // recebe nome, gênero e nível da criança; só pode ser chamado com a IA
+  // EFETIVAMENTE ligada: autorização do cuidador (modos.iaLigada) E plataforma
+  // sem kill-switch (flag global `ia`). Lê as flags na borda, a cada disparo
+  // (sem reload). Fail-closed: sem Canon.flags (ou erro) ⇒ desligada.
+  var MOTIVO_IA_DESLIGADA = "ia-desligada";
+  var ROTA_TODA_AP_CRU = { n1: "ap_cru", n2: "ap_cru", n3: "ap_cru", n4: "ap_cru" };
+  function _iaEfetivamenteLigada() {
+    var Canon = window.PipocaCanonico;
+    var F = Canon && Canon.flags;
+    if (!F || typeof F.aplicarFlagsAosModos !== "function" || typeof F.carregarFlags !== "function") return false;
+    try {
+      return F.aplicarFlagsAosModos(state.modos || {}, F.carregarFlags()).iaLigada === true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   // Dispara a realização em BACKGROUND na ENTRADA do portão (13-01:50, reconciliado
   // após A2: o texto LIDO no portão é o realizado). Roda sobre a composição
   // pós-move SIMULADA (compAlvo = _aplicarMove) — a mesma da prévia; um disparo
@@ -821,8 +839,14 @@
       estadoFallback: { estado: comp, nivel: nivel },
     };
     var opcoes = {};
-    // Produção: realizador remoto (edge, cascata no servidor) quando disponível.
-    if (G.realizadorRemoto) {
+    var iaLigada = _iaEfetivamenteLigada();
+    if (!iaLigada) {
+      // A1: IA desligada (cuidador não autorizou OU kill-switch) ⇒ rota A+ cru no
+      // próprio `gerar` — zero LLM por construção (nem o realizador local entra;
+      // nada da criança sai do aparelho). A prévia e a captura seguem iguais.
+      opcoes.rota = ROTA_TODA_AP_CRU;
+    } else if (G.realizadorRemoto) {
+      // Produção: realizador remoto (edge, cascata no servidor) quando disponível.
       var remoto = null;
       try { remoto = G.realizadorRemoto(); } catch (_) { remoto = null; }
       if (remoto) opcoes.realizador = remoto;
@@ -831,7 +855,12 @@
     _realizacaoPendente = {
       chave: chave,
       resultado: null, // P2: memoizado pela corrida do portão; o commit reusa (salvo === lido)
-      promise: G.gerar(entrada, opcoes).catch(function (e) {
+      promise: G.gerar(entrada, opcoes).then(function (r) {
+        // A1: o motivo distingue "desligada" (consentimento) de "falhou" (edge/teto)
+        // no registro salvo e no log da sessão (_contarOrigem).
+        if (!iaLigada && r && r.origem) r.origem.motivo = MOTIVO_IA_DESLIGADA;
+        return r;
+      }).catch(function (e) {
         // P1 (observabilidade 13-02 aditivo): preservar o MOTIVO real (ex.: 503
         // da edge, "sem sessão") em vez de engolir em null — flui p/ origem.motivo.
         var motivo = (e && e.message) || String(e);
@@ -929,11 +958,15 @@
   var _historiaEmitida = false; // historia_concluida 1x por história
   // P1 (observabilidade): taxa realizador vs fallback da SESSÃO (em memória);
   // logada ao fim da sessão — o autor VÊ a taxa sem painel novo.
-  var _origemSessao = { llm: 0, fallback: 0 };
+  var _origemSessao = { llm: 0, fallback: 0, desligada: 0 };
   function _contarOrigem(r) {
     var fonte = r && r.origem && r.origem.fonte;
     if (fonte === "llm") _origemSessao.llm += 1;
-    else if (fonte === "fallback-a-mais") _origemSessao.fallback += 1;
+    else if (fonte === "fallback-a-mais") {
+      // A1: "desligada" (consentimento/kill-switch) NÃO é "falhou" (edge/teto).
+      if (r.origem.motivo === MOTIVO_IA_DESLIGADA) _origemSessao.desligada += 1;
+      else _origemSessao.fallback += 1;
+    }
   }
 
   function _tele() {
@@ -983,7 +1016,7 @@
     _acum = { palavras: 0, historias: 0 };
     _jaEmitidos = new Set();
     _historiaEmitida = false;
-    _origemSessao = { llm: 0, fallback: 0 };
+    _origemSessao = { llm: 0, fallback: 0, desligada: 0 };
     var Canon = window.PipocaCanonico;
     if (!state.sessao && state.perfil && Canon && Canon.sessao) {
       var bloco = (state.limites && state.limites.blocoMin) || 15;
@@ -1208,7 +1241,8 @@
       // P1: fim da história completa (convergência) — loga a taxa da sessão.
       _contarOrigem(r);
       console.info("[PipocaApp] realizações da sessão — realizador(llm): " +
-        _origemSessao.llm + " · fallback(cru): " + _origemSessao.fallback);
+        _origemSessao.llm + " · fallback(cru): " + _origemSessao.fallback +
+        " · ia desligada(cru): " + _origemSessao.desligada);
     });
   }
 

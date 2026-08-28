@@ -38,7 +38,11 @@
  * o texto LIDO, origem, pacoteOrigem e rodada (13-02) — salvo === lido; (5) o
  * leitor EXIBE o texto realizado; (6) caminho infeliz: realizador fora do ar ⇒
  * o portão CAI NO CRU (A+ v3 visível), origem sinalizada; (7) teto: fake que
- * estoura o teto (override e2e) ⇒ cru por 'teto' — a criança nunca vê erro.
+ * estoura o teto (override e2e) ⇒ cru por 'teto' — a criança nunca vê erro;
+ * (8) Plan03 · A1 — gate de consentimento: com IA desligada (cuidador não
+ * autorizou OU kill-switch) o realizador NÃO é chamado e a origem diz
+ * 'ia-desligada'. Por isso os blocos que ESPERAM o fake ligam a IA efetiva
+ * (modos.iaLigada + flag global `ia`) depois de selecionar o perfil.
  *
  * Usa playwright-core em cache (registry offline). Porta dedicada 5139.
  */
@@ -135,6 +139,9 @@ try {
     await App.repo.salvarPerfil(perfil);
     App.selecionarPerfil(perfil);
     await espera(30);
+    // A1 · o gate de consentimento exige IA EFETIVA (cuidador + plataforma).
+    localStorage.setItem("pipoca.admin.flags.v1", JSON.stringify({ ia: true, fala: false, conteudoCustomizado: true, telemetria: true }));
+    App.setState({ modos: Object.assign({}, App.estado.modos, { iaLigada: true }) });
 
     // Provedor FAKE no seam: registra o Pacote recebido e devolve texto realizado
     // em 3 PARÁGRAFOS (linha em branco), como o realizador real (fim do paredão).
@@ -309,6 +316,7 @@ try {
     await App.repo.salvarPerfil(perfil);
     App.selecionarPerfil(perfil);
     await espera(30);
+    App.setState({ modos: Object.assign({}, App.estado.modos, { iaLigada: true }) }); // A1: IA efetiva
 
     // Edge "fora do ar": o remoto lança — o fallback NÃO depende do edge (13-03).
     Canon.geracao.realizadorRemoto = () => async () => { throw new Error("edge fora do ar (e2e)"); };
@@ -378,6 +386,7 @@ try {
     await App.repo.salvarPerfil(perfil);
     App.selecionarPerfil(perfil);
     await espera(30);
+    App.setState({ modos: Object.assign({}, App.estado.modos, { iaLigada: true }) }); // A1: IA efetiva
     // Realizador que NUNCA resolve → só o teto encerra a espera.
     Canon.geracao.realizadorRemoto = () => () => new Promise(() => {});
     App.iniciarComposicao();
@@ -429,6 +438,9 @@ try {
       };
     };
     window.__jogarRodada = async () => {
+      // A1: selecionar perfil hidrata os modos do save (iaLigada volta a false) —
+      // liga a IA efetiva antes de cada rodada que ESPERA o fake.
+      App.setState({ modos: Object.assign({}, App.estado.modos, { iaLigada: true }) });
       App.iniciarComposicao();
       const banco = App.estado.comp.banco.slice(0, 3);
       const pendente = { tipo: "r1", ordem: banco };
@@ -514,6 +526,72 @@ try {
   );
   const naoPerguntaMais = await page.evaluate(() => window.PipocaApp.estado.pedirGenero !== true);
   assert(naoPerguntaMais, "com o gênero persistido, a ativação seguinte NÃO pergunta mais (pediu UMA vez)");
+
+  console.log("\n=== Plan03 · A1 · Gate de consentimento: IA desligada ⇒ realizador NÃO é chamado ===");
+  const reqsRealizador = [];
+  page.on("request", (r) => { if (/functions\/v1\/realizador/.test(r.url())) reqsRealizador.push(r.url()); });
+  const gate = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const Canon = window.PipocaCanonico;
+    const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+    const perfil = Canon.perfil.criarPerfil("g2-gate", {
+      nome: "Nina", idade: 7, nivel: "n2", avatarId: "lua", genero: "f",
+    });
+    await App.repo.salvarPerfil(perfil);
+    App.selecionarPerfil(perfil);
+    await espera(30);
+    const TEXTO_CONSENTIDO = "Texto realizado com consentimento.";
+    const registro = { chamadas: 0 };
+    Canon.geracao.realizadorRemoto = () => async () => {
+      registro.chamadas++;
+      return {
+        texto: TEXTO_CONSENTIDO, paragrafos: [TEXTO_CONSENTIDO],
+        veredito: { pass: true, motivos: [], avisos: [], presencaPorBeat: {} },
+        origem: { fonte: "llm", provedor: "fake-e2e", modelo: "fake-1" },
+        metadados: { chamadas: 1, duracaoMs: 1 },
+      };
+    };
+    const flags = (ia) => localStorage.setItem("pipoca.admin.flags.v1",
+      JSON.stringify({ ia, fala: false, conteudoCustomizado: true, telemetria: true }));
+    const cuidador = (on) => App.setState({ modos: Object.assign({}, App.estado.modos, { iaLigada: on }) });
+    const rodada = async () => {
+      App.iniciarComposicao();
+      const banco = App.estado.comp.banco.slice(0, 3);
+      const pendente = { tipo: "r1", ordem: banco };
+      const previa = App.preverComposicao(pendente, "n2");
+      const antes = registro.chamadas;
+      App.prepararLeituraPortao(pendente, banco[banco.length - 1]);
+      let g = 0;
+      while (App.estado.gateStage !== "reading" && g++ < 400) await espera(5);
+      const gateTrecho = App.estado.gateTrecho;
+      App.aplicarComposicao(pendente);
+      App.abrirProximaRodadaComposicao();
+      await espera(80);
+      const envs = JSON.parse(localStorage.getItem("pipoca.historias.v1:g2-gate") || "[]").map((e) => e.historia);
+      const ultimo = envs[envs.length - 1];
+      return { chamadas: registro.chamadas - antes, leuCru: gateTrecho === previa && previa.length > 0, gateTrecho, origem: ultimo ? ultimo.origem : null };
+    };
+    // (a) cuidador NÃO autorizou (default iaLigada:false), plataforma liberada.
+    flags(true); cuidador(false);
+    const semCuidador = await rodada();
+    // (b) cuidador autorizou, mas o kill-switch da plataforma está ativo.
+    cuidador(true); flags(false);
+    const comKill = await rodada();
+    // (c) os dois ligados ⇒ o realizador volta a ser chamado (comportamento anterior).
+    flags(true); cuidador(true);
+    const ligada = await rodada();
+    localStorage.removeItem("pipoca.admin.flags.v1");
+    return { semCuidador, comKill, ligada, textoConsentido: TEXTO_CONSENTIDO };
+  });
+  assert(gate.semCuidador.chamadas === 0 && gate.semCuidador.leuCru,
+    "cuidador NÃO autorizou ⇒ ZERO chamadas ao realizador; a T5 lê o A+ cru (nada da criança sai do aparelho)");
+  assert(!!gate.semCuidador.origem && gate.semCuidador.origem.fonte === "fallback-a-mais" && gate.semCuidador.origem.motivo === "ia-desligada",
+    "origem salva = fallback-a-mais com motivo 'ia-desligada' (consentimento ≠ falha)");
+  assert(gate.comKill.chamadas === 0 && gate.comKill.leuCru && !!gate.comKill.origem && gate.comKill.origem.motivo === "ia-desligada",
+    "kill-switch da plataforma ⇒ ZERO chamadas mesmo com o cuidador autorizando (fail-closed)");
+  assert(gate.ligada.chamadas === 1 && gate.ligada.gateTrecho === gate.textoConsentido,
+    "cuidador + plataforma ligados ⇒ o realizador é chamado 1× e a T5 lê o realizado (comportamento preservado)");
+  assert(reqsRealizador.length === 0, "nenhuma requisição a /functions/v1/realizador saiu do navegador (page.on('request'))");
 
   assert(erros.length === 0, "sem erros de página no fluxo da geração 2 (erros: " + (erros.join(" | ") || "nenhum") + ")");
 } finally {

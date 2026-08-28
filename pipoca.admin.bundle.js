@@ -3,27 +3,37 @@
   var __getOwnPropNames = Object.getOwnPropertyNames;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
-  var __moduleCache = /* @__PURE__ */ new WeakMap;
+  function __accessProp(key) {
+    return this[key];
+  }
   var __toCommonJS = (from) => {
-    var entry = __moduleCache.get(from), desc;
+    var entry = (__moduleCache ??= new WeakMap).get(from), desc;
     if (entry)
       return entry;
     entry = __defProp({}, "__esModule", { value: true });
-    if (from && typeof from === "object" || typeof from === "function")
-      __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
-        get: () => from[key],
-        enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-      }));
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (var key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(entry, key))
+          __defProp(entry, key, {
+            get: __accessProp.bind(from, key),
+            enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+          });
+    }
     __moduleCache.set(from, entry);
     return entry;
   };
+  var __moduleCache;
+  var __returnValue = (v) => v;
+  function __exportSetter(name, newValue) {
+    this[name] = __returnValue.bind(null, newValue);
+  }
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, {
         get: all[name],
         enumerable: true,
         configurable: true,
-        set: (newValue) => all[name] = () => newValue
+        set: __exportSetter.bind(all, name)
       });
   };
 
@@ -1117,7 +1127,7 @@
 
   // src/admin/ia_global.ts
   var CONFIG_IA_GLOBAL_PADRAO = {
-    modeloPadrao: { claude: null, gemini: "gemini-2.5-flash", openai: null, deepseek: null },
+    modeloPadrao: { claude: null, gemini: null, openai: null, deepseek: null },
     cadeiaFallback: []
   };
   var PROVEDORES2 = ["claude", "gemini", "openai", "deepseek"];
@@ -1672,6 +1682,29 @@
       return false;
     }
   }
+  function lerArrayBruto(chave) {
+    try {
+      const raw = localStorage.getItem(chave);
+      if (raw === null)
+        return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  function particionarPorEsquema(itens, esquemaEsperado) {
+    const conhecidos = [];
+    const resto = [];
+    for (const item of itens) {
+      if (typeof item === "object" && item !== null && item["esquema"] === esquemaEsperado) {
+        conhecidos.push(item);
+      } else {
+        resto.push(item);
+      }
+    }
+    return { conhecidos, resto };
+  }
 
   // src/core/persistencia/RepositorioLocalStorage.ts
   class RepositorioLocalStorage {
@@ -1686,13 +1719,13 @@
       return validos;
     }
     async salvarPerfil(p) {
-      const raw = lerArrayEnvelopes(CHAVE_PERFIS, "pipoca.perfil.v1");
-      const semEste = raw.filter((e) => e.perfil?.id !== p.id);
+      const { conhecidos, resto } = particionarPorEsquema(lerArrayBruto(CHAVE_PERFIS), "pipoca.perfil.v1");
+      const semEste = conhecidos.filter((e) => e.perfil?.id !== p.id);
       const novoEnvelope = {
         esquema: "pipoca.perfil.v1",
         perfil: { ...p }
       };
-      gravarItem(CHAVE_PERFIS, [...semEste, novoEnvelope]);
+      gravarItem(CHAVE_PERFIS, [...resto, ...semEste, novoEnvelope]);
     }
     async carregarSave(perfilId) {
       try {
@@ -1711,7 +1744,19 @@
         perfilId,
         estado
       };
-      gravarItem(chaveSave(perfilId), envelope);
+      if (gravarItem(chaveSave(perfilId), envelope))
+        return;
+      try {
+        const chaveTel = chaveTelemetria(perfilId);
+        const bruto = lerArrayBruto(chaveTel);
+        if (bruto.length > 0) {
+          gravarItem(chaveTel, bruto.slice(Math.floor(bruto.length / 2)));
+          if (gravarItem(chaveSave(perfilId), envelope))
+            return;
+          gravarItem(chaveTel, []);
+          gravarItem(chaveSave(perfilId), envelope);
+        }
+      } catch {}
     }
     async registrarTelemetria(evento) {
       const chave = chaveTelemetria(evento.perfilId);
@@ -1753,33 +1798,37 @@
     }
     async salvarHistoria(perfilId, historia) {
       const chave = chaveHistorias(perfilId);
-      const envelopes = lerArrayEnvelopes(chave, ESQUEMA_HISTORIAS);
+      const { conhecidos, resto } = particionarPorEsquema(lerArrayBruto(chave), ESQUEMA_HISTORIAS);
+      const envelopes = conhecidos;
       const semEsta = envelopes.filter((e) => e.historia?.id !== historia.id);
       let lista = [...semEsta, criarEnvelopeHistoria({ ...historia })];
-      if (gravarItem(chave, lista))
+      if (gravarItem(chave, [...resto, ...lista]))
         return;
       const podavel = (e, intermediaria) => !!e.historia && e.historia.favorita !== true && e.historia.id !== historia.id && e.historia.intermediaria === true === intermediaria;
       for (const faseIntermediarias of [true, false]) {
         const candidatas = lista.filter((e) => podavel(e, faseIntermediarias)).sort((a, b) => (a.historia?.criadaEm ?? 0) - (b.historia?.criadaEm ?? 0));
         for (const vitima of candidatas) {
           lista = lista.filter((e) => e !== vitima);
-          if (gravarItem(chave, lista))
+          if (gravarItem(chave, [...resto, ...lista]))
             return;
         }
       }
     }
     async apagarHistoria(perfilId, historiaId) {
-      const envelopes = lerArrayEnvelopes(chaveHistorias(perfilId), ESQUEMA_HISTORIAS);
+      const chave = chaveHistorias(perfilId);
+      const { conhecidos, resto } = particionarPorEsquema(lerArrayBruto(chave), ESQUEMA_HISTORIAS);
+      const envelopes = conhecidos;
       const restantes = envelopes.filter((e) => e.historia?.id !== historiaId);
       if (restantes.length !== envelopes.length)
-        gravarItem(chaveHistorias(perfilId), restantes);
+        gravarItem(chave, [...resto, ...restantes]);
     }
     async podarHistorias(perfilId, agora) {
       const antes = await this.carregarHistorias(perfilId);
       const mantidas = normalizarHistorias(antes, agora);
       const removidas = antes.length - mantidas.length;
       if (removidas > 0) {
-        gravarItem(chaveHistorias(perfilId), mantidas.map(criarEnvelopeHistoria));
+        const resto = particionarPorEsquema(lerArrayBruto(chaveHistorias(perfilId)), ESQUEMA_HISTORIAS).resto;
+        gravarItem(chaveHistorias(perfilId), [...resto, ...mantidas.map(criarEnvelopeHistoria)]);
       }
       return removidas;
     }
@@ -1793,9 +1842,9 @@
       try {
         localStorage.removeItem(chaveHistorias(perfilId));
       } catch {}
-      const envelopes = lerArrayEnvelopes(CHAVE_PERFIS, "pipoca.perfil.v1");
-      const filtrado = envelopes.filter((e) => e.perfil?.id !== perfilId);
-      gravarItem(CHAVE_PERFIS, filtrado);
+      const { conhecidos, resto } = particionarPorEsquema(lerArrayBruto(CHAVE_PERFIS), "pipoca.perfil.v1");
+      const filtrado = conhecidos.filter((e) => e.perfil?.id !== perfilId);
+      gravarItem(CHAVE_PERFIS, [...resto, ...filtrado]);
     }
   }
 
@@ -2206,6 +2255,52 @@
         });
         if (resp.status !== 200)
           throw new Error("Não deu para trocar o e-mail agora. Tente de novo.");
+      },
+      entrarComGoogle(redirecionarPara) {
+        const g = globalThis;
+        const origin = g.location && g.location.origin || "";
+        const destino = redirecionarPara || (origin ? origin + "/app" : "");
+        const url = base + "/auth/v1/authorize?provider=google" + (destino ? "&redirect_to=" + encodeURIComponent(destino) : "");
+        if (g.location) {
+          if (typeof g.location.assign === "function")
+            g.location.assign(url);
+          else
+            g.location.href = url;
+        }
+      },
+      async capturarRetornoOAuth() {
+        const g = globalThis;
+        const hash = g.location && g.location.hash || "";
+        if (hash.length < 2)
+          return null;
+        const frag = new URLSearchParams(hash.charAt(0) === "#" ? hash.slice(1) : hash);
+        const access = frag.get("access_token");
+        const refresh = frag.get("refresh_token");
+        const limparFragmento = () => {
+          try {
+            if (g.history && g.history.replaceState && g.location) {
+              g.history.replaceState(null, "", (g.location.pathname || "/") + (g.location.search || ""));
+            }
+          } catch {}
+        };
+        if (!access || !refresh)
+          return null;
+        let user = null;
+        try {
+          const resp = await transporte(base + "/auth/v1/user", { method: "GET", headers: cabecalhos(access) });
+          if (resp.status === 200)
+            user = await resp.json();
+        } catch {}
+        limparFragmento();
+        if (!user || !user.id)
+          return null;
+        const r = {
+          access_token: access,
+          refresh_token: refresh,
+          expires_in: Number(frag.get("expires_in")) || 3600,
+          user
+        };
+        return assentarSessao(r, "familia", await tenantVinculado(access));
       },
       async sair() {
         const s = lerSessaoBackend();

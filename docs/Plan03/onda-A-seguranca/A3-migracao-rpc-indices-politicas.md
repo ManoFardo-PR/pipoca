@@ -1,7 +1,6 @@
 # A3 — Migração: fechar a RPC, índices das FKs, políticas permissivas
 
-> Status: pendente
-
+> Status: concluída (2026-08-28 · f0dbab0)
 **Unidade de deploy:** SQL (`apply_migration` no projeto `bamlljvllcxdnsheatqv`) + arquivo em
 `src/backend/migrations/`. **Depende de:** nada. **Desbloqueia:** A4 (edges usam a RPC).
 

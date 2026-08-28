@@ -15,8 +15,9 @@
  * SAI: 200 { texto, ehFinal }; ou não-200 {erro}: 401 nao_autenticado,
  *   400 requisicao_invalida, 503 nao_configurado (sem config/chave),
  *   403 cota_excedida, 422 conteudo_bloqueado, 502 provedor_falhou,
- *   405 metodo_invalido. Efeito: registra uso em uso_ia (falha na
- *   telemetria nunca derruba a geração).
+ *   405 metodo_invalido. Efeito: registra uso em uso_ia pela RPC atômica
+ *   registrar_uso_ia (A4; falha na telemetria nunca derruba a geração).
+ *   Modelo: tenant → padrão global → sem modelo = 503 (sem default na edge).
  * CHAMA: nada do repo — self-contained (Deno). APIs externas: Anthropic,
  *   OpenAI, DeepSeek, Gemini; PostgREST do Supabase (service role).
  * É CHAMADO POR: src/backend/proxy_ia.ts (cliente keyless, POST em
@@ -166,12 +167,15 @@ async function lerUso(url: string, chave: string, tenant: string, mes: string): 
   }
 }
 
+// A4 (Plan03) · registro de uso ATÔMICO pela RPC registrar_uso_ia (SECURITY DEFINER,
+// só service_role): recebe DELTAS desta requisição — o banco soma num único upsert,
+// sem a corrida do ler-somar-gravar. `lerUso` segue sendo leitura (cota ANTES).
 async function registrarUso(url: string, chave: string, tenant: string, mes: string, chamadas: number, custo: number): Promise<void> {
   try {
-    await fetch(url + "/rest/v1/uso_ia?on_conflict=tenant_id,mes", {
+    await fetch(url + "/rest/v1/rpc/registrar_uso_ia", {
       method: "POST",
-      headers: { ...cabecalhosServico(chave), Prefer: "resolution=merge-duplicates,return=minimal" },
-      body: JSON.stringify([{ tenant_id: tenant, mes, chamadas, custo }]),
+      headers: cabecalhosServico(chave),
+      body: JSON.stringify({ p_tenant: tenant, p_mes: mes, p_chamadas: chamadas, p_custo: custo }),
     });
   } catch {
     /* telemetria de uso nunca derruba a geração */
@@ -189,13 +193,10 @@ function uidDoJwt(jwt: string): string | null {
   }
 }
 
-// ── provedores (4) — chaves só do ambiente; modelo default barato por provedor ──
-const MODELO_PADRAO: Record<string, string> = {
-  claude: "claude-haiku-4-5",
-  openai: "gpt-5.4-mini",
-  gemini: "gemini-2.5-flash",
-  deepseek: "deepseek-chat",
-};
+// ── provedores (4) — chaves só do ambiente ──
+// A4 (Plan03): NÃO há mais modelo default escondido na edge. O modelo vem do tenant
+// (config_ia) ou do padrão GLOBAL do admin (SA_IA_GLOBAL); sem modelo, o provedor
+// conta como não configurado (503) — o operador vê exatamente o que a edge usa.
 const SECRET_POR_PROVEDOR: Record<string, string> = {
   claude: "ANTHROPIC_API_KEY",
   openai: "OPENAI_API_KEY",
@@ -249,7 +250,8 @@ async function gerarCom(
   const nomeSecret = SECRET_POR_PROVEDOR[provedor];
   const chave = chavesBanco[provedor] || (nomeSecret ? Deno.env.get(nomeSecret) : undefined);
   if (!chave) return { ok: false, semChave: true };
-  const m = modelo || MODELO_PADRAO[provedor] || "";
+  if (!modelo) return { ok: false, semChave: true }; // A4: sem modelo configurado = não configurado (fail-closed)
+  const m = modelo;
   const maxTokens = opts.maxTokens || 400;
   const system = opts.system || "";
 
@@ -398,7 +400,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   // tarefa #31: fallback do tenant (1 provedor) VENCE; sem ele, a cadeia
   // global entra na ordem (pulando o provedor primário). Modelos dos
-  // fallbacks: o padrão global do provedor (senão o default barato).
+  // fallbacks: o padrão global do provedor (A4: sem padrão global, o
+  // fallback conta como não configurado — nenhum default escondido).
   const chavesBanco = await lerChavesBanco(SUPABASE_URL, SERVICE_KEY);
   const fallbacks: string[] = configEfetiva.fallback
     ? [configEfetiva.fallback]
@@ -417,6 +420,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const trecho = resultado.trecho;
   if (bloqueado(trecho.texto)) return json({ erro: "conteudo_bloqueado" }, 422);
 
-  await registrarUso(SUPABASE_URL, SERVICE_KEY, tenant, mes, uso.chamadas + 1, uso.custo + 1);
+  await registrarUso(SUPABASE_URL, SERVICE_KEY, tenant, mes, 1, 1); // deltas (A4)
   return json({ texto: trecho.texto, ehFinal: trecho.ehFinal }, 200);
 });

@@ -8,7 +8,7 @@ catálogo. Nenhuma subtarefa foi executada ao criar este plano.
 **Como executar:** `01-PLANO-DE-EXECUCAO.md` (folha de decisões — confirmada —, gates,
 git/deploy/rollback, riscos) e `02-EXECUCAO-PASSO-A-PASSO.md` (os 59 passos, um atrás do
 outro). **Onde estamos:** `node scripts/plan03.mjs status` (painel em `STATUS.md`, gerado —
-não editar à mão).
+não editar à mão). **Para abrir uma sessão de execução:** cole `03-PROMPT-DE-SESSAO.md`.
 
 ## Mapa das ondas
 

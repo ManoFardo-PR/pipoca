@@ -1,7 +1,8 @@
 {
   "esquema": "pipoca.plan03-status.v1",
   "passos": {
-    "P1": "concluída (2026-08-28 · f84ea58)"
+    "P1": "concluída (2026-08-28 · f84ea58)",
+    "P2": "concluída (2026-08-28 · 888858d)"
   },
   "verificacao": {
     "quando": "2026-08-28T18:31:56.969Z",

@@ -73,7 +73,8 @@ PS-01 já não aplica. A cadeia de consentimento está cortada em dois pontos.
 > ✅ **Resolvido em 2026-08-28 (Plan03 · A3/A4/A5):** migração `20260828190919_pos_varredura_rpc_indices_politicas`
 > aplicada (`revoke ... from public, anon, authenticated` + `alter default privileges` do schema; RPC agora recebe
 > deltas `p_chamadas`/`p_custo`) — `proacl` = {postgres, service_role}; advisor `anon_security_definer` sumiu.
-> Edges `realizador` e `proxy-ia` chamam `POST /rest/v1/rpc/registrar_uso_ia` (commit `8e3be20`; redeploy no A5).
+> Edges `realizador` e `proxy-ia` chamam `POST /rest/v1/rpc/registrar_uso_ia` (commit `8e3be20`; deployadas em
+> 2026-08-28 como v5, `verify_jwt: true`).
 Advisors + ACL real confirmam: a função é SECURITY DEFINER executável por `anon` e
 `authenticated` em `/rest/v1/rpc/registrar_uso_ia`. A migração
 `src/backend/migrations/2026-08-28_otimizacao-rls-cascade-cota.sql:44-47` fez
@@ -153,8 +154,9 @@ e `old/` são diretórios vazios.
 > ✅ **(a) e (c) resolvidos em 2026-08-28 (Plan03 · A3/A5, migração `20260828190919`):** índices
 > `historias_perfil_id_idx`/`telemetria_perfil_id_idx`; políticas de `contas_tenant`/`flags_admin`/`tenants`
 > fundidas em 1 SELECT (OR) + insert/update/delete — advisors sem `unindexed_foreign_keys` nem
-> `multiple_permissive_policies`. **(b)** mantido por decisão (reavaliar após D1). **(d) ainda aberto:** exige
-> o painel (Authentication → Password) e plano Pro — sem ferramenta no MCP.
+> `multiple_permissive_policies`. **(b)** mantido por decisão (reavaliar após D1). **(d) adiado por decisão do
+> dono (2026-08-28):** a proteção de senha vazada só existe em planos pagos do Supabase; o projeto está no plano
+> gratuito. Reabrir se/quando houver upgrade (Authentication → Password → Leaked password protection).
 (a) A migração adicionou FKs `historias.perfil_id`/`telemetria.perfil_id` (cascade LGPD)
 **sem índice cobridor** — o `ON DELETE CASCADE` de um perfil varre `historias`/`telemetria`
 por seq scan; (b) `historias_dono_perfil_idx` nunca usado (leitura real filtra por
@@ -164,7 +166,7 @@ por seq scan; (b) `historias_dono_perfil_idx` nunca usado (leitura real filtra p
 desligada no Auth (toggle no painel).
 
 ### 🟡 PS-12 · `MODELO_PADRAO` divergiu entre cliente e edges (bug de configuração ativo)
-> ✅ **Resolvido em 2026-08-28 (Plan03 · A4, commit `8e3be20`; redeploy no A5):** `MODELO_PADRAO` removido das
+> ✅ **Resolvido em 2026-08-28 (Plan03 · A4, commit `8e3be20`; edges v5 deployadas no A5):** `MODELO_PADRAO` removido das
 > duas edges; modelo = tenant → padrão global (`config_ia` `plataforma:global`, que o `realizador` passa a ler) →
 > sem modelo = não configurado (503). Admin (`ia_global.ts`) sem modelo pré-preenchido. Produção: padrão global
 > ganhou `deepseek-chat` e `gemini-2.5-flash` (decisão do dono); `plataforma.modelo` saiu de `gemini-flash-latest`.

@@ -1,71 +1,83 @@
-<!-- PainelA11y.dc.html — Painel "Do meu jeito" (A11Y overlay)
+<!-- PainelA11y.dc.html — Painel "Do meu jeito" (A11Y overlay) · Plan03 B4
      ─────────────────────────────────────────────────────────────
-     Overlay de acessibilidade. Escreve em EstadoApp.a11y.
-     Props: visible (boolean), onClose (function)
+     Overlay de acessibilidade da criança. Escreve em EstadoApp.a11y.
+     Props: onClose (function)
      Toggles: dyslexia, syllable, contrast, reduceMotion, textScale
+
+     B4 (UI-C13/C15/C33/C45/C46): o painel é ele próprio acessível —
+       · role="dialog" aria-modal aria-labelledby; foco inicial no título; Esc fecha;
+         Tab cíclico dentro do painel; ao fechar, o foco volta ao ⚙ que abriu.
+       · cada toggle é <button role="switch" aria-checked aria-labelledby aria-describedby>
+         com alvo ≥48px; a escala A/A+/A++ usa aria-pressed; ✕ com 48px e aria-label.
+       · 100% por tokens (paleta/tipografia do B2) — o painel herda os ajustes que liga;
+         a amostra de leitura vem de Canon.a11y.estiloLeitura (núcleo canônico).
+       · "🔒 Sou o adulto" permanece (decisão do dono) até B5 dar caminho próprio na T2.
 -->
 <x-dc>
 
-<div style="position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;">
-  <div onClick="{{ fecharAjustesA11y }}" style="position:absolute;inset:0;background:rgba(40,28,16,.36);backdrop-filter:blur(2px);"></div>
-  <div style="position:relative;width:460px;max-width:92%;max-height:92%;overflow-y:auto;background:var(--pip-superficie);border-radius:26px;padding:26px 28px;box-shadow:0 30px 70px -20px rgba(40,30,18,.55);">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;">
-      <div>
-        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;color:#3a4f63;">Do meu jeito</div>
-        <div style="font-size:13px;color:var(--pip-texto-suave);margin-top:2px;">Ajustes para ler com conforto. Mude quando quiser.</div>
+<div ref="{{ refDialog }}" role="dialog" aria-modal="true" aria-labelledby="pip-a11y-titulo" style="position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;">
+  <div onClick="{{ fecharAjustesA11y }}" aria-hidden="true" style="position:absolute;inset:0;background:var(--pip-overlay-escuro);backdrop-filter:blur(2px);"></div>
+  <div style="position:relative;width:460px;max-width:92%;max-height:92%;overflow-y:auto;background:var(--pip-superficie);border-radius:var(--pip-raio-cartao);padding:var(--pip-esp-5);box-shadow:var(--pip-sombra-modal);font-family:var(--pip-fonte-texto);color:var(--pip-tinta);">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--pip-esp-3);">
+      <div style="min-width:0;">
+        <h2 id="pip-a11y-titulo" tabindex="-1" style="margin:0;font-family:var(--pip-fonte-titulo);font-weight:700;font-size:var(--pip-fs-5);line-height:var(--pip-lh-titulo);color:var(--pip-heeler-escuro);outline:none;">Do meu jeito</h2>
+        <div style="font-size:var(--pip-fs-2);line-height:var(--pip-lh-texto);color:var(--pip-texto-suave);margin-top:2px;">Ajustes para ler com conforto. Mude quando quiser.</div>
       </div>
-      <button onClick="{{ fecharAjustesA11y }}" style="width:38px;height:38px;flex-shrink:0;border-radius:50%;border:none;background:#f1e7d4;cursor:pointer;font-size:16px;color:#7a6a54;">✕</button>
+      <button onClick="{{ fecharAjustesA11y }}" aria-label="Fechar" style="width:48px;height:48px;flex-shrink:0;border-radius:50%;border:none;background:var(--pip-areia-clara);cursor:pointer;font-size:18px;color:var(--pip-tinta);display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
 
-    <div style="margin-top:20px;">
-      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#3a2c20;">Tamanho do texto</div>
-      <div style="display:flex;gap:8px;margin-top:10px;">
-        <button onClick="{{ setScale1 }}" style="{{ scale1Style }}">A</button>
-        <button onClick="{{ setScale2 }}" style="font-size:19px;{{ scale2Style }}">A+</button>
-        <button onClick="{{ setScale3 }}" style="font-size:23px;{{ scale3Style }}">A++</button>
+    <!-- Amostra viva: mostra como o texto de leitura fica com os ajustes atuais (Canon.a11y). -->
+    <div aria-hidden="true" style="margin-top:var(--pip-esp-3);padding:var(--pip-esp-3) var(--pip-esp-4);border-radius:var(--pip-raio-2);background:var(--pip-creme);text-align:center;font-weight:800;color:var(--pip-tinta);{{ amostraStyle }}">{{ amostraTexto }}</div>
+
+    <div role="group" aria-labelledby="pip-a11y-tamanho" style="margin-top:var(--pip-esp-4);">
+      <div id="pip-a11y-tamanho" style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:var(--pip-fs-3);color:var(--pip-tinta);">Tamanho do texto</div>
+      <div style="display:flex;gap:var(--pip-esp-2);margin-top:var(--pip-esp-2);">
+        <button onClick="{{ setScale1 }}" aria-pressed="{{ scale1On }}" aria-label="Texto normal" style="{{ scale1Style }}">A</button>
+        <button onClick="{{ setScale2 }}" aria-pressed="{{ scale2On }}" aria-label="Texto maior" style="font-size:19px;{{ scale2Style }}">A+</button>
+        <button onClick="{{ setScale3 }}" aria-pressed="{{ scale3On }}" aria-label="Texto bem maior" style="font-size:23px;{{ scale3Style }}">A++</button>
       </div>
     </div>
 
-    <div style="height:1px;background:rgba(160,140,110,.18);margin:18px 0 4px;"></div>
+    <div style="height:1px;background:var(--pip-areia-alfa);margin:var(--pip-esp-4) 0 var(--pip-esp-1);"></div>
 
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 2px;">
-      <div style="padding-right:14px;">
-        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#3a2c20;">Fonte para dislexia</div>
-        <div style="font-size:12.5px;color:var(--pip-texto-suave);margin-top:1px;line-height:1.35;">Letras mais abertas e fáceis de distinguir.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--pip-esp-3);padding:var(--pip-esp-2) 0;">
+      <div style="min-width:0;">
+        <div id="pip-a11y-dys-rotulo" style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:var(--pip-fs-3);color:var(--pip-tinta);">Fonte para dislexia</div>
+        <div id="pip-a11y-dys-desc" style="font-size:var(--pip-fs-2);color:var(--pip-texto-suave);margin-top:1px;line-height:1.35;">Letras mais abertas e fáceis de distinguir.</div>
       </div>
-      <button onClick="{{ toggleDys }}" style="{{ swDys }}"><div style="{{ knobDys }}"></div></button>
+      <button onClick="{{ toggleDys }}" role="switch" aria-checked="{{ dysOn }}" aria-labelledby="pip-a11y-dys-rotulo" aria-describedby="pip-a11y-dys-desc" style="{{ swDys }}"><span aria-hidden="true" style="{{ trilhoDys }}"><span style="{{ knobDys }}"></span></span></button>
     </div>
 
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 2px;">
-      <div style="padding-right:14px;">
-        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#3a2c20;">Destaque silábico</div>
-        <div style="font-size:12.5px;color:var(--pip-texto-suave);margin-top:1px;line-height:1.35;">Separa as sílabas: va·ga·lu·me.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--pip-esp-3);padding:var(--pip-esp-2) 0;">
+      <div style="min-width:0;">
+        <div id="pip-a11y-syl-rotulo" style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:var(--pip-fs-3);color:var(--pip-tinta);">Destaque silábico</div>
+        <div id="pip-a11y-syl-desc" style="font-size:var(--pip-fs-2);color:var(--pip-texto-suave);margin-top:1px;line-height:1.35;">Separa as sílabas: va·ga·lu·me.</div>
       </div>
-      <button onClick="{{ toggleSyl }}" style="{{ swSyl }}"><div style="{{ knobSyl }}"></div></button>
+      <button onClick="{{ toggleSyl }}" role="switch" aria-checked="{{ sylOn }}" aria-labelledby="pip-a11y-syl-rotulo" aria-describedby="pip-a11y-syl-desc" style="{{ swSyl }}"><span aria-hidden="true" style="{{ trilhoSyl }}"><span style="{{ knobSyl }}"></span></span></button>
     </div>
 
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 2px;">
-      <div style="padding-right:14px;">
-        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#3a2c20;">Alto contraste</div>
-        <div style="font-size:12.5px;color:var(--pip-texto-suave);margin-top:1px;line-height:1.35;">Texto mais escuro sobre o fundo.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--pip-esp-3);padding:var(--pip-esp-2) 0;">
+      <div style="min-width:0;">
+        <div id="pip-a11y-con-rotulo" style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:var(--pip-fs-3);color:var(--pip-tinta);">Alto contraste</div>
+        <div id="pip-a11y-con-desc" style="font-size:var(--pip-fs-2);color:var(--pip-texto-suave);margin-top:1px;line-height:1.35;">Texto mais escuro sobre o fundo.</div>
       </div>
-      <button onClick="{{ toggleCon }}" style="{{ swCon }}"><div style="{{ knobCon }}"></div></button>
+      <button onClick="{{ toggleCon }}" role="switch" aria-checked="{{ conOn }}" aria-labelledby="pip-a11y-con-rotulo" aria-describedby="pip-a11y-con-desc" style="{{ swCon }}"><span aria-hidden="true" style="{{ trilhoCon }}"><span style="{{ knobCon }}"></span></span></button>
     </div>
 
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 2px;">
-      <div style="padding-right:14px;">
-        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#3a2c20;">Reduzir movimento</div>
-        <div style="font-size:12.5px;color:var(--pip-texto-suave);margin-top:1px;line-height:1.35;">Cenas mais paradas, sem balanço.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--pip-esp-3);padding:var(--pip-esp-2) 0;">
+      <div style="min-width:0;">
+        <div id="pip-a11y-mov-rotulo" style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:var(--pip-fs-3);color:var(--pip-tinta);">Reduzir movimento</div>
+        <div id="pip-a11y-mov-desc" style="font-size:var(--pip-fs-2);color:var(--pip-texto-suave);margin-top:1px;line-height:1.35;">Cenas mais paradas, sem balanço.</div>
       </div>
-      <button onClick="{{ toggleMotion }}" style="{{ swMotion }}"><div style="{{ knobMotion }}"></div></button>
+      <button onClick="{{ toggleMotion }}" role="switch" aria-checked="{{ movOn }}" aria-labelledby="pip-a11y-mov-rotulo" aria-describedby="pip-a11y-mov-desc" style="{{ swMotion }}"><span aria-hidden="true" style="{{ trilhoMotion }}"><span style="{{ knobMotion }}"></span></span></button>
     </div>
 
-    <button onClick="{{ fecharAjustesA11y }}" style="margin-top:18px;width:100%;border:none;background:var(--pip-cta);color:#fff;border-radius:16px;padding:15px;font-family:'Baloo 2',cursive;font-weight:700;font-size:17px;cursor:pointer;box-shadow:0 8px 20px -6px rgba(181,86,40,.5);">Pronto</button>
+    <button onClick="{{ fecharAjustesA11y }}" style="margin-top:var(--pip-esp-4);width:100%;min-height:52px;border:none;background:var(--pip-cta);color:var(--pip-cta-texto);border-radius:var(--pip-raio-2);padding:14px;font-family:var(--pip-fonte-titulo);font-weight:700;font-size:var(--pip-fs-4);cursor:pointer;box-shadow:var(--pip-sombra-botao);">Pronto</button>
 
     <!-- Rodapé do cuidador: leva ao PINGATE (o PIN com lockout é a proteção;
          ao voltar, a leitura retoma de onde estava — telaCriancaAnterior). -->
-    <div style="height:1px;background:rgba(160,140,110,.18);margin:16px 0 0;"></div>
-    <button onClick="{{ souOAdulto }}" style="margin-top:12px;width:100%;min-height:46px;border:1.5px dashed rgba(160,140,110,.4);background:transparent;border-radius:14px;padding:11px;font-family:'Nunito';font-weight:700;font-size:14px;color:#7a6a54;cursor:pointer;">🔒 Sou o adulto (ajustes do cuidador)</button>
+    <div style="height:1px;background:var(--pip-areia-alfa);margin:var(--pip-esp-4) 0 0;"></div>
+    <button onClick="{{ souOAdulto }}" style="margin-top:var(--pip-esp-3);width:100%;min-height:48px;border:1.5px dashed var(--pip-areia-borda);background:transparent;border-radius:var(--pip-raio-1);padding:11px;font-family:var(--pip-fonte-texto);font-weight:700;font-size:var(--pip-fs-2);color:var(--pip-texto-suave);cursor:pointer;">🔒 Sou o adulto (ajustes do cuidador)</button>
   </div>
 </div>
 
@@ -77,14 +89,53 @@
 class Component extends DCLogic {
   state = {};
 
-  _swStyle(on) {
-    return 'width:50px;height:28px;border-radius:999px;border:none;cursor:pointer;position:relative;flex-shrink:0;background:' + (on ? '#6f9b4f' : '#d6c6ab') + ';';
+  // O ref só liga se for devolvido pelo renderVals (lição do B1).
+  refDialog = (el) => { this._rootEl = el; };
+
+  // ── Dialog: foco inicial, Esc, trap de Tab, devolução do foco ──────────────
+  componentDidMount() {
+    this._anterior = document.activeElement; // o ⚙ que abriu
+    this._onKey = (e) => this._teclado(e);
+    document.addEventListener('keydown', this._onKey, true);
+    setTimeout(() => {
+      const t = this._rootEl && this._rootEl.querySelector('#pip-a11y-titulo');
+      if (t && typeof t.focus === 'function') t.focus();
+    }, 0);
+  }
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this._onKey, true);
+    const a = this._anterior;
+    if (a && typeof a.focus === 'function' && document.contains(a)) setTimeout(() => a.focus(), 0);
+  }
+  _focaveis() {
+    const r = this._rootEl; if (!r) return [];
+    return Array.from(r.querySelectorAll('button, [tabindex]:not([tabindex="-1"])'))
+      .filter((el) => !el.disabled && el.getClientRects().length > 0);
+  }
+  _teclado(e) {
+    if (e.key === 'Escape') { e.preventDefault(); this.fecharAjustesA11y(); return; }
+    if (e.key !== 'Tab') return;
+    const f = this._focaveis(); if (!f.length) return;
+    const primeiro = f[0], ultimo = f[f.length - 1];
+    const ativo = document.activeElement;
+    const dentro = this._rootEl && this._rootEl.contains(ativo);
+    if (e.shiftKey) {
+      if (!dentro || ativo === primeiro || ativo === this._rootEl.querySelector('#pip-a11y-titulo')) { e.preventDefault(); ultimo.focus(); }
+    } else if (!dentro || ativo === ultimo) { e.preventDefault(); primeiro.focus(); }
+  }
+
+  // ── Estilos por token (alvo do switch ≥48px; trilho/knob decorativos) ──────
+  _swStyle() {
+    return 'min-width:64px;min-height:48px;padding:0;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
+  }
+  _trilhoStyle(on) {
+    return 'display:block;width:56px;height:32px;border-radius:var(--pip-raio-pill);position:relative;background:' + (on ? 'var(--pip-folha)' : 'var(--pip-heeler-borda)') + ';transition:background calc(var(--pip-dur-rapido)*var(--pip-mov)) ease;';
   }
   _knobStyle(on) {
-    return 'position:absolute;top:3px;left:' + (on ? '25px' : '3px') + ';width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left calc(.15s * var(--pip-mov));';
+    return 'position:absolute;top:4px;left:' + (on ? '28px' : '4px') + ';width:24px;height:24px;border-radius:50%;background:var(--pip-branco);box-shadow:var(--pip-sombra-card);transition:left calc(var(--pip-dur-rapido)*var(--pip-mov)) ease;';
   }
   _scaleBtn(on) {
-    return 'flex:1;border:none;cursor:pointer;border-radius:11px;padding:9px 0;font-family:"Baloo 2",cursive;font-weight:700;background:' + (on ? '#3f6f9e' : '#f1e7d4') + ';color:' + (on ? '#fff' : 'var(--pip-texto-suave)') + ';';
+    return 'flex:1;min-height:48px;border:none;cursor:pointer;border-radius:var(--pip-raio-1);padding:9px 0;font-family:var(--pip-fonte-titulo);font-weight:700;background:' + (on ? 'var(--pip-heeler)' : 'var(--pip-areia-clara)') + ';color:' + (on ? 'var(--pip-cta-texto)' : 'var(--pip-texto-suave)') + ';';
   }
 
   _getA11y() {
@@ -119,13 +170,22 @@ class Component extends DCLogic {
     const t = (key) => () => this._patchA11y({ [key]: !A[key] });
     const setScale = (v) => () => this._patchA11y({ textScale: v });
 
+    // Amostra pelo núcleo canônico (fonte/spacing conforme os ajustes), em tamanho de painel.
+    const Canon = window.PipocaCanonico;
+    const base = Canon && Canon.a11y && Canon.a11y.estiloLeitura ? Canon.a11y.estiloLeitura(A) : '';
+    const amostraStyle = base + 'font-size:' + Math.round(20 * (A.textScale || 1)) + 'px;';
+    const amostraTexto = A.syllable ? 'Uma lu·zi·nha no quin·tal.' : 'Uma luzinha no quintal.';
+
     return {
+      refDialog: this.refDialog,
+      amostraStyle, amostraTexto,
       fecharAjustesA11y: () => this.fecharAjustesA11y(),
       souOAdulto: () => this.souOAdulto(),
-      swMotion: this._swStyle(A.reduceMotion), knobMotion: this._knobStyle(A.reduceMotion), toggleMotion: t('reduceMotion'),
-      swDys:    this._swStyle(A.dyslexia),     knobDys:    this._knobStyle(A.dyslexia),     toggleDys:    t('dyslexia'),
-      swSyl:    this._swStyle(A.syllable),     knobSyl:    this._knobStyle(A.syllable),     toggleSyl:    t('syllable'),
-      swCon:    this._swStyle(A.contrast),     knobCon:    this._knobStyle(A.contrast),     toggleCon:    t('contrast'),
+      swMotion: this._swStyle(), trilhoMotion: this._trilhoStyle(A.reduceMotion), knobMotion: this._knobStyle(A.reduceMotion), movOn: !!A.reduceMotion, toggleMotion: t('reduceMotion'),
+      swDys:    this._swStyle(), trilhoDys:    this._trilhoStyle(A.dyslexia),     knobDys:    this._knobStyle(A.dyslexia),     dysOn: !!A.dyslexia,     toggleDys:    t('dyslexia'),
+      swSyl:    this._swStyle(), trilhoSyl:    this._trilhoStyle(A.syllable),     knobSyl:    this._knobStyle(A.syllable),     sylOn: !!A.syllable,     toggleSyl:    t('syllable'),
+      swCon:    this._swStyle(), trilhoCon:    this._trilhoStyle(A.contrast),     knobCon:    this._knobStyle(A.contrast),     conOn: !!A.contrast,     toggleCon:    t('contrast'),
+      scale1On: A.textScale === 1, scale2On: A.textScale === 1.2, scale3On: A.textScale === 1.45,
       scale1Style: this._scaleBtn(A.textScale === 1),
       scale2Style: this._scaleBtn(A.textScale === 1.2),
       scale3Style: this._scaleBtn(A.textScale === 1.45),

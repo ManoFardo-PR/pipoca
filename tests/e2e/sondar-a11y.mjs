@@ -212,6 +212,53 @@ try {
   });
   assert(inputSemOutlineNone === null || inputSemOutlineNone !== "none", `campo de texto focado por script mantém :focus-visible (outline-style: ${inputSemOutlineNone})`);
   await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
+
+  console.log("\n=== B4 · PainelA11y: dialog, switches, alvos ≥48px, Esc/foco/trap ===");
+  const OUT_B4 = path.resolve(path.join("docs", "auditorias", "screenshots", "B4-painel"));
+  mkdirSync(OUT_B4, { recursive: true });
+  await irTela(3, "Favorito de hoje");
+  // Abre pelo ⚙ real (clique de teclado: foco no ⚙ + Enter) para provar a devolução do foco.
+  await page.evaluate(() => { const g = [...document.querySelectorAll("button")].find((b) => (b.textContent || "").trim() === "⚙"); if (g) g.focus(); });
+  await page.keyboard.press("Enter");
+  await page.waitForFunction(() => !!document.querySelector('[role="dialog"][aria-modal="true"]'), { timeout: 5000 });
+  await page.waitForTimeout(250);
+  const dlg = await page.evaluate(() => {
+    const d = document.querySelector('[role="dialog"][aria-modal="true"]');
+    const tit = d && d.getAttribute("aria-labelledby") ? document.getElementById(d.getAttribute("aria-labelledby")) : null;
+    const sw = [...d.querySelectorAll('[role="switch"]')].map((s) => { const r = s.getBoundingClientRect(); return { checked: s.getAttribute("aria-checked"), rotulo: s.getAttribute("aria-labelledby") ? (document.getElementById(s.getAttribute("aria-labelledby")) || {}).textContent : null, w: Math.round(r.width), h: Math.round(r.height) }; });
+    const alvos = [...d.querySelectorAll("button")].map((b) => { const r = b.getBoundingClientRect(); return { rotulo: (b.getAttribute("aria-label") || b.textContent || "").trim().slice(0, 24), w: Math.round(r.width), h: Math.round(r.height) }; });
+    const pressed = [...d.querySelectorAll("[aria-pressed]")].map((b) => b.getAttribute("aria-pressed"));
+    const hexInline = (d.innerHTML.match(/#[0-9a-fA-F]{3,6}\b/g) || []).length;
+    return { tituloFocado: !!tit && document.activeElement === tit, tituloTexto: tit ? tit.textContent : null, sw, alvos, pressed, hexInline };
+  });
+  assert(dlg.tituloTexto === "Do meu jeito" && dlg.tituloFocado, `dialog rotulado por "${dlg.tituloTexto}" e foco inicial no título`);
+  assert(dlg.sw.length === 4 && dlg.sw.every((s) => s.checked === "true" || s.checked === "false") && dlg.sw.every((s) => !!s.rotulo), `4 role=switch com aria-checked e nome acessível (${dlg.sw.map((s) => s.rotulo + "=" + s.checked).join(", ")})`);
+  const pequenos = dlg.alvos.filter((a) => a.w < 48 || a.h < 48);
+  assert(pequenos.length === 0, `todos os controles do painel ≥48px (${dlg.alvos.length} alvos; pequenos: ${pequenos.map((a) => a.rotulo + " " + a.w + "x" + a.h).join(", ") || "nenhum"})`);
+  assert(dlg.pressed.length === 3 && dlg.pressed.filter((p) => p === "true").length === 1, `escala A/A+/A++ com aria-pressed (${dlg.pressed.join("/")})`);
+  assert(dlg.hexInline === 0, `painel sem hex cru no DOM renderizado (${dlg.hexInline})`);
+  // Teclado: Tab cíclico não escapa; Space no switch alterna; Esc fecha e devolve o foco ao ⚙.
+  let dentro = true;
+  for (let i = 0; i < 14; i++) { await page.keyboard.press("Tab"); await page.waitForTimeout(30); const ok = await page.evaluate(() => { const d = document.querySelector('[role="dialog"]'); return !!d && d.contains(document.activeElement); }); if (!ok) { dentro = false; break; } }
+  assert(dentro, "Tab ×14 mantém o foco dentro do painel (trap cíclico)");
+  await page.evaluate(() => { const s = document.querySelector('[role="switch"][aria-labelledby="pip-a11y-con-rotulo"]'); if (s) s.focus(); });
+  await page.keyboard.press("Space");
+  await page.waitForTimeout(250);
+  const conDepois = await page.evaluate(() => { const s = document.querySelector('[role="switch"][aria-labelledby="pip-a11y-con-rotulo"]'); return { aria: s ? s.getAttribute("aria-checked") : null, estado: !!window.PipocaApp.estado.a11y.contrast, focoAinda: !!s && document.activeElement === s }; });
+  assert(conDepois.aria === "true" && conDepois.estado === true, `Space no switch "Alto contraste" alterna (aria-checked=${conDepois.aria}, estado=${conDepois.estado})`);
+  assert(conDepois.focoAinda, "o foco permanece no switch após o re-render do Shell");
+  await page.screenshot({ path: path.join(OUT_B4, "T03-painel-a11y-1280x800.png") });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: path.join(OUT_B4, "T03-painel-a11y-390x844.png") });
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.waitForTimeout(200);
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => !window.PipocaApp.estado.showA11y, { timeout: 5000 });
+  await page.waitForTimeout(150);
+  const focoVoltou = await page.evaluate(() => (document.activeElement && (document.activeElement.textContent || "").trim()) === "⚙");
+  assert(focoVoltou, "Esc fecha o painel e o foco volta ao ⚙ que abriu");
+  await a11y({ contrast: false });
   assert(erros.length === 0, `sem erros de página (${erros.length ? erros.join(" | ") : "nenhum"})`);
 } catch (e) {
   console.error("ERRO na sonda a11y:", e);

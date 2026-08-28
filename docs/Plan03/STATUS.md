@@ -1,11 +1,11 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-08-28T18:48:36.857Z · branch `onda-A-seguranca` · HEAD `f0dbab0`
-- Progresso: **6/59** passos concluídos
-- Próximo passo: **A2** — Toggle de IA honesto ([abrir](onda-A-seguranca/A2-toggle-ia-honesto.md))
+- Gerado em: 2026-08-28T18:56:56.047Z · branch `onda-A-seguranca` · HEAD `f9aca22`
+- Progresso: **7/59** passos concluídos
+- Próximo passo: **A4** — Edges: RPC de cota e MODELO_PADRAO alinhado ([abrir](onda-A-seguranca/A4-edges-rpc-e-modelo-padrao.md))
 - Última verificação: ✅ verde em 2026-08-28T18:31:56.969Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ árvore suja (1 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
   - ⚠ pipoca.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/app/bridge.ts, src/dados (rebuild pendente)
   - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
@@ -17,14 +17,14 @@
 | P2 | Screenshots "antes" com o harness | [✓] concluída | 2026-08-28 | `888858d` |
 | P3 | Painel inicial: `status` aponta A0 como próximo | [✓] concluída | 2026-08-28 | `f9898f6` |
 
-## Onda A — Segurança e consentimento de IA · 3/6 · branch `onda-A-seguranca` · BUNDLE app + EDGE ×2 + SQL
+## Onda A — Segurança e consentimento de IA · 4/6 · branch `onda-A-seguranca` · BUNDLE app + EDGE ×2 + SQL
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
 | A0 | Criar branch onda-A-seguranca a partir de 28_08_26 | [✓] concluída | 2026-08-28 | `b65645e` |
 | A1 | [Gate único de consentimento no cliente](onda-A-seguranca/A1-gate-consentimento-cliente.md) | [✓] concluída | 2026-08-28 | `5ecc07d` |
 | A3 | [Migração escrita (NÃO aplicada): RPC, índices, políticas](onda-A-seguranca/A3-migracao-rpc-indices-politicas.md) ∥ | [✓] concluída | 2026-08-28 | `f0dbab0` |
-| A2 | [Toggle de IA honesto](onda-A-seguranca/A2-toggle-ia-honesto.md) | [ ] pendente |  |  |
+| A2 | [Toggle de IA honesto](onda-A-seguranca/A2-toggle-ia-honesto.md) | [✓] concluída | 2026-08-28 | `f9aca22` |
 | A4 | [Edges: RPC de cota e MODELO_PADRAO alinhado](onda-A-seguranca/A4-edges-rpc-e-modelo-padrao.md) | [ ] pendente |  |  |
 | A5 | [Fechamento A: SQL aplicada → redeploy ×2 → build:app → e2e → merge](onda-A-seguranca/A5-fechamento-onda-A.md) | [ ] pendente |  |  |
 

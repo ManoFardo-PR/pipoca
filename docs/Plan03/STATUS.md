@@ -1,8 +1,8 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-08-28T19:27:43.091Z · branch `onda-B-cru-ux` · HEAD `9de2035`
-- Progresso: **10/59** passos concluídos
-- Próximo passo: **B1** — Mecanismo de a11y: classe↔atributo; contraste que não destrói ([abrir](onda-B-cru-ux/B1-mecanismo-a11y-classe-atributo.md))
+- Gerado em: 2026-08-28T19:35:04.996Z · branch `onda-B-cru-ux` · HEAD `da4017c`
+- Progresso: **11/59** passos concluídos
+- Próximo passo: **B2** — Paleta com contraste real e escala tipográfica ([abrir](onda-B-cru-ux/B2-paleta-com-contraste-e-tipografia.md))
 - Última verificação: ✅ verde em 2026-08-28T19:10:24.652Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
   - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
@@ -26,12 +26,12 @@
 | A4 | [Edges: RPC de cota e MODELO_PADRAO alinhado](onda-A-seguranca/A4-edges-rpc-e-modelo-padrao.md) | [✓] concluída | 2026-08-28 | `8e3be20` |
 | A5 | [Fechamento A: SQL aplicada → redeploy ×2 → build:app → e2e → merge](onda-A-seguranca/A5-fechamento-onda-A.md) | [✓] concluída | 2026-08-28 | `9837eee` |
 
-## Onda B — UX servida crua · 1/15 · branch `onda-B-cru-ux` · CRU (commit = deploy)
+## Onda B — UX servida crua · 2/15 · branch `onda-B-cru-ux` · CRU (commit = deploy)
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
 | B0 | Criar branch onda-B-cru-ux a partir de 28_08_26 | [✓] concluída | 2026-08-28 | `9de2035` |
-| B1 | [Mecanismo de a11y: classe↔atributo; contraste que não destrói](onda-B-cru-ux/B1-mecanismo-a11y-classe-atributo.md) | [ ] pendente |  |  |
+| B1 | [Mecanismo de a11y: classe↔atributo; contraste que não destrói](onda-B-cru-ux/B1-mecanismo-a11y-classe-atributo.md) | [✓] concluída | 2026-08-28 | `da4017c` |
 | B2 | [Paleta com contraste real e escala tipográfica](onda-B-cru-ux/B2-paleta-com-contraste-e-tipografia.md) | [ ] pendente |  |  |
 | B3 | [Foco visível global e movimento pelo token](onda-B-cru-ux/B3-foco-visivel-e-movimento.md) | [ ] pendente |  |  |
 | B4 | [PainelA11y: tokens, switch, dialog, alvos](onda-B-cru-ux/B4-painel-a11y.md) | [ ] pendente |  |  |

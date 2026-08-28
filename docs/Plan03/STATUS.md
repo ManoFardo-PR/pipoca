@@ -1,8 +1,9 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-08-28T19:59:50.449Z · branch `onda-B-cru-ux` · HEAD `f60d04d`
-- Progresso: **16/59** passos concluídos
-- Próximo passo: **B6** — Cabeçalhos T2–T7, alvos ≥48, copy, T2 no celular ([abrir](onda-B-cru-ux/B6-cabecalhos-e-copy-t2-t7.md))
+- Gerado em: 2026-08-28T20:11:48.367Z · branch `onda-B-cru-ux` · HEAD `9eea1eb`
+- Progresso: **17/59** passos concluídos
+- Próximo passo: **B7** — T4 palco: alvos, feedback, copy, beco ([abrir](onda-B-cru-ux/B7-t4-palco.md))
+- Também disponíveis (∥): B8, B9
 - Última verificação: ✅ verde em 2026-08-28T19:52:01.223Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
   - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
@@ -27,7 +28,7 @@
 | A4 | [Edges: RPC de cota e MODELO_PADRAO alinhado](onda-A-seguranca/A4-edges-rpc-e-modelo-padrao.md) | [✓] concluída | 2026-08-28 | `8e3be20` |
 | A5 | [Fechamento A: SQL aplicada → redeploy ×2 → build:app → e2e → merge](onda-A-seguranca/A5-fechamento-onda-A.md) | [✓] concluída | 2026-08-28 | `9837eee` |
 
-## Onda B — UX servida crua · 7/15 · branch `onda-B-cru-ux` · CRU (commit = deploy)
+## Onda B — UX servida crua · 8/15 · branch `onda-B-cru-ux` · CRU (commit = deploy)
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
@@ -38,7 +39,7 @@
 | B4 | [PainelA11y: tokens, switch, dialog, alvos](onda-B-cru-ux/B4-painel-a11y.md) | [✓] concluída | 2026-08-28 | `05cd163` |
 | B-M1 | Merge da trilha tokens/a11y em 28_08_26 (vai ao ar) | [✓] concluída | 2026-08-28 | `66fcbd8` |
 | B5 | [Saídas da criança: trocar leitor, pote, ⚙ em T2/T6](onda-B-cru-ux/B5-saidas-da-crianca.md) | [✓] concluída | 2026-08-28 | `f60d04d` |
-| B6 | [Cabeçalhos T2–T7, alvos ≥48, copy, T2 no celular](onda-B-cru-ux/B6-cabecalhos-e-copy-t2-t7.md) | [ ] pendente |  |  |
+| B6 | [Cabeçalhos T2–T7, alvos ≥48, copy, T2 no celular](onda-B-cru-ux/B6-cabecalhos-e-copy-t2-t7.md) | [✓] concluída | 2026-08-28 | `9eea1eb` |
 | B7 | [T4 palco: alvos, feedback, copy, beco](onda-B-cru-ux/B7-t4-palco.md) | [ ] pendente |  |  |
 | B8 | [T5 portão acessível; T6 anuncia a celebração](onda-B-cru-ux/B8-t5-portao-e-t6-aria.md) ∥ | [ ] pendente |  |  |
 | B9 | [T7 pote: barra 67%%, ~2, alvos, celebração](onda-B-cru-ux/B9-t7-pote.md) ∥ | [ ] pendente |  |  |

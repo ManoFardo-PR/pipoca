@@ -1,18 +1,18 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-08-28T18:28:33.525Z · branch `28_08_26` · HEAD `f704475`
-- Progresso: **0/59** passos concluídos
-- Próximo passo: **P1** — Conferir ambiente e registrar a régua (tsc, 143 unit, 175 e2e)
-- Última verificação: nenhuma
+- Gerado em: 2026-08-28T18:32:30.954Z · branch `28_08_26` · HEAD `f84ea58`
+- Progresso: **1/59** passos concluídos
+- Próximo passo: **P2** — Screenshots "antes" com o harness
+- Última verificação: ✅ verde em 2026-08-28T18:31:56.969Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ árvore suja (1 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
   - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
-## Onda P — Preparação · 0/3 · branch `28_08_26` · —
+## Onda P — Preparação · 1/3 · branch `28_08_26` · —
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
-| P1 | Conferir ambiente e registrar a régua (tsc, 143 unit, 175 e2e) | [ ] pendente |  |  |
+| P1 | Conferir ambiente e registrar a régua (tsc, 143 unit, 175 e2e) | [✓] concluída | 2026-08-28 | `f84ea58` |
 | P2 | Screenshots "antes" com o harness | [ ] pendente |  |  |
 | P3 | Painel inicial: `status` aponta A0 como próximo | [ ] pendente |  |  |
 

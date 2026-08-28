@@ -1,7 +1,43 @@
 {
   "esquema": "pipoca.plan03-status.v1",
   "passos": {
-    "P1": "pendente"
+    "P1": "concluída (2026-08-28 · f84ea58)"
   },
-  "verificacao": null
+  "verificacao": {
+    "quando": "2026-08-28T18:31:56.969Z",
+    "ok": true,
+    "itens": {
+      "tsc": {
+        "ok": true,
+        "passou": null,
+        "falhou": null
+      },
+      "unit": {
+        "ok": true,
+        "passou": 143,
+        "falhou": 0
+      },
+      "e2e:reordenar": {
+        "ok": true,
+        "passou": 28,
+        "falhou": 0
+      },
+      "e2e:linha-verde": {
+        "ok": true,
+        "passou": 80,
+        "falhou": 0
+      },
+      "e2e:admin": {
+        "ok": true,
+        "passou": 25,
+        "falhou": 0
+      },
+      "e2e:geracao2": {
+        "ok": true,
+        "passou": 42,
+        "falhou": 0
+      }
+    },
+    "resumo": "tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓"
+  }
 }

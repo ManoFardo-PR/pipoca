@@ -42,8 +42,12 @@ export interface ConfigIaGlobal {
   cadeiaFallback: ProvedorIaId[];
 }
 
+// A4 (Plan03): fail-closed de ponta a ponta — nenhum provedor nasce com modelo padrão
+// (antes o Gemini vinha pré-preenchido aqui enquanto as edges tinham OUTRO default
+// escondido). O operador define o padrão em SA_IA_GLOBAL; as edges (realizador,
+// proxy-ia) usam tenant → padrão global → sem modelo = não configurado.
 export const CONFIG_IA_GLOBAL_PADRAO: ConfigIaGlobal = {
-  modeloPadrao: { claude: null, gemini: "gemini-2.5-flash", openai: null, deepseek: null },
+  modeloPadrao: { claude: null, gemini: null, openai: null, deepseek: null },
   cadeiaFallback: [],
 };
 

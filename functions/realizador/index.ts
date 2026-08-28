@@ -16,7 +16,9 @@
  *   {erro}: 401 nao_autenticado, 400 requisicao_invalida, 503 nao_configurado
  *   (sem config/chave), 403 cota_excedida, 422 conteudo_bloqueado,
  *   502 realizacao_esgotada, 405 metodo_invalido. Efeito: registra uso em
- *   uso_ia (falha na telemetria nunca derruba a geração).
+ *   uso_ia pela RPC atômica registrar_uso_ia (A4; falha na telemetria nunca
+ *   derruba a geração). Modelo: tenant → padrão global (config_ia
+ *   'plataforma:global') → sem modelo = não configurado (sem default na edge).
  * CHAMA: nada do repo — self-contained (Deno). APIs externas: Anthropic,
  *   OpenAI, DeepSeek, Gemini; PostgREST do Supabase (service role).
  * É CHAMADO POR: src/backend/proxy_realizador.ts (cliente keyless, POST em
@@ -135,12 +137,46 @@ async function lerUso(url: string, chave: string, tenant: string, mes: string): 
   }
 }
 
+// ── config GLOBAL (SA_IA_GLOBAL): linha reservada 'plataforma:global' em config_ia ──
+// dados = ConfigIaGlobal { modeloPadrao: provedor→modelo|null, cadeiaFallback: provedor[] }
+// A4 (Plan03): o realizador passa a ler o padrão GLOBAL de modelo — a mesma regra de
+// herança do proxy-ia e do admin (src/admin/ia_global.ts). Sem modelo = fail-closed.
+interface ConfigIaGlobal {
+  modeloPadrao: Record<string, string | null>;
+  cadeiaFallback: string[];
+}
+
+const GLOBAL_VAZIA: ConfigIaGlobal = { modeloPadrao: {}, cadeiaFallback: [] };
+
+async function lerConfigIaGlobal(url: string, chave: string): Promise<ConfigIaGlobal> {
+  try {
+    const r = await fetch(url + "/rest/v1/config_ia?select=dados&tenant_id=eq." + encodeURIComponent("plataforma:global"), {
+      headers: cabecalhosServico(chave),
+    });
+    if (!r.ok) return GLOBAL_VAZIA;
+    const linhas = (await r.json()) as Array<{ dados?: Partial<ConfigIaGlobal> }>;
+    const d = linhas && linhas[0] && linhas[0].dados;
+    if (!d || typeof d !== "object") return GLOBAL_VAZIA;
+    return {
+      modeloPadrao: d.modeloPadrao && typeof d.modeloPadrao === "object" ? d.modeloPadrao : {},
+      cadeiaFallback: Array.isArray(d.cadeiaFallback) ? d.cadeiaFallback.filter((p) => typeof p === "string") : [],
+    };
+  } catch {
+    return GLOBAL_VAZIA;
+  }
+}
+
+// A4 (Plan03) · registro de uso ATÔMICO pela RPC registrar_uso_ia (SECURITY DEFINER,
+// só service_role): recebe DELTAS (chamadas/custo desta requisição) — o banco soma
+// num único upsert, sem a corrida do ler-somar-gravar (duas famílias do mesmo tenant
+// em paralelo perdiam incrementos). `lerUso` segue sendo leitura, para a checagem
+// de cota ANTES da chamada.
 async function registrarUso(url: string, chave: string, tenant: string, mes: string, chamadas: number, custo: number): Promise<void> {
   try {
-    await fetch(url + "/rest/v1/uso_ia?on_conflict=tenant_id,mes", {
+    await fetch(url + "/rest/v1/rpc/registrar_uso_ia", {
       method: "POST",
-      headers: { ...cabecalhosServico(chave), Prefer: "resolution=merge-duplicates,return=minimal" },
-      body: JSON.stringify([{ tenant_id: tenant, mes, chamadas, custo }]),
+      headers: cabecalhosServico(chave),
+      body: JSON.stringify({ p_tenant: tenant, p_mes: mes, p_chamadas: chamadas, p_custo: custo }),
     });
   } catch {
     /* telemetria de uso nunca derruba a geração */
@@ -328,12 +364,9 @@ function segmentarParagrafos(texto: string): string[] {
 }
 
 // ── provedores — chaves só do ambiente; saída JSON restrita {texto_limpo} ──
-const MODELO_PADRAO: Record<string, string> = {
-  claude: "claude-haiku-4-5",
-  openai: "gpt-5.4-mini",
-  gemini: "gemini-2.5-flash",
-  deepseek: "deepseek-chat",
-};
+// A4 (Plan03): NÃO há mais modelo default escondido na edge. O modelo vem do tenant
+// (config_ia) ou do padrão GLOBAL do admin (SA_IA_GLOBAL); sem modelo, o provedor
+// conta como não configurado — o operador vê exatamente o que a edge usa.
 const SECRET_POR_PROVEDOR: Record<string, string> = {
   claude: "ANTHROPIC_API_KEY",
   openai: "OPENAI_API_KEY",
@@ -363,14 +396,14 @@ function parseTextoLimpo(textoJson: string): string | null {
 
 async function gerarCom(
   provedor: string,
-  modelo: string | null,
+  modelo: string,
   prompt: { system: string; user: string },
   temperatura: number
 ): Promise<Gerado> {
   const nomeSecret = SECRET_POR_PROVEDOR[provedor];
   const chave = nomeSecret ? Deno.env.get(nomeSecret) : undefined;
   if (!chave) return { ok: false, semChave: true };
-  const m = modelo || MODELO_PADRAO[provedor] || "";
+  const m = modelo;
 
   try {
     if (provedor === "gemini") {
@@ -497,16 +530,23 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   // ── cascata do 12-04, no servidor ──
   const inicio = Date.now();
+  // A4 · modelo por provedor: o do tenant (se o provedor é o dele) → padrão GLOBAL do
+  // admin (SA_IA_GLOBAL) → sem modelo = provedor NÃO configurado (fail-closed; o
+  // fallback só entra se o operador definiu o padrão global daquele provedor).
+  const global = await lerConfigIaGlobal(SUPABASE_URL, SERVICE_KEY);
+  const modeloPara = (provedor: string): string | null =>
+    (provedor === configEfetiva.provedor ? configEfetiva.modelo : null) || global.modeloPadrao[provedor] || null;
   const provedores = [configEfetiva.provedor, configEfetiva.fallback].filter(
     (p, i, arr): p is string => !!p && arr.indexOf(p) === i
   );
   let chamadas = 0;
 
   cascata: for (const provedor of provedores) {
+    const modelo = modeloPara(provedor);
+    if (!modelo) continue; // sem modelo configurado: nem tenta (sem chamada paga)
     let jaRetentou = false;
     while (chamadas < TETO_GLOBAL_TENTATIVAS) {
       chamadas++;
-      const modelo = provedor === configEfetiva.provedor ? configEfetiva.modelo : null;
       const r = await gerarCom(provedor, modelo, prompt, temperatura);
       if (!r.ok) {
         if (r.recusa) continue cascata; // recusa NUNCA repete no mesmo provedor
@@ -521,13 +561,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
       if (!veredito.pass) continue cascata; // FAIL de fidelidade: 1 tentativa por provedor
       // guardrails de SAÍDA — nada inseguro chega à criança
       if (bloqueado(r.texto)) return json({ erro: "conteudo_bloqueado" }, 422);
-      await registrarUso(SUPABASE_URL, SERVICE_KEY, tenant, mes, uso.chamadas + chamadas, uso.custo + chamadas);
+      await registrarUso(SUPABASE_URL, SERVICE_KEY, tenant, mes, chamadas, chamadas); // deltas (A4)
       return json(
         {
           texto: r.texto,
           paragrafos,
           veredito,
-          origem: { fonte: "llm", provedor, modelo: modelo || MODELO_PADRAO[provedor] || "" },
+          origem: { fonte: "llm", provedor, modelo },
           metadados: { chamadas, duracaoMs: Date.now() - inicio },
         },
         200
@@ -536,7 +576,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
     break; // teto global atingido
   }
 
+  // A4: nenhum provedor tinha modelo configurado — nada foi chamado nem cobrado.
+  if (chamadas === 0) return json({ erro: "nao_configurado" }, 503);
+
   // Esgotada: o fallback A+ v3 é do DISPOSITIVO (13-03) — aqui só o sinal.
-  await registrarUso(SUPABASE_URL, SERVICE_KEY, tenant, mes, uso.chamadas + chamadas, uso.custo + chamadas);
+  await registrarUso(SUPABASE_URL, SERVICE_KEY, tenant, mes, chamadas, chamadas); // deltas (A4)
   return json({ erro: "realizacao_esgotada", chamadas }, 502);
 });

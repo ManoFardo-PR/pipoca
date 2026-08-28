@@ -35,9 +35,27 @@
 
 begin;
 
--- ── 1) RPC de cota: só service_role (a edge `realizador` chama com a service key) ────────
-revoke execute on function public.registrar_uso_ia(text, text, numeric) from public, anon, authenticated;
-grant  execute on function public.registrar_uso_ia(text, text, numeric) to service_role;
+-- ── 1) RPC de cota: recebe DELTAS (A4) e só service_role a executa ──────────────────────
+-- A versão 20260826155239 incrementava `chamadas` em 1 fixo; as edges (realizador chama
+-- até 4× por realização) passam a mandar p_chamadas/p_custo desta requisição. Assinatura
+-- nova ⇒ a antiga (text,text,numeric) é removida para não haver sobrecarga ambígua.
+drop function if exists public.registrar_uso_ia(text, text, numeric);
+create or replace function public.registrar_uso_ia(
+  p_tenant text, p_mes text, p_custo numeric default 0, p_chamadas integer default 1
+)
+returns void
+language sql
+security definer
+set search_path to 'public'
+as $$
+  insert into uso_ia (tenant_id, mes, chamadas, custo)
+  values (p_tenant, p_mes, greatest(coalesce(p_chamadas, 1), 0), greatest(coalesce(p_custo, 0), 0))
+  on conflict (tenant_id, mes)
+  do update set chamadas = uso_ia.chamadas + greatest(coalesce(excluded.chamadas, 0), 0),
+                custo    = uso_ia.custo + greatest(coalesce(excluded.custo, 0), 0);
+$$;
+revoke execute on function public.registrar_uso_ia(text, text, numeric, integer) from public, anon, authenticated;
+grant  execute on function public.registrar_uso_ia(text, text, numeric, integer) to service_role;
 
 -- Fecha a classe inteira para funções FUTURAS criadas por `postgres` em public: deixam de
 -- nascer executáveis por anon/authenticated. CUIDADO (E-wave e além): toda função nova

@@ -458,7 +458,7 @@ console.log("\n=== SA_IA_GLOBAL (tarefa #31) · núcleo global, herança e statu
 {
   // padrão fail-closed: sem modelos padrão e sem cadeia — ninguém herda IA de graça
   assert(CONFIG_IA_GLOBAL_PADRAO.cadeiaFallback.length === 0, "padrão nasce sem cadeia de fallback");
-  assert(CONFIG_IA_GLOBAL_PADRAO.modeloPadrao.gemini === "gemini-2.5-flash", "padrão do Gemini é gemini-2.5-flash");
+  assert(CONFIG_IA_GLOBAL_PADRAO.modeloPadrao.gemini === null, "A4: nem o Gemini nasce com modelo padrão (fail-closed alinhado às edges)");
   assert(CONFIG_IA_GLOBAL_PADRAO.modeloPadrao.claude === null && CONFIG_IA_GLOBAL_PADRAO.modeloPadrao.openai === null && CONFIG_IA_GLOBAL_PADRAO.modeloPadrao.deepseek === null, "outros provedores nascem sem modelo padrão");
 
   // validação: catálogo, provedores conhecidos, sem repetição, sem 'chave'

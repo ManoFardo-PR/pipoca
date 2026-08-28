@@ -1,11 +1,11 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-08-28T19:54:10.688Z · branch `onda-B-cru-ux` · HEAD `05cd163`
-- Progresso: **14/59** passos concluídos
-- Próximo passo: **B-M1** — Merge da trilha tokens/a11y em 28_08_26 (vai ao ar)
+- Gerado em: 2026-08-28T19:54:13.269Z · branch `onda-B-cru-ux` · HEAD `d1fe633`
+- Progresso: **15/59** passos concluídos
+- Próximo passo: **B5** — Saídas da criança: trocar leitor, pote, ⚙ em T2/T6 ([abrir](onda-B-cru-ux/B5-saidas-da-crianca.md))
 - Última verificação: ✅ verde em 2026-08-28T19:52:01.223Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ árvore suja (3 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
   - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
 ## Onda P — Preparação · 3/3 · branch `28_08_26` · —
@@ -27,7 +27,7 @@
 | A4 | [Edges: RPC de cota e MODELO_PADRAO alinhado](onda-A-seguranca/A4-edges-rpc-e-modelo-padrao.md) | [✓] concluída | 2026-08-28 | `8e3be20` |
 | A5 | [Fechamento A: SQL aplicada → redeploy ×2 → build:app → e2e → merge](onda-A-seguranca/A5-fechamento-onda-A.md) | [✓] concluída | 2026-08-28 | `9837eee` |
 
-## Onda B — UX servida crua · 5/15 · branch `onda-B-cru-ux` · CRU (commit = deploy)
+## Onda B — UX servida crua · 6/15 · branch `onda-B-cru-ux` · CRU (commit = deploy)
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
@@ -36,7 +36,7 @@
 | B2 | [Paleta com contraste real e escala tipográfica](onda-B-cru-ux/B2-paleta-com-contraste-e-tipografia.md) | [✓] concluída | 2026-08-28 | `8050627` |
 | B3 | [Foco visível global e movimento pelo token](onda-B-cru-ux/B3-foco-visivel-e-movimento.md) | [✓] concluída | 2026-08-28 | `a61221f` |
 | B4 | [PainelA11y: tokens, switch, dialog, alvos](onda-B-cru-ux/B4-painel-a11y.md) | [✓] concluída | 2026-08-28 | `05cd163` |
-| B-M1 | Merge da trilha tokens/a11y em 28_08_26 (vai ao ar) | [ ] pendente |  |  |
+| B-M1 | Merge da trilha tokens/a11y em 28_08_26 (vai ao ar) | [✓] concluída | 2026-08-28 | `d1fe633` |
 | B5 | [Saídas da criança: trocar leitor, pote, ⚙ em T2/T6](onda-B-cru-ux/B5-saidas-da-crianca.md) | [ ] pendente |  |  |
 | B6 | [Cabeçalhos T2–T7, alvos ≥48, copy, T2 no celular](onda-B-cru-ux/B6-cabecalhos-e-copy-t2-t7.md) | [ ] pendente |  |  |
 | B7 | [T4 palco: alvos, feedback, copy, beco](onda-B-cru-ux/B7-t4-palco.md) | [ ] pendente |  |  |

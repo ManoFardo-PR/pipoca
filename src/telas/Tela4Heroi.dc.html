@@ -14,6 +14,9 @@
     @keyframes pipPulse { 0%,100%{box-shadow:0 0 0 0 rgba(232,150,90,.5)} 50%{box-shadow:0 0 0 8px rgba(232,150,90,0)} }
     .pip-slot-livre { animation: pipPulse 1.8s ease-in-out infinite; }
     .pip-chip:hover { transform: translateY(calc(-3px * var(--pip-mov))); } /* B3: salto pelo token */
+    /* B7 (UI-C39): sacudida curta quando um toque não tem efeito — some com reduzir-movimento. */
+    @keyframes pipSacode { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+    .pip-sacode { animation: pipSacode calc(.3s * var(--pip-mov)) ease; }
   </style>
 </helmet>
 
@@ -31,14 +34,17 @@
   <sc-if value="{{ pronto }}" hint-placeholder-val="{{ true }}">
   <div style="flex:1;min-height:0;display:flex;flex-direction:column;padding:20px 34px 26px;">
 
-    <!-- Instrução da rodada -->
-    <div style="flex-shrink:0;">
-      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:26px;color:#3a4f63;">{{ instrucaoTitulo }}</div>
-      <p style="font-size:14.5px;color:var(--pip-texto-suave);margin-top:3px;max-width:640px;">{{ instrucaoAjuda }}</p>
+    <!-- Instrução da rodada — copy da faixa etária + 🔊 (B7 · UI-C41/C42) -->
+    <div style="flex-shrink:0;display:flex;align-items:flex-start;gap:12px;">
+      <div style="flex:1;min-width:0;">
+        <div id="pip-t4-instrucao" style="font-family:'Baloo 2',cursive;font-weight:700;font-size:26px;color:#3a4f63;">{{ instrucaoTitulo }}</div>
+        <p style="font-size:var(--pip-fs-3);line-height:var(--pip-lh-texto);color:var(--pip-texto-suave);margin-top:3px;max-width:640px;">{{ instrucaoAjuda }}</p>
+      </div>
+      <button onClick="{{ ouvirInstrucao }}" aria-label="Ouvir a instrução" title="Ouvir" style="flex-shrink:0;min-width:48px;min-height:48px;border-radius:var(--pip-raio-1);border:1.5px solid var(--pip-areia-borda);background:rgba(255,255,255,.7);cursor:pointer;font-size:18px;color:var(--pip-tinta);">🔊</button>
     </div>
 
     <!-- A cena que você está montando (a linha) -->
-    <div style="flex-shrink:0;margin-top:16px;background:linear-gradient(180deg,#fbeecf,#f6e3bf);border:2px dashed rgba(200,156,108,.5);border-radius:22px;padding:18px;min-height:132px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;">
+    <div class="{{ sacodeClass }}" style="flex-shrink:0;margin-top:16px;background:linear-gradient(180deg,#fbeecf,#f6e3bf);border:2px dashed rgba(200,156,108,.5);border-radius:22px;padding:18px;min-height:132px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
       <sc-for list="{{ linhaCells }}" as="cell" hint-placeholder-count="3">
         <div style="{{ cell.wrapStyle }}">
           <!-- lacuna de inserção (miolo, R2-4) -->
@@ -49,18 +55,18 @@
           <sc-if value="{{ cell.ehCarta }}" hint-placeholder-val="{{ true }}">
           <div style="{{ cell.cardStyle }}">
             <sc-if value="{{ cell.travada }}" hint-placeholder-val="{{ false }}">
-            <div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--pip-terracota-texto);color:#fff;border-radius:999px;padding:1px 9px;font-size:10px;font-weight:800;letter-spacing:.4px;white-space:nowrap;">🔒 âncora</div>
+            <div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--pip-terracota-texto);color:var(--pip-cta-texto);border-radius:999px;padding:2px 10px;font-size:12px;font-weight:800;letter-spacing:.3px;white-space:nowrap;">🔒 fica aqui</div>
             </sc-if>
             <div style="font-size:38px;line-height:1;">{{ cell.emoji }}</div>
             <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:13px;color:#5a4632;margin-top:4px;">{{ cell.nome }}</div>
-            <!-- controles de mover / tirar (R1 e miolo R2-4) -->
+            <!-- controles de mover / tirar (R1 e miolo R2-4) — 48px, nomeados (B7 · UI-C12) -->
             <sc-if value="{{ cell.editavel }}" hint-placeholder-val="{{ false }}">
-            <div style="display:flex;gap:4px;margin-top:7px;">
-              <button onClick="{{ cell.mover_esq }}" title="Mover para trás" style="{{ cell.miniBtn }}">◀</button>
+            <div style="display:flex;gap:10px;margin-top:8px;">
+              <button onClick="{{ cell.mover_esq }}" aria-label="Mover para a esquerda" title="Mover para a esquerda" style="{{ cell.miniBtn }}">◀</button>
               <sc-if value="{{ cell.podeTirar }}" hint-placeholder-val="{{ true }}">
-              <button onClick="{{ cell.tirar }}" title="Tirar" style="{{ cell.miniBtnX }}">✕</button>
+              <button onClick="{{ cell.tirar }}" aria-label="Tirar" title="Tirar" style="{{ cell.miniBtnX }}">✕</button>
               </sc-if>
-              <button onClick="{{ cell.mover_dir }}" title="Mover para frente" style="{{ cell.miniBtn }}">▶</button>
+              <button onClick="{{ cell.mover_dir }}" aria-label="Mover para a direita" title="Mover para a direita" style="{{ cell.miniBtn }}">▶</button>
             </div>
             </sc-if>
           </div>
@@ -73,12 +79,15 @@
       </sc-for>
     </div>
 
-    <!-- Banco: as coisas do quintal -->
-    <div style="flex:1;min-height:0;margin-top:18px;display:flex;flex-direction:column;">
-      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#7a6a54;flex-shrink:0;">{{ bancoTitulo }}</div>
-      <div style="flex:1;min-height:0;margin-top:12px;display:flex;flex-wrap:wrap;gap:14px;align-content:flex-start;">
+    <!-- Aviso para toques sem efeito (B7 · UI-C39): visível + anunciado (role=status). -->
+    <div role="status" aria-live="polite" style="flex-shrink:0;min-height:22px;margin-top:8px;font-family:var(--pip-fonte-texto);font-weight:700;font-size:var(--pip-fs-3);color:var(--pip-terracota-texto);">{{ aviso }}</div>
+
+    <!-- Banco: as coisas do quintal (conteúdo dimensionado; o CTA vem logo abaixo — B7 · UI-C07) -->
+    <div style="flex-shrink:0;margin-top:10px;display:flex;flex-direction:column;">
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:var(--pip-texto-suave);flex-shrink:0;">{{ bancoTitulo }}</div>
+      <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:14px;align-content:flex-start;">
         <sc-for list="{{ bancoChips }}" as="chip" hint-placeholder-count="4">
-          <button onClick="{{ chip.onTap }}" class="pip-chip" style="{{ chip.style }}">
+          <button onClick="{{ chip.onTap }}" class="pip-chip" aria-disabled="{{ chip.inerte }}" style="{{ chip.style }}">
             <div style="font-size:40px;line-height:1;">{{ chip.emoji }}</div>
             <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:14px;color:#5a4632;margin-top:5px;">{{ chip.nome }}</div>
           </button>
@@ -86,11 +95,12 @@
       </div>
     </div>
 
-    <!-- Ação: ler em voz alta -->
-    <div style="flex-shrink:0;margin-top:8px;display:flex;align-items:center;gap:14px;">
-      <div style="flex:1;font-size:var(--pip-fs-2);line-height:var(--pip-lh-texto);color:var(--pip-texto-suave);">{{ dica }}</div>
-      <button onClick="{{ lerEmVozAlta }}" disabled="{{ lerDisabled }}" style="{{ lerBtnStyle }}">📖 Ler em voz alta →</button>
+    <!-- Ação: ler em voz alta (a dica descreve o CTA — B7) -->
+    <div style="flex-shrink:0;margin-top:18px;display:flex;align-items:center;gap:14px;">
+      <div id="pip-t4-dica" style="flex:1;font-size:var(--pip-fs-2);line-height:var(--pip-lh-texto);color:var(--pip-texto-suave);">{{ dica }}</div>
+      <button onClick="{{ lerEmVozAlta }}" disabled="{{ lerDisabled }}" aria-describedby="pip-t4-dica" style="{{ lerBtnStyle }}">📖 Ler em voz alta →</button>
     </div>
+    <div style="flex:1;"></div>
 
   </div>
   </sc-if>
@@ -104,6 +114,8 @@ class Component extends DCLogic {
     selObj: null,     // R2-4: peça nova escolhida no banco (antes de colocar)
     mioloDraft: null, // R2-4: ordem de trabalho do miolo (existentes + a nova)
     novoId: null,     // R2-4: a peça nova já colocada no miolo (ou null)
+    aviso: '',        // B7: feedback de toque sem efeito / anúncio de colocação (role=status)
+    sacode: false,    // B7: sacudida curta da cena (respeita --pip-mov)
   };
 
   _getApp() { return window.PipocaApp; }
@@ -111,7 +123,34 @@ class Component extends DCLogic {
   componentDidMount() { this._sync(); }
   componentDidUpdate() { this._sync(); }
 
-  // Inicia a composição se necessário e reseta o rascunho local a cada rodada nova.
+  // B7 · o rascunho da tela vive também em App.estado.rascunhoT4 (slice NÃO
+  // persistido): voltar da T5 remonta a T4 e o arranjo/miolo voltam iguais
+  // ("voltar sem perdas" de verdade — decisão do dono: preservar).
+  _rascunhoSalvo(comp) {
+    const App = this._getApp();
+    const r = App && App.estado ? App.estado.rascunhoT4 : null;
+    if (!r || !comp || r.rodada !== comp.rodada || r.cenarioId !== (comp.cenarioId || 'quintal_anoitecer')) return null;
+    const conhecidos = (comp.banco || []).concat(comp.linha || []);
+    const ok = (id) => conhecidos.indexOf(id) !== -1;
+    return {
+      arranjo: (r.arranjo || []).filter(ok),
+      mioloDraft: Array.isArray(r.mioloDraft) ? r.mioloDraft.filter(ok) : null,
+      novoId: r.novoId != null && ok(r.novoId) ? r.novoId : null,
+    };
+  }
+  _guardarRascunho(patch) {
+    this.setState(patch);
+    const App = this._getApp();
+    const comp = App && App.estado ? App.estado.comp : null;
+    if (!App || !comp) return;
+    App.setState({ rascunhoT4: {
+      rodada: comp.rodada, cenarioId: comp.cenarioId || 'quintal_anoitecer',
+      arranjo: this.state.arranjo.slice(), mioloDraft: this.state.mioloDraft ? this.state.mioloDraft.slice() : null, novoId: this.state.novoId,
+    } });
+  }
+
+  // Inicia a composição se necessário e reseta o rascunho local a cada rodada nova
+  // (ou restaura o rascunho guardado da MESMA rodada — B7).
   _sync() {
     const App = this._getApp();
     if (!App) return;
@@ -127,7 +166,14 @@ class Component extends DCLogic {
       this._rodada = comp.rodada;
       // Rascunho do miolo parte da linha atual (interior entre as âncoras).
       const miolo = (comp.linha || []).slice(1, Math.max(1, (comp.linha || []).length - 1));
-      this.setState({ arranjo: [], selObj: null, mioloDraft: miolo, novoId: null });
+      const salvo = this._rascunhoSalvo(comp);
+      this.setState({
+        arranjo: salvo ? salvo.arranjo : [],
+        selObj: null,
+        mioloDraft: salvo && salvo.mioloDraft ? salvo.mioloDraft : miolo,
+        novoId: salvo ? salvo.novoId : null,
+        aviso: '',
+      });
     }
   }
 
@@ -136,54 +182,96 @@ class Component extends DCLogic {
     return App && App.objetoMetaV2 ? App.objetoMetaV2(id) : { id, emoji: '✨', nome: id };
   }
 
-  // ── R1: escolher e ordenar 3 ──────────────────────────────────────────────
+  // ── B7 · feedback: nenhum toque é engolido em silêncio (visível + falado) ──
+  _falar(texto) {
+    try {
+      const C = window.PipocaCanonico;
+      if (C && C.tts && typeof C.tts.falar === 'function') { C.tts.falar(texto, { lang: 'pt-BR', rate: 0.9 }); return; }
+      if (window.speechSynthesis && window.SpeechSynthesisUtterance) {
+        const u = new window.SpeechSynthesisUtterance(texto); u.lang = 'pt-BR'; u.rate = 0.9;
+        window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+      }
+    } catch (_) {}
+  }
+  _avisar(texto, sacudir) {
+    this.setState({ aviso: texto, sacode: !!sacudir });
+    this._falar(texto);
+    if (sacudir) {
+      if (this._sacodeTimer) clearTimeout(this._sacodeTimer);
+      this._sacodeTimer = setTimeout(() => { this.setState({ sacode: false }); }, 350);
+    }
+  }
+  _ordinal(n) { return n + 'ª'; }
+
+  // ── R1: escolher e ordenar (até 3) ────────────────────────────────────────
+  _alvoR1() {
+    const App = this._getApp();
+    const comp = App && App.estado ? App.estado.comp : null;
+    // B7 · nunca pedir mais peças do que existe (beco UI-C06).
+    const total = (comp && comp.banco ? comp.banco.length : 0);
+    return Math.min(3, Math.max(1, total));
+  }
   _addArranjo(id) {
     const a = this.state.arranjo;
-    if (a.indexOf(id) !== -1 || a.length >= 3) return;
-    this.setState({ arranjo: a.concat([id]) });
+    if (a.indexOf(id) !== -1) return;
+    if (a.length >= this._alvoR1()) { this._avisar('Já tem ' + this._alvoR1() + '! Tire uma para trocar.', true); return; }
+    this._guardarRascunho({ arranjo: a.concat([id]) });
+    this._avisar(this._meta(id).nome + ' colocada na ' + this._ordinal(a.length + 1) + ' posição.', false);
   }
   _tirarArranjo(id) {
-    this.setState({ arranjo: this.state.arranjo.filter(x => x !== id) });
+    this._guardarRascunho({ arranjo: this.state.arranjo.filter(x => x !== id) });
+    this._avisar(this._meta(id).nome + ' voltou para o banco.', false);
   }
   _moverArranjo(id, dir) {
     const a = this.state.arranjo.slice();
     const i = a.indexOf(id);
     const j = i + dir;
-    if (i < 0 || j < 0 || j >= a.length) return;
+    if (i < 0 || j < 0 || j >= a.length) { this._avisar(dir < 0 ? 'Já está no começo.' : 'Já está no fim.', true); return; }
     const t = a[i]; a[i] = a[j]; a[j] = t;
-    this.setState({ arranjo: a });
+    this._guardarRascunho({ arranjo: a });
+    this._avisar(this._meta(id).nome + ' agora é a ' + this._ordinal(j + 1) + '.', false);
   }
 
   // ── R2-4: escolher 1, colocar no miolo e reordenar o miolo ────────────────
   // Só dá pra (re)escolher enquanto a peça nova ainda não foi colocada.
   _selecionarObj(id) {
-    if (this.state.novoId != null) return;
-    this.setState({ selObj: this.state.selObj === id ? null : id });
+    if (this.state.novoId != null) { this._avisar('Já colocou uma. Tire ela do meio para trocar.', true); return; }
+    const sel = this.state.selObj === id ? null : id;
+    this.setState({ selObj: sel });
+    if (sel) this._avisar(this._meta(id).nome + ' escolhida. Agora toque num espacinho do meio.', false);
   }
   // Coloca a peça escolhida numa posição do miolo (0..len). Ela passa a fazer
   // parte do rascunho e agora pode ser reordenada junto com as demais.
   _colocarNoMiolo(pos) {
     const sel = this.state.selObj;
-    if (!sel) return;
+    if (!sel) { this._avisar('Toque numa coisa do banco primeiro.', true); return; }
     const d = (this.state.mioloDraft || []).slice();
     const p = Math.max(0, Math.min(pos, d.length));
     d.splice(p, 0, sel);
-    this.setState({ mioloDraft: d, novoId: sel, selObj: null });
+    this._guardarRascunho({ mioloDraft: d, novoId: sel, selObj: null });
+    this._avisar(this._meta(sel).nome + ' colocada no meio, na ' + this._ordinal(p + 2) + ' posição.', false);
   }
   // Reordena SÓ o miolo (nunca cruza as âncoras).
   _moverMiolo(id, dir) {
     const d = (this.state.mioloDraft || []).slice();
     const i = d.indexOf(id);
     const j = i + dir;
-    if (i < 0 || j < 0 || j >= d.length) return;
+    if (i < 0 || j < 0 || j >= d.length) { this._avisar('As de fora ficam no lugar — o meio acabou aqui.', true); return; }
     const t = d[i]; d[i] = d[j]; d[j] = t;
-    this.setState({ mioloDraft: d });
+    this._guardarRascunho({ mioloDraft: d });
+    this._avisar(this._meta(id).nome + ' agora é a ' + this._ordinal(j + 2) + '.', false);
   }
   // Tira a peça nova de volta pro banco (as já colocadas antes ficam).
   _tirarNovo() {
     const n = this.state.novoId;
     if (n == null) return;
-    this.setState({ mioloDraft: (this.state.mioloDraft || []).filter(x => x !== n), novoId: null });
+    this._guardarRascunho({ mioloDraft: (this.state.mioloDraft || []).filter(x => x !== n), novoId: null });
+    this._avisar(this._meta(n).nome + ' voltou para o banco.', false);
+  }
+  // 🔊 lê a instrução da rodada com a mesma voz da T5.
+  ouvirInstrucao() {
+    const v = this.renderVals();
+    this._falar(v.instrucaoTitulo + '. ' + v.instrucaoAjuda);
   }
 
   lerEmVozAlta() {
@@ -198,7 +286,7 @@ class Component extends DCLogic {
     // aplicada na confirmação da leitura (T5), para que voltar seja sem perdas.
     let pendente, objParaGate;
     if (comp.rodada === 1) {
-      if (this.state.arranjo.length !== 3) return;
+      if (this.state.arranjo.length !== this._alvoR1()) return;
       pendente = { tipo: 'r1', ordem: this.state.arranjo.slice() };
       objParaGate = this.state.arranjo[this.state.arranjo.length - 1];
     } else {
@@ -243,22 +331,25 @@ class Component extends DCLogic {
     const rodadaTotal = comp && comp.cenario && comp.cenario.rodadas ? comp.cenario.rodadas.length : 4;
     const ehR1 = !comp || comp.rodada === 1;
 
-    const miniBtn = 'width:26px;height:26px;border-radius:8px;border:1.5px solid rgba(160,140,110,.3);background:rgba(255,255,255,.85);cursor:pointer;font-size:12px;color:#7a6a54;display:flex;align-items:center;justify-content:center;';
+    // B7 (UI-C12): controles de mover/tirar com 48px (min) — a mecânica-coração é tocável.
+    const miniBtn = 'min-width:48px;min-height:48px;border-radius:12px;border:1.5px solid rgba(160,140,110,.3);background:rgba(255,255,255,.9);cursor:pointer;font-size:16px;color:var(--pip-tinta);display:flex;align-items:center;justify-content:center;';
     const miniBtnX = miniBtn + 'color:var(--pip-terracota-texto);';
 
-    const cardBase = 'position:relative;width:104px;min-height:96px;border-radius:18px;background:rgba(255,255,255,.92);box-shadow:0 8px 20px -12px rgba(74,59,44,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;';
+    const cardBase = 'position:relative;width:196px;min-height:96px;border-radius:18px;background:rgba(255,255,255,.92);box-shadow:0 8px 20px -12px rgba(74,59,44,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 8px 10px;';
 
     let instrucaoTitulo, instrucaoAjuda, bancoTitulo, dica, linhaCells = [], bancoChips = [], lerDisabled;
+    const alvoR1 = this._alvoR1();
 
     if (ehR1) {
-      // ── RODADA 1 · escolher e ordenar 3 ──
+      // ── RODADA 1 · escolher e ordenar (até 3) ──
       instrucaoTitulo = 'Monte sua cena';
-      instrucaoAjuda = 'Escolha 3 coisas do quintal e coloque na ordem que você quiser. As pontas viram âncoras da história.';
+      // B7 (UI-C41): copy da faixa etária — sem "âncora", sem "reordenar"; nunca pede mais do que há.
+      instrucaoAjuda = 'Escolha ' + alvoR1 + ' coisas do quintal e coloque na ordem que você quiser. A primeira e a última ficam no lugar depois.';
       bancoTitulo = 'As coisas do quintal — toque para colocar na cena';
       const arranjo = this.state.arranjo;
 
       const ordinais = ['1º', '2º', '3º'];
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < alvoR1; i++) {
         const id = arranjo[i];
         if (id) {
           const m = this._meta(id);
@@ -289,21 +380,23 @@ class Component extends DCLogic {
         .filter(id => arranjo.indexOf(id) === -1)
         .map(id => {
           const m = this._meta(id);
-          const cheio = arranjo.length >= 3;
+          const cheio = arranjo.length >= alvoR1;
           return {
-            emoji: m.emoji, nome: m.nome,
-            onTap: cheio ? (() => {}) : (() => this._addArranjo(id)),
+            emoji: m.emoji, nome: m.nome, inerte: cheio,
+            // B7: o toque "engolido" agora avisa (sacode + status + fala) em vez de nada.
+            onTap: () => this._addArranjo(id),
             style: 'width:108px;min-height:104px;border:1.5px solid rgba(200,156,108,.4);border-radius:18px;background:#fffdf7;box-shadow:0 8px 18px -12px rgba(74,59,44,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;transition:transform calc(.12s * var(--pip-mov)) ease;cursor:' + (cheio ? 'not-allowed' : 'pointer') + ';' + (cheio ? 'opacity:.5;' : ''),
           };
         });
 
-      lerDisabled = arranjo.length !== 3;
-      dica = lerDisabled ? 'Coloque 3 coisas para poder ler.' : 'Prontinho! Toque para ler a sua história.';
+      lerDisabled = arranjo.length !== alvoR1;
+      dica = lerDisabled ? ('Coloque ' + alvoR1 + ' coisas para poder ler.') : 'Prontinho! Toque para ler a sua história.';
 
     } else {
       // ── RODADA 2-4 · escolher 1, colocar no miolo e reordenar o miolo ──
       instrucaoTitulo = 'A história cresceu! Coloque mais uma coisa';
-      instrucaoAjuda = 'Escolha 1 coisa e coloque no meio da cena. Você pode reordenar as peças do meio com ◀ ▶; as pontas ficam de âncora.';
+      // B7 (UI-C41/C42): sem "reordenar", sem "âncora", sem glifo solto.
+      instrucaoAjuda = 'Escolha 1 coisa e toque num espacinho do meio. As de fora ficam no lugar. As do meio você pode trocar de ordem com as setas.';
       bancoTitulo = 'Escolha 1 para juntar ao meio';
 
       const linha = comp.linha;
@@ -327,12 +420,13 @@ class Component extends DCLogic {
           mover_esq: () => {}, mover_dir: () => {}, tirar: () => {},
         };
       };
+      // B7 (UI-C20): lacuna "+" com 48px; sem seleção, o toque avisa em vez de nada.
       const gap = (pos) => ({
         wrapStyle: 'display:flex;align-items:center;',
         ehCarta: false, ehVazio: false, ehGap: true,
         gapLabel: temSel ? '+' : '·',
-        onGap: temSel ? (() => this._colocarNoMiolo(pos)) : (() => {}),
-        gapStyle: 'width:40px;min-height:96px;border-radius:14px;border:2px dashed ' + (temSel ? 'rgba(232,150,90,.75)' : 'rgba(160,140,110,.3)') + ';background:' + (temSel ? 'rgba(232,150,90,.1)' : 'transparent') + ';cursor:' + (temSel ? 'pointer' : 'default') + ';font-size:22px;font-weight:800;color:' + (temSel ? 'var(--pip-terracota-texto)' : 'var(--pip-texto-suave)') + ';display:flex;align-items:center;justify-content:center;',
+        onGap: () => this._colocarNoMiolo(pos),
+        gapStyle: 'min-width:48px;min-height:96px;border-radius:14px;border:2px dashed ' + (temSel ? 'rgba(232,150,90,.75)' : 'rgba(160,140,110,.3)') + ';background:' + (temSel ? 'rgba(232,150,90,.1)' : 'transparent') + ';cursor:' + (temSel ? 'pointer' : 'default') + ';font-size:22px;font-weight:800;color:' + (temSel ? 'var(--pip-terracota-texto)' : 'var(--pip-texto-suave)') + ';display:flex;align-items:center;justify-content:center;',
       });
 
       // Âncora inicial
@@ -384,8 +478,9 @@ class Component extends DCLogic {
           const sel = selObj === id;
           const bloqueado = colocado;
           return {
-            emoji: m.emoji, nome: m.nome,
-            onTap: bloqueado ? (() => {}) : (() => this._selecionarObj(id)),
+            emoji: m.emoji, nome: m.nome, inerte: bloqueado,
+            // B7: bloqueado também avisa (via _selecionarObj) em vez de engolir o toque.
+            onTap: () => this._selecionarObj(id),
             style: 'width:108px;min-height:104px;border:2px solid ' + (sel ? '#e8965a' : 'rgba(200,156,108,.4)') + ';border-radius:18px;background:' + (sel ? '#fff1e2' : '#fffdf7') + ';box-shadow:0 8px 18px -12px rgba(74,59,44,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;transition:transform calc(.12s * var(--pip-mov)) ease;cursor:' + (bloqueado ? 'not-allowed' : 'pointer') + ';' + (bloqueado ? 'opacity:.5;' : ''),
           };
         });
@@ -393,7 +488,7 @@ class Component extends DCLogic {
       lerDisabled = !colocado;
       dica = !colocado
         ? (!temSel ? 'Escolha 1 coisa no banco.' : 'Agora toque no “+” no meio da cena.')
-        : 'Use ◀ ▶ pra deixar o meio do seu jeito. Depois toque para ler a história maior.';
+        : 'Use as setas pra deixar o meio do seu jeito. Depois toque para ler a história maior.';
     }
 
     const lerBtnStyle = 'padding:15px 26px;border:none;border-radius:16px;font-family:"Baloo 2",cursive;font-weight:700;font-size:17px;white-space:nowrap;'
@@ -410,6 +505,9 @@ class Component extends DCLogic {
       bancoTitulo, dica,
       linhaCells, bancoChips,
       lerDisabled, lerBtnStyle,
+      aviso: this.state.aviso || '',
+      sacodeClass: this.state.sacode ? 'pip-sacode' : '',
+      ouvirInstrucao: () => this.ouvirInstrucao(),
       lerEmVozAlta: () => this.lerEmVozAlta(),
       voltar: () => this.voltar(),
       abrirAjustesA11y: () => this.abrirAjustesA11y(),

@@ -766,6 +766,29 @@ try {
   await page.waitForTimeout(150);
   assert((await page.evaluate(() => window.PipocaApp.estado.tela)) === 2, "B5: guarda KIDMODE intocada — setState({tela:11}) sem portão ainda redireciona à T2");
 
+  // ── Plan03 · B7 · T4 no FLUXO REAL: R1 pela UI (3 toques), 4º toque avisa, ler → T5,
+  // ← preserva o arranjo (voltar sem perdas), instrução nunca pede o impossível.
+  console.log("\n=== Plan03 · B7 · T4 palco: alvos 48, feedback, voltar sem perdas ===");
+  await page.evaluate(() => { const App = window.PipocaApp; App.iniciarComposicao(); App.setState({ rascunhoT4: null, gatePendente: null, tela: 4 }); });
+  await page.waitForFunction(() => /Monte sua cena/.test(document.body.innerText), { timeout: 4000 });
+  const bancoR1 = await page.evaluate(() => window.PipocaApp.estado.comp.banco.length);
+  assert(/Escolha 3 coisas/.test(await page.evaluate(() => document.body.innerText)) && bancoR1 >= 3, `B7: R1 real nasce com banco ${bancoR1} e pede 3 (nunca mais do que há)`);
+  for (let i = 0; i < 3; i++) { await page.locator("button.pip-chip").first().click(); await page.waitForTimeout(80); }
+  const aposTres = await page.evaluate(() => ({ chips: document.querySelectorAll("button.pip-chip").length, setas: document.querySelectorAll('[aria-label="Mover para a esquerda"]').length, h: Math.round((document.querySelector('[aria-label="Tirar"]') || { getBoundingClientRect: () => ({ height: 0 }) }).getBoundingClientRect().height) }));
+  assert(aposTres.setas === 3 && aposTres.h >= 48, `B7: 3 peças colocadas com setas/✕ de ≥48px (${aposTres.h}px)`);
+  await page.locator("button.pip-chip").first().click({ force: true }); // 4º toque (chip aria-disabled): deve AVISAR, não engolir
+  await page.waitForTimeout(120);
+  const aviso4 = await page.evaluate(() => (document.querySelector('[role="status"]') || {}).textContent || "");
+  assert(/Já tem 3/.test(aviso4), `B7: 4º toque avisa em role=status ("${aviso4.trim()}")`);
+  await page.locator("button", { hasText: "Ler em voz alta" }).first().click();
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 5, { timeout: 4000 });
+  await page.locator('[aria-label="Voltar"]').first().click();
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 4 && /Monte sua cena/.test(document.body.innerText), { timeout: 4000 });
+  await page.waitForTimeout(200);
+  const aposVoltar = await page.evaluate(() => ({ setas: document.querySelectorAll('[aria-label="Mover para a esquerda"]').length, texto: document.body.innerText }));
+  assert(aposVoltar.setas === 3 && /Prontinho/.test(aposVoltar.texto), "B7: voltar da T5 preserva o arranjo (3 peças seguem na cena; CTA pronto)");
+  await page.evaluate(() => { window.PipocaApp.setState({ rascunhoT4: null, gatePendente: null, tela: 2 }); });
+
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 
   console.log(`\n${"=".repeat(50)}`);

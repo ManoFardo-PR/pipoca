@@ -156,6 +156,7 @@ class Component extends DCLogic {
     App.iniciarComposicao();
     App.setState({
       historia: { cenarioId, objetos: [], aberta: true },
+      rascunhoT4: null, // B7: história nova = rascunho da T4 zerado
       tela: 4,
     });
     const R = window.PipocaRoteador;

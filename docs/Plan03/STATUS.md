@@ -1,8 +1,9 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-08-28T18:38:05.573Z · branch `28_08_26` · HEAD `f9898f6`
-- Progresso: **3/59** passos concluídos
-- Próximo passo: **A0** — Criar branch onda-A-seguranca a partir de 28_08_26
+- Gerado em: 2026-08-28T18:39:21.124Z · branch `onda-A-seguranca` · HEAD `b65645e`
+- Progresso: **4/59** passos concluídos
+- Próximo passo: **A1** — Gate único de consentimento no cliente ([abrir](onda-A-seguranca/A1-gate-consentimento-cliente.md))
+- Também disponíveis (∥): A3
 - Última verificação: ✅ verde em 2026-08-28T18:31:56.969Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
   - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
@@ -16,11 +17,11 @@
 | P2 | Screenshots "antes" com o harness | [✓] concluída | 2026-08-28 | `888858d` |
 | P3 | Painel inicial: `status` aponta A0 como próximo | [✓] concluída | 2026-08-28 | `f9898f6` |
 
-## Onda A — Segurança e consentimento de IA · 0/6 · branch `onda-A-seguranca` · BUNDLE app + EDGE ×2 + SQL
+## Onda A — Segurança e consentimento de IA · 1/6 · branch `onda-A-seguranca` · BUNDLE app + EDGE ×2 + SQL
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
-| A0 | Criar branch onda-A-seguranca a partir de 28_08_26 | [ ] pendente |  |  |
+| A0 | Criar branch onda-A-seguranca a partir de 28_08_26 | [✓] concluída | 2026-08-28 | `b65645e` |
 | A1 | [Gate único de consentimento no cliente](onda-A-seguranca/A1-gate-consentimento-cliente.md) | [ ] pendente |  |  |
 | A3 | [Migração escrita (NÃO aplicada): RPC, índices, políticas](onda-A-seguranca/A3-migracao-rpc-indices-politicas.md) ∥ | [ ] pendente |  |  |
 | A2 | [Toggle de IA honesto](onda-A-seguranca/A2-toggle-ia-honesto.md) | [ ] pendente |  |  |

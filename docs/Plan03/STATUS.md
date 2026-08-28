@@ -1,11 +1,12 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-08-28T19:43:22.554Z · branch `onda-B-cru-ux` · HEAD `8050627`
-- Progresso: **12/59** passos concluídos
-- Próximo passo: **B3** — Foco visível global e movimento pelo token ([abrir](onda-B-cru-ux/B3-foco-visivel-e-movimento.md))
+- Gerado em: 2026-08-28T19:47:57.905Z · branch `onda-B-cru-ux` · HEAD `a61221f`
+- Progresso: **13/59** passos concluídos
+- Próximo passo: **B4** — PainelA11y: tokens, switch, dialog, alvos ([abrir](onda-B-cru-ux/B4-painel-a11y.md))
 - Última verificação: ✅ verde em 2026-08-28T19:10:24.652Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
   - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
 ## Onda P — Preparação · 3/3 · branch `28_08_26` · —
 
@@ -26,14 +27,14 @@
 | A4 | [Edges: RPC de cota e MODELO_PADRAO alinhado](onda-A-seguranca/A4-edges-rpc-e-modelo-padrao.md) | [✓] concluída | 2026-08-28 | `8e3be20` |
 | A5 | [Fechamento A: SQL aplicada → redeploy ×2 → build:app → e2e → merge](onda-A-seguranca/A5-fechamento-onda-A.md) | [✓] concluída | 2026-08-28 | `9837eee` |
 
-## Onda B — UX servida crua · 3/15 · branch `onda-B-cru-ux` · CRU (commit = deploy)
+## Onda B — UX servida crua · 4/15 · branch `onda-B-cru-ux` · CRU (commit = deploy)
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
 | B0 | Criar branch onda-B-cru-ux a partir de 28_08_26 | [✓] concluída | 2026-08-28 | `9de2035` |
 | B1 | [Mecanismo de a11y: classe↔atributo; contraste que não destrói](onda-B-cru-ux/B1-mecanismo-a11y-classe-atributo.md) | [✓] concluída | 2026-08-28 | `da4017c` |
 | B2 | [Paleta com contraste real e escala tipográfica](onda-B-cru-ux/B2-paleta-com-contraste-e-tipografia.md) | [✓] concluída | 2026-08-28 | `8050627` |
-| B3 | [Foco visível global e movimento pelo token](onda-B-cru-ux/B3-foco-visivel-e-movimento.md) | [ ] pendente |  |  |
+| B3 | [Foco visível global e movimento pelo token](onda-B-cru-ux/B3-foco-visivel-e-movimento.md) | [✓] concluída | 2026-08-28 | `a61221f` |
 | B4 | [PainelA11y: tokens, switch, dialog, alvos](onda-B-cru-ux/B4-painel-a11y.md) | [ ] pendente |  |  |
 | B-M1 | Merge da trilha tokens/a11y em 28_08_26 (vai ao ar) | [ ] pendente |  |  |
 | B5 | [Saídas da criança: trocar leitor, pote, ⚙ em T2/T6](onda-B-cru-ux/B5-saidas-da-crianca.md) | [ ] pendente |  |  |

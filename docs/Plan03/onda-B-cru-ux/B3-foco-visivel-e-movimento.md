@@ -1,7 +1,6 @@
 # B3 — Foco visível global, movimento pelo token, admin com a11y transversal
 
-> Status: pendente
-
+> Status: concluída (2026-08-28 · a61221f)
 **Unidade de deploy:** CRU (`src/tokens.css`, `index.html`, `admin.html`, componentes/telas com
 transições inline). **Depende de:** B1. **Desbloqueia:** B4, B8, C11.
 

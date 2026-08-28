@@ -245,9 +245,14 @@ function verificar(comE2e) {
     process.stdout.write(`… ${nome}: ${cmdline}\n`);
     const r = rodar(cmdline);
     const c = contarChecks(r.saida);
-    res.itens[nome] = { ok: r.ok, ...c };
+    res.itens[nome] = { ok: r.ok, passou: c.ok, falhou: c.falhou };
     if (!r.ok) res.ok = false;
     process.stdout.write(`   ${r.ok ? "✓" : "✗"} ${nome}${c.ok != null ? ` (${c.ok} ok, ${c.falhou ?? 0} falhou)` : ""}\n`);
+    if (!r.ok) {
+      const falhas = r.saida.split(/\r?\n/).filter((l) => /✗|FAIL|error/i.test(l) && !/✗\s*\d+\s*falhou/.test(l)).slice(-12);
+      const rabo = falhas.length ? falhas : r.saida.split(/\r?\n/).filter(Boolean).slice(-20);
+      process.stdout.write(rabo.map((l) => "     | " + l).join("\n") + "\n");
+    }
   };
   passo("tsc", "bun x tsc --noEmit");
   passo("unit", "npm test");

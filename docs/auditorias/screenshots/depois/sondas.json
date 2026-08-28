@@ -1,0 +1,806 @@
+{
+  "esquema": "pipoca.sonda-alvos.v1",
+  "rotulo": "depois",
+  "minimo": 48,
+  "viewport": "1280x800",
+  "quando": "2026-08-28T19:53:16.799Z",
+  "telas": {
+    "T01-portao": [
+      {
+        "w": 324,
+        "h": 44,
+        "rotulo": "Voltar para a criança"
+      }
+    ],
+    "T10-onboarding": [
+      {
+        "w": 142,
+        "h": 40,
+        "rotulo": "↩ Para a criança"
+      },
+      {
+        "w": 251,
+        "h": 46,
+        "rotulo": "Uma menina"
+      },
+      {
+        "w": 251,
+        "h": 46,
+        "rotulo": "Um menino"
+      },
+      {
+        "w": 251,
+        "h": 46,
+        "rotulo": "Primeiras palavras"
+      },
+      {
+        "w": 251,
+        "h": 46,
+        "rotulo": "Frases curtas"
+      },
+      {
+        "w": 251,
+        "h": 46,
+        "rotulo": "Pequenos textos"
+      },
+      {
+        "w": 251,
+        "h": 46,
+        "rotulo": "Parágrafos"
+      }
+    ],
+    "T02-entrada": [
+      {
+        "w": 157,
+        "h": 42,
+        "rotulo": "⚙ Sou o cuidador"
+      }
+    ],
+    "T03-cenarios": [
+      {
+        "w": 42,
+        "h": 42,
+        "rotulo": "⚙"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Guardar para sempre"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Guardar para sempre"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Guardar para sempre"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Guardar para sempre"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Guardar para sempre"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Guardar para sempre"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Guardar para sempre"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Guardar para sempre"
+      }
+    ],
+    "T03-painel-a11y": [
+      {
+        "w": 42,
+        "h": 42,
+        "rotulo": "⚙"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Guardar para sempre"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Guardar para sempre"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Guardar para sempre"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Guardar para sempre"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Guardar para sempre"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Guardar para sempre"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Guardar para sempre"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Guardar para sempre"
+      }
+    ],
+    "T04-palco": [
+      {
+        "w": 40,
+        "h": 40,
+        "rotulo": "←"
+      },
+      {
+        "w": 40,
+        "h": 40,
+        "rotulo": "⚙"
+      }
+    ],
+    "T05-portao-leitura": [
+      {
+        "w": 40,
+        "h": 40,
+        "rotulo": "←"
+      },
+      {
+        "w": 40,
+        "h": 40,
+        "rotulo": "⚙"
+      }
+    ],
+    "T06-recompensa": [],
+    "T07-pote": [
+      {
+        "w": 42,
+        "h": 42,
+        "rotulo": "⚙"
+      },
+      {
+        "w": 77,
+        "h": 44,
+        "rotulo": "Trocar"
+      },
+      {
+        "w": 89,
+        "h": 44,
+        "rotulo": "Faltam 2"
+      }
+    ],
+    "T08-evolucao": [
+      {
+        "w": 92,
+        "h": 40,
+        "rotulo": "↩ Painel"
+      },
+      {
+        "w": 63,
+        "h": 38,
+        "rotulo": "Tião"
+      },
+      {
+        "w": 60,
+        "h": 38,
+        "rotulo": "Ana"
+      },
+      {
+        "w": 55,
+        "h": 38,
+        "rotulo": "Bia"
+      },
+      {
+        "w": 84,
+        "h": 38,
+        "rotulo": "Semana"
+      },
+      {
+        "w": 61,
+        "h": 38,
+        "rotulo": "Mês"
+      },
+      {
+        "w": 66,
+        "h": 38,
+        "rotulo": "Tudo"
+      }
+    ],
+    "T11-hub-cuidador": [
+      {
+        "w": 142,
+        "h": 40,
+        "rotulo": "↩ Para a criança"
+      }
+    ],
+    "T12-perfis": [
+      {
+        "w": 92,
+        "h": 40,
+        "rotulo": "↩ Painel"
+      },
+      {
+        "w": 81,
+        "h": 38,
+        "rotulo": "Usar este"
+      },
+      {
+        "w": 64,
+        "h": 38,
+        "rotulo": "Editar Tião"
+      },
+      {
+        "w": 81,
+        "h": 38,
+        "rotulo": "Remover Tião"
+      },
+      {
+        "w": 81,
+        "h": 38,
+        "rotulo": "Em uso ✓"
+      },
+      {
+        "w": 64,
+        "h": 38,
+        "rotulo": "Editar Ana"
+      },
+      {
+        "w": 81,
+        "h": 38,
+        "rotulo": "Remover Ana"
+      },
+      {
+        "w": 81,
+        "h": 38,
+        "rotulo": "Usar este"
+      },
+      {
+        "w": 64,
+        "h": 38,
+        "rotulo": "Editar Bia"
+      },
+      {
+        "w": 81,
+        "h": 38,
+        "rotulo": "Remover Bia"
+      }
+    ],
+    "T13-limites": [
+      {
+        "w": 92,
+        "h": 40,
+        "rotulo": "↩ Painel"
+      },
+      {
+        "w": 63,
+        "h": 38,
+        "rotulo": "Tião"
+      },
+      {
+        "w": 60,
+        "h": 38,
+        "rotulo": "Ana"
+      },
+      {
+        "w": 55,
+        "h": 38,
+        "rotulo": "Bia"
+      },
+      {
+        "w": 83,
+        "h": 44,
+        "rotulo": "Aplicar"
+      },
+      {
+        "w": 96,
+        "h": 44,
+        "rotulo": "Sem limite"
+      }
+    ],
+    "T14-regras-ia": [
+      {
+        "w": 92,
+        "h": 40,
+        "rotulo": "↩ Painel"
+      },
+      {
+        "w": 63,
+        "h": 38,
+        "rotulo": "Tião"
+      },
+      {
+        "w": 60,
+        "h": 38,
+        "rotulo": "Ana"
+      },
+      {
+        "w": 55,
+        "h": 38,
+        "rotulo": "Bia"
+      },
+      {
+        "w": 70,
+        "h": 44,
+        "rotulo": "Palco"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Diminuir custo de Pipoca no cinema"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Aumentar custo de Pipoca no cinema"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Diminuir custo de Gibi novo"
+      },
+      {
+        "w": 34,
+        "h": 34,
+        "rotulo": "Aumentar custo de Gibi novo"
+      },
+      {
+        "w": 54,
+        "h": 30,
+        "rotulo": "Autorizar IA para a criança"
+      }
+    ],
+    "T15-privacidade": [
+      {
+        "w": 92,
+        "h": 40,
+        "rotulo": "↩ Painel"
+      },
+      {
+        "w": 63,
+        "h": 38,
+        "rotulo": "Tião"
+      },
+      {
+        "w": 60,
+        "h": 38,
+        "rotulo": "Ana"
+      },
+      {
+        "w": 55,
+        "h": 38,
+        "rotulo": "Bia"
+      },
+      {
+        "w": 54,
+        "h": 30,
+        "rotulo": "Guardar o progresso de leitura"
+      },
+      {
+        "w": 117,
+        "h": 36,
+        "rotulo": "Exportar JSON"
+      },
+      {
+        "w": 104,
+        "h": 38,
+        "rotulo": "Apagar tudo"
+      },
+      {
+        "w": 117,
+        "h": 36,
+        "rotulo": "Exportar JSON"
+      },
+      {
+        "w": 104,
+        "h": 38,
+        "rotulo": "Apagar tudo"
+      },
+      {
+        "w": 117,
+        "h": 36,
+        "rotulo": "Exportar JSON"
+      },
+      {
+        "w": 104,
+        "h": 38,
+        "rotulo": "Apagar tudo"
+      }
+    ],
+    "T16-conta": [
+      {
+        "w": 92,
+        "h": 40,
+        "rotulo": "↩ Painel"
+      },
+      {
+        "w": 113,
+        "h": 46,
+        "rotulo": "Trocar o PIN"
+      },
+      {
+        "w": 129,
+        "h": 46,
+        "rotulo": "Trocar a senha"
+      },
+      {
+        "w": 77,
+        "h": 46,
+        "rotulo": "Trocar"
+      }
+    ],
+    "T09-login": [
+      {
+        "w": 143,
+        "h": 31,
+        "rotulo": "Criar conta da família"
+      },
+      {
+        "w": 107,
+        "h": 31,
+        "rotulo": "Esqueci a senha"
+      }
+    ],
+    "adm1-login": [
+      {
+        "w": 354,
+        "h": 46,
+        "rotulo": "Entrar"
+      }
+    ],
+    "adm2-home": [
+      {
+        "w": 58,
+        "h": 38,
+        "rotulo": "Sair"
+      }
+    ],
+    "adm3-tenants": [
+      {
+        "w": 86,
+        "h": 39,
+        "rotulo": "↩ Painel"
+      },
+      {
+        "w": 508,
+        "h": 43,
+        "rotulo": "Escola Modelo Freemium · 60 dia(s) resta"
+      },
+      {
+        "w": 86,
+        "h": 34,
+        "rotulo": "Suspender"
+      },
+      {
+        "w": 252,
+        "h": 45,
+        "rotulo": "Nome do tenant"
+      },
+      {
+        "w": 252,
+        "h": 45,
+        "rotulo": "E-mail de contato"
+      },
+      {
+        "w": 77,
+        "h": 45,
+        "rotulo": "Criar"
+      }
+    ],
+    "adm4-conteudo": [
+      {
+        "w": 86,
+        "h": 39,
+        "rotulo": "↩ Painel"
+      },
+      {
+        "w": 188,
+        "h": 34,
+        "rotulo": "Carregar exemplo do Quintal"
+      },
+      {
+        "w": 116,
+        "h": 42,
+        "rotulo": "Validar agora"
+      },
+      {
+        "w": 131,
+        "h": 42,
+        "rotulo": "Salvar rascunho"
+      }
+    ],
+    "adm5-config-ia": [
+      {
+        "w": 86,
+        "h": 39,
+        "rotulo": "↩ Painel"
+      },
+      {
+        "w": 120,
+        "h": 38,
+        "rotulo": "Escola Modelo"
+      },
+      {
+        "w": 145,
+        "h": 40,
+        "rotulo": "Claude"
+      },
+      {
+        "w": 145,
+        "h": 40,
+        "rotulo": "Gemini"
+      },
+      {
+        "w": 145,
+        "h": 40,
+        "rotulo": "OpenAI"
+      },
+      {
+        "w": 145,
+        "h": 40,
+        "rotulo": "DeepSeek"
+      },
+      {
+        "w": 120,
+        "h": 43,
+        "rotulo": "Cota mensal de chamadas"
+      },
+      {
+        "w": 120,
+        "h": 43,
+        "rotulo": "Custo máximo mensal"
+      },
+      {
+        "w": 114,
+        "h": 40,
+        "rotulo": "Nenhum"
+      },
+      {
+        "w": 114,
+        "h": 40,
+        "rotulo": "Claude"
+      },
+      {
+        "w": 114,
+        "h": 40,
+        "rotulo": "Gemini"
+      },
+      {
+        "w": 114,
+        "h": 40,
+        "rotulo": "OpenAI"
+      },
+      {
+        "w": 114,
+        "h": 40,
+        "rotulo": "DeepSeek"
+      },
+      {
+        "w": 168,
+        "h": 44,
+        "rotulo": "Salvar configuração"
+      }
+    ],
+    "adm6-seguranca": [
+      {
+        "w": 86,
+        "h": 39,
+        "rotulo": "↩ Painel"
+      },
+      {
+        "w": 50,
+        "h": 28,
+        "rotulo": "Alternar IA (Motor de histórias geradas)"
+      },
+      {
+        "w": 86,
+        "h": 34,
+        "rotulo": "Kill-switch"
+      },
+      {
+        "w": 50,
+        "h": 28,
+        "rotulo": "Alternar Fala (reconhecimento de voz)"
+      },
+      {
+        "w": 86,
+        "h": 34,
+        "rotulo": "Kill-switch"
+      },
+      {
+        "w": 50,
+        "h": 28,
+        "rotulo": "Alternar Conteúdo customizado de tenants"
+      },
+      {
+        "w": 86,
+        "h": 34,
+        "rotulo": "Kill-switch"
+      },
+      {
+        "w": 50,
+        "h": 28,
+        "rotulo": "Alternar Telemetria de progresso"
+      },
+      {
+        "w": 86,
+        "h": 34,
+        "rotulo": "Kill-switch"
+      },
+      {
+        "w": 197,
+        "h": 40,
+        "rotulo": "Restaurar defaults seguros"
+      }
+    ],
+    "adm7-ia-global": [
+      {
+        "w": 86,
+        "h": 39,
+        "rotulo": "↩ Painel"
+      },
+      {
+        "w": 368,
+        "h": 43,
+        "rotulo": "Nova chave do provedor (não é exibida de"
+      },
+      {
+        "w": 136,
+        "h": 40,
+        "rotulo": "Enviar ao servidor"
+      },
+      {
+        "w": 122,
+        "h": 40,
+        "rotulo": "Testar conexão"
+      },
+      {
+        "w": 69,
+        "h": 38,
+        "rotulo": "nenhum"
+      },
+      {
+        "w": 118,
+        "h": 38,
+        "rotulo": "claude-opus-4-8"
+      },
+      {
+        "w": 129,
+        "h": 38,
+        "rotulo": "claude-sonnet-4-6"
+      },
+      {
+        "w": 121,
+        "h": 38,
+        "rotulo": "claude-haiku-4-5"
+      },
+      {
+        "w": 368,
+        "h": 43,
+        "rotulo": "Nova chave do provedor (não é exibida de"
+      },
+      {
+        "w": 136,
+        "h": 40,
+        "rotulo": "Enviar ao servidor"
+      },
+      {
+        "w": 122,
+        "h": 40,
+        "rotulo": "Testar conexão"
+      },
+      {
+        "w": 69,
+        "h": 38,
+        "rotulo": "nenhum"
+      },
+      {
+        "w": 117,
+        "h": 38,
+        "rotulo": "gemini-2.5-flash"
+      },
+      {
+        "w": 368,
+        "h": 43,
+        "rotulo": "Nova chave do provedor (não é exibida de"
+      },
+      {
+        "w": 136,
+        "h": 40,
+        "rotulo": "Enviar ao servidor"
+      },
+      {
+        "w": 122,
+        "h": 40,
+        "rotulo": "Testar conexão"
+      },
+      {
+        "w": 69,
+        "h": 38,
+        "rotulo": "nenhum"
+      },
+      {
+        "w": 94,
+        "h": 38,
+        "rotulo": "gpt-5.4-mini"
+      },
+      {
+        "w": 368,
+        "h": 43,
+        "rotulo": "Nova chave do provedor (não é exibida de"
+      },
+      {
+        "w": 136,
+        "h": 40,
+        "rotulo": "Enviar ao servidor"
+      },
+      {
+        "w": 122,
+        "h": 40,
+        "rotulo": "Testar conexão"
+      },
+      {
+        "w": 69,
+        "h": 38,
+        "rotulo": "nenhum"
+      },
+      {
+        "w": 106,
+        "h": 38,
+        "rotulo": "deepseek-chat"
+      },
+      {
+        "w": 155,
+        "h": 38,
+        "rotulo": "Claude"
+      },
+      {
+        "w": 155,
+        "h": 38,
+        "rotulo": "Gemini"
+      },
+      {
+        "w": 155,
+        "h": 38,
+        "rotulo": "OpenAI"
+      },
+      {
+        "w": 155,
+        "h": 38,
+        "rotulo": "DeepSeek"
+      },
+      {
+        "w": 65,
+        "h": 30,
+        "rotulo": "Limpar"
+      },
+      {
+        "w": 185,
+        "h": 44,
+        "rotulo": "Salvar padrões globais"
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+# Screenshots antes/depois (Plan03 · P2): só os 6 essenciais vão pro git
+# (T2, T3, T4, T5, T7, adm2 — nos 2 viewports). O resto é regenerável com
+# `node tests/e2e/capturar-telas.mjs --rotulo <antes|depois>`; INDEX.md e sondas.json
+# registram a lista completa.
+*/*.png
+!*/T02-entrada-*.png
+!*/T03-cenarios-*.png
+!*/T04-palco-*.png
+!*/T05-portao-leitura-*.png
+!*/T07-pote-*.png
+!*/adm2-home-*.png

@@ -32,22 +32,25 @@
   <sc-if value="{{ modoLendo }}" hint-placeholder-val="{{ true }}">
   <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;justify-content:safe center;padding:clamp(16px,3vw,40px) clamp(16px,4vw,60px);">
 
-    <!-- Barra de progresso -->
+    <!-- Barra de progresso (B8: progressbar de verdade + status anunciado) -->
     <div style="width:100%;max-width:700px;margin-bottom:24px;background:rgba(255,255,255,.6);border-radius:16px;padding:12px 18px;">
       <div style="display:flex;align-items:center;justify-content:space-between;">
-        <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:13px;color:#7a6a54;">📖 Palavra {{ palavraAtualNum }} de {{ totalPalavras }}</span>
+        <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:13px;color:#7a6a54;"><span aria-hidden="true">📖 </span>Palavra {{ palavraAtualNum }} de {{ totalPalavras }}</span>
         <span style="font-size:12px;color:var(--pip-texto-suave);font-weight:600;">{{ pctLabel }}</span>
       </div>
-      <div style="height:8px;border-radius:8px;background:rgba(160,140,110,.2);margin-top:8px;overflow:hidden;">
+      <div role="progressbar" aria-label="Progresso da leitura" aria-valuemin="0" aria-valuemax="{{ totalPalavras }}" aria-valuenow="{{ palavraAtualNum }}" style="height:8px;border-radius:8px;background:rgba(160,140,110,.2);margin-top:8px;overflow:hidden;">
         <div style="height:100%;border-radius:8px;width:{{ progressoPct }};background:linear-gradient(90deg,#f4b65a,#e8965a);transition:width calc(.25s * var(--pip-mov)) ease;"></div>
       </div>
     </div>
+    <!-- Leitor de tela: a frase inteira ao entrar e cada avanço ("Palavra 3 de 7: luzinha") -->
+    <div role="status" aria-live="polite" class="pip-sr-only">{{ statusLeitura }}</div>
 
-    <!-- Frase com palavras tocáveis -->
+    <!-- Frase com palavras tocáveis — cada palavra é um <button> (B8 · UI-C43): Tab/Enter/Espaço
+         funcionam; setas ←/→ mudam a palavra em foco; aria-current marca a atual. -->
     <div style="width:100%;max-width:720px;background:rgba(255,255,255,.8);border-radius:26px;padding:clamp(20px,4vw,36px) clamp(18px,4vw,42px);box-shadow:0 20px 50px -20px rgba(74,59,44,.35);text-align:center;">
-      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px 2px;align-items:baseline;">
+      <div ref="{{ refPalavras }}" role="group" aria-label="Frase para ler, palavra por palavra" style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px 2px;align-items:baseline;">
         <sc-for list="{{ gateWords }}" as="gwd" hint-placeholder-count="6">
-          <span onClick="{{ gwd.onTap }}" style="{{ gwd.style }}" class="{{ gwd.animClass }}">{{ gwd.text }}</span>
+          <button onClick="{{ gwd.onTap }}" class="pip-palavra {{ gwd.animClass }}" aria-current="{{ gwd.atual }}" aria-label="{{ gwd.aria }}" style="{{ gwd.style }}">{{ gwd.text }}</button>
         </sc-for>
       </div>
 
@@ -61,14 +64,14 @@
             <div style="font-size:13px;color:var(--pip-mel-texto);margin-top:3px;line-height:1.4;">Ouça de novo, sussurre junto, e tente quando quiser. Aqui ninguém erra.</div>
           </div>
         </div>
-        <button onClick="{{ ouvirDeNovo }}" style="margin-top:14px;display:flex;align-items:center;gap:8px;background:#fff3da;border:1.5px solid #f0d9a8;border-radius:14px;padding:11px 20px;font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:var(--pip-mel-texto);cursor:pointer;">🔊 Ouvir de novo</button>
+        <button onClick="{{ ouvirDeNovo }}" aria-label="Ouvir de novo a palavra" style="margin-top:14px;display:flex;align-items:center;gap:8px;min-height:48px;background:#fff3da;border:1.5px solid #f0d9a8;border-radius:14px;padding:11px 20px;font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:var(--pip-mel-texto);cursor:pointer;"><span aria-hidden="true">🔊</span> Ouvir de novo</button>
       </div>
       </sc-if>
     </div>
 
     <!-- Controles -->
     <div style="display:flex;gap:14px;margin-top:24px;width:100%;max-width:700px;justify-content:center;">
-      <button onClick="{{ ouvirTudo }}" style="padding:13px 24px;border:1.5px solid rgba(160,140,110,.3);border-radius:14px;background:rgba(255,255,255,.7);cursor:pointer;font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#7a6a54;white-space:nowrap;">{{ ouvirLabel }}</button>
+      <button onClick="{{ ouvirTudo }}" aria-label="{{ ouvirAria }}" style="padding:13px 24px;min-height:48px;border:1.5px solid rgba(160,140,110,.3);border-radius:14px;background:rgba(255,255,255,.7);cursor:pointer;font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#7a6a54;white-space:nowrap;">{{ ouvirLabel }}</button>
       <button onClick="{{ avancarHistoria }}" style="flex:1;padding:15px 24px;border:none;border-radius:16px;background:var(--pip-cta);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:17px;cursor:pointer;box-shadow:0 8px 20px -6px rgba(181,86,40,.5);">{{ nextLabel }}</button>
     </div>
 
@@ -81,35 +84,35 @@
     <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:34px;color:#3a4f63;text-align:center;">Você leu! 🌟</div>
     <p style="font-size:17px;color:#6a6a55;text-align:center;max-width:500px;line-height:1.5;">Quem vai confirmar essa leitura?</p>
 
-    <!-- Modo cuidador -->
+    <!-- Modo cuidador (B8: emojis decorativos aria-hidden; o texto é o nome do botão) -->
     <sc-if value="{{ verifyIsCuidador }}" hint-placeholder-val="{{ true }}">
     <div style="display:flex;gap:16px;">
-      <button onClick="{{ confirmSozinho }}" style="padding:20px 32px;border:none;border-radius:20px;background:var(--pip-folha-cta);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(77,122,57,.5);">🌱 Leu sozinho</button>
-      <button onClick="{{ confirmJuntos }}" style="padding:20px 32px;border:none;border-radius:20px;background:linear-gradient(150deg,#5a86b0,#3f6f9e);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(45,86,129,.4);">🤝 Tentamos juntos</button>
+      <button onClick="{{ confirmSozinho }}" style="padding:20px 32px;border:none;border-radius:20px;background:var(--pip-folha-cta);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(77,122,57,.5);"><span aria-hidden="true">🌱</span> Leu sozinho</button>
+      <button onClick="{{ confirmJuntos }}" style="padding:20px 32px;border:none;border-radius:20px;background:linear-gradient(150deg,#5a86b0,#3f6f9e);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(45,86,129,.4);"><span aria-hidden="true">🤝</span> Tentamos juntos</button>
     </div>
-    <p style="font-size:13px;color:var(--pip-texto-suave);text-align:center;max-width:420px;line-height:1.4;">Os dois contam — tentar já é leitura. 💚</p>
+    <p style="font-size:13px;color:var(--pip-texto-suave);text-align:center;max-width:420px;line-height:1.4;">Os dois contam — tentar já é leitura. <span aria-hidden="true">💚</span></p>
     </sc-if>
 
     <!-- Modo auto -->
     <sc-if value="{{ verifyIsAuto }}" hint-placeholder-val="{{ false }}">
-    <button onClick="{{ confirmSozinho }}" style="padding:22px 44px;border:none;border-radius:20px;background:var(--pip-folha-cta);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(77,122,57,.5);">✓ Eu li!</button>
+    <button onClick="{{ confirmSozinho }}" style="padding:22px 44px;border:none;border-radius:20px;background:var(--pip-folha-cta);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(77,122,57,.5);"><span aria-hidden="true">✓</span> Eu li!</button>
     </sc-if>
 
     <!-- Modo fala (fase05 · ASR): participação já conta; sem voz, ninguém fica preso -->
     <sc-if value="{{ verifyIsFala }}" hint-placeholder-val="{{ false }}">
     <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
       <sc-if value="{{ falaPronta }}" hint-placeholder-val="{{ true }}">
-        <button onClick="{{ comecarFala }}" style="padding:22px 44px;border:none;border-radius:20px;background:linear-gradient(150deg,#5a86b0,#3f6f9e);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(45,86,129,.4);">🎤 Ler em voz alta</button>
-        <p style="font-size:13px;color:var(--pip-texto-suave);text-align:center;max-width:420px;line-height:1.4;">Leia do seu jeito — participar já conta. 💚</p>
+        <button onClick="{{ comecarFala }}" style="padding:22px 44px;border:none;border-radius:20px;background:linear-gradient(150deg,#5a86b0,#3f6f9e);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(45,86,129,.4);"><span aria-hidden="true">🎤</span> Ler em voz alta</button>
+        <p style="font-size:13px;color:var(--pip-texto-suave);text-align:center;max-width:420px;line-height:1.4;">Leia do seu jeito — participar já conta. <span aria-hidden="true">💚</span></p>
       </sc-if>
       <sc-if value="{{ falaOuvindo }}" hint-placeholder-val="{{ false }}">
-        <div role="status" aria-live="polite" style="font-family:'Baloo 2',cursive;font-weight:700;font-size:20px;color:#3a4f63;">🎤 Estou te ouvindo… pode ler!</div>
+        <div role="status" aria-live="polite" style="font-family:'Baloo 2',cursive;font-weight:700;font-size:20px;color:#3a4f63;"><span aria-hidden="true">🎤</span> Estou te ouvindo… pode ler!</div>
       </sc-if>
       <sc-if value="{{ falaFalhou }}" hint-placeholder-val="{{ false }}">
-        <div role="status" aria-live="polite" style="font-family:'Nunito',sans-serif;font-size:16px;color:#6a6a55;text-align:center;max-width:460px;line-height:1.5;">Tudo bem! Vamos confirmar de outro jeito. 💚</div>
+        <div role="status" aria-live="polite" style="font-family:'Nunito',sans-serif;font-size:16px;color:#6a6a55;text-align:center;max-width:460px;line-height:1.5;">Tudo bem! Vamos confirmar de outro jeito. <span aria-hidden="true">💚</span></div>
         <div style="display:flex;gap:16px;">
-          <button onClick="{{ confirmSozinho }}" style="padding:20px 32px;border:none;border-radius:20px;background:var(--pip-folha-cta);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(77,122,57,.5);">🌱 Leu sozinho</button>
-          <button onClick="{{ confirmJuntos }}" style="padding:20px 32px;border:none;border-radius:20px;background:linear-gradient(150deg,#5a86b0,#3f6f9e);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(45,86,129,.4);">🤝 Tentamos juntos</button>
+          <button onClick="{{ confirmSozinho }}" style="padding:20px 32px;border:none;border-radius:20px;background:var(--pip-folha-cta);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(77,122,57,.5);"><span aria-hidden="true">🌱</span> Leu sozinho</button>
+          <button onClick="{{ confirmJuntos }}" style="padding:20px 32px;border:none;border-radius:20px;background:linear-gradient(150deg,#5a86b0,#3f6f9e);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(45,86,129,.4);"><span aria-hidden="true">🤝</span> Tentamos juntos</button>
         </div>
       </sc-if>
     </div>
@@ -206,6 +209,9 @@ class Component extends DCLogic {
     return (parts.length > 1 ? parts.join('\u00b7') : limpa) + pontuacao;
   }
 
+  // B8 · ref do grupo de palavras (devolvido pelo renderVals — lição do B1).
+  refPalavras = (el) => { this._palavrasEl = el; };
+
   componentDidMount() {
     this._warmVoices();
     const App = window.PipocaApp;
@@ -221,11 +227,43 @@ class Component extends DCLogic {
         }
       });
     }
+    // B8 · teclado: ←/→ movem a palavra em foco (Enter/Espaço = toque, nativo do <button>).
+    if (typeof document !== 'undefined') {
+      this._onKey = (e) => this._teclado(e);
+      document.addEventListener('keydown', this._onKey);
+    }
   }
+
+  componentDidUpdate() { this._focarPalavraAtual(); }
 
   componentWillUnmount() {
     this._pararLeituraAuto();
     if (this._unsub) { this._unsub(); this._unsub = null; }
+    if (this._onKey && typeof document !== 'undefined') document.removeEventListener('keydown', this._onKey);
+  }
+
+  // Foco inicial na palavra atual ao entrar em 'reading' (uma vez por trecho) — sem
+  // roubar o foco a cada re-render.
+  _focarPalavraAtual() {
+    if (typeof document === 'undefined' || this.state.stage !== 'reading') return;
+    const App = window.PipocaApp;
+    const trecho = App ? App.estado.gateTrecho : '';
+    if (this._focouTrecho === trecho || !this._palavrasEl) return;
+    const atual = this._palavrasEl.querySelector('.pip-palavra[aria-current="true"]');
+    if (atual && typeof atual.focus === 'function') { this._focouTrecho = trecho; atual.focus(); }
+  }
+  _teclado(e) {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const ativo = document.activeElement;
+    if (!ativo || !this._palavrasEl || !this._palavrasEl.contains(ativo) || !ativo.classList.contains('pip-palavra')) return;
+    const botoes = Array.from(this._palavrasEl.querySelectorAll('.pip-palavra'));
+    const i = botoes.indexOf(ativo);
+    const j = e.key === 'ArrowRight' ? i + 1 : i - 1;
+    if (i < 0 || j < 0 || j >= botoes.length) return;
+    e.preventDefault();
+    this._pararLeituraAuto();
+    this.setState({ palavraIdx: j }); // destaca + anuncia; não fala (falar = Enter/toque)
+    setTimeout(() => { const b = this._palavrasEl && this._palavrasEl.querySelectorAll('.pip-palavra')[j]; if (b) b.focus(); }, 0);
   }
 
   // Dispara o carregamento assíncrono das vozes (getVoices vem vazio até carregar),
@@ -385,22 +423,29 @@ class Component extends DCLogic {
     const curWord = palavras[curIdx] || '';
     const isStuck = this._ehDificil(curWord);
 
+    const total = palavras.length;
     const gateWords = palavras.map((w, i) => {
       const isCur = (i === curIdx) && modoLendo;
       const txt = a11y.syllable ? this._silabar(w) : w;
       return {
         text: txt,
         idx: i,
+        atual: isCur ? 'true' : 'false',
+        aria: w + ', palavra ' + (i + 1) + ' de ' + total,
         onTap: () => this.ouvirPalavra(i),
         animClass: isCur && isStuck ? 'word-stuck' : '',
-        style: 'font-family:'+readFont+';font-weight:800;font-size:'+wordFont+';line-height:1.5;letter-spacing:'+letterSp+';cursor:pointer;padding:3px 12px;border-radius:16px;display:inline-block;'
+        // B8: <button> com as MESMAS medidas do antigo <span> (border/margin zerados).
+        style: 'border:none;margin:0;font-family:'+readFont+';font-weight:800;font-size:'+wordFont+';line-height:1.5;letter-spacing:'+letterSp+';cursor:pointer;padding:3px 12px;border-radius:16px;display:inline-block;'
           + (isCur
             ? (isStuck ? 'background:#fbe6b8;color:var(--pip-mel-texto);box-shadow:0 0 0 3px rgba(243,183,90,.55);' : 'background:'+hi+';color:'+ink+';')
             : 'background:transparent;color:'+ink+';'),
       };
     });
-
-    const total = palavras.length;
+    // B8 · anúncio para leitor de tela: na 1ª palavra a frase inteira (estável entre
+    // re-renders), depois "Palavra N de M: x" a cada avanço.
+    const statusLeitura = !modoLendo ? '' : (curIdx === 0
+      ? ('Frase para ler: ' + trecho + '. Palavra 1 de ' + total + ': ' + (palavras[0] || ''))
+      : ('Palavra ' + (curIdx + 1) + ' de ' + total + ': ' + (palavras[curIdx] || '')));
     const pct = total > 0 ? Math.min(100, Math.round(((curIdx + 1) / total) * 100)) : 0;
     // fase05 · verificação EFETIVA na borda da tela: o kill-switch da plataforma
     // degrada fala→cuidador (a intenção em state.modos fica intacta); sem o
@@ -427,8 +472,11 @@ class Component extends DCLogic {
       totalPalavras: total,
       pctLabel: total > 0 ? pct + '%' : '',
       progressoPct: pct + '%',
+      statusLeitura,
+      refPalavras: this.refPalavras,
       nextLabel: 'Continuar a história ›',
       ouvirLabel: this.state.lendoAuto ? '⏸ Pausar' : '🔊 Ouvir',
+      ouvirAria: this.state.lendoAuto ? 'Pausar a leitura' : 'Ouvir a frase inteira',
       verifyIsCuidador: verificacao === 'cuidador',
       verifyIsAuto: verificacao === 'auto',
       verifyIsFala: verificacao === 'fala',

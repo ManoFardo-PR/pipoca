@@ -33,27 +33,30 @@
 
   <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:28px;max-width:560px;width:100%;padding:24px 40px 40px;">
 
-    <!-- Earned fireflies -->
-    <div style="display:flex;align-items:center;gap:16px;" class="{{ bloomClass }}">
+    <!-- B8 (UI-C47): a celebração é ANUNCIADA, não só mostrada — frase completa para o leitor de tela. -->
+    <div role="status" aria-live="polite" class="pip-sr-only">{{ anuncio }}</div>
+
+    <!-- Earned fireflies (decorativo: o número real está no anúncio e no texto abaixo) -->
+    <div style="display:flex;align-items:center;gap:16px;" class="{{ bloomClass }}" aria-hidden="true">
       <div style="width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 28px 8px rgba(247,191,96,.6);display:flex;align-items:center;justify-content:center;font-size:28px;"></div>
       <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:52px;color:var(--pip-terracota-texto);text-shadow:0 2px 12px rgba(181,86,40,.35);">+{{ earned }}</div>
     </div>
 
     <div style="text-align:center;">
-      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:36px;color:#3a4f63;">Você leu! 🎉</div>
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:36px;color:#3a4f63;">Você leu! <span aria-hidden="true">🎉</span></div>
       <p style="font-size:17px;color:#6a6a55;margin-top:8px;line-height:1.5;">{{ earned }} vaga-lumes novos no seu pote. Cada leitura faz o quintal crescer.</p>
     </div>
 
     <!-- Novo objeto -->
     <div style="background:rgba(255,255,255,.85);border-radius:26px;padding:22px 32px;box-shadow:0 16px 40px -16px rgba(74,59,44,.35);text-align:center;min-width:240px;" class="{{ popClass }}">
       <div style="font-size:12px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--pip-texto-suave);margin-bottom:12px;">Novo amigo desbloqueado</div>
-      <div style="font-size:52px;margin-bottom:8px;">{{ objetoEmoji }}</div>
+      <div style="font-size:52px;margin-bottom:8px;" aria-hidden="true">{{ objetoEmoji }}</div>
       <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:20px;color:#3a2c20;">{{ objetoNome }}</div>
     </div>
 
     <!-- Total de vaga-lumes -->
     <div style="display:flex;align-items:center;gap:10px;background:#fff3da;border:1.5px solid #f0d9a8;border-radius:999px;padding:10px 22px 10px 14px;">
-      <div style="width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 10px 2px rgba(247,191,96,.7);"></div>
+      <div aria-hidden="true" style="width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 10px 2px rgba(247,191,96,.7);"></div>
       <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;color:var(--pip-terracota-texto);">{{ vagalumes }} vaga-lumes no pote</span>
     </div>
 
@@ -145,10 +148,14 @@ class Component extends DCLogic {
     const fav = this.state.favoritada;
     const mostrarCoracao = !!(convergiu && estado.ultimaHistoriaSalvaId && App && App.favoritarHistoria);
 
+    // B8 · uma frase completa para o leitor de tela (a tela mostra em pedaços).
+    const anuncio = 'Você leu! Ganhou ' + earned + ' vaga-lumes. Novo amigo: ' + objetoNome + '. Agora tem ' + economia.vagalumes + ' vaga-lumes no pote.';
+
     return {
       earned,
       objetoEmoji,
       objetoNome,
+      anuncio,
       vagalumes: economia.vagalumes,
       continuarLabel,
       bloomClass,

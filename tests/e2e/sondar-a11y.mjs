@@ -260,6 +260,44 @@ try {
   const focoVoltou = await page.evaluate(() => (document.activeElement && (document.activeElement.textContent || "").trim()) === "⚙");
   assert(focoVoltou, "Esc fecha o painel e o foco volta ao ⚙ que abriu");
   await a11y({ contrast: false });
+
+  console.log("\n=== B8 · T5 por teclado e leitor de tela; T6 anuncia a celebração ===");
+  await page.evaluate(() => { window.PipocaApp.setState({ gateTrecho: "Uma luzinha piscando no escuro.", gatePalavraIdx: 0, gateStage: "reading", gatePendente: null, tela: 5 }); });
+  await page.waitForFunction(() => document.querySelectorAll("button.pip-palavra").length >= 5, { timeout: 5000 });
+  await page.waitForTimeout(300);
+  const t5a = await page.evaluate(() => {
+    const ps = [...document.querySelectorAll("button.pip-palavra")];
+    const pb = document.querySelector('[role="progressbar"]');
+    const st = [...document.querySelectorAll('[role="status"]')].map((s) => s.textContent.trim()).find((t) => /Palavra 1 de/.test(t)) || "";
+    return { n: ps.length, atual: ps.findIndex((b) => b.getAttribute("aria-current") === "true"), aria0: ps[0].getAttribute("aria-label"), focado: document.activeElement === ps[0], pb: pb ? { now: pb.getAttribute("aria-valuenow"), max: pb.getAttribute("aria-valuemax"), label: pb.getAttribute("aria-label") } : null, status: st };
+  });
+  assert(t5a.n === 5 && t5a.atual === 0 && /Uma, palavra 1 de 5/.test(t5a.aria0), `T5: 5 palavras são <button> com aria-current na atual e aria-label "${t5a.aria0}"`);
+  assert(t5a.focado, "T5: ao entrar na leitura, o foco vai para a palavra atual");
+  assert(!!t5a.pb && t5a.pb.now === "1" && t5a.pb.max === "5" && !!t5a.pb.label, `T5: barra é role=progressbar (${t5a.pb && t5a.pb.now}/${t5a.pb && t5a.pb.max})`);
+  assert(/Frase para ler: Uma luzinha/.test(t5a.status) && /Palavra 1 de 5: Uma/.test(t5a.status), `T5: status anuncia a frase e a palavra atual ("${t5a.status.slice(0, 60)}…")`);
+  await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(200);
+  const t5b = await page.evaluate(() => {
+    const ps = [...document.querySelectorAll("button.pip-palavra")];
+    const st = [...document.querySelectorAll('[role="status"]')].map((s) => s.textContent.trim()).find((t) => /Palavra 2 de/.test(t)) || "";
+    return { atual: ps.findIndex((b) => b.getAttribute("aria-current") === "true"), focado: ps.indexOf(document.activeElement), status: st, now: (document.querySelector('[role="progressbar"]') || {}).getAttribute ? document.querySelector('[role="progressbar"]').getAttribute("aria-valuenow") : null };
+  });
+  assert(t5b.atual === 1 && t5b.focado === 1 && /Palavra 2 de 5: luzinha/.test(t5b.status) && t5b.now === "2", `T5: → move o foco e o destaque para a 2ª palavra e anuncia ("${t5b.status}")`);
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  const t5c = await page.evaluate(() => [...document.querySelectorAll("button.pip-palavra")].findIndex((b) => b.getAttribute("aria-current") === "true"));
+  assert(t5c === 1, "T5: Enter na palavra em foco a toca (mesmo handler do toque; destaque permanece)");
+  await page.evaluate(() => { window.PipocaApp.setState({ gateEarned: 3, gateObjId: "vagalume", tela: 6 }); });
+  await page.waitForFunction(() => /Você leu/.test(document.body.innerText), { timeout: 5000 });
+  await page.waitForTimeout(200);
+  const t6 = await page.evaluate(() => {
+    const st = [...document.querySelectorAll('[role="status"]')].map((s) => s.textContent.trim()).find((t) => /Ganhou/.test(t)) || "";
+    const decor = document.querySelectorAll('[aria-hidden="true"]').length;
+    return { status: st, decor };
+  });
+  assert(/Você leu! Ganhou 3 vaga-lumes\. Novo amigo: vaga-lume\./.test(t6.status), `T6: celebração anunciada em role=status ("${t6.status.slice(0, 70)}…")`);
+  assert(t6.decor >= 3, `T6: decorativos escondidos do leitor de tela (${t6.decor} aria-hidden)`);
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 3 }); });
   assert(erros.length === 0, `sem erros de página (${erros.length ? erros.join(" | ") : "nenhum"})`);
 } catch (e) {
   console.error("ERRO na sonda a11y:", e);

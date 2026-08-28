@@ -151,4 +151,27 @@
   --pip-texto-suave:     #3a2c20;
   --pip-terracota-texto: #7a3f1e;
   --pip-mel-texto:       #5a4210;
+  --pip-foco:            var(--pip-tinta-contraste);
 }
+
+/* ── Foco visível (B3 · WCAG 2.4.7) ───────────────────────────────────── */
+/* Um anel ÚNICO para todo controle, em qualquer tela (app e admin importam este
+ * arquivo). :focus-visible só aparece na navegação por teclado — o toque não
+ * ganha anel. Componentes NÃO devem escrever outline:none. */
+:root { --pip-foco: var(--pip-heeler); }
+:where(a, button, [role="button"], [role="switch"], [role="checkbox"], [role="tab"],
+       input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--pip-foco);
+  outline-offset: 3px;
+  border-radius: inherit;
+}
+:where(a, button, [role="button"], [role="switch"], [role="checkbox"], [role="tab"],
+       input, select, textarea, [tabindex]):focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Reduzir movimento: hover e vidro também param (B3 · UI-C51/C52) ──── */
+.pip-reduce-motion :where(button, [role="button"], .pip-chip, .pip-chip-disponivel):hover {
+  transform: none;
+}
+.pip-reduce-motion * { backdrop-filter: none; }

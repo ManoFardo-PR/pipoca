@@ -163,10 +163,55 @@ try {
   assert(raiz.mov === "0", `--pip-mov = 0 dentro do Shell (lido: "${raiz.mov}")`);
   const dur = await page.evaluate(() => { const raiz = document.querySelector(".pip-reduce-motion"); return raiz ? getComputedStyle(raiz).getPropertyValue("--pip-dur-rapido").trim() : null; });
   assert(dur === "0s", `--pip-dur-rapido = 0s dentro do Shell (lido: "${dur}")`);
+  // B3 · com reduzir-movimento ligado, NENHUMA animação/transição segue ativa nas telas
+  // que têm animação infinita (T4 slot pulsando, T5 palavra "travada", T7 luzes do pote).
+  const animacoesAtivas = () => page.evaluate(() => document.getAnimations().filter((a) => a.playState === "running").length);
+  await irTela(4, "Monte sua cena");
+  const animT4 = await animacoesAtivas();
+  await irTela(5, "luzinha");
+  const animT5 = await animacoesAtivas();
+  await irTela(7, "agrado");
+  const animT7 = await animacoesAtivas();
+  assert(animT4 === 0 && animT5 === 0 && animT7 === 0, `B3: getAnimations() em execução = 0 em T4/T5/T7 com reduzir-movimento (lido: ${animT4}/${animT5}/${animT7})`);
   await a11y({ reduceMotion: false });
   await page.waitForTimeout(200);
   raiz = await sondaRaiz();
   assert(raiz.mov === "1", `desligar devolve --pip-mov = 1 (lido: "${raiz.mov}")`);
+  const animT7ligado = await animacoesAtivas();
+  assert(animT7ligado > 0, `sem o toggle, a T7 volta a animar as luzes (animações ativas: ${animT7ligado})`);
+
+  console.log("\n=== B3 · foco visível por teclado (Tab) em telas da criança e do cuidador ===");
+  const anelDoFoco = () => page.evaluate(() => {
+    const el = document.activeElement;
+    if (!el || el === document.body) return { tag: "body" };
+    const cs = getComputedStyle(el);
+    return { tag: el.tagName, rotulo: (el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 30), outlineWidth: cs.outlineWidth, outlineStyle: cs.outlineStyle, outlineColor: cs.outlineColor };
+  });
+  const tabAte = async (n) => { for (let i = 0; i < n; i++) await page.keyboard.press("Tab"); await page.waitForTimeout(60); return anelDoFoco(); };
+  await irTela(3, "Favorito de hoje");
+  await page.evaluate(() => { const b = document.querySelector("button"); if (b) b.blur(); document.body.focus(); });
+  const focoT3 = await tabAte(1);
+  assert(focoT3.tag !== "body" && focoT3.outlineStyle === "solid" && parseFloat(focoT3.outlineWidth) >= 3, `T3: 1º Tab foca <${focoT3.tag}> "${focoT3.rotulo}" com anel ${focoT3.outlineWidth} ${focoT3.outlineStyle} (${focoT3.outlineColor})`);
+  await irTela(4, "Monte sua cena");
+  const focoT4 = await tabAte(2);
+  assert(focoT4.tag !== "body" && focoT4.outlineStyle === "solid", `T4: Tab mostra anel em <${focoT4.tag}> "${focoT4.rotulo}"`);
+  await irTela(7, "agrado");
+  const focoT7 = await tabAte(2);
+  assert(focoT7.tag !== "body" && focoT7.outlineStyle === "solid", `T7: Tab mostra anel em <${focoT7.tag}> "${focoT7.rotulo}"`);
+  await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
+  await page.waitForTimeout(150);
+  await page.evaluate(() => { window.PipocaApp.setState({ modoApp: "cuidador", tela: 12 }); });
+  await page.waitForFunction(() => /Perfis/i.test(document.body.innerText), { timeout: 5000 }).catch(() => {});
+  const focoT12 = await tabAte(2);
+  assert(focoT12.tag !== "body" && focoT12.outlineStyle === "solid", `T12 (cuidador): Tab mostra anel em <${focoT12.tag}> "${focoT12.rotulo}"`);
+  const inputSemOutlineNone = await page.evaluate(() => {
+    const inp = document.querySelector("input");
+    if (!inp) return null;
+    inp.focus();
+    return getComputedStyle(inp).outlineStyle;
+  });
+  assert(inputSemOutlineNone === null || inputSemOutlineNone !== "none", `campo de texto focado por script mantém :focus-visible (outline-style: ${inputSemOutlineNone})`);
+  await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
   assert(erros.length === 0, `sem erros de página (${erros.length ? erros.join(" | ") : "nenhum"})`);
 } catch (e) {
   console.error("ERRO na sonda a11y:", e);

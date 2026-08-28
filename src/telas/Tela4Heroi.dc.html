@@ -13,7 +13,7 @@
     @keyframes pipFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
     @keyframes pipPulse { 0%,100%{box-shadow:0 0 0 0 rgba(232,150,90,.5)} 50%{box-shadow:0 0 0 8px rgba(232,150,90,0)} }
     .pip-slot-livre { animation: pipPulse 1.8s ease-in-out infinite; }
-    .pip-chip:hover { transform: translateY(-3px); }
+    .pip-chip:hover { transform: translateY(calc(-3px * var(--pip-mov))); } /* B3: salto pelo token */
   </style>
 </helmet>
 
@@ -303,7 +303,7 @@ class Component extends DCLogic {
           return {
             emoji: m.emoji, nome: m.nome,
             onTap: cheio ? (() => {}) : (() => this._addArranjo(id)),
-            style: 'width:108px;min-height:104px;border:1.5px solid rgba(200,156,108,.4);border-radius:18px;background:#fffdf7;box-shadow:0 8px 18px -12px rgba(74,59,44,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;transition:transform .12s ease;cursor:' + (cheio ? 'not-allowed' : 'pointer') + ';' + (cheio ? 'opacity:.5;' : ''),
+            style: 'width:108px;min-height:104px;border:1.5px solid rgba(200,156,108,.4);border-radius:18px;background:#fffdf7;box-shadow:0 8px 18px -12px rgba(74,59,44,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;transition:transform calc(.12s * var(--pip-mov)) ease;cursor:' + (cheio ? 'not-allowed' : 'pointer') + ';' + (cheio ? 'opacity:.5;' : ''),
           };
         });
 
@@ -396,7 +396,7 @@ class Component extends DCLogic {
           return {
             emoji: m.emoji, nome: m.nome,
             onTap: bloqueado ? (() => {}) : (() => this._selecionarObj(id)),
-            style: 'width:108px;min-height:104px;border:2px solid ' + (sel ? '#e8965a' : 'rgba(200,156,108,.4)') + ';border-radius:18px;background:' + (sel ? '#fff1e2' : '#fffdf7') + ';box-shadow:0 8px 18px -12px rgba(74,59,44,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;transition:transform .12s ease;cursor:' + (bloqueado ? 'not-allowed' : 'pointer') + ';' + (bloqueado ? 'opacity:.5;' : ''),
+            style: 'width:108px;min-height:104px;border:2px solid ' + (sel ? '#e8965a' : 'rgba(200,156,108,.4)') + ';border-radius:18px;background:' + (sel ? '#fff1e2' : '#fffdf7') + ';box-shadow:0 8px 18px -12px rgba(74,59,44,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;transition:transform calc(.12s * var(--pip-mov)) ease;cursor:' + (bloqueado ? 'not-allowed' : 'pointer') + ';' + (bloqueado ? 'opacity:.5;' : ''),
           };
         });
 

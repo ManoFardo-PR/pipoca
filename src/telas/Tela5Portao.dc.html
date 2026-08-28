@@ -48,7 +48,7 @@
         <span style="font-size:12px;color:var(--pip-texto-suave);font-weight:600;">{{ pctLabel }}</span>
       </div>
       <div style="height:8px;border-radius:8px;background:rgba(160,140,110,.2);margin-top:8px;overflow:hidden;">
-        <div style="height:100%;border-radius:8px;width:{{ progressoPct }};background:linear-gradient(90deg,#f4b65a,#e8965a);transition:width .25s ease;"></div>
+        <div style="height:100%;border-radius:8px;width:{{ progressoPct }};background:linear-gradient(90deg,#f4b65a,#e8965a);transition:width calc(.25s * var(--pip-mov)) ease;"></div>
       </div>
     </div>
 

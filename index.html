@@ -27,7 +27,7 @@
     .earn-bloom { animation: pipBloom .55s cubic-bezier(.22,1,.36,1) forwards; }
     .earn-pop { animation: pipPop .4s ease forwards; }
     .word-stuck { animation: pipGlow 1.8s ease-in-out infinite; }
-    .pip-barra-fill { transition: width .25s ease; }
+    .pip-barra-fill { transition: width calc(.25s * var(--pip-mov)) ease; }
     .chip-drag { cursor:grab; }
     .chip-drag:active { cursor:grabbing; }
     * { box-sizing: border-box; }
@@ -53,12 +53,14 @@
     .pip-contrast [style*="color: rgb(194, 94, 51)"] { color: #7a3f1e !important; }                /* #b8693c #9a5a3a #c25e33 */
     .pip-contrast [style*="color: rgb(138, 106, 30)"], .pip-contrast [style*="color: rgb(154, 106, 30)"],
     .pip-contrast [style*="color: rgb(160, 134, 62)"] { color: #5a4210 !important; }               /* #8a6a1e #9a6a1e #a0863e */
-    /* Rede de segurança do reduzir-movimento: fica até B3 tokenizar as transições inline. */
-    .pip-reduce-motion *, .pip-reduce-motion *::before, .pip-reduce-motion *::after {
-      animation-duration: 0.001ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.001ms !important;
-    }
+    /* Reduzir movimento (B3): o token --pip-mov:0 zera as transições/animações tokenizadas
+       (src/tokens.css); as classes de animação conhecidas desligam explicitamente; e fica só
+       uma rede MÍNIMA para animação infinita legada (1 iteração) — sem !important de duração. */
+    .pip-reduce-motion .av-enter, .pip-reduce-motion .earn-bloom, .pip-reduce-motion .earn-pop,
+    .pip-reduce-motion .earn-ring, .pip-reduce-motion .word-stuck, .pip-reduce-motion .pip-slot-livre,
+    .pip-reduce-motion .pip-luz, .pip-reduce-motion .pip-vaga-glow, .pip-reduce-motion .pip-cartao-lendo { animation: none; }
+    .pip-reduce-motion .pip-barra-fill { transition: none; }
+    .pip-reduce-motion *, .pip-reduce-motion *::before, .pip-reduce-motion *::after { animation-iteration-count: 1 !important; }
   </style>
 </head>
 <body>

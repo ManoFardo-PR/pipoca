@@ -81,7 +81,7 @@ class Component extends DCLogic {
     return 'width:50px;height:28px;border-radius:999px;border:none;cursor:pointer;position:relative;flex-shrink:0;background:' + (on ? '#6f9b4f' : '#d6c6ab') + ';';
   }
   _knobStyle(on) {
-    return 'position:absolute;top:3px;left:' + (on ? '25px' : '3px') + ';width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .15s;';
+    return 'position:absolute;top:3px;left:' + (on ? '25px' : '3px') + ';width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left calc(.15s * var(--pip-mov));';
   }
   _scaleBtn(on) {
     return 'flex:1;border:none;cursor:pointer;border-radius:11px;padding:9px 0;font-family:"Baloo 2",cursive;font-weight:700;background:' + (on ? '#3f6f9e' : '#f1e7d4') + ';color:' + (on ? '#fff' : 'var(--pip-texto-suave)') + ';';

@@ -21,6 +21,14 @@
   <style>
     * { box-sizing: border-box; }
     body { margin: 0; }
+    /* A11y transversal (B3 · UI-A34): as MESMAS classes do app; o AdminShell as aplica a
+       partir de prefers-reduced-motion / prefers-contrast do sistema (decisão do dono: sem
+       toggles próprios nesta onda). O foco visível e --pip-mov vêm de src/tokens.css. */
+    .pip-dyslexia, .pip-dyslexia * { font-family: 'Atkinson Hyperlegible', sans-serif !important; letter-spacing: 0.04em; }
+    .pip-contrast [style*="color: rgb(44, 36, 26)"] { color: #120e08 !important; }
+    .pip-contrast [style*="color: rgb(107, 98, 85)"], .pip-contrast [style*="color: rgb(122, 106, 84)"],
+    .pip-contrast [style*="color: rgb(138, 122, 100)"], .pip-contrast [style*="color: rgb(154, 138, 114)"] { color: #2c241a !important; }
+    .pip-reduce-motion *, .pip-reduce-motion *::before, .pip-reduce-motion *::after { animation-iteration-count: 1 !important; }
   </style>
 </head>
 <body>

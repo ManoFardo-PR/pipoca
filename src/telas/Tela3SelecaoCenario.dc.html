@@ -11,18 +11,20 @@
 
   <!-- Header -->
   <div style="height:62px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:rgba(255,255,255,.55);backdrop-filter:blur(8px);border-bottom:1px solid rgba(160,140,110,.18);">
-    <div style="display:flex;align-items:center;gap:12px;">
+    <!-- B5 (ML-3): avatar + saudação é a SAÍDA para trocar de leitor (T2) — 1 toque, sem portão. -->
+    <button onClick="{{ trocarLeitor }}" aria-label="Trocar quem está lendo" title="Trocar quem está lendo" style="display:flex;align-items:center;gap:12px;min-height:48px;padding:3px 10px 3px 3px;border:none;border-radius:999px;background:transparent;cursor:pointer;text-align:left;">
       <div ref="{{ childAvatarRef }}" style="width:42px;height:42px;border-radius:50%;overflow:hidden;background:#fffaf0;box-shadow:0 2px 6px rgba(74,59,44,.2);"></div>
       <div>
         <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:#3a4f63;line-height:1;">{{ saudacao }}</div>
-        <div style="font-size:12px;color:var(--pip-texto-suave);margin-top:2px;">Leitor em ascensão ✨</div>
+        <div style="font-size:12px;color:var(--pip-texto-suave);margin-top:2px;">Leitor em ascensão ✨ · trocar leitor</div>
       </div>
-    </div>
+    </button>
     <div style="display:flex;align-items:center;gap:10px;">
-      <div style="display:flex;align-items:center;gap:7px;background:#fff3da;border:1.5px solid #f0d9a8;border-radius:999px;padding:6px 14px 6px 10px;">
+      <!-- B5 (ML-3): o saldo é a SAÍDA para o pote (T7) — 1 toque. -->
+      <button onClick="{{ verPote }}" aria-label="Ver meu pote de vaga-lumes" title="Ver meu pote" style="display:flex;align-items:center;gap:7px;min-height:48px;background:#fff3da;border:1.5px solid #f0d9a8;border-radius:999px;padding:6px 14px 6px 10px;cursor:pointer;">
         <div style="width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 8px 1px rgba(247,191,96,.7);"></div>
         <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:var(--pip-terracota-texto);">{{ vagalumes }}</span>
-      </div>
+      </button>
       <!-- Casinha da criança: o que já foi guardado p/ o sonho fica à vista -->
       <sc-if value="{{ temPoupado }}" hint-placeholder-val="{{ false }}">
         <div title="Guardado para o sonho" style="display:flex;align-items:center;gap:6px;background:#e9f0fa;border:1.5px solid #c4d5ec;border-radius:999px;padding:6px 14px;">
@@ -188,6 +190,18 @@ class Component extends DCLogic {
     if (App) App.setState({ showA11y: true });
   }
 
+  // B5 (ML-3): saídas da criança sem portão — T2 é o "login visual" livre por design
+  // e a T7 é dela. setState({tela}) respeita a guarda KIDMODE (só superfícies adultas
+  // são barradas).
+  trocarLeitor() {
+    const App = window.PipocaApp;
+    if (App) App.setState({ tela: 2 });
+  }
+  verPote() {
+    const App = window.PipocaApp;
+    if (App) App.setState({ tela: 7 });
+  }
+
   componentDidMount() {
     this._updateRefs();
     this._carregarHistorias();
@@ -284,6 +298,8 @@ class Component extends DCLogic {
       featuredPick: () => this.escolherCenario('quintal_anoitecer'),
       gridCenas,
       abrirAjustesA11y: () => this.abrirAjustesA11y(),
+      trocarLeitor: () => this.trocarLeitor(),
+      verPote: () => this.verPote(),
     };
   }
 }

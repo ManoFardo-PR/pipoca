@@ -462,7 +462,8 @@ try {
     // (b)/(c) perfil LEGADO sem gênero (o perfil do incidente) — ativação pede
     const pietro = Canon.perfil.criarPerfil("id-pietro", { nome: "Pietro", idade: 8, nivel: "n2", avatarId: "pingo" });
     await App.repo.salvarPerfil(pietro);
-    App.selecionarPerfil(pietro);
+    // B5 (Plan03): o pedir-uma-vez abre na CHEGADA à T3 (destino 3), nunca sobre T4–T7.
+    App.selecionarPerfil(pietro, 3);
     await espera(30);
     return {
       overlayComGenero,
@@ -494,13 +495,18 @@ try {
   );
 
   // (b) pedir-uma-vez de verdade: nova ativação pergunta de novo; a escolha PERSISTE.
-  await page.evaluate(async () => {
+  // B5: a rodada deixou a criança na T5 — o overlay NÃO pode aparecer ali; só ao chegar à T3.
+  const semOverlayForaDaT3 = await page.evaluate(async () => {
     const App = window.PipocaApp;
     const perfis = await App.repo.carregarPerfis();
-    App.selecionarPerfil(perfis.find((p) => p.id === "id-pietro"));
+    App.selecionarPerfil(perfis.find((p) => p.id === "id-pietro")); // sem destino: fica onde está
+    await new Promise((r) => setTimeout(r, 60));
+    return { tela: App.estado.tela, overlay: App.estado.pedirGenero === true };
   });
+  assert(semOverlayForaDaT3.overlay === false, `B5: reativar fora da T3 (tela ${semOverlayForaDaT3.tela}) NÃO abre o pedir-uma-vez`);
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 3 }); });
   await page.waitForFunction(() => window.PipocaApp.estado.pedirGenero === true, { timeout: 4000 });
-  assert(true, "sem escolha persistida, a próxima ativação pergunta de novo");
+  assert(true, "sem escolha persistida, a próxima ativação pergunta de novo — na chegada à T3 (B5)");
   await page.locator("button", { hasText: "Um menino" }).first().click();
   const escolha = await page.evaluate(async () => {
     const App = window.PipocaApp;
@@ -510,7 +516,7 @@ try {
     const env = envs.find((e) => e.perfil && e.perfil.id === "id-pietro");
     await window.__jogarRodada();
     const perfis = await App.repo.carregarPerfis();
-    App.selecionarPerfil(perfis.find((p) => p.id === "id-pietro"));
+    App.selecionarPerfil(perfis.find((p) => p.id === "id-pietro"), 3); // B5: chega à T3
     await espera(30);
     return {
       estadoVivo: App.estado.perfil && App.estado.perfil.genero,

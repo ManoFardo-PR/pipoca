@@ -252,6 +252,9 @@ class Component extends DCLogic {
     //  • história em andamento → "Continuar lendo" (retoma a rodada, T4) + secundária.
     //  • história convergida → só "Brincar de novo" (nova história).
     const convergiu = App && App.composicaoConvergiu ? App.composicaoConvergiu() : false;
+    // B5: chegando pelo saldo da T3 (sem composição em curso), "Continuar lendo" abriria a
+    // T4 e iniciaria uma história do nada — a primária vira "voltar para as histórias".
+    const emCurso = !!estado.comp && !convergiu;
     const estiloPrimaria = 'width:100%;padding:18px;border:none;border-radius:18px;background:var(--pip-cta);color:#fff;font-family:"Baloo 2",cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -6px rgba(181,86,40,.5);';
     const estiloSecundaria = 'width:100%;padding:13px;border:1.5px solid rgba(160,140,110,.3);border-radius:16px;background:rgba(255,255,255,.7);color:#7a6a54;font-family:"Baloo 2",cursive;font-weight:700;font-size:15px;cursor:pointer;';
 
@@ -264,11 +267,11 @@ class Component extends DCLogic {
       saveSuggest: save,
       spendPct: pct + '%',
       rewardMenu,
-      acaoPrimaria: convergiu ? (() => this.brincarDeNovo()) : (() => this.continuar()),
-      // Fim da história: o caminho claro é voltar à casinha (T3) e escolher outra.
-      primariaLabel: convergiu ? '🏠 Escolher outra história' : '📖 Continuar lendo',
+      acaoPrimaria: emCurso ? (() => this.continuar()) : (() => this.brincarDeNovo()),
+      // Fim da história (ou sem história em curso): o caminho claro é voltar à casinha (T3).
+      primariaLabel: emCurso ? '📖 Continuar lendo' : (convergiu ? '🏠 Escolher outra história' : '🏠 Voltar para as histórias'),
       primariaStyle: estiloPrimaria,
-      mostrarSecundaria: !convergiu,
+      mostrarSecundaria: emCurso,
       acaoSecundaria: () => this.brincarDeNovo(),
       secundariaLabel: '🌱 Brincar de novo (nova história)',
       secundariaStyle: estiloSecundaria,

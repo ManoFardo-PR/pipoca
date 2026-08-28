@@ -46,7 +46,11 @@
         </sc-for>
       </div>
 
-      <button onClick="{{ abrirPortaoParental }}" style="margin-top:46px;background:rgba(255,255,255,.6);border:none;border-radius:999px;padding:11px 22px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;backdrop-filter:blur(4px);">⚙ Sou o cuidador</button>
+      <!-- B5: a T2 também tem "Do meu jeito" (ajustes sem portão); "Sou o cuidador" leva ao PIN. -->
+      <div style="display:flex;gap:12px;margin-top:46px;flex-wrap:wrap;justify-content:center;">
+        <button onClick="{{ abrirAjustesA11y }}" aria-label="Do meu jeito" style="min-height:48px;background:rgba(255,255,255,.6);border:none;border-radius:999px;padding:11px 22px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;backdrop-filter:blur(4px);">✨ Do meu jeito</button>
+        <button onClick="{{ abrirPortaoParental }}" style="min-height:48px;background:rgba(255,255,255,.6);border:none;border-radius:999px;padding:11px 22px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;backdrop-filter:blur(4px);">🔒 Sou o cuidador</button>
+      </div>
     </sc-if>
 
   </div>
@@ -135,6 +139,11 @@ class Component extends DCLogic {
     this.irParaTela(1);
   }
 
+  abrirAjustesA11y() {
+    const App = window.PipocaApp;
+    if (App) App.setState({ showA11y: true });
+  }
+
   renderVals() {
     const { perfis, carregando } = this.state;
     const App = window.PipocaApp;
@@ -168,6 +177,7 @@ class Component extends DCLogic {
       avatars,
       animClass,
       abrirPortaoParental: () => this.abrirPortaoParental(),
+      abrirAjustesA11y: () => this.abrirAjustesA11y(),
     };
   }
 }

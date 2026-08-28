@@ -133,8 +133,9 @@ try {
   await page.screenshot({ path: path.join(OUT, "T05-portao-contraste-1280x800.png") });
   await irTela(7, "agrado");
   const ctaT7 = await corDoBotao("Trocar");
-  const ctaT7b = await corDoBotao("Continuar lendo");
-  assert(!!ctaT7 && ctaT7.color === BRANCO && !!ctaT7b && ctaT7b.color === BRANCO, `T7 "Trocar" e "Continuar lendo" continuam brancos (${ctaT7 && ctaT7.color} / ${ctaT7b && ctaT7b.color})`);
+  // B5: sem história em curso a primária da T7 é "Voltar para as histórias" (senão "Continuar lendo").
+  const ctaT7b = (await corDoBotao("Continuar lendo")) || (await corDoBotao("Voltar para as histórias"));
+  assert(!!ctaT7 && ctaT7.color === BRANCO && !!ctaT7b && ctaT7b.color === BRANCO, `T7 "Trocar" e a primária continuam brancos (${ctaT7 && ctaT7.color} / ${ctaT7b && ctaT7b.color})`);
   await page.screenshot({ path: path.join(OUT, "T07-pote-contraste-1280x800.png") });
   // Telas adultas: chip selecionado azul mantém texto branco (UI-A37)
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });

@@ -1,10 +1,11 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-08-28T19:01:47.459Z · branch `onda-A-seguranca` · HEAD `c688b13`
+- Gerado em: 2026-08-28T19:10:49.647Z · branch `onda-A-seguranca` · HEAD `66fc3aa`
 - Progresso: **8/59** passos concluídos
-- Próximo passo: **A5** — Fechamento A: SQL aplicada → redeploy ×2 → build:app → e2e → merge ([abrir](onda-A-seguranca/A5-fechamento-onda-A.md))
-- Última verificação: ✅ verde em 2026-08-28T18:31:56.969Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
+- Próximo passo: nenhum disponível
+- Última verificação: ✅ verde em 2026-08-28T19:10:24.652Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
+  - ⚠ árvore suja (7 arquivo(s)) — commite antes de concluir um passo
   - ⚠ pipoca.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/app/bridge.ts, src/dados (rebuild pendente)
   - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
@@ -25,7 +26,7 @@
 | A3 | [Migração escrita (NÃO aplicada): RPC, índices, políticas](onda-A-seguranca/A3-migracao-rpc-indices-politicas.md) ∥ | [✓] concluída | 2026-08-28 | `f0dbab0` |
 | A2 | [Toggle de IA honesto](onda-A-seguranca/A2-toggle-ia-honesto.md) | [✓] concluída | 2026-08-28 | `f9aca22` |
 | A4 | [Edges: RPC de cota e MODELO_PADRAO alinhado](onda-A-seguranca/A4-edges-rpc-e-modelo-padrao.md) | [✓] concluída | 2026-08-28 | `8e3be20` |
-| A5 | [Fechamento A: SQL aplicada → redeploy ×2 → build:app → e2e → merge](onda-A-seguranca/A5-fechamento-onda-A.md) | [ ] pendente |  |  |
+| A5 | [Fechamento A: SQL aplicada → redeploy ×2 → build:app → e2e → merge](onda-A-seguranca/A5-fechamento-onda-A.md) | […] em andamento | 2026-08-28 |  |
 
 ## Onda B — UX servida crua · 0/15 · branch `onda-B-cru-ux` · CRU (commit = deploy)
 

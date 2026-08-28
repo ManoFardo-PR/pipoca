@@ -61,6 +61,9 @@
       efetivos.verificacao = "cuidador";
     return efetivos;
   }
+  function iaEfetivamenteLigada(modos, flags) {
+    return aplicarFlagsAosModos(modos, flags).iaLigada === true;
+  }
   var CHAVE_FLAGS = "pipoca.admin.flags.v1";
   function storagePadrao() {
     try {
@@ -3795,7 +3798,7 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
       limitesDaFamilia,
       excedeTetoPerfis
     },
-    flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos },
+    flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos, iaEfetivamenteLigada },
     tts,
     asr: { asr, criarServicoASR, asrDisponivel, avaliarParticipacao },
     criarRepositorio,

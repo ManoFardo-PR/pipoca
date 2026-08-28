@@ -7,7 +7,7 @@
     "A0": "concluída (2026-08-28 · b65645e)"
   },
   "verificacao": {
-    "quando": "2026-08-28T18:31:56.969Z",
+    "quando": "2026-08-28T19:10:24.652Z",
     "ok": true,
     "itens": {
       "tsc": {
@@ -17,7 +17,7 @@
       },
       "unit": {
         "ok": true,
-        "passou": 143,
+        "passou": 147,
         "falhou": 0
       },
       "e2e:reordenar": {
@@ -37,7 +37,7 @@
       },
       "e2e:geracao2": {
         "ok": true,
-        "passou": 42,
+        "passou": 47,
         "falhou": 0
       }
     },

@@ -1,7 +1,11 @@
 -- Migração: pós-varredura 2026-08-26 — fechar a RPC, índices das FKs, políticas (Plan03 · A3)
--- Versão aplicada: (PENDENTE — aplicar em A5 via MCP apply_migration com o nome
---   pos_varredura_rpc_indices_politicas; se a data de aplicação não for 2026-08-28,
---   renomear este arquivo para a data real). NÃO colar à mão no dashboard.
+-- Versão aplicada: 20260828190919_pos_varredura_rpc_indices_politicas
+-- Aplicada via MCP apply_migration em 2026-08-28 (Plan03 · A5, com o "pode" do dono).
+-- NÃO colar à mão no dashboard. Prova pós-aplicação: proacl da RPC = {postgres, service_role};
+-- default ACL de funções sem anon/authenticated; 4 políticas por tabela; advisors sem
+-- anon_security_definer / unindexed_foreign_keys / multiple_permissive_policies.
+-- No mesmo passo (dados, não DDL): config_ia 'plataforma:global'.modeloPadrao ganhou
+-- deepseek-chat e gemini-2.5-flash; 'plataforma'.modelo gemini-flash-latest → gemini-2.5-flash.
 --
 -- Estado lido (só-leitura, 2026-08-28) antes de escrever:
 --   proacl registrar_uso_ia(text,text,numeric) =

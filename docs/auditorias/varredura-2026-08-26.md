@@ -40,6 +40,10 @@ estrutural conhecida.
 ## PS — Pontas soltas
 
 ### 🔴 PS-01 · A autorização de IA do cuidador (e o kill-switch) NÃO gateiam a Geração 2 viva
+> ✅ **Resolvido em 2026-08-28 (Plan03 · A1, commit `5ecc07d`; ao ar no fechamento A5):** gate único em
+> `_dispararRealizacao` via `iaEfetivamenteLigada` (cuidador ∧ sem kill-switch, lido na borda a cada disparo);
+> IA desligada ⇒ rota `ap_cru` no `gerar` (zero LLM), `origem.motivo = "ia-desligada"`. Teste e2e
+> "IA desligada ⇒ realizador NÃO é chamado" (geracao2 +5) e `page.on(request)` sem `/functions/v1/realizador`.
 O caminho vivo de geração dispara o realizador remoto **sem consultar consentimento**:
 `Tela4Heroi.dc.html:226` → `prepararLeituraPortao` (`src/app/estado.js:899-923`) →
 `_dispararRealizacao` (`estado.js:806-842` — única condição: `G.realizadorRemoto` existir)
@@ -56,6 +60,9 @@ Agrava: a própria UI de consentimento está quebrada (ver PS-02). Dado pessoal 
 (ou em `realizadorRemoto`) lendo o modos efetivo.*
 
 ### 🟡 PS-02 · `PipocaCanonico.ia` não existe → o toggle de IA do cuidador está inerte
+> ✅ **Resolvido em 2026-08-28 (Plan03 · A2, commit `f9aca22`):** `provedorPronto` passa a ser
+> `realizadorRemoto()` presente ∧ sem kill-switch, com `motivoIndisponivel` antes do gesto; o IaToggle
+> tem 3 estados (Indisponível/Desligada/Ligada). Prova: `tests/e2e/capturar-regras-ia.mjs` (10 asserts + 4 PNGs).
 `src/telas/Regras.dc.html:239` calcula `provedorPronto: !!(C && C.ia && ...)`, mas
 `bridge.ts:174-300` nunca exporta a chave `ia` (era da Geração 1). Resultado: o
 `IaToggle` (`Regras.dc.html:91` + `src/telas/IaToggle.dc.html`) renderiza permanentemente
@@ -63,6 +70,10 @@ como "provedor não pronto" — o cuidador não consegue nem expressar o consent
 PS-01 já não aplica. A cadeia de consentimento está cortada em dois pontos.
 
 ### 🔴 PS-03 · `registrar_uso_ia` exposta a `anon` via REST — e nenhuma edge a usa
+> ✅ **Resolvido em 2026-08-28 (Plan03 · A3/A4/A5):** migração `20260828190919_pos_varredura_rpc_indices_politicas`
+> aplicada (`revoke ... from public, anon, authenticated` + `alter default privileges` do schema; RPC agora recebe
+> deltas `p_chamadas`/`p_custo`) — `proacl` = {postgres, service_role}; advisor `anon_security_definer` sumiu.
+> Edges `realizador` e `proxy-ia` chamam `POST /rest/v1/rpc/registrar_uso_ia` (commit `8e3be20`; redeploy no A5).
 Advisors + ACL real confirmam: a função é SECURITY DEFINER executável por `anon` e
 `authenticated` em `/rest/v1/rpc/registrar_uso_ia`. A migração
 `src/backend/migrations/2026-08-28_otimizacao-rls-cascade-cota.sql:44-47` fez
@@ -139,6 +150,11 @@ checked-out em outro worktree (não deletável agora). `docs/plans02/fase15_migr
 e `old/` são diretórios vazios.
 
 ### 🟡 PS-14 · Advisors de performance (novos, pós-migração de 26/08)
+> ✅ **(a) e (c) resolvidos em 2026-08-28 (Plan03 · A3/A5, migração `20260828190919`):** índices
+> `historias_perfil_id_idx`/`telemetria_perfil_id_idx`; políticas de `contas_tenant`/`flags_admin`/`tenants`
+> fundidas em 1 SELECT (OR) + insert/update/delete — advisors sem `unindexed_foreign_keys` nem
+> `multiple_permissive_policies`. **(b)** mantido por decisão (reavaliar após D1). **(d) ainda aberto:** exige
+> o painel (Authentication → Password) e plano Pro — sem ferramenta no MCP.
 (a) A migração adicionou FKs `historias.perfil_id`/`telemetria.perfil_id` (cascade LGPD)
 **sem índice cobridor** — o `ON DELETE CASCADE` de um perfil varre `historias`/`telemetria`
 por seq scan; (b) `historias_dono_perfil_idx` nunca usado (leitura real filtra por
@@ -148,6 +164,11 @@ por seq scan; (b) `historias_dono_perfil_idx` nunca usado (leitura real filtra p
 desligada no Auth (toggle no painel).
 
 ### 🟡 PS-12 · `MODELO_PADRAO` divergiu entre cliente e edges (bug de configuração ativo)
+> ✅ **Resolvido em 2026-08-28 (Plan03 · A4, commit `8e3be20`; redeploy no A5):** `MODELO_PADRAO` removido das
+> duas edges; modelo = tenant → padrão global (`config_ia` `plataforma:global`, que o `realizador` passa a ler) →
+> sem modelo = não configurado (503). Admin (`ia_global.ts`) sem modelo pré-preenchido. Produção: padrão global
+> ganhou `deepseek-chat` e `gemini-2.5-flash` (decisão do dono); `plataforma.modelo` saiu de `gemini-flash-latest`.
+> `.env.example` documenta `ANTHROPIC_API_KEY`/`DEEPSEEK_API_KEY`.
 As edges hardcodam default para os 4 provedores
 (`functions/proxy-ia/index.ts:193-198` ≡ `functions/realizador/index.ts:331-336`:
 `claude-haiku-4-5`, `gpt-5.4-mini`, `gemini-2.5-flash`, `deepseek-chat`), enquanto o
@@ -571,6 +592,9 @@ com "reduzir movimento" LIGADO o chip continua saltando, só que instantâneo (p
 - 🔴 **UI-A23 · "Usar este" (T12) é quase mudo**: `Perfis.dc.html:239-246` seleciona sem
   navegar; a tela nem assina o App — o único feedback é um badge a ~300px do polegar.
   O gesto central de uma casa com 3 crianças parece não funcionar.
+- ✅ **UI-A24 resolvido em 2026-08-28 (Plan03 · A2, commit `f9aca22`)** — indisponibilidade com motivo ANTES do
+  gesto (mesmo padrão de "Pela voz · Indisponível"), gesto inerte quando indisponível, copy sem "Motor A/B" e com o
+  que a IA recebe. Registro original:
 - 🔴 **UI-A24 · O toggle de IA é um beco de contradição** (consequência de PS-02 na UI):
   estado inicial "Desligado" sem aviso → o cuidador LIGA (registra `iaLigada:true` no
   save da criança) → só então aparece, para sempre: "Sem provedor de IA configurado — na

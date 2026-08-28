@@ -1,7 +1,6 @@
 # A1 — Gate único de consentimento no cliente
 
-> Status: pendente
-
+> Status: concluída (2026-08-28 · 5ecc07d)
 **Unidade de deploy:** BUNDLE app (toca `src/app/estado.js` — CRU — e possivelmente
 `src/app/bridge.ts`/`src/core` — BUNDLE). **Depende de:** nada. **Desbloqueia:** A2, E1.
 

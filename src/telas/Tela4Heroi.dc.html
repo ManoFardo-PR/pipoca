@@ -26,7 +26,7 @@
     <div style="display:flex;align-items:center;gap:10px;">
       <div style="display:flex;align-items:center;gap:7px;background:#fff3da;border:1.5px solid #f0d9a8;border-radius:999px;padding:6px 14px 6px 10px;">
         <div style="width:17px;height:17px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 8px 1px rgba(247,191,96,.7);"></div>
-        <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#b8693c;">{{ vagalumes }}</span>
+        <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:var(--pip-terracota-texto);">{{ vagalumes }}</span>
       </div>
       <button onClick="{{ abrirAjustesA11y }}" title="Do meu jeito" style="width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(160,140,110,.25);background:rgba(255,255,255,.6);cursor:pointer;font-size:17px;color:#7a6a54;">⚙</button>
     </div>
@@ -34,7 +34,7 @@
 
   <!-- Preparando (grafo v2 ainda carregando) -->
   <sc-if value="{{ preparando }}" hint-placeholder-val="{{ false }}">
-  <div style="flex:1;display:flex;align-items:center;justify-content:center;color:#9a8a72;font-family:'Baloo 2',cursive;font-size:18px;">Preparando o quintal…</div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--pip-texto-suave);font-family:'Baloo 2',cursive;font-size:18px;">Preparando o quintal…</div>
   </sc-if>
 
   <!-- Palco -->
@@ -44,7 +44,7 @@
     <!-- Instrução da rodada -->
     <div style="flex-shrink:0;">
       <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:26px;color:#3a4f63;">{{ instrucaoTitulo }}</div>
-      <p style="font-size:14.5px;color:#8a7a64;margin-top:3px;max-width:640px;">{{ instrucaoAjuda }}</p>
+      <p style="font-size:14.5px;color:var(--pip-texto-suave);margin-top:3px;max-width:640px;">{{ instrucaoAjuda }}</p>
     </div>
 
     <!-- A cena que você está montando (a linha) -->
@@ -59,7 +59,7 @@
           <sc-if value="{{ cell.ehCarta }}" hint-placeholder-val="{{ true }}">
           <div style="{{ cell.cardStyle }}">
             <sc-if value="{{ cell.travada }}" hint-placeholder-val="{{ false }}">
-            <div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#c8956c;color:#fff;border-radius:999px;padding:1px 9px;font-size:10px;font-weight:800;letter-spacing:.4px;white-space:nowrap;">🔒 âncora</div>
+            <div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--pip-terracota-texto);color:#fff;border-radius:999px;padding:1px 9px;font-size:10px;font-weight:800;letter-spacing:.4px;white-space:nowrap;">🔒 âncora</div>
             </sc-if>
             <div style="font-size:38px;line-height:1;">{{ cell.emoji }}</div>
             <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:13px;color:#5a4632;margin-top:4px;">{{ cell.nome }}</div>
@@ -98,7 +98,7 @@
 
     <!-- Ação: ler em voz alta -->
     <div style="flex-shrink:0;margin-top:8px;display:flex;align-items:center;gap:14px;">
-      <div style="flex:1;font-size:13.5px;color:#9a8a72;">{{ dica }}</div>
+      <div style="flex:1;font-size:var(--pip-fs-2);line-height:var(--pip-lh-texto);color:var(--pip-texto-suave);">{{ dica }}</div>
       <button onClick="{{ lerEmVozAlta }}" disabled="{{ lerDisabled }}" style="{{ lerBtnStyle }}">📖 Ler em voz alta →</button>
     </div>
 
@@ -254,7 +254,7 @@ class Component extends DCLogic {
     const ehR1 = !comp || comp.rodada === 1;
 
     const miniBtn = 'width:26px;height:26px;border-radius:8px;border:1.5px solid rgba(160,140,110,.3);background:rgba(255,255,255,.85);cursor:pointer;font-size:12px;color:#7a6a54;display:flex;align-items:center;justify-content:center;';
-    const miniBtnX = miniBtn + 'color:#c25e33;';
+    const miniBtnX = miniBtn + 'color:var(--pip-terracota-texto);';
 
     const cardBase = 'position:relative;width:104px;min-height:96px;border-radius:18px;background:rgba(255,255,255,.92);box-shadow:0 8px 20px -12px rgba(74,59,44,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;';
 
@@ -289,7 +289,7 @@ class Component extends DCLogic {
             ehCarta: false, ehGap: false, ehVazio: true,
             ordinal: ordinais[i],
             vazioAnim: i === arranjo.length ? 'pip-slot-livre' : '',
-            vazioStyle: 'width:104px;min-height:96px;border-radius:18px;border:2px dashed rgba(160,140,110,.45);display:flex;align-items:center;justify-content:center;font-family:"Baloo 2",cursive;font-weight:700;font-size:20px;color:rgba(122,106,84,.55);',
+            vazioStyle: 'width:104px;min-height:96px;border-radius:18px;border:2px dashed rgba(160,140,110,.45);display:flex;align-items:center;justify-content:center;font-family:"Baloo 2",cursive;font-weight:700;font-size:20px;color:var(--pip-texto-suave);',
           });
         }
       }
@@ -342,7 +342,7 @@ class Component extends DCLogic {
         ehCarta: false, ehVazio: false, ehGap: true,
         gapLabel: temSel ? '+' : '·',
         onGap: temSel ? (() => this._colocarNoMiolo(pos)) : (() => {}),
-        gapStyle: 'width:40px;min-height:96px;border-radius:14px;border:2px dashed ' + (temSel ? 'rgba(232,150,90,.75)' : 'rgba(160,140,110,.3)') + ';background:' + (temSel ? 'rgba(232,150,90,.1)' : 'transparent') + ';cursor:' + (temSel ? 'pointer' : 'default') + ';font-size:22px;font-weight:800;color:' + (temSel ? '#c25e33' : 'rgba(122,106,84,.4)') + ';display:flex;align-items:center;justify-content:center;',
+        gapStyle: 'width:40px;min-height:96px;border-radius:14px;border:2px dashed ' + (temSel ? 'rgba(232,150,90,.75)' : 'rgba(160,140,110,.3)') + ';background:' + (temSel ? 'rgba(232,150,90,.1)' : 'transparent') + ';cursor:' + (temSel ? 'pointer' : 'default') + ';font-size:22px;font-weight:800;color:' + (temSel ? 'var(--pip-terracota-texto)' : 'var(--pip-texto-suave)') + ';display:flex;align-items:center;justify-content:center;',
       });
 
       // Âncora inicial
@@ -409,7 +409,7 @@ class Component extends DCLogic {
     const lerBtnStyle = 'padding:15px 26px;border:none;border-radius:16px;font-family:"Baloo 2",cursive;font-weight:700;font-size:17px;white-space:nowrap;'
       + (lerDisabled
         ? 'background:#ece2cf;color:#a8997e;cursor:not-allowed;'
-        : 'background:linear-gradient(150deg,#e8965a,#d5713f);color:#fff;cursor:pointer;box-shadow:0 8px 20px -6px rgba(181,86,40,.5);');
+        : 'background:var(--pip-cta);color:#fff;cursor:pointer;box-shadow:0 8px 20px -6px rgba(181,86,40,.5);');
 
     return {
       preparando, pronto,

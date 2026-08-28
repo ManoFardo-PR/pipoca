@@ -8,11 +8,11 @@
 
 <div style="position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;">
   <div onClick="{{ fecharAjustesA11y }}" style="position:absolute;inset:0;background:rgba(40,28,16,.36);backdrop-filter:blur(2px);"></div>
-  <div style="position:relative;width:460px;max-width:92%;max-height:92%;overflow-y:auto;background:#fffdf7;border-radius:26px;padding:26px 28px;box-shadow:0 30px 70px -20px rgba(40,30,18,.55);">
+  <div style="position:relative;width:460px;max-width:92%;max-height:92%;overflow-y:auto;background:var(--pip-superficie);border-radius:26px;padding:26px 28px;box-shadow:0 30px 70px -20px rgba(40,30,18,.55);">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;">
       <div>
         <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;color:#3a4f63;">Do meu jeito</div>
-        <div style="font-size:13px;color:#8a7a64;margin-top:2px;">Ajustes para ler com conforto. Mude quando quiser.</div>
+        <div style="font-size:13px;color:var(--pip-texto-suave);margin-top:2px;">Ajustes para ler com conforto. Mude quando quiser.</div>
       </div>
       <button onClick="{{ fecharAjustesA11y }}" style="width:38px;height:38px;flex-shrink:0;border-radius:50%;border:none;background:#f1e7d4;cursor:pointer;font-size:16px;color:#7a6a54;">✕</button>
     </div>
@@ -31,7 +31,7 @@
     <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 2px;">
       <div style="padding-right:14px;">
         <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#3a2c20;">Fonte para dislexia</div>
-        <div style="font-size:12.5px;color:#9a8a72;margin-top:1px;line-height:1.35;">Letras mais abertas e fáceis de distinguir.</div>
+        <div style="font-size:12.5px;color:var(--pip-texto-suave);margin-top:1px;line-height:1.35;">Letras mais abertas e fáceis de distinguir.</div>
       </div>
       <button onClick="{{ toggleDys }}" style="{{ swDys }}"><div style="{{ knobDys }}"></div></button>
     </div>
@@ -39,7 +39,7 @@
     <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 2px;">
       <div style="padding-right:14px;">
         <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#3a2c20;">Destaque silábico</div>
-        <div style="font-size:12.5px;color:#9a8a72;margin-top:1px;line-height:1.35;">Separa as sílabas: va·ga·lu·me.</div>
+        <div style="font-size:12.5px;color:var(--pip-texto-suave);margin-top:1px;line-height:1.35;">Separa as sílabas: va·ga·lu·me.</div>
       </div>
       <button onClick="{{ toggleSyl }}" style="{{ swSyl }}"><div style="{{ knobSyl }}"></div></button>
     </div>
@@ -47,7 +47,7 @@
     <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 2px;">
       <div style="padding-right:14px;">
         <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#3a2c20;">Alto contraste</div>
-        <div style="font-size:12.5px;color:#9a8a72;margin-top:1px;line-height:1.35;">Texto mais escuro sobre o fundo.</div>
+        <div style="font-size:12.5px;color:var(--pip-texto-suave);margin-top:1px;line-height:1.35;">Texto mais escuro sobre o fundo.</div>
       </div>
       <button onClick="{{ toggleCon }}" style="{{ swCon }}"><div style="{{ knobCon }}"></div></button>
     </div>
@@ -55,12 +55,12 @@
     <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 2px;">
       <div style="padding-right:14px;">
         <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#3a2c20;">Reduzir movimento</div>
-        <div style="font-size:12.5px;color:#9a8a72;margin-top:1px;line-height:1.35;">Cenas mais paradas, sem balanço.</div>
+        <div style="font-size:12.5px;color:var(--pip-texto-suave);margin-top:1px;line-height:1.35;">Cenas mais paradas, sem balanço.</div>
       </div>
       <button onClick="{{ toggleMotion }}" style="{{ swMotion }}"><div style="{{ knobMotion }}"></div></button>
     </div>
 
-    <button onClick="{{ fecharAjustesA11y }}" style="margin-top:18px;width:100%;border:none;background:linear-gradient(150deg,#e8965a,#d5713f);color:#fff;border-radius:16px;padding:15px;font-family:'Baloo 2',cursive;font-weight:700;font-size:17px;cursor:pointer;box-shadow:0 8px 20px -6px rgba(181,86,40,.5);">Pronto</button>
+    <button onClick="{{ fecharAjustesA11y }}" style="margin-top:18px;width:100%;border:none;background:var(--pip-cta);color:#fff;border-radius:16px;padding:15px;font-family:'Baloo 2',cursive;font-weight:700;font-size:17px;cursor:pointer;box-shadow:0 8px 20px -6px rgba(181,86,40,.5);">Pronto</button>
 
     <!-- Rodapé do cuidador: leva ao PINGATE (o PIN com lockout é a proteção;
          ao voltar, a leitura retoma de onde estava — telaCriancaAnterior). -->
@@ -84,7 +84,7 @@ class Component extends DCLogic {
     return 'position:absolute;top:3px;left:' + (on ? '25px' : '3px') + ';width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .15s;';
   }
   _scaleBtn(on) {
-    return 'flex:1;border:none;cursor:pointer;border-radius:11px;padding:9px 0;font-family:"Baloo 2",cursive;font-weight:700;background:' + (on ? '#3f6f9e' : '#f1e7d4') + ';color:' + (on ? '#fff' : '#8a7a64') + ';';
+    return 'flex:1;border:none;cursor:pointer;border-radius:11px;padding:9px 0;font-family:"Baloo 2",cursive;font-weight:700;background:' + (on ? '#3f6f9e' : '#f1e7d4') + ';color:' + (on ? '#fff' : 'var(--pip-texto-suave)') + ';';
   }
 
   _getA11y() {

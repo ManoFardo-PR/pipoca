@@ -25,7 +25,7 @@
     <div style="display:flex;align-items:center;gap:10px;">
       <div style="display:flex;align-items:center;gap:7px;background:#fff3da;border:1.5px solid #f0d9a8;border-radius:999px;padding:6px 14px 6px 10px;">
         <div style="width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 8px 1px rgba(247,191,96,.7);"></div>
-        <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:#b8693c;">{{ vagalumes }}</span>
+        <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:var(--pip-terracota-texto);">{{ vagalumes }}</span>
       </div>
       <button onClick="{{ abrirAjustesA11y }}" style="width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(160,140,110,.25);background:rgba(255,255,255,.6);cursor:pointer;font-size:18px;color:#7a6a54;">⚙</button>
     </div>
@@ -59,15 +59,15 @@
       </div>
 
       <!-- Sugestão 2/3 · 1/3 -->
-      <div style="background:#fffdf7;border-radius:18px;padding:16px 18px;box-shadow:0 8px 20px -12px rgba(74,59,44,.28);">
+      <div style="background:var(--pip-superficie);border-radius:18px;padding:16px 18px;box-shadow:0 8px 20px -12px rgba(74,59,44,.28);">
         <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:14px;color:#6a5946;">Como dividir o que você juntou</div>
         <div style="display:flex;height:16px;border-radius:8px;overflow:hidden;margin-top:12px;">
           <div style="width:{{ spendPct }}%;background:linear-gradient(90deg,#e8965a,#d5713f);"></div>
           <div style="flex:1;background:linear-gradient(90deg,#5a86b0,#3f6f9e);"></div>
         </div>
         <div style="display:flex;justify-content:space-between;margin-top:10px;">
-          <div><div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;color:#c25e33;">~{{ spendSuggest }}</div><div style="font-size:11.5px;color:#8a7a64;">gastar agora</div></div>
-          <div style="text-align:right;"><div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;color:#3f6f9e;">~{{ saveSuggest }}</div><div style="font-size:11.5px;color:#8a7a64;">guardar p/ o sonho</div></div>
+          <div><div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;color:var(--pip-terracota-texto);">~{{ spendSuggest }}</div><div style="font-size:11.5px;color:var(--pip-texto-suave);">gastar agora</div></div>
+          <div style="text-align:right;"><div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;color:#3f6f9e;">~{{ saveSuggest }}</div><div style="font-size:11.5px;color:var(--pip-texto-suave);">guardar p/ o sonho</div></div>
         </div>
       </div>
     </div>
@@ -76,7 +76,7 @@
     <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:14px;">
       <div>
         <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:20px;color:#3a4f63;">Trocar por um agrado</div>
-        <div style="font-size:13.5px;color:#8a7a64;margin-top:3px;">Você escolhe. Gastar é só seu — sem pressa, sem cobrança.</div>
+        <div style="font-size:var(--pip-fs-2);line-height:var(--pip-lh-texto);color:var(--pip-texto-suave);margin-top:3px;">Você escolhe. Gastar é só seu — sem pressa, sem cobrança.</div>
       </div>
 
       <!-- Cardápio configurável pode ter 6+ itens: a lista rola; as ações ficam fixas embaixo. -->
@@ -88,7 +88,7 @@
               <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16.5px;color:#3a2c20;">{{ rw.label }}</div>
               <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
                 <div style="width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 6px 1px rgba(247,191,96,.6);"></div>
-                <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:14px;color:#b8693c;">{{ rw.cost }} vaga-lumes</span>
+                <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:14px;color:var(--pip-terracota-texto);">{{ rw.cost }} vaga-lumes</span>
               </div>
             </div>
             <button onClick="{{ rw.redeem }}" style="{{ rw.btnStyle }}">{{ rw.btnLabel }}</button>
@@ -243,8 +243,8 @@ class Component extends DCLogic {
         }) : (() => {}),
         btnLabel: aff ? 'Trocar' : 'Faltam ' + (m.cost - vagalumes),
         btnStyle: 'border:none;border-radius:12px;padding:11px 18px;white-space:nowrap;font-family:"Baloo 2",cursive;font-weight:700;font-size:14px;cursor:'+(aff?'pointer':'not-allowed')+';'
-          +(aff?'background:linear-gradient(150deg,#e8965a,#d5713f);color:#fff;box-shadow:0 6px 14px -5px rgba(181,86,40,.5);':'background:#ece2cf;color:#a8997e;'),
-        cardStyle: 'display:flex;align-items:center;gap:14px;background:#fffdf7;border-radius:18px;padding:14px 16px;box-shadow:0 8px 20px -12px rgba(74,59,44,.3);'+(aff?'':'opacity:.78;'),
+          +(aff?'background:var(--pip-cta);color:#fff;box-shadow:0 6px 14px -5px rgba(181,86,40,.5);':'background:#ece2cf;color:#a8997e;'),
+        cardStyle: 'display:flex;align-items:center;gap:14px;background:var(--pip-superficie);border-radius:18px;padding:14px 16px;box-shadow:0 8px 20px -12px rgba(74,59,44,.3);'+(aff?'':'opacity:.78;'),
       };
     });
 
@@ -252,7 +252,7 @@ class Component extends DCLogic {
     //  • história em andamento → "Continuar lendo" (retoma a rodada, T4) + secundária.
     //  • história convergida → só "Brincar de novo" (nova história).
     const convergiu = App && App.composicaoConvergiu ? App.composicaoConvergiu() : false;
-    const estiloPrimaria = 'width:100%;padding:18px;border:none;border-radius:18px;background:linear-gradient(150deg,#e8965a,#d5713f);color:#fff;font-family:"Baloo 2",cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -6px rgba(181,86,40,.5);';
+    const estiloPrimaria = 'width:100%;padding:18px;border:none;border-radius:18px;background:var(--pip-cta);color:#fff;font-family:"Baloo 2",cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -6px rgba(181,86,40,.5);';
     const estiloSecundaria = 'width:100%;padding:13px;border:1.5px solid rgba(160,140,110,.3);border-radius:16px;background:rgba(255,255,255,.7);color:#7a6a54;font-family:"Baloo 2",cursive;font-weight:700;font-size:15px;cursor:pointer;';
 
     return {

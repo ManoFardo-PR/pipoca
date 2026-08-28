@@ -14,7 +14,7 @@
   </style>
 </helmet>
 
-<div style="position:fixed;inset:0;overflow:hidden;font-family:var(--pip-fonte-texto,'Nunito');color:#2c241a;background:linear-gradient(180deg,#f4f1ea 0%, #eae4d7 100%);">
+<div ref="{{ refRoot }}" style="position:fixed;inset:0;overflow:hidden;font-family:var(--pip-fonte-texto,'Nunito');color:#2c241a;background:linear-gradient(180deg,#f4f1ea 0%, #eae4d7 100%);">
 
   <!-- Marca sóbria da plataforma -->
   <div style="position:absolute;top:0;left:0;right:0;height:52px;display:flex;align-items:center;gap:10px;padding:0 20px;background:rgba(44,36,26,.92);z-index:30;">
@@ -44,6 +44,19 @@ class Component extends DCLogic {
   // evita flash (mesmo gesto do Shell do app).
   state = { tela: (window.PipocaRoteador && window.PipocaRoteador.telaAtual && window.PipocaRoteador.telaAtual()) || 1 };
 
+  // B3 (Plan03 · UI-A34): o operador recebe as preferências de a11y do SISTEMA —
+  // prefers-reduced-motion / prefers-contrast viram as mesmas classes do app na raiz
+  // (tokens.css zera --pip-mov e escurece a tinta). Sem toggles próprios nesta onda.
+  // O ref só liga se for devolvido pelo renderVals (lição do B1).
+  refRoot = (el) => { this._rootEl = el; this._aplicarA11y(); };
+
+  _aplicarA11y() {
+    const el = this._rootEl; if (!el || typeof window.matchMedia !== 'function') return;
+    const mq = (q) => { try { return window.matchMedia(q).matches; } catch (_) { return false; } };
+    el.classList.toggle('pip-reduce-motion', mq('(prefers-reduced-motion: reduce)'));
+    el.classList.toggle('pip-contrast', mq('(prefers-contrast: more)'));
+  }
+
   componentDidMount() {
     const R = window.PipocaRoteador;
     if (R) {
@@ -52,16 +65,27 @@ class Component extends DCLogic {
     }
     const A = window.PipocaAdmin;
     if (A && A.subscribe) this._unsubA = A.subscribe(() => this.setState({}));
+    // Reage se o operador mudar a preferência do sistema com a página aberta.
+    if (typeof window.matchMedia === 'function') {
+      this._mqs = ['(prefers-reduced-motion: reduce)', '(prefers-contrast: more)'].map((q) => {
+        const m = window.matchMedia(q); const fn = () => this._aplicarA11y();
+        try { m.addEventListener('change', fn); } catch (_) { try { m.addListener(fn); } catch (_2) {} }
+        return { m, fn };
+      });
+    }
+    this._aplicarA11y();
   }
 
   componentWillUnmount() {
     if (this._unsubR) this._unsubR();
     if (this._unsubA) this._unsubA();
+    (this._mqs || []).forEach(({ m, fn }) => { try { m.removeEventListener('change', fn); } catch (_) { try { m.removeListener(fn); } catch (_2) {} } });
   }
 
   renderVals() {
     const t = this.state.tela;
     return {
+      refRoot: this.refRoot,
       ehSA1: t === 1,
       ehSA2: t === 2,
       ehSA3: t === 3,

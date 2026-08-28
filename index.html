@@ -27,21 +27,40 @@
     .earn-bloom { animation: pipBloom .55s cubic-bezier(.22,1,.36,1) forwards; }
     .earn-pop { animation: pipPop .4s ease forwards; }
     .word-stuck { animation: pipGlow 1.8s ease-in-out infinite; }
-    .pip-barra-fill { transition: width .25s ease; }
+    .pip-barra-fill { transition: width calc(.25s * var(--pip-mov)) ease; }
     .chip-drag { cursor:grab; }
     .chip-drag:active { cursor:grabbing; }
     * { box-sizing: border-box; }
     body { margin: 0; }
     /* ── A11y transversal classes applied to root ─────────────────────────── */
     .pip-dyslexia, .pip-dyslexia * { font-family: 'Atkinson Hyperlegible', sans-serif !important; letter-spacing: 0.04em; }
-    .pip-contrast  { --pip-tinta: #1a1008 !important; }
-    .pip-contrast  * { color: #1a1008 !important; }
-    .pip-contrast  [style*="color:#9a8a72"] { color: #5a4a38 !important; }
-    .pip-reduce-motion *, .pip-reduce-motion *::before, .pip-reduce-motion *::after {
-      animation-duration: 0.001ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.001ms !important;
-    }
+    /* Alto contraste POR SUPERFÍCIE (B1 · UI-C02). O token --pip-tinta já escurece em
+       src/tokens.css (.pip-contrast); aqui só os hex INLINE das telas ainda não tokenizadas
+       (B2 migra para var(--pip-tinta)/tokens de microcópia) ganham o par mais escuro.
+       Nada com color:#fff / var(--pip-cta-texto) é tocado: CTAs laranja/verde/azul e chips
+       selecionados seguem brancos. O !important é por regra (vence o inline), não universal.
+       ATENÇÃO: o runtime serializa o atributo style como "color: rgb(r, g, b)" — por isso os
+       seletores casam a forma rgb (o antigo [style*="color:#9a8a72"] nunca casava). */
+    .pip-contrast [style*="color: rgb(58, 44, 32)"] { color: #1a1008 !important; }                 /* #3a2c20 */
+    .pip-contrast [style*="color: rgb(122, 106, 84)"], .pip-contrast [style*="color: rgb(138, 122, 100)"],
+    .pip-contrast [style*="color: rgb(106, 106, 85)"], .pip-contrast [style*="color: rgb(106, 89, 70)"],
+    .pip-contrast [style*="color: rgb(90, 70, 50)"] { color: #3a2c20 !important; }                 /* #7a6a54 #8a7a64 #6a6a55 #6a5946 #5a4632 */
+    .pip-contrast [style*="color: rgb(154, 138, 114)"], .pip-contrast [style*="color: rgb(168, 153, 126)"],
+    .pip-contrast [style*="color: rgb(192, 172, 140)"], .pip-contrast [style*="color: rgb(90, 74, 56)"] { color: #4a3a28 !important; } /* #9a8a72 #a8997e #c0ac8c #5a4a38 */
+    .pip-contrast [style*="color: rgb(90, 107, 83)"], .pip-contrast [style*="color: rgb(106, 122, 85)"] { color: #34432f !important; }   /* #5a6b53 #6a7a55 */
+    .pip-contrast [style*="color: rgb(58, 79, 99)"], .pip-contrast [style*="color: rgb(70, 80, 90)"] { color: #1e2c3a !important; }      /* #3a4f63 #46505a */
+    .pip-contrast [style*="color: rgb(184, 105, 60)"], .pip-contrast [style*="color: rgb(154, 90, 58)"],
+    .pip-contrast [style*="color: rgb(194, 94, 51)"] { color: #7a3f1e !important; }                /* #b8693c #9a5a3a #c25e33 */
+    .pip-contrast [style*="color: rgb(138, 106, 30)"], .pip-contrast [style*="color: rgb(154, 106, 30)"],
+    .pip-contrast [style*="color: rgb(160, 134, 62)"] { color: #5a4210 !important; }               /* #8a6a1e #9a6a1e #a0863e */
+    /* Reduzir movimento (B3): o token --pip-mov:0 zera as transições/animações tokenizadas
+       (src/tokens.css); as classes de animação conhecidas desligam explicitamente; e fica só
+       uma rede MÍNIMA para animação infinita legada (1 iteração) — sem !important de duração. */
+    .pip-reduce-motion .av-enter, .pip-reduce-motion .earn-bloom, .pip-reduce-motion .earn-pop,
+    .pip-reduce-motion .earn-ring, .pip-reduce-motion .word-stuck, .pip-reduce-motion .pip-slot-livre,
+    .pip-reduce-motion .pip-luz, .pip-reduce-motion .pip-vaga-glow, .pip-reduce-motion .pip-cartao-lendo { animation: none; }
+    .pip-reduce-motion .pip-barra-fill { transition: none; }
+    .pip-reduce-motion *, .pip-reduce-motion *::before, .pip-reduce-motion *::after { animation-iteration-count: 1 !important; }
   </style>
 </head>
 <body>

@@ -11,3 +11,7 @@
 !*/adm2-home-*.png
 # Provas visuais por subtarefa (pequenas, commitadas): A2 = IaToggle nos 3 estados.
 !A2-regras/*.png
+# B1 = T3/T5/T7 com alto contraste ligado (CTAs brancos, texto escuro).
+!B1-contraste/*.png
+# B4 = overlay "Do meu jeito" acessível (1280 e 390).
+!B4-painel/*.png

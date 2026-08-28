@@ -23,7 +23,7 @@
     <button onClick="{{ voltarCena }}" style="width:40px;height:40px;border-radius:12px;border:1.5px solid rgba(160,140,110,.25);background:rgba(255,255,255,.7);cursor:pointer;font-size:17px;color:#7a6a54;">←</button>
     <div style="display:flex;align-items:center;gap:8px;">
       <div style="width:17px;height:17px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 8px 1px rgba(247,191,96,.7);"></div>
-      <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#b8693c;">{{ vagalumes }}</span>
+      <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:var(--pip-terracota-texto);">{{ vagalumes }}</span>
     </div>
     <button onClick="{{ abrirAjustesA11y }}" style="width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(160,140,110,.25);background:rgba(255,255,255,.6);cursor:pointer;font-size:17px;color:#7a6a54;">⚙</button>
   </div>
@@ -33,7 +33,7 @@
   <sc-if value="{{ modoPreparando }}" hint-placeholder-val="{{ false }}">
   <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:40px 60px;">
     <div style="width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 22px 6px rgba(247,191,96,.6);" class="word-stuck"></div>
-    <div role="status" aria-live="polite" style="font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;color:#b8693c;text-align:center;">Preparando a sua história… ✨</div>
+    <div role="status" aria-live="polite" style="font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;color:var(--pip-terracota-texto);text-align:center;">Preparando a sua história… ✨</div>
   </div>
   </sc-if>
 
@@ -45,10 +45,10 @@
     <div style="width:100%;max-width:700px;margin-bottom:24px;background:rgba(255,255,255,.6);border-radius:16px;padding:12px 18px;">
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:13px;color:#7a6a54;">📖 Palavra {{ palavraAtualNum }} de {{ totalPalavras }}</span>
-        <span style="font-size:12px;color:#9a8a72;font-weight:600;">{{ pctLabel }}</span>
+        <span style="font-size:12px;color:var(--pip-texto-suave);font-weight:600;">{{ pctLabel }}</span>
       </div>
       <div style="height:8px;border-radius:8px;background:rgba(160,140,110,.2);margin-top:8px;overflow:hidden;">
-        <div style="height:100%;border-radius:8px;width:{{ progressoPct }};background:linear-gradient(90deg,#f4b65a,#e8965a);transition:width .25s ease;"></div>
+        <div style="height:100%;border-radius:8px;width:{{ progressoPct }};background:linear-gradient(90deg,#f4b65a,#e8965a);transition:width calc(.25s * var(--pip-mov)) ease;"></div>
       </div>
     </div>
 
@@ -66,11 +66,11 @@
         <div style="display:flex;align-items:center;gap:12px;">
           <div style="width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 12px 3px rgba(247,191,96,.6);flex-shrink:0;"></div>
           <div>
-            <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:#8a6a1e;">Essa palavra é trupé, né? Sem pressa.</div>
-            <div style="font-size:13px;color:#a0863e;margin-top:3px;line-height:1.4;">Ouça de novo, sussurre junto, e tente quando quiser. Aqui ninguém erra.</div>
+            <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:var(--pip-mel-texto);">Essa palavra é trupé, né? Sem pressa.</div>
+            <div style="font-size:13px;color:var(--pip-mel-texto);margin-top:3px;line-height:1.4;">Ouça de novo, sussurre junto, e tente quando quiser. Aqui ninguém erra.</div>
           </div>
         </div>
-        <button onClick="{{ ouvirDeNovo }}" style="margin-top:14px;display:flex;align-items:center;gap:8px;background:#fff3da;border:1.5px solid #f0d9a8;border-radius:14px;padding:11px 20px;font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#8a6a1e;cursor:pointer;">🔊 Ouvir de novo</button>
+        <button onClick="{{ ouvirDeNovo }}" style="margin-top:14px;display:flex;align-items:center;gap:8px;background:#fff3da;border:1.5px solid #f0d9a8;border-radius:14px;padding:11px 20px;font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:var(--pip-mel-texto);cursor:pointer;">🔊 Ouvir de novo</button>
       </div>
       </sc-if>
     </div>
@@ -78,7 +78,7 @@
     <!-- Controles -->
     <div style="display:flex;gap:14px;margin-top:24px;width:100%;max-width:700px;justify-content:center;">
       <button onClick="{{ ouvirTudo }}" style="padding:13px 24px;border:1.5px solid rgba(160,140,110,.3);border-radius:14px;background:rgba(255,255,255,.7);cursor:pointer;font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#7a6a54;white-space:nowrap;">{{ ouvirLabel }}</button>
-      <button onClick="{{ avancarHistoria }}" style="flex:1;padding:15px 24px;border:none;border-radius:16px;background:linear-gradient(150deg,#e8965a,#d5713f);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:17px;cursor:pointer;box-shadow:0 8px 20px -6px rgba(181,86,40,.5);">{{ nextLabel }}</button>
+      <button onClick="{{ avancarHistoria }}" style="flex:1;padding:15px 24px;border:none;border-radius:16px;background:var(--pip-cta);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:17px;cursor:pointer;box-shadow:0 8px 20px -6px rgba(181,86,40,.5);">{{ nextLabel }}</button>
     </div>
 
   </div>
@@ -93,15 +93,15 @@
     <!-- Modo cuidador -->
     <sc-if value="{{ verifyIsCuidador }}" hint-placeholder-val="{{ true }}">
     <div style="display:flex;gap:16px;">
-      <button onClick="{{ confirmSozinho }}" style="padding:20px 32px;border:none;border-radius:20px;background:linear-gradient(150deg,#7da94f,#5d8a3a);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(77,122,57,.5);">🌱 Leu sozinho</button>
+      <button onClick="{{ confirmSozinho }}" style="padding:20px 32px;border:none;border-radius:20px;background:var(--pip-folha-cta);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(77,122,57,.5);">🌱 Leu sozinho</button>
       <button onClick="{{ confirmJuntos }}" style="padding:20px 32px;border:none;border-radius:20px;background:linear-gradient(150deg,#5a86b0,#3f6f9e);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(45,86,129,.4);">🤝 Tentamos juntos</button>
     </div>
-    <p style="font-size:13px;color:#9a8a72;text-align:center;max-width:420px;line-height:1.4;">Os dois contam — tentar já é leitura. 💚</p>
+    <p style="font-size:13px;color:var(--pip-texto-suave);text-align:center;max-width:420px;line-height:1.4;">Os dois contam — tentar já é leitura. 💚</p>
     </sc-if>
 
     <!-- Modo auto -->
     <sc-if value="{{ verifyIsAuto }}" hint-placeholder-val="{{ false }}">
-    <button onClick="{{ confirmSozinho }}" style="padding:22px 44px;border:none;border-radius:20px;background:linear-gradient(150deg,#7da94f,#5d8a3a);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(77,122,57,.5);">✓ Eu li!</button>
+    <button onClick="{{ confirmSozinho }}" style="padding:22px 44px;border:none;border-radius:20px;background:var(--pip-folha-cta);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(77,122,57,.5);">✓ Eu li!</button>
     </sc-if>
 
     <!-- Modo fala (fase05 · ASR): participação já conta; sem voz, ninguém fica preso -->
@@ -109,7 +109,7 @@
     <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
       <sc-if value="{{ falaPronta }}" hint-placeholder-val="{{ true }}">
         <button onClick="{{ comecarFala }}" style="padding:22px 44px;border:none;border-radius:20px;background:linear-gradient(150deg,#5a86b0,#3f6f9e);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(45,86,129,.4);">🎤 Ler em voz alta</button>
-        <p style="font-size:13px;color:#9a8a72;text-align:center;max-width:420px;line-height:1.4;">Leia do seu jeito — participar já conta. 💚</p>
+        <p style="font-size:13px;color:var(--pip-texto-suave);text-align:center;max-width:420px;line-height:1.4;">Leia do seu jeito — participar já conta. 💚</p>
       </sc-if>
       <sc-if value="{{ falaOuvindo }}" hint-placeholder-val="{{ false }}">
         <div role="status" aria-live="polite" style="font-family:'Baloo 2',cursive;font-weight:700;font-size:20px;color:#3a4f63;">🎤 Estou te ouvindo… pode ler!</div>
@@ -117,7 +117,7 @@
       <sc-if value="{{ falaFalhou }}" hint-placeholder-val="{{ false }}">
         <div role="status" aria-live="polite" style="font-family:'Nunito',sans-serif;font-size:16px;color:#6a6a55;text-align:center;max-width:460px;line-height:1.5;">Tudo bem! Vamos confirmar de outro jeito. 💚</div>
         <div style="display:flex;gap:16px;">
-          <button onClick="{{ confirmSozinho }}" style="padding:20px 32px;border:none;border-radius:20px;background:linear-gradient(150deg,#7da94f,#5d8a3a);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(77,122,57,.5);">🌱 Leu sozinho</button>
+          <button onClick="{{ confirmSozinho }}" style="padding:20px 32px;border:none;border-radius:20px;background:var(--pip-folha-cta);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(77,122,57,.5);">🌱 Leu sozinho</button>
           <button onClick="{{ confirmJuntos }}" style="padding:20px 32px;border:none;border-radius:20px;background:linear-gradient(150deg,#5a86b0,#3f6f9e);color:#fff;font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -8px rgba(45,86,129,.4);">🤝 Tentamos juntos</button>
         </div>
       </sc-if>
@@ -404,7 +404,7 @@ class Component extends DCLogic {
         animClass: isCur && isStuck ? 'word-stuck' : '',
         style: 'font-family:'+readFont+';font-weight:800;font-size:'+wordFont+';line-height:1.5;letter-spacing:'+letterSp+';cursor:pointer;padding:3px 12px;border-radius:16px;display:inline-block;'
           + (isCur
-            ? (isStuck ? 'background:#fbe6b8;color:#9a6a1e;box-shadow:0 0 0 3px rgba(243,183,90,.55);' : 'background:'+hi+';color:'+ink+';')
+            ? (isStuck ? 'background:#fbe6b8;color:var(--pip-mel-texto);box-shadow:0 0 0 3px rgba(243,183,90,.55);' : 'background:'+hi+';color:'+ink+';')
             : 'background:transparent;color:'+ink+';'),
       };
     });

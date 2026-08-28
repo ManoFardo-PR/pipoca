@@ -4,10 +4,12 @@
     "P1": "concluída (2026-08-28 · f84ea58)",
     "P2": "concluída (2026-08-28 · 888858d)",
     "P3": "concluída (2026-08-28 · f9898f6)",
-    "A0": "concluída (2026-08-28 · b65645e)"
+    "A0": "concluída (2026-08-28 · b65645e)",
+    "B0": "concluída (2026-08-28 · 9de2035)",
+    "B-M1": "concluída (2026-08-28 · d1fe633)"
   },
   "verificacao": {
-    "quando": "2026-08-28T19:10:24.652Z",
+    "quando": "2026-08-28T19:52:01.223Z",
     "ok": true,
     "itens": {
       "tsc": {

@@ -1,7 +1,6 @@
 # B5 — Saídas da criança: trocar de leitor, chegar ao pote, ajustes em toda tela (ML-3)
 
-> Status: pendente
-
+> Status: em andamento (2026-08-28)
 **Unidade de deploy:** CRU (`src/telas/Tela2/3/6/7*.dc.html`, `src/app/estado.js`).
 **Depende de:** nada. **Desbloqueia:** B6.
 

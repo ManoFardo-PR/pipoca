@@ -1,13 +1,12 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-08-28T17:56:11.654Z · branch `28_08_26` · HEAD `18e7d92`
+- Gerado em: 2026-08-28T18:28:33.525Z · branch `28_08_26` · HEAD `f704475`
 - Progresso: **0/59** passos concluídos
 - Próximo passo: **P1** — Conferir ambiente e registrar a régua (tsc, 143 unit, 175 e2e)
 - Última verificação: nenhuma
 - Alertas: 
-  - ⚠ árvore suja (52 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ árvore suja (1 arquivo(s)) — commite antes de concluir um passo
   - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
-  - ⚠ decisões sem "decisão confirmada" na folha: B1: Mecanismo dos tokens de a11y · B2: CTA: gradiente escurecido vs texto escuro sobre laranja
 
 ## Onda P — Preparação · 0/3 · branch `28_08_26` · —
 

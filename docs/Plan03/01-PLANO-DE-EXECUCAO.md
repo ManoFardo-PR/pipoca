@@ -26,8 +26,8 @@ default é executado e registrado no PR.** Marque o que quiser mudar.
 ### Onda B — UX crua
 | # | Decisão | Default |
 |---|---|---|
-| B1 | Mecanismo dos tokens de a11y | **classes** (`.pip-contrast`/`.pip-reduce-motion`) |
-| B2 | CTA: gradiente escurecido vs texto escuro sobre laranja | **gradiente escurecido** |
+| B1 | Mecanismo dos tokens de a11y | **classes** (`.pip-contrast`/`.pip-reduce-motion`) |decisão confirmada
+| B2 | CTA: gradiente escurecido vs texto escuro sobre laranja | **gradiente escurecido** |decisão confirmada
 | B2 | Valores canônicos de creme e raio de cartão | **os praticados** (superfície `#fffaf0`, fundo `#f6ecd7`, raio 22px) |decisão confirmada
 | B3 | Admin com toggles próprios de a11y | **não** — só respeita `prefers-*` do sistema | decisão confirmada
 | B4 | Manter "🔒 Sou o adulto" dentro do painel | **sim** |decisão confirmada

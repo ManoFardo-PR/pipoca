@@ -156,6 +156,10 @@ class Component extends DCLogic {
     return {
       tela,
       devMode: dev,
+      // B1 (Plan03): o template só resolve {{ refRoot }} a partir do renderVals — como
+      // campo de classe nunca era ligado, _rootEl ficava undefined e as classes de
+      // a11y (pip-contrast/pip-reduce-motion/pip-dyslexia) NUNCA eram aplicadas.
+      refRoot: this.refRoot,
       showA11y,
       showLeitor,
       showPedirGenero,

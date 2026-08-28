@@ -34,9 +34,14 @@
   /* ── Branco ──────────────────────────────────────────────────────── */
   --pip-branco: #fff;
 
-  /* ── Contraste (substituídos pelo bloco [data-contrast] abaixo) ──── */
+  /* ── Contraste (a classe .pip-contrast, abaixo, troca --pip-tinta/--pip-vagalume) ── */
   --pip-tinta-contraste:    #1a1008;
   --pip-vagalume-contraste: #d49020;
+
+  /* ── Texto sobre superfícies ESCURAS (CTAs, chips selecionados) ──────
+   * Não muda no alto contraste: o que escurece é a tinta sobre fundo claro,
+   * nunca o texto branco de um botão laranja/azul/verde (B1 · UI-C02). */
+  --pip-cta-texto: #fff;
 
   /* ── Tipografia ──────────────────────────────────────────────────── */
   --pip-fonte-titulo:  'Baloo 2', cursive, system-ui, sans-serif;
@@ -81,8 +86,10 @@
 }
 
 /* ── Reduzir movimento ────────────────────────────────────────────────── */
-/* Ativado ao adicionar data-reduce-motion no <html> ou <body> */
-[data-reduce-motion] {
+/* Mecanismo ÚNICO (B1, decisão do dono): CLASSE aplicada pelo Shell na raiz do app
+ * (src/telas/Shell.dc.html:_aplicarA11y, a partir de PipocaApp.estado.a11y).
+ * Os componentes leem calc(var(--pip-dur-*) * var(--pip-mov)) — zera tudo. */
+.pip-reduce-motion {
   --pip-mov:        0;
   --pip-dur-rapido: 0s;
   --pip-dur-medio:  0s;
@@ -98,8 +105,10 @@
 }
 
 /* ── Alto contraste ───────────────────────────────────────────────────── */
-/* Ativado ao adicionar data-contrast no <html> ou <body> */
-[data-contrast] {
+/* Mesma classe que o Shell aplica (B1). Escurece a TINTA (texto sobre fundo claro)
+ * e o âmbar do vaga-lume; --pip-cta-texto fica branco de propósito. As telas ainda
+ * com hex inline recebem o equivalente por superfície em index.html até B2 tokenizar. */
+.pip-contrast {
   --pip-tinta:    var(--pip-tinta-contraste);
   --pip-vagalume: var(--pip-vagalume-contraste);
 }

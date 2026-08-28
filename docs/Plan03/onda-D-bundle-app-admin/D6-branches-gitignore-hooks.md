@@ -1,5 +1,7 @@
 # D6 — Branches mergeadas, `.gitignore`, `post-merge.sh`
 
+> Status: pendente
+
 **Unidade de deploy:** nenhuma (git/config). **Depende de:** nada. **Desbloqueia:** —.
 
 ## Objetivo

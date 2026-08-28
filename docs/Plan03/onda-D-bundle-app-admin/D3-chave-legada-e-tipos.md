@@ -1,5 +1,7 @@
 # D3 — Aposentar a chave legada `pipoca.perfis.v1` (D-21) e desfazer os 2 ciclos type-only
 
+> Status: pendente
+
 **Unidade de deploy:** CRU (`estado.js`, `Tela2`) + BUNDLE (`src/core/persistencia`, `src/backend`).
 **Depende de:** nada. **Desbloqueia:** —.
 

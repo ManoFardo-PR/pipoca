@@ -1,5 +1,7 @@
 # A5 — Fechamento da Onda A: build, redeploy, migração e prova
 
+> Status: pendente
+
 **Unidade de deploy:** BUNDLE app (+ admin se A4 tocou `src/admin`) + EDGE ×2 + SQL.
 **Depende de:** A1–A4 mergeadas na branch da onda.
 

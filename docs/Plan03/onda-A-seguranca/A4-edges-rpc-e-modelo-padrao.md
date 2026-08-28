@@ -1,5 +1,7 @@
 # A4 — Edges: cota atômica via RPC e MODELO_PADRAO alinhado
 
+> Status: pendente
+
 **Unidade de deploy:** EDGE `realizador` + EDGE `proxy-ia` (redeploy na A5) + BUNDLE admin
 se tocar `src/admin/ia_global.ts`. **Depende de:** A3 (RPC fechada e existente).
 **Desbloqueia:** A5.

@@ -22,6 +22,7 @@ C5 (se `cenas` foi exposto via bridge, E5 reusa).
 | E4 | `E4-manifesto-de-cenarios.md` | G11 | `docs/cenarios.index.json`; fetches derivados; id canônico único | — |
 | E5 | `E5-galeria-t3-honesta.md` | G11 | cartões "Em breve" honestos; pílula; T3 no celular; SVG sem cópia | E4, C5 |
 | E6 | `E6-pipeline-de-autoria.md` | G11 | lints no CI; doc "como adicionar um cenário"; arquivamento do `Pasted-*.txt` | E4 |
+| E7 | `E7-fechamento-onda-E.md` | — | `build:app`, paridade, e2e, prova das edges, merge, catálogo | E1–E6 |
 
 ## Definição de pronto da onda
 - Prompt gerado contém o sentimento/sentido de cada beat; goldens e `smoke-realizador` verdes.

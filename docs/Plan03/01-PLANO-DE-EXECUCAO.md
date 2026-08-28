@@ -15,119 +15,102 @@ default é executado e registrado no PR.** Marque o que quiser mudar.
 ### Onda A — segurança
 | # | Decisão | Default |
 |---|---|---|
-| A1 | Kill-switch também bloqueia server-side (edge lê `flags_admin`)? | **não** nesta onda (gate no cliente + cota fechada bastam; follow-up) |
-| A2 | Texto do consentimento no IaToggle | copy proposta em A2 ("histórias do livro da casa" vs "escritas na hora"; diz o que a IA recebe) |
-| A2 | Manter `iaLigada:true` já gravado por cuidadores | **manter** (A1 passa a respeitá-lo) |
-| A3 | Fundir políticas permissivas múltiplas | **fundir**, se `qual` for leitura pura; senão só documentar |
-| A3 | Dropar `historias_dono_perfil_idx` (nunca usado) | **manter**; reavaliar após D1 |
-| A4 | Fonte de verdade do modelo padrão de IA | **admin fail-closed** (edge devolve 503 sem modelo configurado) |
-| A4 | Estender a RPC com `p_chamadas` | **sim**, se hoje incrementa 1 fixo |
+| A1 | Kill-switch também bloqueia server-side (edge lê `flags_admin`)? | **não** nesta onda (gate no cliente + cota fechada bastam; follow-up) | decisão confirmada
+| A2 | Texto do consentimento no IaToggle | copy proposta em A2 ("histórias do livro da casa" vs "escritas na hora"; diz o que a IA recebe) | decisão confirmada
+| A2 | Manter `iaLigada:true` já gravado por cuidadores | **manter** (A1 passa a respeitá-lo) |decisão confirmada
+| A3 | Fundir políticas permissivas múltiplas | **fundir**, se `qual` for leitura pura; senão só documentar |decisão confirmada
+| A3 | Dropar `historias_dono_perfil_idx` (nunca usado) | **manter**; reavaliar após D1 | decisão confirmada
+| A4 | Fonte de verdade do modelo padrão de IA | **admin fail-closed** (edge devolve 503 sem modelo configurado) |decisão confirmada
+| A4 | Estender a RPC com `p_chamadas` | **sim**, se hoje incrementa 1 fixo |decisão confirmada
 
 ### Onda B — UX crua
 | # | Decisão | Default |
 |---|---|---|
 | B1 | Mecanismo dos tokens de a11y | **classes** (`.pip-contrast`/`.pip-reduce-motion`) |
 | B2 | CTA: gradiente escurecido vs texto escuro sobre laranja | **gradiente escurecido** |
-| B2 | Valores canônicos de creme e raio de cartão | **os praticados** (superfície `#fffaf0`, fundo `#f6ecd7`, raio 22px) |
-| B3 | Admin com toggles próprios de a11y | **não** — só respeita `prefers-*` do sistema |
-| B4 | Manter "🔒 Sou o adulto" dentro do painel | **sim** |
-| B5 | Trocar de leitor exige portão parental | **não** (T2 é superfície livre por design) |
-| B5 | Onde pedir o gênero | **na chegada à T3** |
-| B6 | Criar `BarraCrianca.dc.html` (1 cabeçalho em vez de 6) | **sim** |
-| B6 | Saudação da T3 | "Oi, {nome}! Vamos ler?" (com concordância) |
-| B7 | Texto do selo das pontas | "🔒 fica aqui" |
-| B7 | Voltar da T5: preservar arranjo vs confirmar | **preservar** |
-| B8 | Setas ←/→ entre palavras na T5 | **sim** |
-| B9 | Texto da celebração ao resgatar; registrar na telemetria | "Combinado! …"; **só se já houver evento de economia** |
-| B10 | Manter `/admin.html` como alias | **sim** |
-| B11 | Glossário do admin; tabs no topo vs lateral | glossário de B11; **tabs no topo** |
+| B2 | Valores canônicos de creme e raio de cartão | **os praticados** (superfície `#fffaf0`, fundo `#f6ecd7`, raio 22px) |decisão confirmada
+| B3 | Admin com toggles próprios de a11y | **não** — só respeita `prefers-*` do sistema | decisão confirmada
+| B4 | Manter "🔒 Sou o adulto" dentro do painel | **sim** |decisão confirmada
+| B5 | Trocar de leitor exige portão parental | **não** (T2 é superfície livre por design) |decisão confirmada
+| B5 | Onde pedir o gênero | **na chegada à T3** |decisão confirmada
+| B6 | Criar `BarraCrianca.dc.html` (1 cabeçalho em vez de 6) | **sim** |decisão confirmada
+| B6 | Saudação da T3 | "Oi, {nome}! Vamos ler?" (com concordância) |decisão confirmada
+| B7 | Texto do selo das pontas | "🔒 fica aqui" |decisão confirmada
+| B7 | Voltar da T5: preservar arranjo vs confirmar | **preservar** |decisão confirmada
+| B8 | Setas ←/→ entre palavras na T5 | **sim** |decisão confirmada
+| B9 | Texto da celebração ao resgatar; registrar na telemetria | "Combinado! …"; **só se já houver evento de economia** |decisão confirmada
+| B10 | Manter `/admin.html` como alias | **sim** |decisão confirmada
+| B11 | Glossário do admin; tabs no topo vs lateral | glossário de B11; **tabs no topo** |decisão confirmada
 
 ### Onda C — bundle do app
 | # | Decisão | Default |
 |---|---|---|
-| C1/C2 | Intermediárias: somem da estante ou viram "rascunhos" | **somem** |
-| C2 | Estante: seção promovida na T3 vs tela dedicada | **seção promovida na T3** |
-| C3 | `CartaoHistoria`: remover vs arquivar | **remover** |
-| C4 | Os 5 emojis | 🐶 Pingo · 🦊 Fubá · 🐻 Cacau · 🐱 Lua · 🐦 Tuca |
-| C4 | Manter o id `fubá` com acento | **sim** (compat de perfis) |
-| C5 | `cenas.ts`: expor via bridge vs apagar | **expor via `Canon.cenas`** |
-| C6 | Destino pós-PIN | **hub (T11)** |
-| C6 | Fluxo único de "Novo perfil" | **inline em Perfis** (Onboarding só no 1º uso) |
-| C7 | Mostrar cenários "em breve" desabilitados na Regras | **sim** |
-| C8 | Componentizar chips de perfil (`ChipsPerfil.dc.html`) | **sim** |
-| C9 | Mensagens de validação | curtas, no tom da casa |
-| C10 | Texto do botão Google | "Entrar com o Google" |
-| C11 | Tabela textual oculta dos gráficos da T8 | **sim** |
+| C1/C2 | Intermediárias: somem da estante ou viram "rascunhos" | **somem** |decisão confirmada
+| C2 | Estante: seção promovida na T3 vs tela dedicada | **seção promovida na T3** |decisão confirmada
+| C3 | `CartaoHistoria`: remover vs arquivar | **remover** |decisão confirmada
+| C4 | Os 5 emojis | 🐶 Pingo · 🦊 Fubá · 🐻 Cacau · 🐱 Lua · 🐦 Tuca |decisão confirmada
+| C4 | Manter o id `fubá` com acento | **sim** (compat de perfis) |decisão confirmada
+| C5 | `cenas.ts`: expor via bridge vs apagar | **expor via `Canon.cenas`** |decisão confirmada
+| C6 | Destino pós-PIN | **hub (T11)** |decisão confirmada
+| C6 | Fluxo único de "Novo perfil" | **inline em Perfis** (Onboarding só no 1º uso) |decisão confirmada
+| C7 | Mostrar cenários "em breve" desabilitados na Regras | **sim** |decisão confirmada
+| C8 | Componentizar chips de perfil (`ChipsPerfil.dc.html`) | **sim** |decisão confirmada
+| C9 | Mensagens de validação | curtas, no tom da casa |decisão confirmada
+| C10 | Texto do botão Google | "Entrar com o Google" |decisão confirmada
+| C11 | Tabela textual oculta dos gráficos da T8 | **sim** |decisão confirmada
 
 ### Onda D — bundle app + admin
 | # | Decisão | Default |
 |---|---|---|
-| D1 | Leitura híbrida reativa no repo vs mescla só no boot | **reativa** |
-| D2 | Fila persistente de push; badge no painel | **sim, com teto**; badge **não** |
-| D3 | Apagar a chave legada na migração | **sim** |
-| D5 | Apagar `.agents/` após migrar o útil para `docs/` | **sim** |
-| D6 | Apagar branches remotas mergeadas; tag antes de apagar a fase15 | **sim, após lista aprovada**; tag **sim** |
-| D7 | Harness e2e compartilhado | **sim** |
-| D8 | Bloquear merge sem CI verde; hook local | **sim**; hook **não** |
+| D1 | Leitura híbrida reativa no repo vs mescla só no boot | **reativa** |decisão confirmada
+| D2 | Fila persistente de push; badge no painel | **sim, com teto**; badge **não** |decisão confirmada
+| D3 | Apagar a chave legada na migração | **sim** |decisão confirmada
+| D5 | Apagar `.agents/` após migrar o útil para `docs/` | **sim** |decisão confirmada
+| D6 | Apagar branches remotas mergeadas; tag antes de apagar a fase15 | **sim, após lista aprovada**; tag **sim** |decisão confirmada
+| D7 | Harness e2e compartilhado | **sim** |decisão confirmada
+| D8 | Bloquear merge sem CI verde; hook local | **sim**; hook **não** |decisão confirmada
 
 ### Onda E — edge e dados
 | # | Decisão | Default |
 |---|---|---|
-| E1 | Subir o esquema do pacote para v1.1 agora | **não** (aditivo em v1) |
-| E2 | Fonte única dos guardrails em `src/core/seguranca/`; gerar edges a partir do core | **sim**; gerar **não** (paridade verificada basta) |
-| E3 | Aposentar a edge `proxy-ia`; rejeitar `prompt` no corpo após transição | **sim**; **sim** |
-| E4 | Objetos globais vs por cenário; autoria à mão vs admin | **globais**; **à mão (JSON)** |
-| E5 | Texto do "Em breve" ao toque | o de E5 |
-| E6 | Destino do `Pasted-*.txt`; ordem dos 4 cenários | mover para `docs/plans02/fase14…/anexos/`; **você** |
+| E1 | Subir o esquema do pacote para v1.1 agora | **não** (aditivo em v1) |decisão confirmada
+| E2 | Fonte única dos guardrails em `src/core/seguranca/`; gerar edges a partir do core | **sim**; gerar **não** (paridade verificada basta) |decisão confirmada
+| E3 | Aposentar a edge `proxy-ia`; rejeitar `prompt` no corpo após transição | **sim**; **sim** |decisão confirmada
+| E4 | Objetos globais vs por cenário; autoria à mão vs admin | **globais**; **à mão (JSON)** |decisão confirmada
+| E5 | Texto do "Em breve" ao toque | o de E5 |decisão confirmada
+| E6 | Destino do `Pasted-*.txt`; ordem dos 4 cenários | mover para `docs/plans02/fase14…/anexos/`; **você** |decisão confirmada
 
 **Decisões que bloqueiam outras ondas:** E3 (`proxy-ia`) e E2 (`guardrails`) precisam estar
 tomadas **antes de D4** — por isso a folha existe: responda-as já, mesmo que E rode por último.
 
 ---
 
-## 2. Sequência e paralelismo
+## 2. Sequência
 
-```
-Etapa 0  preparação (1 sessão)
-Etapa 1  ┌ Onda A (segurança) ─────────────┐   ← crítica, pequena, primeiro
-         └ Onda B (UX crua) em paralelo ───┘   ← independente de A, branch própria
-Etapa 2  Onda C (bundle app)                    ← usa tokens de B2/B3
-Etapa 3  Onda D (bundle app+admin, CI)          ← fecha o pipeline; D4/D5 após decisão E2/E3
-Etapa 4  Onda E (edge + dados)                  ← E1–E3 após A; E5 após C5
-```
+**A sequência é as ondas, na ordem A → B → C → D → E**, com 3 passos de preparação antes e
+4 de encerramento depois — **59 passos numerados**, um atrás do outro, em
+`02-EXECUCAO-PASSO-A-PASSO.md`. A ordem dentro de cada onda:
 
-### Etapa 0 — preparação
-1. Responder a folha de decisões (ou aceitar os defaults).
-2. Conferir o ambiente: `git rev-parse --abbrev-ref HEAD` = `28_08_26`; `git worktree list`
-   (há `fix/geracao2-em-producao` em outro worktree); `bun --version`; os 4 e2e verdes na base
-   (régua: 28 + 80 + 25 + 42 = 175; unit 143).
-3. Capturar screenshots "antes" com o harness (`onda-B-cru-ux/00-onda-B.md`) para prova de
-   antes/depois.
+| Onda | Ordem dos passos |
+|---|---|
+| P | P1 régua → P2 screenshots "antes" → P3 painel |
+| A | A0 branch → A1 → A3 ∥ → A2 → A4 → A5 fechamento (SQL, 2 redeploys, build, merge) |
+| B | B0 → B1 → B2 → B3 → B4 → **B-M1 merge** → B5 → B6 → B7 · B8 ∥ · B9 ∥ → **B-M2 merge** → B10 → B11 → **B-M3 merge** |
+| C | C0 → C1 → C2 → C3 → C4 → C5 → C6 · C7 ∥ · C8 ∥ → C9 → C10 → C11 → C12 fechamento |
+| D | D0 → D7 → D8 (CI primeiro) → D1 → D2 → D3 → D4 → D5 → D6 → D9 fechamento |
+| E | E0 → E1 → E2 → E3 → E4 → E5 → E6 → E7 fechamento |
+| F | F1 régua final → F2 catálogo → F3 STATUS 100% → F4 push (com ordem sua) |
 
-### Etapa 1 — Ondas A e B em paralelo
-- **A** (`onda-A-seguranca`): A1 → A2 → A3 → A4 → A5. A3 pode começar junto com A1 (SQL não
-  depende do cliente). Fecha com migração aplicada, 2 redeploys e `build:app`.
-- **B** (`onda-B-cru-ux`): três trilhas independentes que podem rodar em sessões separadas:
-  - B1 → B2 → B3 → B4 (tokens/a11y)
-  - B5 → B6 (navegação) · B7, B8, B9 (mecânica — independentes entre si)
-  - B10 → B11 (admin)
-  **Atenção:** B é CRU — ao mergear em `28_08_26` **vai ao ar imediatamente**. Mergear só ao
-  fechar cada trilha com os 4 e2e verdes e screenshots conferidos.
-- Conflito possível: A2 e B (IaToggle/Regras) tocam `Regras.dc.html`/`IaToggle.dc.html`; A2
-  mexe na lógica, B2 nos tokens — rebase de B sobre A ao final resolve.
+**∥** = pode rodar ao mesmo tempo que o passo anterior (não toca os mesmos arquivos). Só isso;
+não há "etapas" nem paralelismo obrigatório. A Onda B é a única que vai ao ar por partes
+(3 merges, porque é servida crua).
 
-### Etapa 2 — Onda C
-C1 → C2 → C3 (histórias) · C4 → C5 (avatars) · C6, C7, C8 (fluxo do cuidador — independentes)
-· C9 → C10 (formulários) · C11 (aria) · C12 fecha com `build:app` **e** `build:admin`
-(C1/C4 tocam `src/core`).
-
-### Etapa 3 — Onda D
-D1 → D2 (sync) · D3 · D7 → D8 (pipeline) · D4 → D5 → D6 (faxina; D4 espera decisão E2/E3) ·
-D9 fecha com `build:all` e CI verde. A partir daqui o `check:bundles` do CI impede o drift
-que causou o PS-05.
-
-### Etapa 4 — Onda E
-E1 → E2 → E3 (edge; E3 faz o redeploy em 2 passos) · E4 → E5 → E6 (cenários).
+**Auto-monitoramento:** o grafo desses 59 passos está em `plan03.graph.json`; o monitor
+`scripts/plan03.mjs` lê a linha `> Status:` de cada subtarefa + o git e diz o próximo passo,
+os bloqueios e as incoerências (branch errada, árvore suja, bundle desatualizado, decisão sem
+carimbo). `docs/Plan03/STATUS.md` é o painel gerado — commitado a cada passo, o progresso
+fica no histórico. Comandos: `status` · `proximo` · `iniciar <ID>` · `concluir <ID> --commit`
+· `verificar [--e2e]` · `gate <onda>` · `relatorio`.
 
 ---
 
@@ -174,8 +157,10 @@ E1 → E2 → E3 (edge; E3 faz o redeploy em 2 passos) · E4 → E5 → E6 (cen�
    depois com o harness.
 5. Commit pequeno (`feat|fix|chore(escopo): …`), mensagem em pt-BR sem acentos no assunto,
    `Co-Authored-By` quando gerado com agente. Bundle só na subtarefa de fechamento.
-6. Marcar no `.md` da subtarefa: `Status: concluída em <data> · commit <hash>` (uma linha no
-   topo) — o `00-onda-X.md` vira o painel de progresso.
+6. Marcar pelo monitor: `node scripts/plan03.mjs concluir <ID> --commit` — grava
+   `> Status: concluída (data · hash)` no topo do `.md`, regenera `STATUS.md` e commita o status.
+   Antes de começar o passo: `node scripts/plan03.mjs iniciar <ID>` (recusa se dependência
+   pendente ou branch errada).
 7. Ao fechar a onda: atualizar `docs/auditorias/varredura-2026-08-26.md` (achados resolvidos)
    conforme a subtarefa de fechamento pede.
 
@@ -210,9 +195,11 @@ E1 → E2 → E3 (edge; E3 faz o redeploy em 2 passos) · E4 → E5 → E6 (cen�
 
 ## 8. Primeira sessão, concretamente
 
-1. Você responde a folha de decisões (ou diz "defaults").
-2. `git switch -c onda-A-seguranca 28_08_26` (após conferir o HEAD).
-3. Executar **A1** (gate de consentimento + teste) e **A3** (migração escrita, **não aplicada**
-   até seu ok) na mesma sessão; PRs separados.
-4. Sessão seguinte: A2, A4; depois A5 com seu "pode aplicar/redeployar".
-5. Em paralelo, quando quiser, abrir `onda-B-cru-ux` e começar por B1 (é a base de B2–B4).
+1. `node scripts/plan03.mjs status` → próximo = **P1**.
+2. `iniciar P1` → régua (`verificar --e2e`) → `concluir P1 --commit`.
+3. P2 (screenshots "antes") e P3 (painel) do mesmo jeito.
+4. **A0**: `git switch -c onda-A-seguranca 28_08_26` (após conferir o HEAD) → `concluir A0`.
+5. **A1** (gate de consentimento + teste) e **A3 ∥** (migração escrita, **não aplicada** até seu
+   ok); sessão seguinte A2, A4; depois A5 com seu "pode aplicar/redeployar".
+6. Toda sessão começa com `status` e termina com `concluir`; se `status` acusar alerta,
+   resolve-se antes de qualquer passo.

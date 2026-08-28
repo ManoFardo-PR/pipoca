@@ -1,5 +1,7 @@
 # C11 — ARIA nas telas adultas: hub e painel legíveis, seleção com semântica, foco ao trocar de tela
 
+> Status: pendente
+
 **Unidade de deploy:** CRU (`PainelCuidador`, `PainelEvolucao`, chips/opções das telas adultas,
 `Shell.dc.html`). **Depende de:** nada (B3 dá o foco visível). **Desbloqueia:** —.
 

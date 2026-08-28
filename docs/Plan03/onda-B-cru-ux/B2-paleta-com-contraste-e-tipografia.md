@@ -1,5 +1,7 @@
 # B2 — Paleta com contraste real, tokens iguais ao desenho praticado, escala tipográfica
 
+> Status: pendente
+
 **Unidade de deploy:** CRU (`src/tokens.css` + as telas que trocam hex por `var()`).
 **Depende de:** B1. **Desbloqueia:** B4, C2, C8 (reusam os tokens novos).
 

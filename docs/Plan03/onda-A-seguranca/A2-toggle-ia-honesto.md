@@ -1,5 +1,7 @@
 # A2 — Toggle de IA honesto (provedorPronto real + aviso antes do gesto)
 
+> Status: pendente
+
 **Unidade de deploy:** CRU (`.dc.html`) + BUNDLE app se expuser algo novo no bridge.
 **Depende de:** A1 (mesmo conceito de "IA efetiva"). **Desbloqueia:** —.
 

@@ -1,5 +1,7 @@
 # B7 — T4 (palco de composição): alvos, feedback, copy e o beco
 
+> Status: pendente
+
 **Unidade de deploy:** CRU (`src/telas/Tela4Heroi.dc.html`, `Tela5Portao.dc.html:355-361`).
 **Depende de:** nada (B2 fornece os tokens de contraste, mas pode usar hex provisório).
 **Desbloqueia:** —.

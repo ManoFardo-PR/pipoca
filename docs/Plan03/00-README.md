@@ -5,8 +5,10 @@ justificativa-fim. Aqui cada **onda** vira uma pasta e cada **subtarefa** vira u
 autocontido: quem pegar um arquivo consegue executar e concluir a subtarefa sem abrir o
 catálogo. Nenhuma subtarefa foi executada ao criar este plano.
 
-**Como executar:** ver `01-PLANO-DE-EXECUCAO.md` (folha de decisões, sequência/paralelismo,
-gates, git/deploy/rollback, protocolo de sessão, estimativas, riscos).
+**Como executar:** `01-PLANO-DE-EXECUCAO.md` (folha de decisões — confirmada —, gates,
+git/deploy/rollback, riscos) e `02-EXECUCAO-PASSO-A-PASSO.md` (os 59 passos, um atrás do
+outro). **Onde estamos:** `node scripts/plan03.mjs status` (painel em `STATUS.md`, gerado —
+não editar à mão).
 
 ## Mapa das ondas
 

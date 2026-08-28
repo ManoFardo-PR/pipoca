@@ -1,5 +1,7 @@
 # C10 — Login (T9): botão Google reconhecível, erro perto do gesto, "Criar conta" visível
 
+> Status: pendente
+
 **Unidade de deploy:** CRU (`src/telas/LoginFamilia.dc.html`). **Depende de:** C9.
 **Desbloqueia:** —.
 

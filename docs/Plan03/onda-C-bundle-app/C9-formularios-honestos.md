@@ -1,5 +1,7 @@
 # C9 — Formulários honestos: `disabled` real, `<form>`/Enter, labels visíveis, validação por campo, autofocus
 
+> Status: pendente
+
 **Unidade de deploy:** CRU (`LoginFamilia`, `Onboarding`, `Perfis`, `Limites`, `Privacidade`,
 `ContaCuidador`, `SaLogin`.dc.html). **Depende de:** nada. **Desbloqueia:** C10.
 

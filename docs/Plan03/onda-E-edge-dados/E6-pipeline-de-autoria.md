@@ -1,5 +1,7 @@
 # E6 — Pipeline de autoria: lints no CI, "como adicionar um cenário", arquivamento do prompt colado
 
+> Status: pendente
+
 **Unidade de deploy:** nenhuma (scripts/CI/docs). **Depende de:** E4 (manifesto), D8 (CI).
 **Desbloqueia:** a produção de conteúdo dos 4 cenários "Em breve".
 

@@ -1,5 +1,7 @@
 # B1 — Mecanismo de a11y: tokens escutam o que o Shell aplica; contraste que não destrói
 
+> Status: pendente
+
 **Unidade de deploy:** CRU (`src/tokens.css`, `index.html`, `src/telas/Shell.dc.html`).
 **Depende de:** nada. **Desbloqueia:** B2, B3, B4.
 

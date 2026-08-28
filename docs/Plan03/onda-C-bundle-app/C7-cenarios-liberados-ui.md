@@ -1,5 +1,7 @@
 # C7 — UI de cenários liberados na tela Regras (o campo já existe e já é lido)
 
+> Status: pendente
+
 **Unidade de deploy:** CRU (`src/telas/Regras.dc.html`). **Depende de:** nada.
 **Desbloqueia:** E4/E5 (quando houver mais de um cenário, a liberação precisa existir).
 

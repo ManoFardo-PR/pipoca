@@ -1,5 +1,7 @@
 # B8 — T5 (portão de leitura) acessível por teclado e leitor de tela; T6 anuncia a celebração
 
+> Status: pendente
+
 **Unidade de deploy:** CRU (`src/telas/Tela5Portao.dc.html`, `Tela6Recompensa.dc.html`).
 **Depende de:** B3 (foco visível). **Desbloqueia:** —.
 

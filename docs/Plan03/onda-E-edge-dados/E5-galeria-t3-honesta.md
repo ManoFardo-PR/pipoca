@@ -1,5 +1,7 @@
 # E5 — Galeria da T3 honesta: "Em breve" que se explica, pílula que é botão, retrato que cabe, SVG sem cópia
 
+> Status: pendente
+
 **Unidade de deploy:** CRU (`src/telas/Tela3SelecaoCenario.dc.html`). **Depende de:** E4
 (galeria por manifesto), C5 (`Canon.cenas`, se exposto). **Desbloqueia:** —.
 

@@ -1,5 +1,7 @@
 # B4 — PainelA11y: tokens, núcleo canônico, alvos grandes, semântica de switch e dialog
 
+> Status: pendente
+
 **Unidade de deploy:** CRU (`src/telas/PainelA11y.dc.html`; `Shell.dc.html` se mudar o gatilho).
 **Depende de:** B1, B2, B3. **Desbloqueia:** —.
 

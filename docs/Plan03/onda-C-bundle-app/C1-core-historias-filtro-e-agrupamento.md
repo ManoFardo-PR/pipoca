@@ -1,5 +1,7 @@
 # C1 — Core de histórias: só completas na estante, agrupamento por dia (helpers puros)
 
+> Status: pendente
+
 **Unidade de deploy:** BUNDLE app (`src/core/historias.ts`, `src/app/bridge.ts`).
 **Depende de:** nada. **Desbloqueia:** C2, C3.
 

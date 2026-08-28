@@ -1,5 +1,7 @@
 # B6 — Uma gramática de cabeçalho para T2–T7, alvos ≥48px, copy da faixa etária, T2 rola no celular
 
+> Status: pendente
+
 **Unidade de deploy:** CRU (`src/telas/Tela2..7*.dc.html`, `Shell.dc.html`).
 **Depende de:** B5 (define quais botões existem no cabeçalho). **Desbloqueia:** —.
 

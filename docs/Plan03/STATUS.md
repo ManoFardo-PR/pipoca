@@ -1,11 +1,10 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-08-28T19:01:44.722Z · branch `onda-A-seguranca` · HEAD `8e3be20`
+- Gerado em: 2026-08-28T19:01:47.459Z · branch `onda-A-seguranca` · HEAD `c688b13`
 - Progresso: **8/59** passos concluídos
 - Próximo passo: **A5** — Fechamento A: SQL aplicada → redeploy ×2 → build:app → e2e → merge ([abrir](onda-A-seguranca/A5-fechamento-onda-A.md))
 - Última verificação: ✅ verde em 2026-08-28T18:31:56.969Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
   - ⚠ pipoca.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/app/bridge.ts, src/dados (rebuild pendente)
   - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 

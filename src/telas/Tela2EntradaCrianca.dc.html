@@ -12,15 +12,18 @@
   </style>
 </helmet>
 
-<div style="position:absolute;inset:0;overflow:hidden;background:linear-gradient(180deg,#fbe8c8 0%,#f7dca6 42%,#f3c98a 100%);">
-  <div style="position:absolute;left:0;right:0;bottom:0;height:300px;background:linear-gradient(180deg,#bcd99a,#9cc47e);border-radius:50% 50% 0 0 / 80px 80px 0 0;"></div>
-  <div style="position:absolute;left:0;right:0;bottom:0;height:190px;background:linear-gradient(180deg,#a7cd84,#86b46a);border-radius:50% 50% 0 0 / 60px 60px 0 0;"></div>
-  <div style="position:absolute;top:84px;left:50%;transform:translateX(-50%);width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 50% 45%,#fff6da,#fcd784 55%,rgba(252,215,132,0) 72%);"></div>
+<!-- B6 (UI-C53): a T2 ROLA no celular — overflow no contêiner da tela (não no Shell), espaço
+     reservado para a marca do Shell (top 18px + 30px), avatares em grade fluida e o rodapé
+     de ações fixo embaixo (sticky), para "Sou o cuidador" nunca sumir. -->
+<div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;background:linear-gradient(180deg,#fbe8c8 0%,#f7dca6 42%,#f3c98a 100%);">
+  <div style="position:fixed;left:0;right:0;bottom:0;height:300px;pointer-events:none;background:linear-gradient(180deg,#bcd99a,#9cc47e);border-radius:50% 50% 0 0 / 80px 80px 0 0;"></div>
+  <div style="position:fixed;left:0;right:0;bottom:0;height:190px;pointer-events:none;background:linear-gradient(180deg,#a7cd84,#86b46a);border-radius:50% 50% 0 0 / 60px 60px 0 0;"></div>
+  <div style="position:absolute;top:84px;left:50%;transform:translateX(-50%);width:150px;height:150px;pointer-events:none;border-radius:50%;background:radial-gradient(circle at 50% 45%,#fff6da,#fcd784 55%,rgba(252,215,132,0) 72%);"></div>
 
-  <div style="position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;">
+  <div style="position:relative;z-index:2;min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:72px 20px 24px;">
 
     <sc-if value="{{ carregando }}" hint-placeholder-val="{{ false }}">
-      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:26px;color:#3a4f63;opacity:.6;">Carregando…</div>
+      <dc-import name="Carregando" frase="Chamando os leitores…"></dc-import>
     </sc-if>
 
     <sc-if value="{{ semPerfis }}" hint-placeholder-val="{{ false }}">
@@ -32,12 +35,12 @@
     </sc-if>
 
     <sc-if value="{{ mostrarAvatares }}" hint-placeholder-val="{{ true }}">
-      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:40px;color:#3a4f63;text-shadow:0 1px 0 rgba(255,255,255,.4);">Quem vai ler hoje?</div>
-      <p style="font-size:17px;color:#6a6a55;margin-top:8px;">Toque no seu rostinho para começar.</p>
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:clamp(28px,8vw,40px);line-height:1.1;text-align:center;color:#3a4f63;text-shadow:0 1px 0 rgba(255,255,255,.4);">Quem vai ler hoje?</div>
+      <p style="font-size:17px;color:#6a6a55;margin-top:8px;text-align:center;">Toque no seu rostinho para começar.</p>
 
-      <div style="display:flex;gap:34px;margin-top:48px;flex-wrap:wrap;justify-content:center;max-width:840px;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,max-content));justify-content:center;gap:24px 34px;margin-top:36px;width:100%;max-width:840px;">
         <sc-for list="{{ avatars }}" as="av" hint-placeholder-count="5">
-          <button onClick="{{ av.pick }}" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:12px;padding:0;">
+          <button onClick="{{ av.pick }}" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:12px;padding:0;justify-self:center;">
             <div style="{{ av.ring }}">
               <div ref="{{ av.svgRef }}" style="width:140px;height:140px;display:flex;align-items:center;justify-content:center;" class="{{ animClass }}"></div>
             </div>
@@ -46,8 +49,9 @@
         </sc-for>
       </div>
 
-      <!-- B5: a T2 também tem "Do meu jeito" (ajustes sem portão); "Sou o cuidador" leva ao PIN. -->
-      <div style="display:flex;gap:12px;margin-top:46px;flex-wrap:wrap;justify-content:center;">
+      <!-- B5: a T2 também tem "Do meu jeito" (ajustes sem portão); "Sou o cuidador" leva ao PIN.
+           B6: rodapé sticky — visível sem rolar mesmo com 3+ perfis no celular. -->
+      <div style="position:sticky;bottom:0;z-index:3;display:flex;gap:12px;margin-top:36px;padding:12px 0 4px;flex-wrap:wrap;justify-content:center;width:100%;">
         <button onClick="{{ abrirAjustesA11y }}" aria-label="Do meu jeito" style="min-height:48px;background:rgba(255,255,255,.6);border:none;border-radius:999px;padding:11px 22px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;backdrop-filter:blur(4px);">✨ Do meu jeito</button>
         <button onClick="{{ abrirPortaoParental }}" style="min-height:48px;background:rgba(255,255,255,.6);border:none;border-radius:999px;padding:11px 22px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;backdrop-filter:blur(4px);">🔒 Sou o cuidador</button>
       </div>

@@ -18,23 +18,14 @@
 
 <div style="position:absolute;inset:0;display:flex;flex-direction:column;background:linear-gradient(180deg,#f6ead2,#f0e2c4);">
 
-  <!-- App bar -->
-  <div style="height:58px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(255,255,255,.55);backdrop-filter:blur(8px);border-bottom:1px solid rgba(160,140,110,.18);">
-    <button onClick="{{ voltarCena }}" style="width:40px;height:40px;border-radius:12px;border:1.5px solid rgba(160,140,110,.25);background:rgba(255,255,255,.7);cursor:pointer;font-size:17px;color:#7a6a54;">←</button>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <div style="width:17px;height:17px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 8px 1px rgba(247,191,96,.7);"></div>
-      <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:var(--pip-terracota-texto);">{{ vagalumes }}</span>
-    </div>
-    <button onClick="{{ abrirAjustesA11y }}" style="width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(160,140,110,.25);background:rgba(255,255,255,.6);cursor:pointer;font-size:17px;color:#7a6a54;">⚙</button>
-  </div>
+  <!-- App bar — a barra única das telas da criança (B6): ← volta à cena (T4), saldo, ⚙. -->
+  <dc-import name="BarraCrianca" voltar="{{ voltarCena }}" mostrarSaldo="{{ true }}" vagalumes="{{ vagalumes }}" abrirAjustes="{{ abrirAjustesA11y }}"></dc-import>
 
   <!-- Preparando (P2): a realização corre na entrada do portão; espera curta com
-       teto — nunca tela travada; estourou/falhou → segue no A+ cru (fallback visível). -->
+       teto — nunca tela travada; estourou/falhou → segue no A+ cru (fallback visível).
+       Marcador único de espera (B6). -->
   <sc-if value="{{ modoPreparando }}" hint-placeholder-val="{{ false }}">
-  <div style="flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:40px 60px;">
-    <div style="width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 22px 6px rgba(247,191,96,.6);" class="word-stuck"></div>
-    <div role="status" aria-live="polite" style="font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;color:var(--pip-terracota-texto);text-align:center;">Preparando a sua história… ✨</div>
-  </div>
+  <dc-import name="Carregando" frase="Preparando a sua história… ✨"></dc-import>
   </sc-if>
 
   <!-- Reading state -->

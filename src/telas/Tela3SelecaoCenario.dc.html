@@ -9,32 +9,9 @@
 
 <div style="position:absolute;inset:0;display:flex;flex-direction:column;background:linear-gradient(180deg,#fdf3df,#f6ead2);">
 
-  <!-- Header -->
-  <div style="height:62px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:rgba(255,255,255,.55);backdrop-filter:blur(8px);border-bottom:1px solid rgba(160,140,110,.18);">
-    <!-- B5 (ML-3): avatar + saudação é a SAÍDA para trocar de leitor (T2) — 1 toque, sem portão. -->
-    <button onClick="{{ trocarLeitor }}" aria-label="Trocar quem está lendo" title="Trocar quem está lendo" style="display:flex;align-items:center;gap:12px;min-height:48px;padding:3px 10px 3px 3px;border:none;border-radius:999px;background:transparent;cursor:pointer;text-align:left;">
-      <div ref="{{ childAvatarRef }}" style="width:42px;height:42px;border-radius:50%;overflow:hidden;background:#fffaf0;box-shadow:0 2px 6px rgba(74,59,44,.2);"></div>
-      <div>
-        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:#3a4f63;line-height:1;">{{ saudacao }}</div>
-        <div style="font-size:12px;color:var(--pip-texto-suave);margin-top:2px;">Leitor em ascensão ✨ · trocar leitor</div>
-      </div>
-    </button>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <!-- B5 (ML-3): o saldo é a SAÍDA para o pote (T7) — 1 toque. -->
-      <button onClick="{{ verPote }}" aria-label="Ver meu pote de vaga-lumes" title="Ver meu pote" style="display:flex;align-items:center;gap:7px;min-height:48px;background:#fff3da;border:1.5px solid #f0d9a8;border-radius:999px;padding:6px 14px 6px 10px;cursor:pointer;">
-        <div style="width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 8px 1px rgba(247,191,96,.7);"></div>
-        <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:var(--pip-terracota-texto);">{{ vagalumes }}</span>
-      </button>
-      <!-- Casinha da criança: o que já foi guardado p/ o sonho fica à vista -->
-      <sc-if value="{{ temPoupado }}" hint-placeholder-val="{{ false }}">
-        <div title="Guardado para o sonho" style="display:flex;align-items:center;gap:6px;background:#e9f0fa;border:1.5px solid #c4d5ec;border-radius:999px;padding:6px 14px;">
-          <span style="font-size:14px;">🎁</span>
-          <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:14px;color:#3f6f9e;">{{ poupado }}</span>
-        </div>
-      </sc-if>
-      <button onClick="{{ abrirAjustesA11y }}" title="Do meu jeito" style="width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(160,140,110,.25);background:rgba(255,255,255,.6);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:#7a6a54;">⚙</button>
-    </div>
-  </div>
+  <!-- Header — a barra única das telas da criança (B6). Avatar+saudação = trocar de leitor
+       (B5), saldo = pote (B5), 🎁 guardado, ⚙ Do meu jeito. -->
+  <dc-import name="BarraCrianca" mostrarAvatar="{{ true }}" avatarRef="{{ childAvatarRef }}" saudacao="{{ saudacao }}" subtitulo="{{ subtitulo }}" trocarLeitor="{{ trocarLeitor }}" mostrarSaldo="{{ true }}" vagalumes="{{ vagalumes }}" verPote="{{ verPote }}" poupado="{{ poupado }}" abrirAjustes="{{ abrirAjustesA11y }}"></dc-import>
 
   <!-- Content -->
   <div style="flex:1;min-height:0;padding:26px 36px 34px;display:flex;flex-direction:column;">
@@ -89,7 +66,7 @@
                 <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:13px;color:#3a2c20;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ hh.titulo }}</div>
                 <div style="font-size:11px;color:var(--pip-texto-suave);margin-top:2px;">{{ hh.quando }}</div>
               </div>
-              <button onClick="{{ hh.coracao }}" aria-label="Guardar para sempre" title="Guardar para sempre" style="border:none;background:transparent;font-size:19px;cursor:pointer;flex-shrink:0;padding:4px;">{{ hh.coracaoIcone }}</button>
+              <button onClick="{{ hh.coracao }}" aria-label="Guardar para sempre" title="Guardar para sempre" style="border:none;background:transparent;font-size:19px;cursor:pointer;flex-shrink:0;width:48px;height:48px;margin:-6px -8px -6px 0;display:flex;align-items:center;justify-content:center;border-radius:50%;">{{ hh.coracaoIcone }}</button>
             </div>
           </sc-for>
         </div>
@@ -239,9 +216,14 @@ class Component extends DCLogic {
     const vagalumes = estado.economia ? estado.economia.vagalumes : 0;
     const poupado = estado.economia ? (estado.economia.poupado || 0) : 0;
     const childName = perfil ? perfil.nome : 'criança';
-    // Casinha: saudação acolhedora que varia com a hora do aparelho.
-    const hora = new Date().getHours();
-    const saudacao = (hora < 12 ? 'Bom dia, ' : (hora < 18 ? 'Boa tarde, ' : 'Boa noite, ')) + childName + '!';
+    // B6 (UI-C41): saudação da faixa etária (decisão do dono) + concordância com o
+    // gênero do perfil (ausente ⇒ feminina, GENERO_CONCORDANCIA_PADRAO); "Leitor em
+    // ascensão" saiu. O subtítulo diz o que o toque faz (trocar de leitor).
+    const saudacao = 'Oi, ' + childName + '! Vamos ler?';
+    const Cg = window.PipocaCanonico;
+    const generoPadrao = (Cg && Cg.geracao && Cg.geracao.GENERO_CONCORDANCIA_PADRAO) || 'f';
+    const genero = (perfil && (perfil.genero === 'm' || perfil.genero === 'f')) ? perfil.genero : generoPadrao;
+    const subtitulo = (genero === 'm' ? 'Pronto' : 'Pronta') + ' para mais uma? · trocar de leitor';
 
     const childAvatarRef = (el) => { this._childAvatarEl = el; this._updateRefs(); };
 
@@ -287,6 +269,7 @@ class Component extends DCLogic {
     return {
       childName,
       saudacao,
+      subtitulo,
       vagalumes,
       poupado,
       temPoupado: poupado > 0,

@@ -16,20 +16,9 @@
 
 <div style="position:absolute;inset:0;display:flex;flex-direction:column;background:linear-gradient(180deg,#fdf3df,#f6ead2);">
 
-  <!-- Header -->
-  <div style="height:62px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:rgba(255,255,255,.55);backdrop-filter:blur(8px);border-bottom:1px solid rgba(160,140,110,.18);">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <div ref="{{ childAvatarRef }}" style="width:42px;height:42px;border-radius:50%;overflow:hidden;background:#fffaf0;box-shadow:0 2px 6px rgba(74,59,44,.2);"></div>
-      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;color:#3a4f63;">O pote de {{ childName }}</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div style="display:flex;align-items:center;gap:7px;background:#fff3da;border:1.5px solid #f0d9a8;border-radius:999px;padding:6px 14px 6px 10px;">
-        <div style="width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 8px 1px rgba(247,191,96,.7);"></div>
-        <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:var(--pip-terracota-texto);">{{ vagalumes }}</span>
-      </div>
-      <button onClick="{{ abrirAjustesA11y }}" style="width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(160,140,110,.25);background:rgba(255,255,255,.6);cursor:pointer;font-size:18px;color:#7a6a54;">⚙</button>
-    </div>
-  </div>
+  <!-- Header — a barra única das telas da criança (B6): avatar + "O pote de {nome}" (toque =
+       trocar de leitor, B5), saldo (só leitura: já estamos no pote), ⚙. -->
+  <dc-import name="BarraCrianca" mostrarAvatar="{{ true }}" avatarRef="{{ childAvatarRef }}" saudacao="{{ tituloPote }}" subtitulo="trocar de leitor" trocarLeitor="{{ trocarLeitor }}" mostrarSaldo="{{ true }}" vagalumes="{{ vagalumes }}" abrirAjustes="{{ abrirAjustesA11y }}"></dc-import>
 
   <!-- Conteúdo -->
   <div style="flex:1;min-height:0;display:flex;gap:26px;padding:26px 34px 30px;">
@@ -174,6 +163,12 @@ class Component extends DCLogic {
     if (App) App.setState({ showA11y: true });
   }
 
+  // B5/B6: trocar de leitor (T2) a partir do pote também — 1 toque, sem portão.
+  trocarLeitor() {
+    const App = this._getApp();
+    if (App) App.setState({ tela: 2 });
+  }
+
   renderVals() {
     const App = this._getApp();
     const estado = App ? App.estado : {};
@@ -262,6 +257,8 @@ class Component extends DCLogic {
       vagalumes,
       luzes,
       childName,
+      tituloPote: 'O pote de ' + childName,
+      trocarLeitor: () => this.trocarLeitor(),
       childAvatarRef: (el) => { this._childAvatarEl = el; this._updateAvatar(); },
       spendSuggest: spend,
       saveSuggest: save,

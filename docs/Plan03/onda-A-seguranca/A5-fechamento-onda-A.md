@@ -1,6 +1,6 @@
 # A5 — Fechamento da Onda A: build, redeploy, migração e prova
 
-> Status: em andamento (2026-08-28)
+> Status: concluída (2026-08-28 · 9837eee)
 **Unidade de deploy:** BUNDLE app (+ admin se A4 tocou `src/admin`) + EDGE ×2 + SQL.
 **Depende de:** A1–A4 mergeadas na branch da onda.
 

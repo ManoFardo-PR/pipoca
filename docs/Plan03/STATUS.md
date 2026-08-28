@@ -1,11 +1,10 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-08-28T19:25:11.508Z · branch `onda-A-seguranca` · HEAD `9837eee`
+- Gerado em: 2026-08-28T19:25:46.466Z · branch `28_08_26` · HEAD `87dc942`
 - Progresso: **9/59** passos concluídos
 - Próximo passo: **B0** — Criar branch onda-B-cru-ux a partir de 28_08_26
 - Última verificação: ✅ verde em 2026-08-28T19:10:24.652Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ branch atual "onda-A-seguranca" ≠ esperada para B0 ("28_08_26")
   - ⚠ árvore suja (1 arquivo(s)) — commite antes de concluir um passo
 
 ## Onda P — Preparação · 3/3 · branch `28_08_26` · —

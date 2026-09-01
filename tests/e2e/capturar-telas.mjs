@@ -192,6 +192,8 @@ try {
 
   // Telas adultas: pelo portão (PIN 1234) → T8; depois setState no modo cuidador.
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
+  await esperarTela(page, 11); // C6: pós-PIN → hub
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 8 }); });
   await esperarTela(page, 8); await esperarTexto(page, "Pote de vaga-lumes|Evolução");
   await foto(page, "T08-evolucao");
   const adultas = [[11, "T11-hub-cuidador", "guardados|Cuidador"], [12, "T12-perfis", "Perfis|Ana"], [13, "T13-limites", "Limites|minutos"], [14, "T14-regras-ia", "Quem confirma a leitura"], [15, "T15-privacidade", "Privacidade"], [16, "T16-conta", "Conta & segurança|PIN do portão"]];

@@ -88,12 +88,13 @@ class Component extends DCLogic {
     const App = window.PipocaApp;
     const ir = (n) => () => { if (App) App.setState({ tela: n }); };
     const nomes = this.state.perfis.map((p) => p.nome).join(', ');
+    // C6: o hub diz quem está em uso (a criança ativa) já no cabeçalho.
+    const ativa = App && App.estado.perfil ? App.estado.perfil.nome : '';
     return {
       temSaldos: this.state.saldos.length > 0,
       saldos: this.state.saldos,
-      subtitulo: nomes
-        ? 'Quem lê nesta casa: ' + nomes + '.'
-        : 'Ajustes da leitura, com calma. A criança não vê esta parte.',
+      subtitulo: (ativa ? 'Agora é a vez de ' + ativa + '. ' : '')
+        + (nomes ? 'Quem lê nesta casa: ' + nomes + '.' : 'Ajustes da leitura, com calma. A criança não vê esta parte.'),
       itens: [
         { emoji: '👧', rot: 'Perfis',               desc: 'quem lê nesta casa',                    go: ir(12) },
         { emoji: '⏱️', rot: 'Limites',              desc: 'bloco de foco e tempo de tela',         go: ir(13) },
@@ -102,7 +103,9 @@ class Component extends DCLogic {
         { emoji: '🌱', rot: 'Evolução da leitura',  desc: 'minutos, palavras e histórias',         go: ir(8) },
         { emoji: '🔑', rot: 'Conta & segurança',    desc: 'PIN do portão, senha e e-mail',         go: ir(16) },
       ],
-      novoPerfil: ir(10),
+      // C6 (UI-A22): fluxo ÚNICO de "Novo perfil" — o inline de Perfis (mostra a
+      // lista); o Onboarding (T10) fica só para o 1º uso.
+      novoPerfil: () => { if (App) App.setState({ tela: 12, abrirFormPerfis: true }); },
       paraCrianca: () => { if (App && App.aoVoltarParaCrianca) App.aoVoltarParaCrianca(); },
       sair: () => { if (App && App.sairDaConta) App.sairDaConta(); },
     };

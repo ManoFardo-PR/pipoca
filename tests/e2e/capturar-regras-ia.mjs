@@ -69,7 +69,7 @@ try {
   await page.locator("button", { hasText: "Tudo pronto" }).first().click();
   await page.waitForFunction(() => window.PipocaApp.estado.tela === 2 && !!window.PipocaApp.estado.perfil, { timeout: 5000 });
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
-  await page.waitForFunction(() => window.PipocaApp.estado.tela === 8, { timeout: 5000 });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 5000 }); // C6: pós-PIN → hub
   await page.evaluate(() => { window.PipocaApp.setState({ tela: 14 }); });
   await page.waitForFunction(() => /Histórias com IA/.test(document.body.innerText), { timeout: 5000 });
 

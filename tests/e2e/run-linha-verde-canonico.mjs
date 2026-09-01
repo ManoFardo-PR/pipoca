@@ -497,8 +497,8 @@ try {
 
   // Chips das crianças aparecem na tela do cuidador (T14 Regras & IA).
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
-  await page.waitForFunction(() => window.PipocaApp.estado.tela === 8, { timeout: 4000 });
-  assert(true, "pós-PIN aterrissa na Evolução da leitura (T8) — o hub fica a um toque");
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 }); // C6: pós-PIN → hub
+  assert(true, "C6: pós-PIN aterrissa no HUB (T11) — a Evolução fica no menu");
   await page.evaluate(() => { window.PipocaApp.setState({ tela: 14 }); });
   await page.waitForFunction(() => /Quem confirma a leitura/i.test(document.body.innerText), { timeout: 4000 });
   const uxChips = await page.evaluate(() => ({
@@ -512,7 +512,7 @@ try {
   // cartão do pote no painel de evolução (T8).
   console.log("\n=== UX por perfil · dashboards (T11 saldos, T8 pote) ===");
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
-  await page.waitForFunction(() => window.PipocaApp.estado.tela === 8, { timeout: 4000 });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 }); // C6: pós-PIN → hub
   await page.evaluate(() => { window.PipocaApp.setState({ tela: 11 }); });
   await page.waitForFunction(() => /guardados/i.test(document.body.innerText), { timeout: 4000 });
   const t11Saldos = await page.evaluate(() => ({
@@ -549,7 +549,7 @@ try {
   assert(true, "⚙ → 'Sou o adulto' fecha o modal e abre o PINGATE");
   // PIN certo → hub do cuidador; "Para a criança" → volta pra T5, não pra T2
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
-  await page.waitForFunction(() => window.PipocaApp.estado.tela === 8, { timeout: 4000 });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 }); // C6: pós-PIN → hub
   await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
   await page.waitForFunction(() => window.PipocaApp.estado.tela === 5, { timeout: 4000 });
   const volta = await page.evaluate(() => ({
@@ -705,7 +705,7 @@ try {
   // ── Conta & segurança (T16) · trocar PIN exige o atual; senha/e-mail pelo seam ──
   console.log("\n=== Conta & segurança (T16) · PIN, senha e e-mail ===");
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
-  await page.waitForFunction(() => window.PipocaApp.estado.tela === 8, { timeout: 4000 });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 }); // C6: pós-PIN → hub
   await page.evaluate(() => { window.PipocaApp.setState({ tela: 16 }); });
   await page.waitForFunction(() => /Conta & segurança|PIN do portão/i.test(document.body.innerText), { timeout: 4000 });
   assert(true, "T16 monta (Conta & segurança) a partir do hub");

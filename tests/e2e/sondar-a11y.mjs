@@ -141,7 +141,7 @@ try {
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
   await page.waitForTimeout(100);
   const semPin = await page.evaluate(() => window.PipocaApp.estado.tela);
-  if (semPin !== 8) { // 1º uso: cria o PIN pelo portão
+  if (semPin !== 8 && semPin !== 11) { // 1º uso: cria o PIN pelo portão (C6: pós-PIN → 11)
     await page.evaluate(() => { localStorage.removeItem("pipoca.acesso.v1"); window.PipocaApp.abrirPortao(); });
     await page.waitForFunction(() => window.PipocaApp.estado.tela === 1, { timeout: 5000 });
     for (const d of "1234") { await page.locator(`[aria-label="${d}"]`).first().click(); await page.waitForTimeout(40); }

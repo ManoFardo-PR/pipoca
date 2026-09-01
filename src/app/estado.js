@@ -183,13 +183,13 @@
     state.modoApp = M ? M.aoPassarPortao() : "cuidador";
   }
 
-  // Após PIN aceito: sem perfis → onboarding (T10); com perfis → a EVOLUÇÃO
-  // DA LEITURA (T8) é a aterrissagem do cuidador — o hub (T11) fica a um
-  // toque no "↩ Painel".
+  // Após PIN aceito: sem perfis → onboarding (T10); com perfis → o HUB (T11),
+  // decisão do dono (C6 · UI-A20): o gesto deliberado do PIN desemboca numa
+  // ferramenta, não num relatório de zeros — a Evolução (T8) fica no menu.
   function _irParaPosPin() {
     _entrarCuidador();
     if ((_perfis || []).length === 0) _irPara(10);
-    else _irPara(8);
+    else _irPara(11);
   }
 
   // ─── Persistência (seam RepositorioPersistencia via bundle) ───────────────

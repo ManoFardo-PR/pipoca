@@ -506,6 +506,12 @@ try {
     bia: /Bia/.test(document.body.innerText),
   }));
   assert(uxChips.ana && uxChips.bia, "T14 mostra os chips das crianças (configuração independente)");
+  // C8: o grupo de chips DIZ o escopo e tem semântica de seleção (radiogroup/radio).
+  const c8Chips = await page.evaluate(() => {
+    const rg = document.querySelector('[role="radiogroup"][aria-label="Editando para:"]');
+    return { tem: !!rg, radios: rg ? rg.querySelectorAll('[role="radio"]').length : 0, marcados: rg ? rg.querySelectorAll('[role="radio"][aria-checked="true"]').length : 0 };
+  });
+  assert(c8Chips.tem && c8Chips.radios >= 2 && c8Chips.marcados === 1, "C8: chips com rótulo de escopo ('Editando para:') e radiogroup/radio (1 marcado)");
 
   // ── C7 · "Lugares das histórias": quintal sempre aberto, "em breve" travados,
   // gesto travado inerte, e a liberação por criança reflete no switch (e na T3,
@@ -557,6 +563,13 @@ try {
   await page.waitForFunction(() => /Pote de vaga-lumes/i.test(document.body.innerText), { timeout: 4000 });
   const t8Pote = await page.evaluate(() => /✨\s*7/.test(document.body.innerText));
   assert(t8Pote, "T8 mostra o cartão do pote com o saldo da criança do chip");
+  // C8: T8 diz o escopo dos chips e nunca contradiz ("ainda não teve leitura" + dias ativos).
+  const c8T8 = await page.evaluate(() => ({
+    // text-transform:uppercase reflete no innerText — comparar sem caixa.
+    escopo: /Vendo os dados de:/i.test(document.body.innerText),
+    contradiz: /ainda não teve leitura/i.test(document.body.innerText) && /[1-9]\d* dias? ativos?/i.test(document.body.innerText),
+  }));
+  assert(c8T8.escopo && !c8T8.contradiz, "C8: T8 com rótulo 'Vendo os dados de:' e sem contradição vazio×dias ativos");
   await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
 
   // ── UX por perfil (etapa 6) · engrenagem → "Sou o adulto" → PIN → painel →

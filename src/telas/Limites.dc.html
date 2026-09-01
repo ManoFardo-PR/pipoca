@@ -28,14 +28,8 @@
     </div>
     <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 14px;">Blocos curtos e visíveis. O fim do bloco é um encerramento calmo — a história em curso nunca é cortada.</p>
 
-    <!-- Chips por criança (configuração independente · UX por perfil) -->
-    <sc-if value="{{ temVariosPerfis }}" hint-placeholder-val="{{ false }}">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;">
-        <sc-for list="{{ chipsPerfis }}" as="cp" hint-placeholder-count="2">
-          <button class="pip-lm-btn" onClick="{{ cp.onTap }}" style="{{ cp.style }}">{{ cp.nome }}</button>
-        </sc-for>
-      </div>
-    </sc-if>
+    <!-- Chips por criança (configuração independente · UX por perfil) — C8 -->
+    <dc-import name="ChipsPerfil" rotulo="Editando para:" perfis="{{ perfisChips }}" selecionadoId="{{ chipSelId }}" aoEscolher="{{ escolherChip }}"></dc-import>
 
     <!-- Bloco de foco -->
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
@@ -142,9 +136,6 @@ class Component extends DCLogic {
     const s = this.state;
     const App = window.PipocaApp;
     const lim = s.limites || { blocoMin: 15, tempoDeTelaMin: null };
-    const chipBase = 'min-height:38px;border-radius:999px;border:2px solid;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;padding:6px 16px;';
-    const chipSel = 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;';
-    const chipOff = 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;';
     const blocos = [10, 15, 20, 25].map((b) => ({
       label: b + ' min',
       onTap: () => this._definirBloco(b),
@@ -154,12 +145,10 @@ class Component extends DCLogic {
           : 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;'),
     }));
     return {
-      temVariosPerfis: s.perfis.length > 1,
-      chipsPerfis: s.perfis.map((p) => ({
-        nome: p.nome,
-        onTap: () => this._carregarChip(p.id),
-        style: chipBase + (p.id === s.chipId ? chipSel : chipOff),
-      })),
+      // C8: chips componentizados (ChipsPerfil) com rótulo de escopo.
+      perfisChips: s.perfis,
+      chipSelId: s.chipId || '',
+      escolherChip: (id) => this._carregarChip(id),
       blocos,
       avisoSessao: s.avisoSessao,
       tempoTela: s.tempoTela,

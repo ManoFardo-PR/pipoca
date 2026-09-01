@@ -27,14 +27,8 @@
     </div>
     <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 14px;">Como a leitura é confirmada e como a história termina. Tudo aqui vale já na próxima leitura.</p>
 
-    <!-- Chips por criança (configuração independente · UX por perfil) -->
-    <sc-if value="{{ temVariosPerfis }}" hint-placeholder-val="{{ false }}">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;">
-        <sc-for list="{{ chipsPerfis }}" as="cp" hint-placeholder-count="2">
-          <button class="pip-rg-btn" onClick="{{ cp.onTap }}" style="{{ cp.style }}">{{ cp.nome }}</button>
-        </sc-for>
-      </div>
-    </sc-if>
+    <!-- Chips por criança (configuração independente · UX por perfil) — C8 -->
+    <dc-import name="ChipsPerfil" rotulo="Editando para:" perfis="{{ perfisChips }}" selecionadoId="{{ chipSelId }}" aoEscolher="{{ escolherChip }}"></dc-import>
 
     <!-- Verificação -->
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
@@ -92,7 +86,7 @@
       <p style="color:#7a6a54;font-family:'Nunito';font-size:13px;margin:6px 0 12px;">{{ lugaresPergunta }}</p>
       <div style="display:flex;flex-direction:column;gap:8px;">
         <sc-for list="{{ lugares }}" as="lg" hint-placeholder-count="5">
-          <div style="display:flex;align-items:center;gap:12px;background:#fffdf7;border:2px solid #efe4cd;border-radius:14px;padding:10px 14px;{{ lg.opacidade }}">
+          <div style="{{ lg.linhaStyle }}">
             <span aria-hidden="true" style="font-size:20px;">{{ lg.icone }}</span>
             <span style="flex:1;min-width:0;display:flex;flex-direction:column;">
               <span style="font-family:'Nunito';font-weight:700;font-size:14px;color:#3a2c20;">{{ lg.nome }}</span>
@@ -283,7 +277,8 @@ class Component extends DCLogic {
         icone: lg.icone, nome: lg.nome, desc: lg.desc,
         ligado, travado,
         aria: lg.fixo ? lg.nome + ' fica sempre aberto' : 'Liberar ' + lg.nome + ' para ' + chipNome,
-        opacidade: travado && !ligado ? 'opacity:.72;' : '',
+        linhaStyle: 'display:flex;align-items:center;gap:12px;background:#fffdf7;border:2px solid #efe4cd;border-radius:14px;padding:10px 14px;'
+          + (travado && !ligado ? 'opacity:.72;' : ''),
         trilho: 'width:54px;height:30px;border-radius:999px;border:none;padding:3px;display:flex;align-items:center;flex-shrink:0;'
           + (ligado ? 'background:#7a9a5b;justify-content:flex-end;' : 'background:#cbb692;justify-content:flex-start;')
           + (travado ? 'cursor:not-allowed;' : 'cursor:pointer;'),
@@ -291,17 +286,11 @@ class Component extends DCLogic {
       };
     });
 
-    const chipBase = 'min-height:38px;border-radius:999px;border:2px solid;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;padding:6px 16px;';
-    const chipSel = 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;';
-    const chipOff = 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;';
-
     return {
-      temVariosPerfis: this.state.perfis.length > 1,
-      chipsPerfis: this.state.perfis.map((p) => ({
-        nome: p.nome,
-        onTap: () => this._carregarChip(p.id),
-        style: chipBase + (p.id === this.state.chipId ? chipSel : chipOff),
-      })),
+      // C8: chips componentizados (ChipsPerfil) com rótulo de escopo.
+      perfisChips: this.state.perfis,
+      chipSelId: this.state.chipId || '',
+      escolherChip: (id) => this._carregarChip(id),
       verificacoes,
       desfechos,
       palcoLabel: m.palco === 'Palco' ? 'Palco' : 'Ateliê',

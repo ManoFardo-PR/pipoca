@@ -1,0 +1,59 @@
+<!-- ChipsPerfil.dc.html — O grupo ÚNICO de chips de criança das telas do cuidador · Plan03 C8
+     ─────────────────────────────────────────────────────────────────────────────
+     O mesmo chip azul significava coisas diferentes em T8/T13/T14/T15 (UI-A04);
+     agora o grupo diz o escopo antes do toque ("Vendo os dados de:" / "Editando
+     para:") e tem semântica de seleção de verdade (role=radiogroup + radio,
+     UI-A39). Só aparece quando a casa tem 2+ perfis.
+
+     Props:
+       rotulo        string       — escopo acima do grupo ("Editando para:")
+       perfis        {id,nome}[]  — perfis da casa
+       selecionadoId string       — id da criança do form
+       aoEscolher    fn(id)       — troca a criança do form
+-->
+<x-dc>
+
+<div>
+  <sc-if value="{{ temChips }}" hint-placeholder-val="{{ false }}">
+    <div style="margin:0 0 14px;">
+      <div style="font-family:'Nunito';font-weight:700;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:#9a8a72;margin-bottom:6px;">{{ rotulo }}</div>
+      <div role="radiogroup" aria-label="{{ rotulo }}" style="display:flex;gap:8px;flex-wrap:wrap;">
+        <sc-for list="{{ chips }}" as="cp" hint-placeholder-count="2">
+          <button role="radio" aria-checked="{{ cp.sel }}" onClick="{{ cp.onTap }}" style="{{ cp.style }}">{{ cp.nome }}</button>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script
+  data-props="{
+    &quot;rotulo&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Editando para:&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;ChipsPerfil&quot;, &quot;label&quot;: &quot;Rótulo de escopo&quot; },
+    &quot;perfis&quot;: { &quot;editor&quot;: &quot;json&quot;, &quot;default&quot;: [], &quot;tsType&quot;: &quot;Array<{id: string, nome: string}>&quot;, &quot;section&quot;: &quot;ChipsPerfil&quot;, &quot;label&quot;: &quot;Perfis&quot; },
+    &quot;selecionadoId&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;ChipsPerfil&quot;, &quot;label&quot;: &quot;Selecionado&quot; },
+    &quot;aoEscolher&quot;: { &quot;editor&quot;: &quot;fn&quot;, &quot;default&quot;: null, &quot;tsType&quot;: &quot;((id: string) => void) | null&quot;, &quot;section&quot;: &quot;ChipsPerfil&quot;, &quot;label&quot;: &quot;Ao escolher&quot; }
+  }">
+class Component extends DCLogic {
+  state = {};
+
+  renderVals() {
+    const p = this.props || {};
+    const perfis = Array.isArray(p.perfis) ? p.perfis : [];
+    const aoEscolher = typeof p.aoEscolher === 'function' ? p.aoEscolher : (() => {});
+    const base = 'min-height:38px;border-radius:999px;border:2px solid;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;padding:6px 16px;';
+    const sel = 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;';
+    const off = 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;';
+    return {
+      temChips: perfis.length > 1,
+      rotulo: p.rotulo || 'Editando para:',
+      chips: perfis.map((pf) => ({
+        nome: pf.nome,
+        sel: pf.id === p.selecionadoId,
+        onTap: () => aoEscolher(pf.id),
+        style: base + (pf.id === p.selecionadoId ? sel : off),
+      })),
+    };
+  }
+}
+</script>

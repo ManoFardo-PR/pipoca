@@ -662,7 +662,8 @@ try {
     { timeout: 4000 }
   );
   assert(true, "T3 lista o cartão da história recém-terminada");
-  await page.locator("div[role='button']", { hasText: uxHist.titulo }).first().click();
+  // C2: o cartão virou <button> (sem botão aninhado); o coração é irmão.
+  await page.locator("button", { hasText: uxHist.titulo }).first().click();
   await page.waitForFunction(() => /Guardar para sempre/i.test(document.body.innerText), { timeout: 4000 });
   assert(true, "tap no cartão abre o leitor (modal) da história");
 

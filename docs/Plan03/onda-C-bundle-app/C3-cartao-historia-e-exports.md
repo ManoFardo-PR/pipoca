@@ -1,7 +1,6 @@
 # C3 — Remover `CartaoHistoria.dc.html` (órfão) e exports mortos de `historias.ts`
 
-> Status: pendente
-
+> Status: concluída (2026-09-01 · 9bb3d6d)
 **Unidade de deploy:** CRU (remoção de `.dc.html`) + BUNDLE app (exports).
 **Depende de:** C2 (para não apagar algo que a estante nova decidiu reaproveitar).
 **Desbloqueia:** —.

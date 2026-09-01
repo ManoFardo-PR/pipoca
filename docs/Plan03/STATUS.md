@@ -1,8 +1,8 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-01T17:15:27.724Z · branch `onda-C-bundle-app` · HEAD `0d799da`
-- Progresso: **27/59** passos concluídos
-- Próximo passo: **C3** — Remover CartaoHistoria e exports mortos ([abrir](onda-C-bundle-app/C3-cartao-historia-e-exports.md))
+- Gerado em: 2026-09-01T17:17:16.261Z · branch `onda-C-bundle-app` · HEAD `9bb3d6d`
+- Progresso: **28/59** passos concluídos
+- Próximo passo: **C4** — Canon.avatares: tabela única no core ([abrir](onda-C-bundle-app/C4-canon-avatares.md))
 - Última verificação: ✅ verde em 2026-09-01T17:00:24.900Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
   - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
@@ -48,14 +48,14 @@
 | B11 | [Admin: controles, navegação, vocabulário, erros](onda-B-cru-ux/B11-admin-controles-e-copy.md) | [✓] concluída | 2026-09-01 | `240fab7` |
 | B-M3 | Merge da trilha admin em 28_08_26 (vai ao ar) | [✓] concluída | 2026-09-01 | `3d1c4e2` |
 
-## Onda C — Bundle do app: histórias, avatars, cuidador · 3/13 · branch `onda-C-bundle-app` · BUNDLE app (+ admin)
+## Onda C — Bundle do app: histórias, avatars, cuidador · 4/13 · branch `onda-C-bundle-app` · BUNDLE app (+ admin)
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
 | C0 | Criar branch onda-C-bundle-app a partir de 28_08_26 | [✓] concluída | 2026-09-01 | `8807e4f` |
 | C1 | [Core de histórias: só completas, agrupar por dia](onda-C-bundle-app/C1-core-historias-filtro-e-agrupamento.md) | [✓] concluída | 2026-09-01 | `582a06a` |
 | C2 | [Estante de histórias digna](onda-C-bundle-app/C2-estante-de-historias.md) | [✓] concluída | 2026-09-01 | `0d799da` |
-| C3 | [Remover CartaoHistoria e exports mortos](onda-C-bundle-app/C3-cartao-historia-e-exports.md) | [ ] pendente |  |  |
+| C3 | [Remover CartaoHistoria e exports mortos](onda-C-bundle-app/C3-cartao-historia-e-exports.md) | [✓] concluída | 2026-09-01 | `9bb3d6d` |
 | C4 | [Canon.avatares: tabela única no core](onda-C-bundle-app/C4-canon-avatares.md) | [ ] pendente |  |  |
 | C5 | [Render por emoji nas 5 telas; cenas via bridge](onda-C-bundle-app/C5-render-emoji-e-cenas.md) | [ ] pendente |  |  |
 | C6 | [Fluxo do cuidador: pós-PIN → hub; Usar este; menu](onda-C-bundle-app/C6-fluxo-cuidador-hub-e-usar-este.md) | [ ] pendente |  |  |

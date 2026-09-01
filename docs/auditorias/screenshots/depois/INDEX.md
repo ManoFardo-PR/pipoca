@@ -41,17 +41,17 @@ Só os essenciais (T2, T3, T4, T5, T7, adm2) são commitados; os demais ficam lo
 | T16-conta-390x844.png | 107 |  |
 | T09-login-1280x800.png | 230 | 2 |
 | T09-login-390x844.png | 100 |  |
-| adm1-login-1280x800.png | 48 | 1 |
-| adm1-login-390x844.png | 39 |  |
-| adm2-home-1280x800.png | 78 | 1 |
-| adm2-home-390x844.png | 70 |  |
-| adm3-tenants-1280x800.png | 64 | 6 |
-| adm3-tenants-390x844.png | 59 |  |
-| adm4-conteudo-1280x800.png | 64 | 4 |
-| adm4-conteudo-390x844.png | 54 |  |
-| adm5-config-ia-1280x800.png | 83 | 14 |
-| adm5-config-ia-390x844.png | 74 |  |
-| adm6-seguranca-1280x800.png | 95 | 10 |
-| adm6-seguranca-390x844.png | 90 |  |
-| adm7-ia-global-1280x800.png | 121 | 29 |
-| adm7-ia-global-390x844.png | 90 |  |
+| adm1-login-1280x800.png | 47 | 1 |
+| adm1-login-390x844.png | 37 |  |
+| adm2-home-1280x800.png | 88 | 7 |
+| adm2-home-390x844.png | 79 |  |
+| adm3-tenants-1280x800.png | 77 | 12 |
+| adm3-tenants-390x844.png | 71 |  |
+| adm4-conteudo-1280x800.png | 73 | 10 |
+| adm4-conteudo-390x844.png | 62 |  |
+| adm5-config-ia-1280x800.png | 101 | 20 |
+| adm5-config-ia-390x844.png | 91 |  |
+| adm6-seguranca-1280x800.png | 117 | 16 |
+| adm6-seguranca-390x844.png | 88 |  |
+| adm7-ia-global-1280x800.png | 120 | 35 |
+| adm7-ia-global-390x844.png | 87 |  |

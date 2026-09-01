@@ -73,29 +73,38 @@
       <button class="pip-lf-btn" type="submit" disabled="{{ primariaTravada }}" style="{{ primariaStyle }}">{{ primariaLabel }}</button>
       </form>
 
-      <!-- Entrar com Google (provedor OAuth nativo do Supabase) — só em entrar/criar -->
+      <!-- Entrar com Google (provedor OAuth nativo do Supabase) — só em entrar/criar.
+           C10 (UI-A29): botão na identidade do PROVEDOR (guideline de marca): fundo
+           branco, borda #747775, G multicolor em SVG inline (por ref, sem fetch). -->
       <sc-if value="{{ mostrarGoogle }}" hint-placeholder-val="{{ true }}">
         <div style="display:flex;align-items:center;gap:12px;margin:18px 0 6px;">
           <div style="flex:1;height:1px;background:#e3d4ba;"></div>
           <span style="font-family:'Nunito';font-size:12.5px;color:#9a8a72;">ou</span>
           <div style="flex:1;height:1px;background:#e3d4ba;"></div>
         </div>
-        <button class="pip-lf-btn" onClick="{{ entrarGoogle }}" aria-label="Entrar com a conta Google" style="width:100%;min-height:50px;border:2px solid #e3d4ba;border-radius:16px;background:#fffdf7;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'Baloo 2';font-weight:800;font-size:16px;color:#3a2c20;">
-          <span aria-hidden="true" style="display:inline-flex;width:22px;height:22px;border-radius:50%;background:#fff;border:1px solid #e3d4ba;align-items:center;justify-content:center;font-family:'Baloo 2';font-weight:800;font-size:14px;color:#4285F4;">G</span>
-          Entrar com Google
+        <button class="pip-lf-btn" onClick="{{ entrarGoogle }}" style="width:100%;min-height:50px;border:1px solid #747775;border-radius:16px;background:#ffffff;display:flex;align-items:center;justify-content:center;gap:12px;font-family:Roboto,'Nunito',sans-serif;font-weight:600;font-size:15px;color:#1f1f1f;">
+          <span ref="{{ refLogoGoogle }}" aria-hidden="true" style="display:inline-flex;width:20px;height:20px;"></span>
+          Entrar com o Google
         </button>
+        <!-- C10 (UI-A30): a falha do Google aparece ONDE o dedo está — sob o botão -->
+        <sc-if value="{{ temErroGoogle }}" hint-placeholder-val="{{ false }}">
+          <div role="status" aria-live="polite" style="margin-top:10px;color:#9a5a3a;font-family:'Nunito';font-size:13.5px;">{{ erroGoogle }}</div>
+        </sc-if>
       </sc-if>
 
-      <!-- Caminhos secundários por modo -->
-      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;margin-top:14px;">
-        <sc-if value="{{ mostrarCriar }}" hint-placeholder-val="{{ true }}">
-          <button class="pip-lf-link" onClick="{{ irCriar }}">Criar conta da família</button>
-        </sc-if>
+      <!-- C10 (UI-A31): o caminho do usuário NOVO é ação visível (botão secundário
+           ≥48px), não o menor texto da tela -->
+      <sc-if value="{{ mostrarCriar }}" hint-placeholder-val="{{ true }}">
+        <button class="pip-lf-btn" onClick="{{ irCriar }}" style="margin-top:14px;width:100%;min-height:48px;border:2px solid #3f6f9e;border-radius:16px;background:transparent;font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3f6f9e;">Criar conta da família</button>
+      </sc-if>
+
+      <!-- Caminhos secundários por modo (links com alvo ≥44px) -->
+      <div style="display:flex;justify-content:flex-end;flex-wrap:wrap;gap:4px;margin-top:8px;">
         <sc-if value="{{ mostrarRecuperar }}" hint-placeholder-val="{{ true }}">
-          <button class="pip-lf-link" onClick="{{ irRecuperar }}">Esqueci a senha</button>
+          <button class="pip-lf-link" onClick="{{ irRecuperar }}" style="min-height:44px;">Esqueci a senha</button>
         </sc-if>
         <sc-if value="{{ mostrarVoltar }}" hint-placeholder-val="{{ false }}">
-          <button class="pip-lf-link" onClick="{{ irEntrar }}">← Já tenho conta, entrar</button>
+          <button class="pip-lf-link" onClick="{{ irEntrar }}" style="min-height:44px;">← Já tenho conta, entrar</button>
         </sc-if>
       </div>
     </div>
@@ -107,7 +116,7 @@
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
   state = { modo: 'entrar', email: '', senha: '', senha2: '', erro: '', aviso: '', ocupado: false, tokenRecuperacao: '',
-    erroEmail: '', erroSenha: '', erroSenha2: '' };
+    erroEmail: '', erroSenha: '', erroSenha2: '', erroGoogle: '' };
 
   componentDidMount() {
     // Link de recuperação do e-mail: o GoTrue volta com #access_token=…&type=recovery.
@@ -134,7 +143,7 @@ class Component extends DCLogic {
 
   _irPara(modo) {
     this.setState({ modo, erro: '', aviso: '', senha: '', senha2: '', ocupado: false,
-      erroEmail: '', erroSenha: '', erroSenha2: '' });
+      erroEmail: '', erroSenha: '', erroSenha2: '', erroGoogle: '' });
   }
 
   // C9: foca o 1º campo do modo ao abrir (autofocus não re-dispara em SPA;
@@ -170,12 +179,25 @@ class Component extends DCLogic {
   _google() {
     const App = window.PipocaApp;
     if (!App || typeof App.entrarComGoogle !== 'function' || !App.entrarComGoogle()) {
-      this.setState({ erro: 'Login com Google indisponível agora. Entre com e-mail e senha.' });
+      // C10 (UI-A30): a falha aparece SOB o botão Google (onde o dedo está).
+      this.setState({ erroGoogle: 'Login com Google indisponível agora. Entre com e-mail e senha.' });
       return;
     }
     // App.entrarComGoogle() redireciona o navegador ao consentimento; o retorno
     // (tokens no fragmento) é assentado no boot. Nada mais a fazer aqui.
-    this.setState({ ocupado: true, erro: '', aviso: '' });
+    this.setState({ ocupado: true, erro: '', aviso: '', erroGoogle: '' });
+  }
+
+  // C10: o "G" oficial multicolor (guideline de marca), inline por ref — sem fetch.
+  _injetarLogoGoogle(el) {
+    if (!el || el._k) return;
+    el._k = true;
+    el.innerHTML = "<svg viewBox='0 0 48 48' width='20' height='20' xmlns='http://www.w3.org/2000/svg'>"
+      + "<path fill='#EA4335' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/>"
+      + "<path fill='#4285F4' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/>"
+      + "<path fill='#FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/>"
+      + "<path fill='#34A853' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/>"
+      + "</svg>";
   }
 
   async _criar() {
@@ -298,6 +320,9 @@ class Component extends DCLogic {
           : 'background:#cbb692;opacity:.7;'),
       mostrarGoogle: (m === 'entrar' || m === 'criar'),
       entrarGoogle: () => this._google(),
+      refLogoGoogle: (el) => this._injetarLogoGoogle(el),
+      erroGoogle: s.erroGoogle || '',
+      temErroGoogle: !!s.erroGoogle,
       mostrarCriar: m === 'entrar',
       mostrarRecuperar: m === 'entrar',
       mostrarVoltar: m !== 'entrar',

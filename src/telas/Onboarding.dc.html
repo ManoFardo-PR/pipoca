@@ -1,4 +1,4 @@
-<!-- Onboarding.dc.html — Hub/Onboarding do cuidador (PC_HOME) · doc fase02-02-04
+﻿<!-- Onboarding.dc.html — Hub/Onboarding do cuidador (PC_HOME) · doc fase02-02-04
      ─────────────────────────────────────────────────────────────
      Atrás do PINGATE. Cria o perfil da criança (PERF) e prepara a sessão (SESS),
      aterrissando no modo criança (T2). Seam: usa window.PipocaApp + window.PipocaCanonico
@@ -43,7 +43,7 @@
       <label for="pip-ob-idade" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Idade</label>
       <input id="pip-ob-idade" class="pip-ob-campo" style="margin-top:7px;max-width:120px;" value="{{ idade }}" onInput="{{ setIdade }}" type="number" min="3" max="12" aria-label="Idade" aria-describedby="pip-ob-idade-erro" />
       <sc-if value="{{ temErroIdade }}" hint-placeholder-val="{{ false }}">
-        <div id="pip-ob-idade-erro" role="status" style="margin-top:6px;color:#9a5a3a;font-family:'Nunito';font-size:13px;">{{ erroIdade }}</div>
+        <div id="pip-ob-idade-erro" role="alert" style="margin-top:6px;color:#9a5a3a;font-family:'Nunito';font-size:13px;">{{ erroIdade }}</div>
       </sc-if>
 
       <!-- Gênero do personagem (obrigatório · fase13 pós-incidente: o nome é
@@ -51,7 +51,7 @@
       <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Nas histórias, quem vive as aventuras é…</label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
         <sc-for list="{{ generos }}" as="ge" hint-placeholder-count="2">
-          <button type="button" class="pip-ob-opt" onClick="{{ ge.onTap }}" style="{{ ge.style }}">{{ ge.label }}</button>
+          <button type="button" class="pip-ob-opt" onClick="{{ ge.onTap }}" aria-pressed="{{ ge.pressed }}" style="{{ ge.style }}">{{ ge.label }}</button>
         </sc-for>
       </div>
 
@@ -59,7 +59,7 @@
       <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Nível de leitura</label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
         <sc-for list="{{ niveis }}" as="nv" hint-placeholder-count="4">
-          <button type="button" class="pip-ob-opt" onClick="{{ nv.onTap }}" style="{{ nv.style }}">{{ nv.label }}</button>
+          <button type="button" class="pip-ob-opt" onClick="{{ nv.onTap }}" aria-pressed="{{ nv.pressed }}" style="{{ nv.style }}">{{ nv.label }}</button>
         </sc-for>
       </div>
 
@@ -170,6 +170,7 @@ class Component extends DCLogic {
       const sel = s.nivel === nv.id;
       return {
         label: nv.label,
+        pressed: sel ? 'true' : 'false', // C11: seleção com semântica
         onTap: () => this.setState({ nivel: nv.id }),
         style: optBase + (sel
           ? 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;'
@@ -180,6 +181,7 @@ class Component extends DCLogic {
       const sel = s.genero === ge.id;
       return {
         label: ge.label,
+        pressed: sel ? 'true' : 'false', // C11
         onTap: () => this.setState({ genero: ge.id }), // obrigatório: escolher não desmarca
         style: optBase + (sel
           ? 'background:#7a9a5b;border-color:#7a9a5b;color:#fff;'

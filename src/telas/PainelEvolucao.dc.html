@@ -34,28 +34,29 @@
     <!-- Frase calorosa -->
     <p style="color:#5a4a38;font-family:'Nunito';font-weight:700;font-size:16px;line-height:1.5;margin:0 0 16px;">{{ frase }}</p>
 
-    <!-- Seletor de período -->
-    <div style="display:flex;gap:8px;margin-bottom:16px;">
+    <!-- Seletor de período — C11: seleção com semântica (radiogroup/radio) -->
+    <div role="radiogroup" aria-label="Período" style="display:flex;gap:8px;margin-bottom:16px;">
       <sc-for list="{{ periodos }}" as="p" hint-placeholder-count="3">
-        <button class="pip-pe-btn" onClick="{{ p.onTap }}" style="{{ p.style }}">{{ p.label }}</button>
+        <button class="pip-pe-btn" role="radio" aria-checked="{{ p.sel }}" onClick="{{ p.onTap }}" style="{{ p.style }}">{{ p.label }}</button>
       </sc-for>
     </div>
 
-    <!-- Cartões grandes (2×2) — C8: engajamento é RÓTULO (fonte menor), não número -->
+    <!-- Cartões grandes (2×2) — C8: engajamento é RÓTULO (fonte menor), não número.
+         C11: cada cartão tem UM nome acessível ("Minutos: 20, de leitura no período"). -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
       <sc-for list="{{ cartoes }}" as="c" hint-placeholder-count="4">
-        <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:16px 18px;">
-          <div style="font-family:'Nunito';font-weight:700;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:#9a8a72;">{{ c.rot }}</div>
-          <div style="{{ c.valorStyle }}">{{ c.valor }}</div>
-          <div style="font-family:'Nunito';font-size:12px;color:#7a6a54;margin-top:2px;">{{ c.sub }}</div>
+        <div role="group" aria-label="{{ c.aria }}" style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:16px 18px;">
+          <div aria-hidden="true" style="font-family:'Nunito';font-weight:700;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:#9a8a72;">{{ c.rot }}</div>
+          <div aria-hidden="true" style="{{ c.valorStyle }}">{{ c.valor }}</div>
+          <div aria-hidden="true" style="font-family:'Nunito';font-size:12px;color:#7a6a54;margin-top:2px;">{{ c.sub }}</div>
         </div>
       </sc-for>
     </div>
 
     <!-- Pote em linha própria (C8: não é métrica do período — não disputa a grade) -->
-    <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:16px 18px;margin-top:12px;">
-      <div style="font-family:'Nunito';font-weight:700;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:#9a8a72;">Pote de vaga-lumes</div>
-      <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:4px;">
+    <div role="group" aria-label="{{ poteAria }}" style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:16px 18px;margin-top:12px;">
+      <div aria-hidden="true" style="font-family:'Nunito';font-weight:700;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:#9a8a72;">Pote de vaga-lumes</div>
+      <div aria-hidden="true" style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:4px;">
         <div style="font-family:'Baloo 2';font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;">{{ poteValor }}</div>
         <div style="font-family:'Nunito';font-size:12px;color:#7a6a54;">{{ poteSub }}</div>
       </div>
@@ -68,21 +69,27 @@
 
     <!-- Gráficos (SVG via ref + _inject; estáticos) -->
     <sc-if value="{{ temGraficos }}" hint-placeholder-val="{{ false }}">
+      <!-- C11: cada gráfico ganha aria-label no SVG e uma tabela textual oculta
+           (.pip-sr-only) com os valores — o leitor de tela lê os números de verdade -->
       <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:18px;margin-top:16px;">
         <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3a2c20;margin-bottom:8px;">Minutos por dia</div>
-        <div ref="{{ refMinutos }}" style="width:100%;"></div>
+        <div ref="{{ refMinutos }}" aria-hidden="true" style="width:100%;"></div>
+        <div class="pip-sr-only">{{ tabelaMinutos }}</div>
       </div>
       <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:18px;margin-top:12px;">
         <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3a2c20;margin-bottom:8px;">Palavras por dia</div>
-        <div ref="{{ refPalavras }}" style="width:100%;"></div>
+        <div ref="{{ refPalavras }}" aria-hidden="true" style="width:100%;"></div>
+        <div class="pip-sr-only">{{ tabelaPalavras }}</div>
       </div>
       <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:18px;margin-top:12px;">
         <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3a2c20;margin-bottom:8px;">Histórias por semana</div>
-        <div ref="{{ refHistorias }}" style="width:100%;"></div>
+        <div ref="{{ refHistorias }}" aria-hidden="true" style="width:100%;"></div>
+        <div class="pip-sr-only">{{ tabelaHistorias }}</div>
       </div>
       <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:18px;margin-top:12px;">
         <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3a2c20;margin-bottom:8px;">Presença da leitura, dia a dia</div>
-        <div ref="{{ refEngajamento }}" style="width:100%;"></div>
+        <div ref="{{ refEngajamento }}" aria-hidden="true" style="width:100%;"></div>
+        <div class="pip-sr-only">Curva da presença de leitura dia a dia — o resumo em palavras está no cartão de engajamento.</div>
       </div>
     </sc-if>
 
@@ -177,6 +184,14 @@ class Component extends DCLogic {
       + "</svg>";
   }
 
+  // C11: versão em TEXTO do gráfico para o leitor de tela (só os dias com valor;
+  // vazio → frase calma). Rótulos vêm de Canon.agregados (MM-DD).
+  _tabelaTexto(pontos, unidade) {
+    const comValor = (pontos || []).filter((p) => p.valor > 0);
+    if (!comValor.length) return 'Sem registros neste período.';
+    return 'Valores: ' + comValor.map((p) => p.rotulo + ': ' + p.valor + ' ' + unidade).join('; ') + '.';
+  }
+
   // Rótulo caloroso do engajamento (nunca nota/percentual).
   _rotuloEngajamento(media, diasAtivos) {
     if (!diasAtivos) return 'começando';
@@ -239,6 +254,7 @@ class Component extends DCLogic {
         { id: 'tudo', label: 'Tudo' },
       ].map((p) => ({
         label: p.label,
+        sel: s.periodo === p.id, // C11: seleção com semântica, não só cor
         onTap: () => this.setState({ periodo: p.id }),
         style: chipBase + (s.periodo === p.id ? chipSel : chipOff),
       })),
@@ -251,11 +267,16 @@ class Component extends DCLogic {
           sub: resumo.diasAtivos + (resumo.diasAtivos === 1 ? ' dia ativo' : ' dias ativos')
             + (resumo.sequenciaDias > 1 ? ' · ' + resumo.sequenciaDias + ' seguidos' : ''),
           valorStyle: valorRotulo },
-      ],
+      ].map((c) => Object.assign(c, { aria: c.rot + ': ' + c.valor + ', ' + c.sub })), // C11
       // UX por perfil: saldo do pote no dashboard — linha própria, porque é de
       // SEMPRE (não do período) e não disputa a grade das métricas (UI-A02).
       poteValor: '✨ ' + s.economia.vagalumes,
       poteSub: s.economia.poupado + (s.economia.poupado === 1 ? ' guardado p/ o sonho' : ' guardados p/ o sonho') + ' · saldo de sempre, não do período',
+      poteAria: 'Pote de vaga-lumes: ' + s.economia.vagalumes + ' no pote, ' + s.economia.poupado + ' guardados para o sonho (saldo de sempre, não do período)',
+      // C11: tabela textual oculta com os valores reais dos gráficos.
+      tabelaMinutos: this._tabelaTexto(series.minutosPorDia, 'minutos'),
+      tabelaPalavras: this._tabelaTexto(series.palavrasPorDia, 'palavras'),
+      tabelaHistorias: this._tabelaTexto(series.historiasPorSemana, 'histórias'),
       vazio: !s.carregando && !temDados,
       temGraficos: temDados,
       refMinutos: (el) => this._grafico(el, this._svgBarras(series.minutosPorDia, '#7a9a5b')),

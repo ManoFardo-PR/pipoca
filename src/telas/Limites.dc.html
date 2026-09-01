@@ -35,9 +35,10 @@
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
       <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">Bloco de foco</div>
       <p style="color:#7a6a54;font-family:'Nunito';font-size:13px;margin:6px 0 12px;">Quanto tempo dura cada momento de leitura.</p>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+      <!-- C11 (UI-A39): seleção com semântica (radiogroup/radio), não só cor -->
+      <div role="radiogroup" aria-label="Duração do bloco de foco" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
         <sc-for list="{{ blocos }}" as="b" hint-placeholder-count="4">
-          <button class="pip-lm-btn" onClick="{{ b.onTap }}" style="{{ b.style }}">{{ b.label }}</button>
+          <button class="pip-lm-btn" role="radio" aria-checked="{{ b.sel }}" onClick="{{ b.onTap }}" style="{{ b.style }}">{{ b.label }}</button>
         </sc-for>
       </div>
       <sc-if value="{{ avisoSessao }}" hint-placeholder-val="{{ false }}">
@@ -142,6 +143,7 @@ class Component extends DCLogic {
     const lim = s.limites || { blocoMin: 15, tempoDeTelaMin: null };
     const blocos = [10, 15, 20, 25].map((b) => ({
       label: b + ' min',
+      sel: lim.blocoMin === b, // C11
       onTap: () => this._definirBloco(b),
       style: 'min-height:48px;border-radius:14px;border:2px solid;font-family:Baloo 2;font-weight:800;font-size:15px;cursor:pointer;'
         + (lim.blocoMin === b

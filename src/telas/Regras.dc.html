@@ -33,9 +33,10 @@
     <!-- Verificação -->
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
       <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">Quem confirma a leitura</div>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
+      <!-- C11 (UI-A39): seleção com semântica (radiogroup/radio), não só cor -->
+      <div role="radiogroup" aria-label="Quem confirma a leitura" style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
         <sc-for list="{{ verificacoes }}" as="v" hint-placeholder-count="3">
-          <button class="pip-rg-btn" onClick="{{ v.onTap }}" style="{{ v.style }}">
+          <button class="pip-rg-btn" role="radio" aria-checked="{{ v.sel }}" aria-disabled="{{ v.inerte }}" onClick="{{ v.onTap }}" style="{{ v.style }}">
             <span style="font-family:'Baloo 2';font-weight:800;font-size:15px;">{{ v.label }}</span>
             <span style="font-family:'Nunito';font-size:13px;opacity:.85;">{{ v.desc }}</span>
           </button>
@@ -46,9 +47,9 @@
     <!-- Desfecho + Palco -->
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;margin-top:16px;">
       <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">Como a história termina</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
+      <div role="radiogroup" aria-label="Como a história termina" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
         <sc-for list="{{ desfechos }}" as="d" hint-placeholder-count="2">
-          <button class="pip-rg-btn" onClick="{{ d.onTap }}" style="{{ d.style }}">
+          <button class="pip-rg-btn" role="radio" aria-checked="{{ d.sel }}" onClick="{{ d.onTap }}" style="{{ d.style }}">
             <span style="font-family:'Baloo 2';font-weight:800;font-size:15px;">{{ d.label }}</span>
             <span style="font-family:'Nunito';font-size:13px;opacity:.85;">{{ d.desc }}</span>
           </button>
@@ -59,7 +60,7 @@
           <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3a2c20;">Modo do quadro</div>
           <div style="font-family:'Nunito';font-size:13px;color:#7a6a54;">{{ palcoDesc }}</div>
         </div>
-        <button class="pip-rg-btn" onClick="{{ alternarPalco }}" style="min-height:44px;border:2px solid #3f6f9e;border-radius:14px;background:#fffdf7;color:#3f6f9e;padding:0 16px;font-family:'Baloo 2';font-weight:800;font-size:14px;cursor:pointer;">{{ palcoLabel }}</button>
+        <button class="pip-rg-btn" onClick="{{ alternarPalco }}" aria-label="{{ palcoAria }}" style="min-height:44px;border:2px solid #3f6f9e;border-radius:14px;background:#fffdf7;color:#3f6f9e;padding:0 16px;font-family:'Baloo 2';font-weight:800;font-size:14px;cursor:pointer;">{{ palcoLabel }}</button>
       </div>
     </div>
 
@@ -225,6 +226,8 @@ class Component extends DCLogic {
     ].map((v) => ({
       label: v.label,
       desc: v.desc,
+      sel: m.verificacao === v.id, // C11: seleção com semântica
+      inerte: v.id === 'fala' && !falaDisponivel,
       onTap: () => {
         if (v.id === 'fala' && !falaDisponivel) return;
         if (C && C.modos) this._setModos(C.modos.definirVerificacao(m, v.id));
@@ -239,6 +242,7 @@ class Component extends DCLogic {
     ].map((d) => ({
       label: d.label,
       desc: d.desc,
+      sel: m.desfecho === d.id, // C11
       onTap: () => { if (C && C.modos) this._setModos(C.modos.definirDesfecho(m, d.id)); },
       style: cardBase + (m.desfecho === d.id ? sel : off),
     }));
@@ -294,6 +298,7 @@ class Component extends DCLogic {
       verificacoes,
       desfechos,
       palcoLabel: m.palco === 'Palco' ? 'Palco' : 'Ateliê',
+      palcoAria: 'Alternar o modo do quadro — agora: ' + (m.palco === 'Palco' ? 'Palco' : 'Ateliê'),
       palcoDesc: m.palco === 'Palco' ? 'Palco: a cena pronta ganha vida.' : 'Ateliê: a criança monta a cena.',
       alternarPalco: () => { if (C && C.modos) this._setModos(C.modos.alternarPalco(m)); },
       itensCardapio: this._cardapio().map((it) => ({

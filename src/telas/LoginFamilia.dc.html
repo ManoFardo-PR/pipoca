@@ -1,4 +1,4 @@
-<!-- LoginFamilia.dc.html — Login da família (HH_LOGIN) · doc fase02-02-01
+﻿<!-- LoginFamilia.dc.html — Login da família (HH_LOGIN) · doc fase02-02-01
      ─────────────────────────────────────────────────────────────
      Uma conta por casa. Rota inicial quando não há sessão de conta válida
      (estado.js decide no boot). Login ok → KIDMODE → T2 (o cuidador só alcança
@@ -40,7 +40,7 @@
         <label for="pip-lf-email" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;">E-mail</label>
         <input id="pip-lf-email" ref="{{ refEmail }}" class="pip-lf-campo" style="margin-top:7px;" value="{{ email }}" onInput="{{ setEmail }}" type="email" autocomplete="email" placeholder="nome@exemplo.com" aria-label="E-mail da família" aria-describedby="pip-lf-email-erro" />
         <sc-if value="{{ temErroEmail }}" hint-placeholder-val="{{ false }}">
-          <div id="pip-lf-email-erro" role="status" style="margin-top:6px;color:#9a5a3a;font-family:'Nunito';font-size:13px;">{{ erroEmail }}</div>
+          <div id="pip-lf-email-erro" role="alert" style="margin-top:6px;color:#9a5a3a;font-family:'Nunito';font-size:13px;">{{ erroEmail }}</div>
         </sc-if>
       </sc-if>
 
@@ -48,7 +48,7 @@
         <label for="pip-lf-senha" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">{{ rotuloSenha }}</label>
         <input id="pip-lf-senha" ref="{{ refSenha }}" class="pip-lf-campo" style="margin-top:7px;" value="{{ senha }}" onInput="{{ setSenha }}" type="password" autocomplete="{{ autoSenha }}" placeholder="{{ placeholderSenha }}" aria-label="Senha" aria-describedby="pip-lf-senha-erro" />
         <sc-if value="{{ temErroSenha }}" hint-placeholder-val="{{ false }}">
-          <div id="pip-lf-senha-erro" role="status" style="margin-top:6px;color:#9a5a3a;font-family:'Nunito';font-size:13px;">{{ erroSenha }}</div>
+          <div id="pip-lf-senha-erro" role="alert" style="margin-top:6px;color:#9a5a3a;font-family:'Nunito';font-size:13px;">{{ erroSenha }}</div>
         </sc-if>
       </sc-if>
 
@@ -56,7 +56,7 @@
         <label for="pip-lf-senha2" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Confirme a senha</label>
         <input id="pip-lf-senha2" class="pip-lf-campo" style="margin-top:7px;" value="{{ senha2 }}" onInput="{{ setSenha2 }}" type="password" autocomplete="new-password" placeholder="A mesma senha, de novo" aria-label="Confirme a senha" aria-describedby="pip-lf-senha2-erro" />
         <sc-if value="{{ temErroSenha2 }}" hint-placeholder-val="{{ false }}">
-          <div id="pip-lf-senha2-erro" role="status" style="margin-top:6px;color:#9a5a3a;font-family:'Nunito';font-size:13px;">{{ erroSenha2 }}</div>
+          <div id="pip-lf-senha2-erro" role="alert" style="margin-top:6px;color:#9a5a3a;font-family:'Nunito';font-size:13px;">{{ erroSenha2 }}</div>
         </sc-if>
       </sc-if>
 

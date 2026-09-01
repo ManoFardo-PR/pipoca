@@ -202,7 +202,10 @@ try {
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
   await page.waitForTimeout(150);
   await page.evaluate(() => { window.PipocaApp.setState({ modoApp: "cuidador", tela: 12 }); });
-  await page.waitForFunction(() => /Perfis/i.test(document.body.innerText), { timeout: 5000 }).catch(() => {});
+  // Texto EXCLUSIVO da T12: /Perfis/ também casa com o menu da T11 (pós-PIN → hub, C6)
+  // e os Tabs corriam antes da T12 montar — o foco morria na troca de DOM.
+  await page.waitForFunction(() => /Cada perfil guarda o próprio pote/i.test(document.body.innerText), { timeout: 5000 }).catch(() => {});
+  await page.waitForTimeout(250); // deixa o anúncio/foco da troca de tela (C11) assentar antes do Tab
   const focoT12 = await tabAte(2);
   assert(focoT12.tag !== "body" && focoT12.outlineStyle === "solid", `T12 (cuidador): Tab mostra anel em <${focoT12.tag}> "${focoT12.rotulo}"`);
   const inputSemOutlineNone = await page.evaluate(() => {

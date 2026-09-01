@@ -1,4 +1,4 @@
-<!-- Perfis.dc.html — Perfis das crianças (PC_PROF) · doc fase02-02-05
+﻿<!-- Perfis.dc.html — Perfis das crianças (PC_PROF) · doc fase02-02-05
      ─────────────────────────────────────────────────────────────
      Atrás do PINGATE. CRUD de perfis: listar, criar/editar (mesmos campos do
      Onboarding), remover (confirmação calma — apaga save + telemetria via
@@ -71,13 +71,13 @@
         <label for="pip-pf-idade" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:16px;">Idade</label>
         <input id="pip-pf-idade" class="pip-pf-campo" style="margin-top:7px;max-width:120px;" value="{{ idade }}" onInput="{{ setIdade }}" type="number" min="3" max="12" aria-label="Idade" aria-describedby="pip-pf-idade-erro" />
         <sc-if value="{{ temErroIdade }}" hint-placeholder-val="{{ false }}">
-          <div id="pip-pf-idade-erro" role="status" style="margin-top:6px;color:#9a5a3a;font-family:'Nunito';font-size:13px;">{{ erroIdade }}</div>
+          <div id="pip-pf-idade-erro" role="alert" style="margin-top:6px;color:#9a5a3a;font-family:'Nunito';font-size:13px;">{{ erroIdade }}</div>
         </sc-if>
 
         <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:16px;">Nas histórias, quem vive as aventuras é…</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
           <sc-for list="{{ generos }}" as="ge" hint-placeholder-count="2">
-            <button type="button" class="pip-pf-btn" onClick="{{ ge.onTap }}" style="{{ ge.style }}">{{ ge.label }}</button>
+            <button type="button" class="pip-pf-btn" onClick="{{ ge.onTap }}" aria-pressed="{{ ge.pressed }}" style="{{ ge.style }}">{{ ge.label }}</button>
           </sc-for>
         </div>
         <p style="color:#9a8a72;font-family:'Nunito';font-size:12px;line-height:1.4;margin:6px 0 0;">O nome da história é sempre o da criança — aqui é só a concordância.</p>
@@ -85,7 +85,7 @@
         <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:16px;">Nível de leitura</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
           <sc-for list="{{ niveis }}" as="nv" hint-placeholder-count="4">
-            <button type="button" class="pip-pf-btn" onClick="{{ nv.onTap }}" style="{{ nv.style }}">{{ nv.label }}</button>
+            <button type="button" class="pip-pf-btn" onClick="{{ nv.onTap }}" aria-pressed="{{ nv.pressed }}" style="{{ nv.style }}">{{ nv.label }}</button>
           </sc-for>
         </div>
 
@@ -298,6 +298,7 @@ class Component extends DCLogic {
     const optBase = 'min-height:44px;border-radius:14px;border:2px solid;font-family:Nunito;font-weight:700;font-size:14px;cursor:pointer;padding:8px 10px;';
     const niveis = this._niveisDefs().map((nv) => ({
       label: nv.label,
+      pressed: s.nivel === nv.id ? 'true' : 'false', // C11
       onTap: () => this.setState({ nivel: nv.id }),
       style: optBase + (s.nivel === nv.id
         ? 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;'
@@ -324,6 +325,7 @@ class Component extends DCLogic {
       const sel = s.genero === ge.id;
       return {
         label: ge.label,
+        pressed: sel ? 'true' : 'false', // C11
         onTap: () => this.setState({ genero: ge.id }), // obrigatório: escolher não desmarca
         style: optBase + (sel
           ? 'background:#7a9a5b;border-color:#7a9a5b;color:#fff;'

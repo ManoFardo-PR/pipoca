@@ -1,11 +1,10 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-01T16:47:26.494Z · branch `onda-B-cru-ux` · HEAD `c2e6444`
+- Gerado em: 2026-09-01T16:47:27.582Z · branch `onda-B-cru-ux` · HEAD `4c1eb1f`
 - Progresso: **21/59** passos concluídos
 - Próximo passo: **B10** — Admin: overlap da barra, rota /admin, allowlist ([abrir](onda-B-cru-ux/B10-admin-shell-rota-assets.md))
 - Última verificação: ✅ verde em 2026-09-01T16:45:27.054Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
   - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
 ## Onda P — Preparação · 3/3 · branch `28_08_26` · —

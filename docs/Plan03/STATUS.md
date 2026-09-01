@@ -1,8 +1,8 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-01T18:58:33.865Z · branch `onda-C-bundle-app` · HEAD `8f5a3d0`
+- Gerado em: 2026-09-01T18:58:50.765Z · branch `onda-C-bundle-app` · HEAD `2fe707a`
 - Progresso: **36/59** passos concluídos
-- Próximo passo: **C12** — Fechamento C: build:app + build:admin → e2e → merge ([abrir](onda-C-bundle-app/C12-fechamento-onda-C.md))
+- Próximo passo: nenhum disponível
 - Última verificação: ✅ verde em 2026-09-01T17:00:24.900Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
   - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
@@ -64,7 +64,7 @@
 | C9 | [Formulários honestos: disabled, form/Enter, labels](onda-C-bundle-app/C9-formularios-honestos.md) | [✓] concluída | 2026-09-01 | `0904744` |
 | C10 | [Login: Google reconhecível, erro perto do gesto](onda-C-bundle-app/C10-login-polish.md) | [✓] concluída | 2026-09-01 | `72632f0` |
 | C11 | [ARIA nas telas adultas](onda-C-bundle-app/C11-aria-telas-adultas.md) | [✓] concluída | 2026-09-01 | `8f5a3d0` |
-| C12 | [Fechamento C: build:app + build:admin → e2e → merge](onda-C-bundle-app/C12-fechamento-onda-C.md) | [ ] pendente |  |  |
+| C12 | [Fechamento C: build:app + build:admin → e2e → merge](onda-C-bundle-app/C12-fechamento-onda-C.md) | […] em andamento | 2026-09-01 |  |
 
 ## Onda D — Bundle app + admin: sync, faxina, CI · 0/10 · branch `onda-D-bundle-app-admin` · BUNDLE app + admin
 

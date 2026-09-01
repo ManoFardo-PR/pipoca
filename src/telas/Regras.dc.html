@@ -1,4 +1,4 @@
-<!-- Regras.dc.html — Regras da leitura e IA (PC_RULES + PC_AI) · doc fase02-02-07/02-08
+﻿<!-- Regras.dc.html — Regras da leitura e IA (PC_RULES + PC_AI) · doc fase02-02-07/02-08
      ─────────────────────────────────────────────────────────────
      Atrás do PINGATE. Verificação da leitura (cuidador | auto | fala*), desfecho
      (convergente | aberto), palco (Palco | Ateliê), cardápio de recompensas
@@ -23,7 +23,7 @@
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Regras &amp; IA</div>
       </div>
-      <button class="pip-rg-btn" onClick="{{ voltar }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
+      <button class="pip-rg-btn" onClick="{{ voltar }}" style="min-height:44px;border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
     </div>
     <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 14px;">Como a leitura é confirmada e como a história termina. Tudo aqui vale já na próxima leitura.</p>
 
@@ -73,9 +73,9 @@
           <div style="display:flex;align-items:center;gap:12px;background:#fffdf7;border:2px solid #efe4cd;border-radius:14px;padding:10px 14px;">
             <span style="font-size:20px;">{{ it.icon }}</span>
             <span style="font-family:'Nunito';font-weight:700;font-size:14px;color:#3a2c20;flex:1;min-width:0;">{{ it.label }}</span>
-            <button class="pip-rg-btn" onClick="{{ it.menos }}" aria-label="Diminuir custo de {{ it.label }}" style="width:34px;height:34px;border:2px solid #e3d4ba;border-radius:10px;background:transparent;font-family:'Baloo 2';font-weight:800;font-size:16px;color:#7a6a54;cursor:pointer;">−</button>
+            <button class="pip-rg-btn" onClick="{{ it.menos }}" aria-label="Diminuir custo de {{ it.label }}" style="width:44px;height:44px;border:2px solid #e3d4ba;border-radius:10px;background:transparent;font-family:'Baloo 2';font-weight:800;font-size:16px;color:#7a6a54;cursor:pointer;">−</button>
             <span aria-live="polite" style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3a2c20;min-width:44px;text-align:center;">{{ it.custo }} ✨</span>
-            <button class="pip-rg-btn" onClick="{{ it.mais }}" aria-label="Aumentar custo de {{ it.label }}" style="width:34px;height:34px;border:2px solid #e3d4ba;border-radius:10px;background:transparent;font-family:'Baloo 2';font-weight:800;font-size:16px;color:#7a6a54;cursor:pointer;">＋</button>
+            <button class="pip-rg-btn" onClick="{{ it.mais }}" aria-label="Aumentar custo de {{ it.label }}" style="width:44px;height:44px;border:2px solid #e3d4ba;border-radius:10px;background:transparent;font-family:'Baloo 2';font-weight:800;font-size:16px;color:#7a6a54;cursor:pointer;">＋</button>
           </div>
         </sc-for>
       </div>
@@ -93,8 +93,9 @@
               <span style="font-family:'Nunito';font-weight:700;font-size:14px;color:#3a2c20;">{{ lg.nome }}</span>
               <span style="font-family:'Nunito';font-size:12px;color:#7a6a54;">{{ lg.desc }}</span>
             </span>
+            <!-- C12: alvo do switch ≥44px (a pista visual segue 54×30) -->
             <button class="pip-rg-btn" onClick="{{ lg.onTap }}" role="switch" aria-checked="{{ lg.ligado }}" aria-disabled="{{ lg.travado }}" aria-label="{{ lg.aria }}" style="{{ lg.trilho }}">
-              <div style="width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);"></div>
+              <span aria-hidden="true" style="{{ lg.pista }}"><span style="width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);display:block;"></span></span>
             </button>
           </div>
         </sc-for>
@@ -283,9 +284,11 @@ class Component extends DCLogic {
         aria: lg.fixo ? lg.nome + ' fica sempre aberto' : 'Liberar ' + lg.nome + ' para ' + chipNome,
         linhaStyle: 'display:flex;align-items:center;gap:12px;background:#fffdf7;border:2px solid #efe4cd;border-radius:14px;padding:10px 14px;'
           + (travado && !ligado ? 'opacity:.72;' : ''),
-        trilho: 'width:54px;height:30px;border-radius:999px;border:none;padding:3px;display:flex;align-items:center;flex-shrink:0;'
-          + (ligado ? 'background:#7a9a5b;justify-content:flex-end;' : 'background:#cbb692;justify-content:flex-start;')
+        // C12: o BOTÃO tem ≥44px de alvo; a pista visual segue 54×30.
+        trilho: 'width:64px;min-height:44px;border:none;background:transparent;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;'
           + (travado ? 'cursor:not-allowed;' : 'cursor:pointer;'),
+        pista: 'width:54px;height:30px;border-radius:999px;padding:3px;display:flex;align-items:center;'
+          + (ligado ? 'background:#7a9a5b;justify-content:flex-end;' : 'background:#cbb692;justify-content:flex-start;'),
         onTap: travado ? (() => {}) : (() => this._alternarCenario(lg.id)),
       };
     });

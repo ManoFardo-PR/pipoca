@@ -41,7 +41,8 @@ class Component extends DCLogic {
     const p = this.props || {};
     const perfis = Array.isArray(p.perfis) ? p.perfis : [];
     const aoEscolher = typeof p.aoEscolher === 'function' ? p.aoEscolher : (() => {});
-    const base = 'min-height:38px;border-radius:999px;border:2px solid;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;padding:6px 16px;';
+    // C12: alvo ≥44px também nas telas adultas (sonda do fechamento).
+    const base = 'min-height:44px;border-radius:999px;border:2px solid;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;padding:6px 16px;';
     const sel = 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;';
     const off = 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;';
     return {

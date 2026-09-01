@@ -43,9 +43,10 @@
 
   <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--pip-esp-4);margin-top:var(--pip-esp-4);">
     <div style="font-family:var(--pip-fonte-texto);font-weight:600;font-size:15px;color:var(--pip-tinta);">{{ rotuloEstado }}</div>
+    <!-- C12: alvo do switch ≥44px (a pista visual segue 54×30) -->
     <button onClick="{{ aoAlternar }}" role="switch" aria-checked="{{ ligada }}" aria-disabled="{{ indisponivel }}" aria-label="Autorizar IA para a criança"
-            class="pip-switch" style="{{ trilhoStyle }}">
-      <div class="pip-switch-bolinha" style="{{ bolinhaStyle }}"></div>
+            style="{{ trilhoStyle }}">
+      <span aria-hidden="true" class="pip-switch" style="{{ pistaStyle }}"><span class="pip-switch-bolinha" style="{{ bolinhaStyle }}"></span></span>
     </button>
   </div>
 
@@ -84,11 +85,14 @@ class Component extends DCLogic {
     const indisponivel = !provedorPronto;
     const motivo = (this.props && this.props.motivoIndisponivel) || 'A IA ainda não está disponível nesta casa.';
 
-    const trilhoStyle = 'width:54px;height:30px;border-radius:999px;border:none;padding:3px;display:flex;align-items:center;'
+    // C12: o BOTÃO tem ≥44px de alvo; a pista visual segue 54×30.
+    const trilhoStyle = 'width:64px;min-height:44px;border:none;background:transparent;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;'
+      + (indisponivel ? 'cursor:not-allowed;' : 'cursor:pointer;');
+    const pistaStyle = 'width:54px;height:30px;border-radius:999px;padding:3px;display:flex;align-items:center;'
       + (indisponivel
-        ? 'background:var(--pip-heeler-borda);justify-content:flex-start;opacity:.55;cursor:not-allowed;'
-        : (ligada ? 'background:var(--pip-folha);justify-content:flex-end;cursor:pointer;' : 'background:var(--pip-heeler-borda);justify-content:flex-start;cursor:pointer;'));
-    const bolinhaStyle = 'width:24px;height:24px;border-radius:50%;background:var(--pip-branco);box-shadow:var(--pip-sombra-botao);';
+        ? 'background:var(--pip-heeler-borda);justify-content:flex-start;opacity:.55;'
+        : (ligada ? 'background:var(--pip-folha);justify-content:flex-end;' : 'background:var(--pip-heeler-borda);justify-content:flex-start;'));
+    const bolinhaStyle = 'width:24px;height:24px;border-radius:50%;background:var(--pip-branco);box-shadow:var(--pip-sombra-botao);display:block;';
 
     return {
       ligada: !indisponivel && ligada,
@@ -96,6 +100,7 @@ class Component extends DCLogic {
       motivo,
       rotuloEstado: indisponivel ? 'Indisponível' : (ligada ? 'Ligada' : 'Desligada'),
       trilhoStyle,
+      pistaStyle,
       bolinhaStyle,
       aoAlternar: () => this._alternar(),
     };

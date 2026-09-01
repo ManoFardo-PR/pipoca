@@ -24,7 +24,7 @@
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Perfis</div>
       </div>
-      <button class="pip-pf-btn" onClick="{{ voltar }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
+      <button class="pip-pf-btn" onClick="{{ voltar }}" style="min-height:44px;border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
     </div>
     <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 12px;">Quem lê nesta casa. Cada perfil guarda o próprio pote e o próprio ritmo.</p>
 
@@ -43,8 +43,8 @@
             </span>
             <span style="margin-left:auto;display:flex;gap:8px;flex-shrink:0;">
               <button class="pip-pf-btn" onClick="{{ c.usar }}" style="{{ c.usarStyle }}">{{ c.usarLabel }}</button>
-              <button class="pip-pf-btn" onClick="{{ c.editar }}" aria-label="Editar {{ c.nome }}" style="border:2px solid #e3d4ba;border-radius:12px;background:transparent;padding:8px 12px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6a54;cursor:pointer;">Editar</button>
-              <button class="pip-pf-btn" onClick="{{ c.remover }}" aria-label="Remover {{ c.nome }}" style="border:2px solid #e3d4ba;border-radius:12px;background:transparent;padding:8px 12px;font-family:'Nunito';font-weight:700;font-size:13px;color:#9a5a3a;cursor:pointer;">{{ c.removerLabel }}</button>
+              <button class="pip-pf-btn" onClick="{{ c.editar }}" aria-label="Editar {{ c.nome }}" style="min-height:44px;border:2px solid #e3d4ba;border-radius:12px;background:transparent;padding:8px 12px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6a54;cursor:pointer;">Editar</button>
+              <button class="pip-pf-btn" onClick="{{ c.remover }}" aria-label="Remover {{ c.nome }}" style="min-height:44px;border:2px solid #e3d4ba;border-radius:12px;background:transparent;padding:8px 12px;font-family:'Nunito';font-weight:700;font-size:13px;color:#9a5a3a;cursor:pointer;">{{ c.removerLabel }}</button>
             </span>
           </div>
           <sc-if value="{{ c.confirmando }}" hint-placeholder-val="{{ false }}">
@@ -286,7 +286,7 @@ class Component extends DCLogic {
           this.setState({ aviso: 'Agora é a vez de ' + p.nome + '. ✓' });
         },
         usarLabel: emUso ? 'Em uso ✓' : 'Usar este',
-        usarStyle: 'border:none;border-radius:12px;padding:8px 12px;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;'
+        usarStyle: 'min-height:44px;border:none;border-radius:12px;padding:8px 12px;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;' // C12: ≥44
           + (emUso ? 'background:#7a9a5b;color:#fff;' : 'background:#3f6f9e;color:#fff;'),
         editar: () => this._abrirForm(p),
         remover: () => this._remover(p),

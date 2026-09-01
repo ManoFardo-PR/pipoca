@@ -1296,27 +1296,6 @@
     return erros;
   }
 
-  class RepositorioPerfil {
-    _perfis = new Map;
-    listar() {
-      return [...this._perfis.values()];
-    }
-    buscar(id) {
-      return this._perfis.get(id) ?? null;
-    }
-    salvar(p) {
-      this._perfis.set(p.id, { ...p });
-    }
-    remover(id) {
-      return this._perfis.delete(id);
-    }
-    carregar(perfis) {
-      this._perfis.clear();
-      for (const p of perfis)
-        this._perfis.set(p.id, { ...p });
-    }
-  }
-
   // src/core/economia.ts
   function validarEconomia(e) {
     const erros = [];

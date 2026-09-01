@@ -1,4 +1,4 @@
-<!-- PainelEvolucao.dc.html — Painel de evolução da leitura (PC_DASH) · doc fase03-03-02
+﻿<!-- PainelEvolucao.dc.html — Painel de evolução da leitura (PC_DASH) · doc fase03-03-02
      ─────────────────────────────────────────────────────────────
      Tela 8 do brief, atrás do PINGATE. READ-ONLY: nunca grava telemetria.
      Frase calorosa + cartões grandes (minutos/palavras/histórias/engajamento)
@@ -25,7 +25,7 @@
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Evolução da leitura</div>
       </div>
-      <button class="pip-pe-btn" onClick="{{ voltar }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
+      <button class="pip-pe-btn" onClick="{{ voltar }}" style="min-height:44px;border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
     </div>
 
     <!-- Perfis (quando há mais de um) — C8: escopo dito antes do toque -->
@@ -232,7 +232,7 @@ class Component extends DCLogic {
       ? 'A jornada de leitura aparece aqui assim que a primeira história for lida. Tudo bem começar devagar — o ritmo é da criança. O pote continua aqui: ✨ ' + s.economia.vagalumes + '. 🌱'
       : 'Você desligou o registro do progresso para ' + nome + ' (em Privacidade) — nada novo entra aqui. O pote segue contando: ✨ ' + s.economia.vagalumes + '. 🌙';
 
-    const chipBase = 'min-height:38px;border-radius:999px;border:2px solid;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;padding:6px 16px;';
+    const chipBase = 'min-height:44px;border-radius:999px;border:2px solid;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;padding:6px 16px;'; // C12: ≥44
     const chipSel = 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;';
     const chipOff = 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;';
 

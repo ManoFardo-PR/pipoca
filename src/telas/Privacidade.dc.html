@@ -1,4 +1,4 @@
-<!-- Privacidade.dc.html — Privacidade e dados / LGPD (PC_PRIV) · doc fase02-02-09
+﻿<!-- Privacidade.dc.html — Privacidade e dados / LGPD (PC_PRIV) · doc fase02-02-09
      ─────────────────────────────────────────────────────────────
      Atrás do PINGATE. Por perfil: exportar (JSON dos schemas congelados, via
      download local) e apagar tudo (confirmação calma em 2 toques — perfil +
@@ -22,7 +22,7 @@
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Privacidade</div>
       </div>
-      <button class="pip-pv-btn" onClick="{{ voltar }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
+      <button class="pip-pv-btn" onClick="{{ voltar }}" style="min-height:44px;border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
     </div>
     <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 14px;">Os dados ficam neste aparelho: só nome, idade e o progresso da leitura. Você pode levar ou apagar tudo quando quiser.</p>
 
@@ -36,8 +36,9 @@
           <div style="font-family:'Baloo 2';font-weight:800;font-size:17px;color:#3a2c20;">{{ coletaTitulo }}</div>
           <div style="font-family:'Nunito';font-size:13px;color:#7a6a54;margin-top:4px;">Alimenta o painel de evolução. Desligado, nada novo é registrado.</div>
         </div>
+        <!-- C12: alvo do switch ≥44px (a pista visual segue 54×30) -->
         <button class="pip-pv-btn" onClick="{{ alternarColeta }}" role="switch" aria-checked="{{ coletaLigada }}" aria-label="{{ coletaTitulo }}" style="{{ trilhoStyle }}">
-          <div style="width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);"></div>
+          <span aria-hidden="true" style="{{ pistaStyle }}"><span style="width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);display:block;"></span></span>
         </button>
       </div>
     </div>
@@ -49,8 +50,8 @@
         <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:16px 18px;">
           <div style="display:flex;align-items:center;gap:14px;">
             <span style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:#3a2c20;flex:1;min-width:0;">{{ c.nome }}</span>
-            <button class="pip-pv-btn" onClick="{{ c.exportar }}" style="border:none;border-radius:12px;background:#3f6f9e;color:#fff;padding:9px 14px;font-family:'Nunito';font-weight:700;font-size:13px;cursor:pointer;">{{ c.exportarLabel }}</button>
-            <button class="pip-pv-btn" onClick="{{ c.apagar }}" style="border:2px solid #e3d4ba;border-radius:12px;background:transparent;padding:8px 12px;font-family:'Nunito';font-weight:700;font-size:13px;color:#9a5a3a;cursor:pointer;">{{ c.apagarLabel }}</button>
+            <button class="pip-pv-btn" onClick="{{ c.exportar }}" style="min-height:44px;border:none;border-radius:12px;background:#3f6f9e;color:#fff;padding:9px 14px;font-family:'Nunito';font-weight:700;font-size:13px;cursor:pointer;">{{ c.exportarLabel }}</button>
+            <button class="pip-pv-btn" onClick="{{ c.apagar }}" style="min-height:44px;border:2px solid #e3d4ba;border-radius:12px;background:transparent;padding:8px 12px;font-family:'Nunito';font-weight:700;font-size:13px;color:#9a5a3a;cursor:pointer;">{{ c.apagarLabel }}</button>
           </div>
           <sc-if value="{{ c.confirmando }}" hint-placeholder-val="{{ false }}">
             <div role="status" style="margin-top:12px;font-family:'Nunito';font-size:13px;color:#9a5a3a;">Isso apaga o perfil, o pote e todo o progresso de {{ c.nome }} — sem volta. Toque em "Apagar mesmo" para confirmar.</div>
@@ -168,7 +169,9 @@ class Component extends DCLogic {
       coletaTitulo: 'Guardar o progresso de leitura de ' + chipNome,
       coletaLigada: coleta,
       alternarColeta: () => this._alternarColeta(),
-      trilhoStyle: 'width:54px;height:30px;border-radius:999px;border:none;cursor:pointer;padding:3px;display:flex;align-items:center;flex-shrink:0;'
+      // C12: o BOTÃO tem ≥44px de alvo; a pista visual segue 54×30.
+      trilhoStyle: 'width:64px;min-height:44px;border:none;background:transparent;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;',
+      pistaStyle: 'width:54px;height:30px;border-radius:999px;padding:3px;display:flex;align-items:center;'
         + (coleta ? 'background:#7a9a5b;justify-content:flex-end;' : 'background:#cbb692;justify-content:flex-start;'),
       cartoes: s.perfis.map((p) => ({
         nome: p.nome,

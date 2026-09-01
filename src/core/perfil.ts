@@ -1,12 +1,12 @@
 /**
- * [perfil.ts] — Perfil da criança (PERF): tipo, constantes, normalizações e um
- *   repositório em memória de perfis.
+ * [perfil.ts] — Perfil da criança (PERF): tipo, constantes, normalizações e a
+ *   tabela única dos avatars (C4).
  *
- * PAPEL: core-lógica (perfil da criança + RepositorioPerfil in-memory)
+ * PAPEL: core-lógica (perfil da criança + tabela dos avatars)
  * POR QUE EXISTE: dar um shape canônico e sempre-válido ao Perfil (idade/nome/nível/avatar/
- *   gênero) e um cache síncrono de perfis para a camada de estado antes de persistir.
- * ENTRA: id + params (nome, idade, nivel, avatarId, genero), raw (validar), Perfil (repositório).
- * SAI: Perfil normalizado (criarPerfil), lista de erros (validarPerfil), RepositorioPerfil.
+ *   gênero) e uma definição ÚNICA dos avatars (id+nome+cor+emoji) para as telas.
+ * ENTRA: id + params (nome, idade, nivel, avatarId, genero), raw (validar).
+ * SAI: Perfil normalizado (criarPerfil), lista de erros (validarPerfil), AVATARES_DEF/porIdAvatar.
  * CHAMA: ./estado.js:Nivel (tipo).
  * É CHAMADO POR: src/core/onboarding.ts, src/core/geracao/geracao.ts, src/dados/schemas.ts,
  *   os repositórios (src/core/persistencia/, src/backend/adaptadores/), src/app/bridge.ts e os testes.
@@ -14,8 +14,8 @@
  * CUIDADO: idade sofre clamp 3..12; nome vazio → NOME_PADRAO ("Pipoquinha"); avatarId fora de
  *   AVATARES → AVATAR_PADRAO. `genero` é ADITIVO OPCIONAL no pipoca.perfil.v1 (fase13-13-01):
  *   saneado, nunca rejeita; ausente ⇒ concordância FEMININA padrão com o NOME REAL do perfil
- *   (NUNCA inferir do nome — "Joana" só em conteúdo legado/demonstração). RepositorioPerfil é
- *   in-memory (produção usa RepositorioPersistencia).
+ *   (NUNCA inferir do nome — "Joana" só em conteúdo legado/demonstração). Os ids de avatar são
+ *   identidade de login gravada nos envelopes — nunca renomear ("fubá" fica com acento).
  *
  * — detalhe preservado —
  * Pipoca — Perfil (PERF)

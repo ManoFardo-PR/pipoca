@@ -62,7 +62,7 @@
       <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Escolha um amiguinho</label>
       <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;">
         <sc-for list="{{ avatares }}" as="av" hint-placeholder-count="5">
-          <button class="pip-ob-opt" onClick="{{ av.onTap }}" aria-label="{{ av.name }}" style="{{ av.style }}">
+          <button class="pip-ob-opt" onClick="{{ av.onTap }}" aria-label="{{ av.name }}" aria-pressed="{{ av.pressed }}" style="{{ av.style }}">
             <span style="{{ av.disco }}">{{ av.inicial }}</span>
             <span style="font-family:'Nunito';font-weight:700;font-size:12px;color:#5a4a38;margin-top:6px;">{{ av.name }}</span>
           </button>
@@ -101,14 +101,13 @@ class Component extends DCLogic {
       { id: 'n4', label: 'Parágrafos' },
     ];
   }
-  _avataresDefs() {
-    return [
-      { id: 'pingo', name: 'Pingo', cor: '#3f6f9e' },
-      { id: 'fubá',  name: 'Fubá',  cor: '#d98a4e' },
-      { id: 'cacau', name: 'Cacau', cor: '#7a9a5b' },
-      { id: 'lua',   name: 'Lua',   cor: '#9c7cb0' },
-      { id: 'tuca',  name: 'Tuca',  cor: '#5fa9b8' },
-    ];
+  // C5 (Plan03): tabela ÚNICA (Canon.avatares); fallback de bundle antigo só com IDS.
+  _defsAvatares() {
+    const C = window.PipocaCanonico;
+    if (C && C.avatares && C.avatares.lista) return C.avatares.lista;
+    return ['pingo', 'fubá', 'cacau', 'lua', 'tuca'].map((id) => ({
+      id, nome: id.charAt(0).toUpperCase() + id.slice(1), cor: '#b8ab90', emoji: '',
+    }));
   }
 
   async _tudoPronto() {
@@ -167,16 +166,20 @@ class Component extends DCLogic {
           : 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;'),
       };
     });
-    const avatares = this._avataresDefs().map((av) => {
+    // C5: o picker mostra o avatar REAL (emoji do Canon.avatares) e marca a seleção.
+    const avatares = this._defsAvatares().map((av) => {
       const sel = s.avatarId === av.id;
       return {
-        name: av.name,
-        inicial: av.name.slice(0, 1),
+        name: av.nome,
+        inicial: av.emoji || av.nome.slice(0, 1),
+        pressed: sel ? 'true' : 'false',
         onTap: () => this.setState({ avatarId: av.id }),
         style: 'display:flex;flex-direction:column;align-items:center;background:transparent;border:none;cursor:pointer;padding:4px;'
           + (sel ? 'transform:scale(1.04);' : 'opacity:.78;'),
-        disco: 'width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;'
-          + 'font-family:Baloo 2;font-weight:800;font-size:22px;color:#fff;background:' + av.cor + ';'
+        disco: 'width:56px;height:56px;border-radius:50%;display:grid;place-items:center;'
+          + 'font-size:' + (av.emoji ? '28px' : '22px') + ';line-height:1;'
+          + (av.emoji ? '' : 'font-family:Baloo 2;font-weight:800;color:#fff;')
+          + 'background:' + av.cor + ';'
           + (sel ? 'box-shadow:0 0 0 3px #fff,0 0 0 6px ' + av.cor + ';' : 'box-shadow:0 6px 16px -6px rgba(0,0,0,.3);'),
       };
     });

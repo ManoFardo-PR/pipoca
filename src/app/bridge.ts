@@ -138,6 +138,7 @@ import {
   aoVoltarParaCrianca,
 } from "../core/modoApp.js";
 import { criarPerfil, AVATARES_DEF, AVATAR_PADRAO, normalizarAvatar, porIdAvatar } from "../core/perfil.js";
+import { svgCena, galeriaCenas } from "../core/cenas.js";
 import { montarEstadoOnboarding, perfilDoOnboarding, BLOCO_PADRAO } from "../core/onboarding.js";
 import { iniciarSessao, tick, encerrarSessao, formatarRestante } from "../core/sessao.js";
 import { estiloLeitura, paletaContraste, transicao, animacaoCena } from "../core/a11y.js";
@@ -248,6 +249,9 @@ const PipocaCanonico = {
   // C4 (Plan03): a tabela ÚNICA dos avatars — as telas leem daqui (C5) em vez de
   // duplicar a definição visual em 6 lugares.
   avatares: { lista: AVATARES_DEF, padrao: AVATAR_PADRAO, normalizar: normalizarAvatar, porId: porIdAvatar },
+  // C5 (Plan03): SVGs e metadados da galeria de cenários — fonte única (a Tela3
+  // mantém fallback inline até o bundle do C12; E5 deriva do manifesto).
+  cenas: { svgCena, galeriaCenas },
   onboarding: { montarEstadoOnboarding, perfilDoOnboarding, BLOCO_PADRAO },
   sessao: { iniciarSessao, tick, encerrarSessao, formatarRestante },
   a11y: { estiloLeitura, paletaContraste, transicao, animacaoCena },

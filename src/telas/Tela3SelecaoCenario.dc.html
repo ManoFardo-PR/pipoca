@@ -138,6 +138,10 @@ class Component extends DCLogic {
   }
 
   _scene(key) {
+    // C5: a fonte de verdade dos SVGs é Canon.cenas (core); o bloco abaixo é o
+    // fallback para bundle antigo (mesma arte) e sai quando E5 derivar do manifesto.
+    const C5c = window.PipocaCanonico;
+    if (C5c && C5c.cenas && C5c.cenas.svgCena) return C5c.cenas.svgCena(key);
     const S = {
       quintal: "<svg viewBox='0 0 400 300' width='100%' height='100%' preserveAspectRatio='xMidYMid slice' xmlns='http://www.w3.org/2000/svg'><defs><linearGradient id='qsky' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#fce7bd'/><stop offset='.55' stop-color='#f8d291'/><stop offset='1' stop-color='#f4ba74'/></linearGradient><radialGradient id='qsun' cx='.5' cy='.5' r='.5'><stop offset='0' stop-color='#fff8e2'/><stop offset='.55' stop-color='#ffe49e'/><stop offset='1' stop-color='#ffe49e' stop-opacity='0'/></radialGradient><filter id='qsoft' x='-30%' y='-30%' width='160%' height='160%'><feGaussianBlur stdDeviation='2.2'/></filter></defs><rect width='400' height='300' fill='url(#qsky)'/><circle cx='305' cy='86' r='74' fill='url(#qsun)'/><circle cx='305' cy='86' r='30' fill='#fff3d0'/><path d='M0 208 Q120 168 240 203 T400 198 V300 H0 Z' fill='#c2d693' opacity='.92'/><path d='M0 234 Q140 206 280 231 T400 229 V300 H0 Z' fill='#a6c372'/><rect y='250' width='400' height='50' fill='#90b65d'/><rect x='86' y='150' width='16' height='92' rx='6' fill='#9d6d43'/><g filter='url(#qsoft)'><circle cx='94' cy='139' r='43' fill='#7da94f'/><circle cx='64' cy='155' r='28' fill='#8db75b'/><circle cx='122' cy='156' r='30' fill='#6f9a49'/><circle cx='98' cy='116' r='26' fill='#93bd60'/></g><g fill='#c89c6c'><rect x='250' y='205' width='12' height='48' rx='3'/><rect x='285' y='205' width='12' height='48' rx='3'/><rect x='320' y='205' width='12' height='48' rx='3'/><rect x='355' y='205' width='12' height='48' rx='3'/></g><rect x='245' y='214' width='128' height='8' rx='4' fill='#ba8c5b'/><rect x='245' y='234' width='128' height='8' rx='4' fill='#ba8c5b'/><circle cx='172' cy='270' r='15' fill='#e27c50'/></svg>",
       quarto:   "<svg viewBox='0 0 400 300' width='100%' height='100%' preserveAspectRatio='xMidYMid slice' xmlns='http://www.w3.org/2000/svg'><rect width='400' height='300' fill='#e8d2e6'/><rect x='232' y='40' width='130' height='110' rx='12' fill='#3a3357'/><rect x='244' y='52' width='106' height='86' rx='7' fill='#2a2747'/><g fill='#fff' opacity='.7'><circle cx='270' cy='80' r='1.7'/><circle cx='300' cy='110' r='1.5'/><circle cx='258' cy='118' r='1.3'/></g><rect y='196' width='400' height='104' fill='#d9b69a'/><rect x='34' y='150' width='150' height='62' rx='14' fill='#caa6c4'/><circle cx='104' cy='150' r='18' fill='#fff6e6'/></svg>",
@@ -148,32 +152,19 @@ class Component extends DCLogic {
     return S[key] || S.quintal;
   }
 
-  _avatarSVG(d) {
-    if (!d) return '';
-    const ear = {
-      pup:  "<path d='M22 30 Q14 8 34 26 Z' fill='"+d.fur+"'/><path d='M86 30 Q94 8 74 26 Z' fill='"+d.fur+"'/>",
-      fox:  "<path d='M24 26 L20 4 L42 20 Z' fill='"+d.fur+"'/><path d='M84 26 L88 4 L66 20 Z' fill='"+d.fur+"'/>",
-      bear: "<circle cx='28' cy='22' r='13' fill='"+d.fur+"'/><circle cx='80' cy='22' r='13' fill='"+d.fur+"'/>",
-      cat:  "<path d='M26 28 L20 6 L40 22 Z' fill='"+d.fur+"'/><path d='M82 28 L88 6 L68 22 Z' fill='"+d.fur+"'/>",
-      bird: "<path d='M54 6 q8 -4 6 8' stroke='"+d.fur+"' stroke-width='5' fill='none' stroke-linecap='round'/>",
-    }[d.ear] || '';
-    return "<svg viewBox='0 0 42 42' width='42' height='42' xmlns='http://www.w3.org/2000/svg'>"
-      + "<g transform='scale(0.388)'>" + ear
-      + "<circle cx='54' cy='60' r='42' fill='"+d.bg+"'/>"
-      + "<circle cx='42' cy='56' r='5.5' fill='#2b2118'/><circle cx='66' cy='56' r='5.5' fill='#2b2118'/>"
-      + "<circle cx='44' cy='54' r='1.8' fill='#fff'/><circle cx='68' cy='54' r='1.8' fill='#fff'/>"
-      + "<path d='M46 72 Q54 80 62 72' stroke='#2b2118' stroke-width='4' fill='none' stroke-linecap='round'/>"
-      + "</g></svg>";
+  // C5 (Plan03): avatar por emoji sobre disco (tabela única Canon.avatares);
+  // fallback de bundle antigo com disco neutro + inicial.
+  _defAvatar(id) {
+    const C = window.PipocaCanonico;
+    if (C && C.avatares && C.avatares.porId) return C.avatares.porId(id);
+    const nome = (id || '?').charAt(0).toUpperCase() + String(id || '').slice(1);
+    return { id, nome, cor: '#b8ab90', emoji: '' };
   }
-
-  _avatarDefs() {
-    return [
-      { id:'pingo', name:'Pingo', bg:'#3f6f9e', ear:'pup',  fur:'#5b86ad' },
-      { id:'fubá',  name:'Fubá',  bg:'#d98a4e', ear:'fox',  fur:'#e6a063' },
-      { id:'cacau', name:'Cacau', bg:'#7a9a5b', ear:'bear', fur:'#93b074' },
-      { id:'lua',   name:'Lua',   bg:'#9c7cb0', ear:'cat',  fur:'#b196c2' },
-      { id:'tuca',  name:'Tuca',  bg:'#5fa9b8', ear:'bird', fur:'#7cc0cd' },
-    ];
+  _avatarHTML(d, px) {
+    const conteudo = d.emoji || (d.nome || '?').slice(0, 1).toUpperCase();
+    const fe = Math.round(px * (d.emoji ? 0.54 : 0.4));
+    return '<div role="img" aria-label="' + d.nome + '" style="width:' + px + 'px;height:' + px + 'px;border-radius:50%;background:' + d.cor + ';display:grid;place-items:center;">'
+      + '<span aria-hidden="true" style="font-size:' + fe + 'px;line-height:1;' + (d.emoji ? '' : "font-family:'Baloo 2',cursive;font-weight:800;color:#fff;") + '">' + conteudo + '</span></div>';
   }
 
   escolherCenario(cenarioId) {
@@ -226,9 +217,7 @@ class Component extends DCLogic {
     const App = window.PipocaApp;
     const perfil = App ? App.estado.perfil : null;
     if (perfil && this._childAvatarEl) {
-      const defs = this._avatarDefs();
-      const d = defs.find(x => x.id === perfil.avatarId);
-      if (d) this._inject(this._childAvatarEl, this._avatarSVG(d));
+      this._inject(this._childAvatarEl, this._avatarHTML(this._defAvatar(perfil.avatarId), 42));
     }
     const keys = ['quarto','floresta','espaco','fundomar'];
     keys.forEach(k => {

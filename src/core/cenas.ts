@@ -1,30 +1,29 @@
 /**
  * [cenas.ts] — SVGs dos 5 ambientes da Tela 3 (quintal, quarto, floresta,
- *   espaço, fundo do mar) + metadados da galeria.
+ *   espaço, fundo do mar) + metadados da galeria. (C5: movido de src/telas
+ *   para o core e exposto via bridge — Canon.cenas.)
  *
- * PAPEL: app-ui (módulo-fonte de dados de tela)
+ * PAPEL: core-lógica (dados de cena para a galeria da T3)
  * POR QUE EXISTE: guarda o desenho SVG de cada ambiente e os metadados da
- *   galeria (nome, descrição, badge, cenarioId, disponível). Portado do
- *   protótipo Pipoca.dc.html (linhas 721–784). Só o Quintal está disponível
- *   (cenarioId "quintal_anoitecer"); os outros 4 são "Em breve".
- * ENTRA: _scene(key) recebe uma CenaKey ("quintal" | "quarto" | "floresta" |
+ *   galeria (nome, descrição, badge, cenarioId, disponível) num lugar SÓ,
+ *   alcançável pelas telas via window.PipocaCanonico.cenas. Só o Quintal está
+ *   disponível (cenarioId "quintal_anoitecer"); os outros 4 são "Em breve".
+ * ENTRA: svgCena(key) recebe uma CenaKey ("quintal" | "quarto" | "floresta" |
  *   "espaco" | "fundomar").
- * SAI: _scene(key) → string SVG (cai em "quintal" se a chave não existir);
- *   _envData() → EnvData[] da galeria.
+ * SAI: svgCena(key) → string SVG (cai em "quintal" se a chave não existir);
+ *   galeriaCenas() → EnvData[] da galeria.
  * CHAMA: nada — módulo puro, self-contained.
- * É CHAMADO POR: NENHUM importador (analise-modularidade: "cenas.ts sem
- *   imports"). A Tela3 (.dc.html) NÃO importa — carrega cópia INLINE de _scene
- *   (dc-runtime: telas self-contained). Este .ts é a fonte-de-verdade espelhada.
- * RODA POR: não roda por comando próprio — módulo-fonte TS; a mesma lógica vive
- *   inline na Tela3 .dc.html.
- * CUIDADO: definição DUPLICADA — mexer aqui NÃO altera a Tela3 (cópia inline);
- *   sincronizar à mão. Os SVGs são injetados via _inject(el, _scene(key)) —
- *   nunca por {{ }} (subárvore imperativa, fora da interpolação do dc-runtime).
+ * É CHAMADO POR: src/app/bridge.ts (Canon.cenas). A Tela3 consome via Canon
+ *   com fallback inline para bundle antigo (E5 remove o fallback ao derivar a
+ *   galeria do manifesto).
+ * RODA POR: boot do app (via pipoca.bundle.js) após o build do C12.
+ * CUIDADO: os SVGs são injetados via _inject(el, svgCena(key)) — nunca por
+ *   {{ }} (subárvore imperativa, fora da interpolação do dc-runtime).
  */
 
 export type CenaKey = "quintal" | "quarto" | "floresta" | "espaco" | "fundomar";
 
-export function _scene(key: CenaKey): string {
+export function svgCena(key: CenaKey): string {
   const S: Record<string, string> = {
     quintal: `<svg viewBox='0 0 400 300' width='100%' height='100%' preserveAspectRatio='xMidYMid slice' xmlns='http://www.w3.org/2000/svg'>
       <defs><linearGradient id='qsky' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#fce7bd'/><stop offset='.55' stop-color='#f8d291'/><stop offset='1' stop-color='#f4ba74'/></linearGradient>
@@ -98,7 +97,7 @@ export interface EnvData {
   disponivel: boolean;
 }
 
-export function _envData(): EnvData[] {
+export function galeriaCenas(): EnvData[] {
   return [
     { key: "quintal",  name: "O Quintal", desc: "Com um vaga-lume no quintal", badge: "", cenarioId: "quintal_anoitecer", disponivel: true },
     { key: "quarto",   name: "O Quarto",  desc: "Histórias antes de dormir",   badge: "Em breve", cenarioId: "", disponivel: false },

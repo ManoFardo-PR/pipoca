@@ -263,7 +263,8 @@ try {
     feliz.titulo,
     { timeout: 4000 }
   );
-  await page.locator("div[role='button']", { hasText: feliz.titulo }).first().click();
+  // C2: o cartão da estante virou <button> (coração é irmão).
+  await page.locator("button", { hasText: feliz.titulo }).first().click();
   await page.waitForFunction(() => /faz-de-conta/i.test(document.body.innerText), { timeout: 4000 });
   assert(true, "o leitor EXIBE o texto realizado pela geração 2 (compor→realizar→validar→exibir→salvar)");
 

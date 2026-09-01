@@ -84,7 +84,7 @@
         <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:16px;">Amiguinho</label>
         <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;">
           <sc-for list="{{ avatares }}" as="av" hint-placeholder-count="5">
-            <button class="pip-pf-btn" onClick="{{ av.onTap }}" aria-label="{{ av.name }}" style="{{ av.style }}">
+            <button class="pip-pf-btn" onClick="{{ av.onTap }}" aria-label="{{ av.name }}" aria-pressed="{{ av.pressed }}" style="{{ av.style }}">
               <span style="{{ av.disco }}">{{ av.inicial }}</span>
               <span style="font-family:'Nunito';font-weight:700;font-size:12px;color:#5a4a38;margin-top:6px;">{{ av.name }}</span>
             </button>
@@ -125,14 +125,18 @@ class Component extends DCLogic {
     ];
   }
 
-  _avataresDefs() {
-    return [
-      { id: 'pingo', name: 'Pingo', cor: '#3f6f9e' },
-      { id: 'fubá',  name: 'Fubá',  cor: '#d98a4e' },
-      { id: 'cacau', name: 'Cacau', cor: '#7a9a5b' },
-      { id: 'lua',   name: 'Lua',   cor: '#9c7cb0' },
-      { id: 'tuca',  name: 'Tuca',  cor: '#5fa9b8' },
-    ];
+  // C5 (Plan03): tabela ÚNICA (Canon.avatares); fallback de bundle antigo só com IDS.
+  _defsAvatares() {
+    const C = window.PipocaCanonico;
+    if (C && C.avatares && C.avatares.lista) return C.avatares.lista;
+    return ['pingo', 'fubá', 'cacau', 'lua', 'tuca'].map((id) => ({
+      id, nome: id.charAt(0).toUpperCase() + id.slice(1), cor: '#b8ab90', emoji: '',
+    }));
+  }
+  _defAvatar(id) {
+    const C = window.PipocaCanonico;
+    if (C && C.avatares && C.avatares.porId) return C.avatares.porId(id);
+    return this._defsAvatares().find((a) => a.id === id) || this._defsAvatares()[0];
   }
   _niveisDefs() {
     return [
@@ -223,17 +227,19 @@ class Component extends DCLogic {
     const s = this.state;
     const App = window.PipocaApp;
     const ativoId = App && App.estado.perfil ? App.estado.perfil.id : null;
-    const cores = {}; this._avataresDefs().forEach((a) => { cores[a.id] = a.cor; });
     const nvLabel = {}; this._niveisDefs().forEach((n) => { nvLabel[n.id] = n.label; });
 
     const cartoes = s.perfis.map((p) => {
       const emUso = p.id === ativoId;
+      const av = this._defAvatar(p.avatarId); // C5: o cartão mostra o avatar real
       return {
         nome: p.nome,
-        inicial: (p.nome || '?').slice(0, 1),
+        inicial: av.emoji || (p.nome || '?').slice(0, 1),
         detalhe: p.idade + ' anos · ' + (nvLabel[p.nivel] || p.nivel),
-        disco: 'width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;'
-          + 'font-family:Baloo 2;font-weight:800;font-size:19px;color:#fff;background:' + (cores[p.avatarId] || '#3f6f9e') + ';',
+        disco: 'width:46px;height:46px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;'
+          + 'font-size:' + (av.emoji ? '24px' : '19px') + ';line-height:1;'
+          + (av.emoji ? '' : 'font-family:Baloo 2;font-weight:800;color:#fff;')
+          + 'background:' + av.cor + ';',
         // UX por perfil: troca hidratando o save da criança (sem navegar — o
         // cuidador continua no painel).
         usar: () => {
@@ -259,16 +265,20 @@ class Component extends DCLogic {
         ? 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;'
         : 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;'),
     }));
-    const avatares = this._avataresDefs().map((av) => {
+    // C5: o picker mostra o avatar REAL (emoji do Canon.avatares) e marca a seleção.
+    const avatares = this._defsAvatares().map((av) => {
       const sel = s.avatarId === av.id;
       return {
-        name: av.name,
-        inicial: av.name.slice(0, 1),
+        name: av.nome,
+        inicial: av.emoji || av.nome.slice(0, 1),
+        pressed: sel ? 'true' : 'false',
         onTap: () => this.setState({ avatarId: av.id }),
         style: 'display:flex;flex-direction:column;align-items:center;background:transparent;border:none;cursor:pointer;padding:4px;'
           + (sel ? 'transform:scale(1.04);' : 'opacity:.78;'),
-        disco: 'width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;'
-          + 'font-family:Baloo 2;font-weight:800;font-size:20px;color:#fff;background:' + av.cor + ';'
+        disco: 'width:52px;height:52px;border-radius:50%;display:grid;place-items:center;'
+          + 'font-size:' + (av.emoji ? '26px' : '20px') + ';line-height:1;'
+          + (av.emoji ? '' : 'font-family:Baloo 2;font-weight:800;color:#fff;')
+          + 'background:' + av.cor + ';'
           + (sel ? 'box-shadow:0 0 0 3px #fff,0 0 0 6px ' + av.cor + ';' : 'box-shadow:0 6px 16px -6px rgba(0,0,0,.3);'),
       };
     });

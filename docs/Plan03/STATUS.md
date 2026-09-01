@@ -1,12 +1,11 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-01T18:08:06.731Z · branch `onda-C-bundle-app` · HEAD `32a7e3c`
-- Progresso: **31/59** passos concluídos
-- Próximo passo: **C7** — UI de cenários liberados na Regras ([abrir](onda-C-bundle-app/C7-cenarios-liberados-ui.md))
-- Também disponíveis (∥): C8
+- Gerado em: 2026-09-01T18:14:53.018Z · branch `onda-C-bundle-app` · HEAD `cfdba65`
+- Progresso: **32/59** passos concluídos
+- Próximo passo: nenhum disponível
 - Última verificação: ✅ verde em 2026-09-01T17:00:24.900Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ árvore suja (3 arquivo(s)) — commite antes de concluir um passo
   - ⚠ pipoca.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/app/bridge.ts, src/dados (rebuild pendente)
   - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
@@ -49,7 +48,7 @@
 | B11 | [Admin: controles, navegação, vocabulário, erros](onda-B-cru-ux/B11-admin-controles-e-copy.md) | [✓] concluída | 2026-09-01 | `240fab7` |
 | B-M3 | Merge da trilha admin em 28_08_26 (vai ao ar) | [✓] concluída | 2026-09-01 | `3d1c4e2` |
 
-## Onda C — Bundle do app: histórias, avatars, cuidador · 7/13 · branch `onda-C-bundle-app` · BUNDLE app (+ admin)
+## Onda C — Bundle do app: histórias, avatars, cuidador · 8/13 · branch `onda-C-bundle-app` · BUNDLE app (+ admin)
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
@@ -60,8 +59,8 @@
 | C4 | [Canon.avatares: tabela única no core](onda-C-bundle-app/C4-canon-avatares.md) | [✓] concluída | 2026-09-01 | `845c7bf` |
 | C5 | [Render por emoji nas 5 telas; cenas via bridge](onda-C-bundle-app/C5-render-emoji-e-cenas.md) | [✓] concluída | 2026-09-01 | `88979ce` |
 | C6 | [Fluxo do cuidador: pós-PIN → hub; Usar este; menu](onda-C-bundle-app/C6-fluxo-cuidador-hub-e-usar-este.md) | [✓] concluída | 2026-09-01 | `32a7e3c` |
-| C7 | [UI de cenários liberados na Regras](onda-C-bundle-app/C7-cenarios-liberados-ui.md) ∥ | [ ] pendente |  |  |
-| C8 | [T8 coerente; chips com escopo; T15 com nome](onda-C-bundle-app/C8-t8-coerente-e-chips-com-escopo.md) ∥ | [ ] pendente |  |  |
+| C7 | [UI de cenários liberados na Regras](onda-C-bundle-app/C7-cenarios-liberados-ui.md) ∥ | [✓] concluída | 2026-09-01 | `cfdba65` |
+| C8 | [T8 coerente; chips com escopo; T15 com nome](onda-C-bundle-app/C8-t8-coerente-e-chips-com-escopo.md) ∥ | […] em andamento | 2026-09-01 |  |
 | C9 | [Formulários honestos: disabled, form/Enter, labels](onda-C-bundle-app/C9-formularios-honestos.md) | [ ] pendente |  |  |
 | C10 | [Login: Google reconhecível, erro perto do gesto](onda-C-bundle-app/C10-login-polish.md) | [ ] pendente |  |  |
 | C11 | [ARIA nas telas adultas](onda-C-bundle-app/C11-aria-telas-adultas.md) | [ ] pendente |  |  |

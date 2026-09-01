@@ -1,7 +1,6 @@
 # C8 — T8 coerente no vazio; chips que dizem se filtram ou editam; T15 com escopo visível
 
-> Status: pendente
-
+> Status: em andamento (2026-09-01)
 **Unidade de deploy:** CRU (`PainelEvolucao`, `Limites`, `Regras`, `Privacidade`.dc.html).
 **Depende de:** nada. **Desbloqueia:** —.
 

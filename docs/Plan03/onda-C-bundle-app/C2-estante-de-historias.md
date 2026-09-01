@@ -1,7 +1,6 @@
 # C2 — Estante de histórias digna (ML-1, parte UI)
 
-> Status: pendente
-
+> Status: concluída (2026-09-01 · 0d799da)
 **Unidade de deploy:** CRU (`.dc.html`, `estado.js`) + BUNDLE se C1 (bridge).
 **Depende de:** C1. **Desbloqueia:** C3.
 

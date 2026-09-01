@@ -1,8 +1,8 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-01T16:53:15.024Z · branch `onda-B-cru-ux` · HEAD `1876668`
-- Progresso: **22/59** passos concluídos
-- Próximo passo: **B11** — Admin: controles, navegação, vocabulário, erros ([abrir](onda-B-cru-ux/B11-admin-controles-e-copy.md))
+- Gerado em: 2026-09-01T17:00:22.589Z · branch `onda-B-cru-ux` · HEAD `240fab7`
+- Progresso: **23/59** passos concluídos
+- Próximo passo: **B-M3** — Merge da trilha admin em 28_08_26 (vai ao ar)
 - Última verificação: ✅ verde em 2026-09-01T16:45:27.054Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
   - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
@@ -27,7 +27,7 @@
 | A4 | [Edges: RPC de cota e MODELO_PADRAO alinhado](onda-A-seguranca/A4-edges-rpc-e-modelo-padrao.md) | [✓] concluída | 2026-08-28 | `8e3be20` |
 | A5 | [Fechamento A: SQL aplicada → redeploy ×2 → build:app → e2e → merge](onda-A-seguranca/A5-fechamento-onda-A.md) | [✓] concluída | 2026-08-28 | `9837eee` |
 
-## Onda B — UX servida crua · 13/15 · branch `onda-B-cru-ux` · CRU (commit = deploy)
+## Onda B — UX servida crua · 14/15 · branch `onda-B-cru-ux` · CRU (commit = deploy)
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
@@ -44,7 +44,7 @@
 | B9 | [T7 pote: barra 67%%, ~2, alvos, celebração](onda-B-cru-ux/B9-t7-pote.md) ∥ | [✓] concluída | 2026-09-01 | `ea396ff` |
 | B-M2 | Merge da trilha navegação+mecânica em 28_08_26 (vai ao ar) | [✓] concluída | 2026-09-01 | `c2e6444` |
 | B10 | [Admin: overlap da barra, rota /admin, allowlist](onda-B-cru-ux/B10-admin-shell-rota-assets.md) | [✓] concluída | 2026-09-01 | `1876668` |
-| B11 | [Admin: controles, navegação, vocabulário, erros](onda-B-cru-ux/B11-admin-controles-e-copy.md) | [ ] pendente |  |  |
+| B11 | [Admin: controles, navegação, vocabulário, erros](onda-B-cru-ux/B11-admin-controles-e-copy.md) | [✓] concluída | 2026-09-01 | `240fab7` |
 | B-M3 | Merge da trilha admin em 28_08_26 (vai ao ar) | [ ] pendente |  |  |
 
 ## Onda C — Bundle do app: histórias, avatars, cuidador · 0/13 · branch `onda-C-bundle-app` · BUNDLE app (+ admin)

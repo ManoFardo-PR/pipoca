@@ -1,7 +1,6 @@
 # B10 — Admin: barra que cobre as telas (1 linha), rota `/admin`, allowlist de assets
 
-> Status: pendente
-
+> Status: concluída (2026-09-01 · 1876668)
 **Unidade de deploy:** CRU (`src/admin/telas/AdminShell.dc.html`, `server.js`).
 **Depende de:** nada. **Desbloqueia:** B11.
 

@@ -31,14 +31,30 @@ export type { Nivel };
 export const AVATARES = ["pingo", "fubá", "cacau", "lua", "tuca"] as const;
 export type AvatarId = typeof AVATARES[number];
 
+/**
+ * A TABELA ÚNICA dos avatars (Plan03 · C4): id + nome + cor + emoji num lugar só,
+ * exposta às telas via `window.PipocaCanonico.avatares` (bridge). Antes a definição
+ * visual vivia duplicada em 6 lugares com 2 formatos. Os IDS SÃO IDENTIDADE DE
+ * LOGIN da criança (gravados no envelope pipoca.perfil.v1) — nunca renomear
+ * ("fubá" fica com acento, decisão do dono). Emojis decididos pelo dono:
+ * 🐶 🦊 🐻 🐱 🐦 (a metáfora dos bichinhos, sem as orelhas-chifre — ML-4).
+ */
+export const AVATARES_DEF: ReadonlyArray<{ id: AvatarId; nome: string; cor: string; emoji: string }> = [
+  { id: "pingo", nome: "Pingo", cor: "#3f6f9e", emoji: "🐶" },
+  { id: "fubá",  nome: "Fubá",  cor: "#d98a4e", emoji: "🦊" },
+  { id: "cacau", nome: "Cacau", cor: "#7a9a5b", emoji: "🐻" },
+  { id: "lua",   nome: "Lua",   cor: "#9c7cb0", emoji: "🐱" },
+  { id: "tuca",  nome: "Tuca",  cor: "#5fa9b8", emoji: "🐦" },
+];
+
 export const NOME_PADRAO = "Pipoquinha";
-export const NIVEL_PADRAO: Nivel = "n1";
+const NIVEL_PADRAO: Nivel = "n1"; // C4: interno (nenhum consumidor externo)
 export const AVATAR_PADRAO: AvatarId = "pingo";
 export const IDADE_MIN = 3;
 export const IDADE_MAX = 12;
 
-export const GENEROS = ["m", "f"] as const;
-export type GeneroPerfil = typeof GENEROS[number];
+// C4: GENEROS (lista) saiu — sem consumidor; o tipo continua para o shape do Perfil.
+export type GeneroPerfil = "m" | "f";
 
 export interface Perfil {
   id: string;
@@ -61,28 +77,19 @@ export interface Perfil {
 
 const NIVEIS_VALIDOS: Nivel[] = ["n1", "n2", "n3", "n4"];
 
-/** Perfil sem dados — placeholder seguro. */
-export const perfilVazio: Perfil = {
-  id: "",
-  nome: NOME_PADRAO,
-  idade: 7,
-  nivel: NIVEL_PADRAO,
-  avatarId: AVATAR_PADRAO,
-};
-
 /** Clamp de idade entre IDADE_MIN e IDADE_MAX. */
 export function clampIdade(idade: number): number {
   return Math.max(IDADE_MIN, Math.min(IDADE_MAX, Math.round(idade)));
 }
 
-/** Normaliza o nome: em branco → NOME_PADRAO. */
-export function normalizarNome(nome: string): string {
+/** Normaliza o nome: em branco → NOME_PADRAO. (C4: interno — só criarPerfil usa.) */
+function normalizarNome(nome: string): string {
   const trimmed = nome.trim();
   return trimmed.length > 0 ? trimmed : NOME_PADRAO;
 }
 
-/** Valida e normaliza um nível; fallback para NIVEL_PADRAO. */
-export function normalizarNivel(nivel: string): Nivel {
+/** Valida e normaliza um nível; fallback para NIVEL_PADRAO. (C4: interno.) */
+function normalizarNivel(nivel: string): Nivel {
   if ((NIVEIS_VALIDOS as string[]).includes(nivel)) return nivel as Nivel;
   return NIVEL_PADRAO;
 }
@@ -91,6 +98,12 @@ export function normalizarNivel(nivel: string): Nivel {
 export function normalizarAvatar(avatarId: string): AvatarId {
   if ((AVATARES as readonly string[]).includes(avatarId)) return avatarId as AvatarId;
   return AVATAR_PADRAO;
+}
+
+/** A definição visual do avatar (id desconhecido cai no padrão — nunca null). C4. */
+export function porIdAvatar(avatarId: string): { id: AvatarId; nome: string; cor: string; emoji: string } {
+  const id = normalizarAvatar(avatarId);
+  return AVATARES_DEF.find((a) => a.id === id) ?? AVATARES_DEF[0]!;
 }
 
 /**
@@ -144,37 +157,5 @@ export function validarPerfil(p: unknown): string[] {
   return erros;
 }
 
-/**
- * RepositorioPerfil — repositório em memória de perfis.
- * Produção usa RepositorioPersistencia; este é usado para operações
- * síncronas na camada de estado (antes de persistir).
- */
-export class RepositorioPerfil {
-  private _perfis: Map<string, Perfil> = new Map();
-
-  /** Lista todos os perfis. */
-  listar(): Perfil[] {
-    return [...this._perfis.values()];
-  }
-
-  /** Busca um perfil por id; null se não encontrado. */
-  buscar(id: string): Perfil | null {
-    return this._perfis.get(id) ?? null;
-  }
-
-  /** Insere ou atualiza um perfil (upsert). */
-  salvar(p: Perfil): void {
-    this._perfis.set(p.id, { ...p });
-  }
-
-  /** Remove um perfil. Retorna true se existia. */
-  remover(id: string): boolean {
-    return this._perfis.delete(id);
-  }
-
-  /** Substitui toda a lista de perfis (usado ao carregar do storage). */
-  carregar(perfis: Perfil[]): void {
-    this._perfis.clear();
-    for (const p of perfis) this._perfis.set(p.id, { ...p });
-  }
-}
+// C4 (Plan03): RepositorioPerfil (in-memory) e perfilVazio saíram — superseded por
+// RepositorioLocalStorage/RepositorioPersistencia; zero consumidores desde a fase06.

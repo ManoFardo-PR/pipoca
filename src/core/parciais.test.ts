@@ -40,7 +40,7 @@ import { exportarDados, apagarDados } from "./lgpd.js";
 import { definirBlocoFoco, normalizarLimites } from "./limites.js";
 import { CARDAPIO_PADRAO, normalizarCardapio, normalizarCenariosLiberados } from "./cardapio.js";
 import { estadoInicial } from "./estado.js";
-import { criarPerfil } from "./perfil.js";
+import { criarPerfil, AVATARES_DEF, porIdAvatar, normalizarAvatar } from "./perfil.js";
 import type { Perfil } from "./perfil.js";
 import type { EstadoApp } from "./estado.js";
 import type { RepositorioPersistencia } from "./persistencia/index.js";
@@ -68,6 +68,19 @@ class RepoMem implements RepositorioPersistencia {
     this.saves.delete(id);
     this.telemetria = this.telemetria.filter((e) => e.perfilId !== id);
   }
+}
+
+// ─── Plan03 · C4 — tabela única dos avatars (Canon.avatares) ─────────────────
+console.log("\n=== C4 · avatares: tabela única no core ===");
+{
+  assert(AVATARES_DEF.length === 5 && new Set(AVATARES_DEF.map((a) => a.id)).size === 5,
+    "AVATARES_DEF tem as 5 entradas únicas");
+  assert(AVATARES_DEF.every((a) => a.nome && /^#[0-9a-f]{6}$/i.test(a.cor) && a.emoji.length > 0),
+    "cada avatar tem nome, cor hex e emoji");
+  assert(porIdAvatar("fubá").nome === "Fubá" && porIdAvatar("fubá").emoji === "🦊",
+    "porIdAvatar resolve o id com acento (fubá — identidade de login, nunca renomear)");
+  assert(porIdAvatar("inventado").id === "pingo" && normalizarAvatar("x") === "pingo",
+    "id desconhecido cai no padrão (pingo) — nunca null");
 }
 
 const perfil: Perfil = criarPerfil("p1", { nome: "Joana", idade: 7, nivel: "n2", avatarId: "pingo" });

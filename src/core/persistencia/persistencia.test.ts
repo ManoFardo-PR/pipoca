@@ -452,6 +452,28 @@ console.log("\n=== histórias salvas — repo local (upsert, poda, LGPD) ===");
     `intermediárias respeitam o teto próprio (${MAX_INTERMEDIARIAS_NAO_FAVORITAS})`);
   assert(MAX_NAO_FAVORITAS === 30, "teto das completas não mudou (30)");
 
+  // ─── Plan03 · C1 — helpers de EXIBIÇÃO da estante (armazenamento intocado) ───
+  console.log("\n=== C1 · estante: apenasCompletas + agruparPorDia (helpers puros) ===");
+  const { apenasCompletas, agruparPorDia } = await import("../historias.js");
+  const soCompletas = apenasCompletas(normalizadas);
+  assert(soCompletas.length === 5 && soCompletas.every((h) => h.intermediaria !== true),
+    "apenasCompletas: intermediárias somem da exibição (decisão do dono)");
+  const intFavorita = normalizarHistorias(
+    [{ ...mkH("int-fav", 0, true), intermediaria: true, rodada: 2 }, mkH("comp-x", 0)], agora);
+  assert(apenasCompletas(intFavorita).every((h) => h.id !== "int-fav"),
+    "apenasCompletas: intermediária FAVORITA também sai da exibição (mesma regra; segue armazenada)");
+  const paraAgrupar = normalizarHistorias([
+    mkH("hoje-1", 0), { ...mkH("hoje-2", 0), criadaEm: agora - 1000 },
+    mkH("ontem-1", 1), mkH("velha-1", 3),
+  ], agora);
+  const grupos = agruparPorDia(paraAgrupar, agora);
+  assert(grupos.length === 3 && grupos[0]?.rotulo === "hoje" && grupos[1]?.rotulo === "ontem" && grupos[2]?.rotulo === "há 3 dias",
+    "agruparPorDia: grupos hoje/ontem/há N dias na ordem desc");
+  assert(grupos[0]?.historias.length === 2 && grupos[0]?.historias[0]?.id === "hoje-1" && grupos[0]?.historias[1]?.id === "hoje-2",
+    "agruparPorDia: preserva a ordem desc dentro do grupo");
+  assert(grupos[1]?.historias.length === 1 && grupos[2]?.historias.length === 1,
+    "agruparPorDia: cada história cai no seu dia (estável)");
+
   // localStorage cheio: poda preventiva — intermediárias primeiro (13-02).
   const memCheia = new Map<string, string>();
   let falhasRestantes = 1; // a 1ª gravação "estoura a quota"; após 1 poda, cabe

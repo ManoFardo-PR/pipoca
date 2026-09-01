@@ -222,6 +222,41 @@ export function normalizarHistorias(lista: unknown[], agora: number): HistoriaSa
 }
 
 /**
+ * Lista de EXIBIÇÃO da estante (Plan03 · C1, decisão do dono): as intermediárias
+ * (um registro por portão lido, fase13-13-02) SOMEM da estante — elas seguem
+ * armazenadas (têm valor para "salvo === lido" e retomada), mas na T3 viravam
+ * 3 cartões quase idênticos ao lado da história completa. Pura; não altera
+ * normalizarHistorias nem a poda.
+ */
+export function apenasCompletas(lista: HistoriaSalva[]): HistoriaSalva[] {
+  return (Array.isArray(lista) ? lista : []).filter((h) => h.intermediaria !== true);
+}
+
+/**
+ * Agrupa para exibição por dia relativo ("hoje" / "ontem" / "há N dias"),
+ * preservando a ordem recebida (criadaEm desc vinda de normalizarHistorias).
+ * Grupos aparecem na ordem do primeiro item de cada rótulo. Pura (C1).
+ */
+export function agruparPorDia(
+  lista: HistoriaSalva[],
+  agora: number
+): Array<{ rotulo: string; historias: HistoriaSalva[] }> {
+  const grupos: Array<{ rotulo: string; historias: HistoriaSalva[] }> = [];
+  const porRotulo = new Map<string, { rotulo: string; historias: HistoriaSalva[] }>();
+  for (const h of Array.isArray(lista) ? lista : []) {
+    const rotulo = dataRelativa(h.criadaEm, agora);
+    let grupo = porRotulo.get(rotulo);
+    if (!grupo) {
+      grupo = { rotulo, historias: [] };
+      porRotulo.set(rotulo, grupo);
+      grupos.push(grupo);
+    }
+    grupo.historias.push(h);
+  }
+  return grupos;
+}
+
+/**
  * Título acolhedor derivado na captura (estável — nunca recalculado depois).
  * `ultimoObjeto` = { nome } do último objeto da linha (metadados do cenário).
  */

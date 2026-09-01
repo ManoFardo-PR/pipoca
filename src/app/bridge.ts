@@ -117,6 +117,8 @@ import {
   normalizarHistorias,
   tituloDaHistoria,
   dataRelativa,
+  apenasCompletas,
+  agruparPorDia,
 } from "../core/historias.js";
 import { LIMITES_PADRAO, definirBlocoFoco, normalizarTempoDeTela, normalizarLimites } from "../core/limites.js";
 import {
@@ -238,6 +240,9 @@ const PipocaCanonico = {
     normalizarHistorias,
     tituloDaHistoria,
     dataRelativa,
+    // C1 (Plan03): a estante exibe só completas, agrupadas por dia.
+    apenasCompletas,
+    agruparPorDia,
   },
   perfil: { criarPerfil },
   onboarding: { montarEstadoOnboarding, perfilDoOnboarding, BLOCO_PADRAO },

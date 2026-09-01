@@ -1,7 +1,6 @@
 # C4 — `Canon.avatares`: tabela única de avatars no core, exposta pelo bridge; poda de `perfil.ts`
 
-> Status: pendente
-
+> Status: concluída (2026-09-01 · 845c7bf)
 **Unidade de deploy:** BUNDLE app (`src/core/perfil.ts`, `src/app/bridge.ts`).
 **Depende de:** nada. **Desbloqueia:** C5.
 

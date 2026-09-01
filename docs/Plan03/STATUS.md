@@ -1,11 +1,12 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-01T17:00:52.111Z · branch `onda-B-cru-ux` · HEAD `538d010`
-- Progresso: **23/59** passos concluídos
-- Próximo passo: nenhum disponível
+- Gerado em: 2026-09-01T17:01:54.742Z · branch `onda-B-cru-ux` · HEAD `3d1c4e2`
+- Progresso: **24/59** passos concluídos
+- Próximo passo: **C0** — Criar branch onda-C-bundle-app a partir de 28_08_26
 - Última verificação: ✅ verde em 2026-09-01T17:00:24.900Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ branch atual "onda-B-cru-ux" ≠ esperada para C0 ("28_08_26")
+  - ⚠ árvore suja (1 arquivo(s)) — commite antes de concluir um passo
   - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
 ## Onda P — Preparação · 3/3 · branch `28_08_26` · —
@@ -27,7 +28,7 @@
 | A4 | [Edges: RPC de cota e MODELO_PADRAO alinhado](onda-A-seguranca/A4-edges-rpc-e-modelo-padrao.md) | [✓] concluída | 2026-08-28 | `8e3be20` |
 | A5 | [Fechamento A: SQL aplicada → redeploy ×2 → build:app → e2e → merge](onda-A-seguranca/A5-fechamento-onda-A.md) | [✓] concluída | 2026-08-28 | `9837eee` |
 
-## Onda B — UX servida crua · 14/15 · branch `onda-B-cru-ux` · CRU (commit = deploy)
+## Onda B — UX servida crua · 15/15 · branch `onda-B-cru-ux` · CRU (commit = deploy)
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
@@ -45,7 +46,7 @@
 | B-M2 | Merge da trilha navegação+mecânica em 28_08_26 (vai ao ar) | [✓] concluída | 2026-09-01 | `c2e6444` |
 | B10 | [Admin: overlap da barra, rota /admin, allowlist](onda-B-cru-ux/B10-admin-shell-rota-assets.md) | [✓] concluída | 2026-09-01 | `1876668` |
 | B11 | [Admin: controles, navegação, vocabulário, erros](onda-B-cru-ux/B11-admin-controles-e-copy.md) | [✓] concluída | 2026-09-01 | `240fab7` |
-| B-M3 | Merge da trilha admin em 28_08_26 (vai ao ar) | […] em andamento | 2026-09-01 |  |
+| B-M3 | Merge da trilha admin em 28_08_26 (vai ao ar) | [✓] concluída | 2026-09-01 | `3d1c4e2` |
 
 ## Onda C — Bundle do app: histórias, avatars, cuidador · 0/13 · branch `onda-C-bundle-app` · BUNDLE app (+ admin)
 

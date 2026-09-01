@@ -1,7 +1,6 @@
 # C6 — Fluxo do cuidador: pós-PIN cai no hub, "Usar este" responde, menu sem duplicatas
 
-> Status: pendente
-
+> Status: concluída (2026-09-01 · 32a7e3c)
 **Unidade de deploy:** CRU (`src/app/estado.js`, `Perfis.dc.html`, `PainelCuidador.dc.html`).
 **Depende de:** nada. **Desbloqueia:** —.
 

@@ -1,11 +1,10 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-01T17:00:52.111Z · branch `onda-B-cru-ux` · HEAD `538d010`
+- Gerado em: 2026-09-01T17:02:45.827Z · branch `28_08_26` · HEAD `77746aa`
 - Progresso: **23/59** passos concluídos
 - Próximo passo: nenhum disponível
 - Última verificação: ✅ verde em 2026-09-01T17:00:24.900Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
   - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
 ## Onda P — Preparação · 3/3 · branch `28_08_26` · —

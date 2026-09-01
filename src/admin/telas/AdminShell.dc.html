@@ -25,8 +25,10 @@
     <div style="margin-left:auto;font-family:'Nunito';font-size:12px;color:rgba(244,241,234,.7);">área do operador — não é a tela da criança</div>
   </div>
 
-  <!-- Slot das telas SA_* -->
-  <div style="position:absolute;inset:0;padding-top:52px;">
+  <!-- Slot das telas SA_* — B10 (UI-A13): as filhas usam inset:0, que resolve contra o
+       padding box (padding-top não empurrava nada e a barra cobria eyebrow/Sair);
+       top:52px reserva a altura da barra de verdade. -->
+  <div style="position:absolute;top:52px;left:0;right:0;bottom:0;">
     <sc-if value="{{ ehSA1 }}" hint-placeholder-val="{{ true }}"><dc-import name="SaLogin"></dc-import></sc-if>
     <sc-if value="{{ ehSA2 }}" hint-placeholder-val="{{ false }}"><dc-import name="SaHome"></dc-import></sc-if>
     <sc-if value="{{ ehSA3 }}" hint-placeholder-val="{{ false }}"><dc-import name="SaTenant"></dc-import></sc-if>

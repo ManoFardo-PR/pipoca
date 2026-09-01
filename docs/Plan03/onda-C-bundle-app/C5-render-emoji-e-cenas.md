@@ -1,7 +1,6 @@
 # C5 — Render dos avatars por emoji nas 5 superfícies; remover cópias; `cenas` no mesmo padrão
 
-> Status: pendente
-
+> Status: concluída (2026-09-01 · 88979ce)
 **Unidade de deploy:** CRU (`.dc.html`) + remoção de `.ts` (sem efeito no bundle).
 **Depende de:** C4. **Desbloqueia:** E5 (galeria de cenários, se `cenas` for tratado aqui).
 

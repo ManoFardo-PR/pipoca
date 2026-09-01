@@ -3,7 +3,7 @@
   "rotulo": "depois",
   "minimo": 48,
   "viewport": "1280x800",
-  "quando": "2026-09-01T16:46:47.913Z",
+  "quando": "2026-09-01T17:01:52.355Z",
   "telas": {
     "T01-portao": [
       {
@@ -337,12 +337,72 @@
     ],
     "adm2-home": [
       {
+        "w": 66,
+        "h": 34,
+        "rotulo": "Painel"
+      },
+      {
+        "w": 123,
+        "h": 34,
+        "rotulo": "Contas e planos"
+      },
+      {
+        "w": 86,
+        "h": 34,
+        "rotulo": "Conteúdo"
+      },
+      {
+        "w": 101,
+        "h": 34,
+        "rotulo": "IA por conta"
+      },
+      {
+        "w": 91,
+        "h": 34,
+        "rotulo": "Segurança"
+      },
+      {
+        "w": 83,
+        "h": 34,
+        "rotulo": "IA global"
+      },
+      {
         "w": 58,
         "h": 38,
         "rotulo": "Sair"
       }
     ],
     "adm3-tenants": [
+      {
+        "w": 66,
+        "h": 34,
+        "rotulo": "Painel"
+      },
+      {
+        "w": 123,
+        "h": 34,
+        "rotulo": "Contas e planos"
+      },
+      {
+        "w": 86,
+        "h": 34,
+        "rotulo": "Conteúdo"
+      },
+      {
+        "w": 101,
+        "h": 34,
+        "rotulo": "IA por conta"
+      },
+      {
+        "w": 91,
+        "h": 34,
+        "rotulo": "Segurança"
+      },
+      {
+        "w": 83,
+        "h": 34,
+        "rotulo": "IA global"
+      },
       {
         "w": 86,
         "h": 39,
@@ -361,7 +421,7 @@
       {
         "w": 252,
         "h": 45,
-        "rotulo": "Nome do tenant"
+        "rotulo": "Nome da conta"
       },
       {
         "w": 252,
@@ -375,6 +435,36 @@
       }
     ],
     "adm4-conteudo": [
+      {
+        "w": 66,
+        "h": 34,
+        "rotulo": "Painel"
+      },
+      {
+        "w": 123,
+        "h": 34,
+        "rotulo": "Contas e planos"
+      },
+      {
+        "w": 86,
+        "h": 34,
+        "rotulo": "Conteúdo"
+      },
+      {
+        "w": 101,
+        "h": 34,
+        "rotulo": "IA por conta"
+      },
+      {
+        "w": 91,
+        "h": 34,
+        "rotulo": "Segurança"
+      },
+      {
+        "w": 83,
+        "h": 34,
+        "rotulo": "IA global"
+      },
       {
         "w": 86,
         "h": 39,
@@ -397,6 +487,36 @@
       }
     ],
     "adm5-config-ia": [
+      {
+        "w": 66,
+        "h": 34,
+        "rotulo": "Painel"
+      },
+      {
+        "w": 123,
+        "h": 34,
+        "rotulo": "Contas e planos"
+      },
+      {
+        "w": 86,
+        "h": 34,
+        "rotulo": "Conteúdo"
+      },
+      {
+        "w": 101,
+        "h": 34,
+        "rotulo": "IA por conta"
+      },
+      {
+        "w": 91,
+        "h": 34,
+        "rotulo": "Segurança"
+      },
+      {
+        "w": 83,
+        "h": 34,
+        "rotulo": "IA global"
+      },
       {
         "w": 86,
         "h": 39,
@@ -470,6 +590,36 @@
     ],
     "adm6-seguranca": [
       {
+        "w": 66,
+        "h": 34,
+        "rotulo": "Painel"
+      },
+      {
+        "w": 123,
+        "h": 34,
+        "rotulo": "Contas e planos"
+      },
+      {
+        "w": 86,
+        "h": 34,
+        "rotulo": "Conteúdo"
+      },
+      {
+        "w": 101,
+        "h": 34,
+        "rotulo": "IA por conta"
+      },
+      {
+        "w": 91,
+        "h": 34,
+        "rotulo": "Segurança"
+      },
+      {
+        "w": 83,
+        "h": 34,
+        "rotulo": "IA global"
+      },
+      {
         "w": 86,
         "h": 39,
         "rotulo": "↩ Painel"
@@ -480,9 +630,9 @@
         "rotulo": "Alternar IA (Motor de histórias geradas)"
       },
       {
-        "w": 86,
+        "w": 136,
         "h": 34,
-        "rotulo": "Kill-switch"
+        "rotulo": "Desligar para todos"
       },
       {
         "w": 50,
@@ -490,19 +640,19 @@
         "rotulo": "Alternar Fala (reconhecimento de voz)"
       },
       {
-        "w": 86,
+        "w": 136,
         "h": 34,
-        "rotulo": "Kill-switch"
+        "rotulo": "Desligar para todos"
       },
       {
         "w": 50,
         "h": 28,
-        "rotulo": "Alternar Conteúdo customizado de tenants"
+        "rotulo": "Alternar Conteúdo customizado das contas"
       },
       {
-        "w": 86,
+        "w": 136,
         "h": 34,
-        "rotulo": "Kill-switch"
+        "rotulo": "Desligar para todos"
       },
       {
         "w": 50,
@@ -510,9 +660,9 @@
         "rotulo": "Alternar Telemetria de progresso"
       },
       {
-        "w": 86,
+        "w": 136,
         "h": 34,
-        "rotulo": "Kill-switch"
+        "rotulo": "Desligar para todos"
       },
       {
         "w": 197,
@@ -521,6 +671,36 @@
       }
     ],
     "adm7-ia-global": [
+      {
+        "w": 66,
+        "h": 34,
+        "rotulo": "Painel"
+      },
+      {
+        "w": 123,
+        "h": 34,
+        "rotulo": "Contas e planos"
+      },
+      {
+        "w": 86,
+        "h": 34,
+        "rotulo": "Conteúdo"
+      },
+      {
+        "w": 101,
+        "h": 34,
+        "rotulo": "IA por conta"
+      },
+      {
+        "w": 91,
+        "h": 34,
+        "rotulo": "Segurança"
+      },
+      {
+        "w": 83,
+        "h": 34,
+        "rotulo": "IA global"
+      },
       {
         "w": 86,
         "h": 39,

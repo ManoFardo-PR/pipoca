@@ -1,7 +1,6 @@
 # B11 — Admin: controles que se explicam, navegação mínima, vocabulário e estados de erro
 
-> Status: pendente
-
+> Status: concluída (2026-09-01 · 240fab7)
 **Unidade de deploy:** CRU (`src/admin/**/*.dc.html`). **Depende de:** B10. **Desbloqueia:** —.
 
 ## Objetivo

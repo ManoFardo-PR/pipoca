@@ -50,7 +50,9 @@ const RAIZ_PERMITIDA = new Set([
   "support.js", "pipoca.config.js", "pipoca.bundle.js", "pipoca.admin.bundle.js",
 ]);
 const EXT_SRC = new Set([".html", ".js", ".css"]);
-const EXT_ASSET = new Set([".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".webp"]);
+// B10 (PS-13): attached_assets/ vira allowlist explícita — só o que a landing usa.
+// Os PNGs órfãos (image_17834*.png) saem do ar já; a remoção física é da faxina (D4).
+const ASSETS_PERMITIDOS = new Set(["attached_assets/og-pipoca.png"]);
 
 function ehServivel(filePathAbs) {
   const rel = path.relative(__dirname, filePathAbs);
@@ -59,7 +61,7 @@ function ehServivel(filePathAbs) {
   const ext = path.extname(relUrl).toLowerCase();
   if (!relUrl.includes("/")) return RAIZ_PERMITIDA.has(relUrl);          // arquivos da raiz: allowlist
   if (relUrl.startsWith("src/")) return EXT_SRC.has(ext);                // src/**: só html/js/css
-  if (relUrl.startsWith("attached_assets/")) return EXT_ASSET.has(ext);  // assets: só imagens
+  if (relUrl.startsWith("attached_assets/")) return ASSETS_PERMITIDOS.has(relUrl); // assets: allowlist (B10)
   if (relUrl.startsWith("docs/")) return ext === ".json";               // dados: grafo autoral + fichas (não .md/.mjs)
   return false;                                                          // qualquer outra pasta: negado
 }
@@ -67,11 +69,11 @@ function ehServivel(filePathAbs) {
 const server = http.createServer((req, res) => {
   let urlPath = req.url.split("?")[0];
 
-  // /app/ (com barra final) quebraria os assets relativos do app (resolveriam
-  // sob /app/…). Redireciona para a forma canônica /app, preservando a query.
-  if (urlPath === "/app/") {
+  // /app/ e /admin/ (com barra final) quebrariam os assets relativos (resolveriam
+  // sob /app/… ou /admin/…). Redireciona para a forma canônica, preservando a query.
+  if (urlPath === "/app/" || urlPath === "/admin/") {
     const query = req.url.slice(req.url.indexOf("?"));
-    res.writeHead(301, { Location: "/app" + (req.url.includes("?") ? query : "") });
+    res.writeHead(301, { Location: urlPath.slice(0, -1) + (req.url.includes("?") ? query : "") });
     res.end();
     return;
   }
@@ -79,10 +81,14 @@ const server = http.createServer((req, res) => {
   // A raiz mostra a landing (marketing). O app da criança vive em /app —
   // mesmo entry (index.html), mantido num caminho claro para os CTAs e para
   // o encaminhamento do link de recuperação de senha (#type=recovery).
+  // B10 (PS-15): a plataforma do operador ganha a rota /admin (mesmo padrão);
+  // /admin.html segue como alias (decisão do dono; o e2e admin usa o alias).
   if (urlPath === "/" || urlPath === "") {
     urlPath = "/landing.html";
   } else if (urlPath === "/app") {
     urlPath = "/index.html";
+  } else if (urlPath === "/admin") {
+    urlPath = "/admin.html";
   }
 
   const filePath = resolverCaminho(urlPath);

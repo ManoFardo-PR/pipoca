@@ -23,7 +23,7 @@
       </div>
       <button class="pip-sg-btn" onClick="{{ voltar }}" style="border:1px solid #d8cfbd;border-radius:999px;background:transparent;padding:9px 16px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6c56;cursor:pointer;">↩ Painel</button>
     </div>
-    <p style="color:#7a6c56;font-family:'Nunito';font-size:14px;line-height:1.5;margin:0 0 18px;">Defaults seguros para crianças: IA e fala nascem desligadas. O kill-switch derruba um recurso na plataforma inteira, na hora.</p>
+    <p style="color:#7a6c56;font-family:'Nunito';font-size:14px;line-height:1.5;margin:0 0 18px;">Tudo nasce desligado, por segurança das crianças. O interruptor liga/desliga o recurso; "Desligar para todos" derruba o recurso na plataforma inteira, na hora — mesmo onde o cuidador tinha autorizado.</p>
 
     <div style="display:flex;flex-direction:column;gap:10px;">
       <sc-for list="{{ flags }}" as="f" hint-placeholder-count="4">
@@ -35,14 +35,15 @@
           <button class="pip-sg-btn" onClick="{{ f.alternar }}" role="switch" aria-checked="{{ f.ligada }}" aria-label="Alternar {{ f.rotulo }}" style="{{ f.trilhoStyle }}">
             <div style="width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);"></div>
           </button>
-          <button class="pip-sg-btn" onClick="{{ f.matar }}" style="border:1px solid #c9a08a;border-radius:10px;background:transparent;padding:8px 12px;font-family:'Nunito';font-weight:700;font-size:12px;color:#8a4a3a;cursor:pointer;">Kill-switch</button>
+          <!-- B11 (UI-A14): a ação destrutiva confirma em 2 toques, no lugar. -->
+          <button class="pip-sg-btn" onClick="{{ f.matar }}" style="{{ f.matarStyle }}">{{ f.matarLabel }}</button>
         </div>
       </sc-for>
     </div>
 
     <!-- Demonstração viva do efeito sobre os Modos -->
     <div style="background:#fffdf8;border:1px solid #e4dcc9;border-radius:14px;padding:16px;margin-top:16px;font-family:'Nunito';font-size:13px;line-height:1.7;color:#5a4c3a;">
-      Com as flags de agora: se um cuidador autorizar a IA para a criança, ela ficaria <b>{{ efeitoIa }}</b> — a flag global tem a palavra final.
+      Com as chaves de agora: se um cuidador autorizar a IA para a criança, ela ficaria <b>{{ efeitoIa }}</b> — a plataforma tem a palavra final. "Desligar para todos" difere do interruptor num ponto: derruba o recurso mesmo onde o cuidador autorizou.
     </div>
 
     <button class="pip-sg-btn" onClick="{{ restaurarPadroes }}" style="margin-top:14px;border:1px solid #d8cfbd;border-radius:12px;background:transparent;padding:10px 16px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6c56;cursor:pointer;">Restaurar defaults seguros</button>
@@ -53,7 +54,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { flags: null };
+  state = { flags: null, confirmando: null };
 
   componentDidMount() {
     const A = window.PipocaAdmin;
@@ -83,17 +84,32 @@ class Component extends DCLogic {
     const rotulos = {
       ia: 'IA (Motor de histórias geradas)',
       fala: 'Fala (reconhecimento de voz)',
-      conteudoCustomizado: 'Conteúdo customizado de tenants',
+      conteudoCustomizado: 'Conteúdo customizado das contas',
       telemetria: 'Telemetria de progresso',
     };
     const lista = Object.keys(flags).map((nome) => {
       const ligada = flags[nome] === true;
+      // B11 (UI-A14): "Desligar para todos" confirma em 2 toques, no lugar (some em 4s).
+      const confirmando = this.state.confirmando === nome;
       return {
         rotulo: rotulos[nome] || nome,
         ligada,
-        estadoRotulo: ligada ? 'Ligada na plataforma' : 'Desligada na plataforma (fail-closed)',
-        alternar: () => this._salvar(C.flags.definirFlag(flags, nome, !ligada)),
-        matar: () => this._salvar(C.flags.killSwitch(flags, nome)),
+        estadoRotulo: ligada ? 'Ligada na plataforma' : 'Desligada na plataforma (nasce assim, por segurança)',
+        alternar: () => { this.setState({ confirmando: null }); this._salvar(C.flags.definirFlag(flags, nome, !ligada)); },
+        matar: () => {
+          if (!confirmando) {
+            this.setState({ confirmando: nome });
+            if (this._confTimer) clearTimeout(this._confTimer);
+            this._confTimer = setTimeout(() => { this.setState({ confirmando: null }); }, 4000);
+            return;
+          }
+          if (this._confTimer) clearTimeout(this._confTimer);
+          this.setState({ confirmando: null });
+          this._salvar(C.flags.killSwitch(flags, nome));
+        },
+        matarLabel: confirmando ? 'Confirmar: desligar para todos?' : 'Desligar para todos',
+        matarStyle: 'border-radius:10px;padding:8px 12px;font-family:Nunito;font-weight:700;font-size:12px;cursor:pointer;'
+          + (confirmando ? 'border:none;background:#8a4a3a;color:#fff;' : 'border:1px solid #c9a08a;background:transparent;color:#8a4a3a;'),
         trilhoStyle: 'width:50px;height:28px;border-radius:999px;border:none;cursor:pointer;padding:3px;display:flex;align-items:center;flex-shrink:0;'
           + (ligada ? 'background:#4a5a3f;justify-content:flex-end;' : 'background:#b8ab90;justify-content:flex-start;'),
       };

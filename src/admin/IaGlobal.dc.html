@@ -27,7 +27,7 @@
       </div>
       <button class="pip-iag-btn" onClick="{{ voltar }}" style="border:1px solid #d8cfbd;border-radius:999px;background:transparent;padding:9px 16px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6c56;cursor:pointer;">↩ Painel</button>
     </div>
-    <p style="color:#7a6c56;font-family:'Nunito';font-size:14px;line-height:1.5;margin:0 0 14px;">A chave digitada vai direto ao servidor e nunca volta — o painel só mostra o status mascarado. Modelos padrão e a cadeia de fallback valem para todo tenant que não define os próprios.</p>
+    <p style="color:#7a6c56;font-family:'Nunito';font-size:14px;line-height:1.5;margin:0 0 14px;">A chave digitada vai direto ao servidor e nunca volta — o painel só mostra o status mascarado. Modelos padrão e a ordem de reserva valem para toda conta que não define os próprios.</p>
 
     <sc-if value="{{ somenteLeitura }}" hint-placeholder-val="{{ false }}">
       <div role="status" style="background:#fdf6ea;border:1px solid #e0c98f;border-radius:14px;padding:14px 16px;margin-bottom:14px;font-family:'Nunito';font-size:13px;line-height:1.6;color:#7a5c2e;">
@@ -48,7 +48,7 @@
 
         <div style="{{ formStyle }}">
           <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">
-            <input class="pip-iag-campo" type="password" autocomplete="off" placeholder="colar nova chave (write-only)" value="{{ c.chave }}" onInput="{{ c.setChave }}" aria-label="Nova chave do provedor (não é exibida depois)" />
+            <input class="pip-iag-campo" type="password" autocomplete="off" placeholder="colar nova chave (só gravar — não aparece depois)" value="{{ c.chave }}" onInput="{{ c.setChave }}" aria-label="Nova chave do provedor (não é exibida depois)" />
             <button class="pip-iag-btn" onClick="{{ c.salvarChave }}" style="min-height:40px;border:none;border-radius:10px;padding:0 14px;font-family:'Baloo 2';font-weight:800;font-size:13px;color:#fff;background:linear-gradient(150deg,#4a5a3f,#39472f);">Enviar ao servidor</button>
             <button class="pip-iag-btn" onClick="{{ c.testar }}" style="min-height:40px;border:2px solid #d8cfbd;border-radius:10px;background:#fffdf8;padding:0 14px;font-family:'Baloo 2';font-weight:800;font-size:13px;color:#2c241a;">Testar conexão</button>
           </div>
@@ -69,8 +69,8 @@
 
     <!-- Cadeia de fallback global -->
     <div style="background:#fffdf8;border:1px solid #e4dcc9;border-radius:14px;padding:16px 18px;margin-bottom:12px;">
-      <div style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:#2c241a;">Cadeia de fallback global</div>
-      <p style="font-family:'Nunito';font-size:12px;line-height:1.5;color:#8a7a62;margin:4px 0 10px;">Ordem que o servidor tenta quando o tenant não define fallback próprio. Clique para incluir/remover na ordem do clique.</p>
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:#2c241a;">Ordem de reserva global</div>
+      <p style="font-family:'Nunito';font-size:12px;line-height:1.5;color:#8a7a62;margin:4px 0 10px;">A ordem que o servidor tenta quando a conta não define a própria reserva. Clique para incluir/remover na ordem do clique.</p>
       <div style="{{ formStyle }}">
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
           <sc-for list="{{ elos }}" as="e" hint-placeholder-count="4">
@@ -84,8 +84,10 @@
       </div>
     </div>
 
+    <!-- B11 (UI-A19): erro com cartão próprio. -->
     <sc-if value="{{ temErros }}" hint-placeholder-val="{{ false }}">
-      <div role="status" aria-live="polite" style="margin-bottom:10px;font-family:'Nunito';font-size:13px;color:#8a4a3a;">
+      <div role="status" aria-live="polite" style="margin-bottom:10px;background:#fdf0ea;border:1px solid #d9a58e;border-radius:12px;padding:12px 14px;font-family:'Nunito';font-size:13px;line-height:1.6;color:#8a4a3a;">
+        <div style="font-weight:800;">Não deu para salvar assim:</div>
         <sc-for list="{{ erros }}" as="e" hint-placeholder-count="0"><div>— {{ e }}</div></sc-for>
       </div>
     </sc-if>
@@ -254,7 +256,7 @@ class Component extends DCLogic {
       formStyle: somenteLeitura ? 'opacity:.45;pointer-events:none;' : '',
       cards,
       elos,
-      cadeiaRotulo: cfg.cadeiaFallback.length ? cfg.cadeiaFallback.map((p) => nomesProv[p]).join(' → ') : 'nenhuma (tenant sem fallback fica sem)',
+      cadeiaRotulo: cfg.cadeiaFallback.length ? cfg.cadeiaFallback.map((p) => nomesProv[p]).join(' → ') : 'nenhuma (conta sem reserva própria fica sem)',
       limparCadeia: () => this._patchConfig({ cadeiaFallback: [] }),
       erros: s.erros,
       temErros: s.erros.length > 0,

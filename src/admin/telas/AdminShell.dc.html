@@ -25,10 +25,21 @@
     <div style="margin-left:auto;font-family:'Nunito';font-size:12px;color:rgba(244,241,234,.7);">área do operador — não é a tela da criança</div>
   </div>
 
+  <!-- B11 (UI-A15): navegação mínima — as áreas como TABS no topo (decisão do dono).
+       De qualquer área, 1 toque para qualquer outra; a atual leva aria-current=page.
+       Só aparece com sessão válida (no login não há para onde ir). -->
+  <sc-if value="{{ mostrarTabs }}" hint-placeholder-val="{{ false }}">
+  <div role="tablist" aria-label="Áreas da plataforma" style="position:absolute;top:52px;left:0;right:0;height:46px;display:flex;align-items:center;gap:6px;padding:0 12px;background:#efe9db;border-bottom:1px solid #d8cfbd;z-index:29;overflow-x:auto;">
+    <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="6">
+      <button onClick="{{ tb.abrir }}" aria-current="{{ tb.atual }}" aria-disabled="{{ tb.inerte }}" style="{{ tb.style }}">{{ tb.nome }}</button>
+    </sc-for>
+  </div>
+  </sc-if>
+
   <!-- Slot das telas SA_* — B10 (UI-A13): as filhas usam inset:0, que resolve contra o
        padding box (padding-top não empurrava nada e a barra cobria eyebrow/Sair);
-       top:52px reserva a altura da barra de verdade. -->
-  <div style="position:absolute;top:52px;left:0;right:0;bottom:0;">
+       top reserva a barra (e as tabs, quando visíveis) de verdade. -->
+  <div style="{{ slotStyle }}">
     <sc-if value="{{ ehSA1 }}" hint-placeholder-val="{{ true }}"><dc-import name="SaLogin"></dc-import></sc-if>
     <sc-if value="{{ ehSA2 }}" hint-placeholder-val="{{ false }}"><dc-import name="SaHome"></dc-import></sc-if>
     <sc-if value="{{ ehSA3 }}" hint-placeholder-val="{{ false }}"><dc-import name="SaTenant"></dc-import></sc-if>
@@ -86,8 +97,39 @@ class Component extends DCLogic {
 
   renderVals() {
     const t = this.state.tela;
+    const A = window.PipocaAdmin;
+    const C = window.PipocaAdminCanonico;
+    const sess = A ? A.estado.sessao : null;
+    const escopo = sess ? sess.escopoTenants : null;
+    const mostrarTabs = t >= 2;
+    // B11: mesmas áreas do hub (rotasAdmin), com o fail-closed de escopo do CartaoArea.
+    const defs = [
+      { nome: 'Painel', tela: 2, area: null },
+      { nome: 'Contas e planos', tela: 3, area: 'tenants' },
+      { nome: 'Conteúdo', tela: 4, area: 'conteudo' },
+      { nome: 'IA por conta', tela: 5, area: 'ia' },
+      { nome: 'Segurança', tela: 6, area: 'seguranca' },
+      { nome: 'IA global', tela: 7, area: 'iaGlobal' },
+    ];
+    const tabBase = 'min-height:34px;border-radius:999px;border:1px solid;font-family:Nunito;font-weight:700;font-size:12.5px;cursor:pointer;padding:6px 14px;white-space:nowrap;';
+    const tabs = defs.map((d) => {
+      const disponivel = d.area === null || !!(sess && C && C.auth.areaDisponivel(escopo, d.area));
+      const atual = t === d.tela;
+      return {
+        nome: d.nome,
+        atual: atual ? 'page' : 'false',
+        inerte: !disponivel,
+        abrir: () => { if (disponivel && A) A.irParaTela(d.tela); },
+        style: tabBase + (atual
+          ? 'background:#2c241a;border-color:#2c241a;color:#f4f1ea;'
+          : (disponivel ? 'background:#fffdf8;border-color:#d8cfbd;color:#2c241a;' : 'background:transparent;border-color:#e0d8c6;color:#b0a488;cursor:not-allowed;')),
+      };
+    });
     return {
       refRoot: this.refRoot,
+      mostrarTabs,
+      tabs,
+      slotStyle: 'position:absolute;top:' + (mostrarTabs ? 98 : 52) + 'px;left:0;right:0;bottom:0;',
       ehSA1: t === 1,
       ehSA2: t === 2,
       ehSA3: t === 3,

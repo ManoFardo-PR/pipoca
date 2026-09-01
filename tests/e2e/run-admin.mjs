@@ -131,15 +131,16 @@ try {
 
   console.log("\n=== SA_HOME · hub com 4 áreas ===");
   await page.waitForFunction(() => /Painel da plataforma/i.test(document.body.innerText), { timeout: 8000 });
+  // B11: glossário de produto — "Contas e planos" (sem "tenant" no texto visível).
   const cartoes = await page.evaluate(() =>
-    ["tenants e planos", "Biblioteca de conteúdo", "Configuração de IA", "Segurança e feature flags"]
+    ["Contas e planos", "Biblioteca de conteúdo", "Configuração de IA", "Segurança e feature flags"]
       .every((t) => new RegExp(t, "i").test(document.body.innerText)));
   assert(cartoes, "os 4 cartões de área montam no hub");
 
-  console.log("\n=== SA_TENANT · criar tenant nasce no Freemium (60 dias de Família) ===");
+  console.log("\n=== SA_TENANT · criar conta nasce no Freemium (60 dias de Família) ===");
   await page.evaluate(() => window.PipocaAdmin.irParaTela(3));
-  await page.waitForFunction(() => /Tenants e planos/i.test(document.body.innerText), { timeout: 8000 });
-  await page.fill('[aria-label="Nome do tenant"]', "Escola Modelo");
+  await page.waitForFunction(() => /Contas e planos/i.test(document.body.innerText), { timeout: 8000 });
+  await page.fill('[aria-label="Nome da conta"]', "Escola Modelo");
   await page.locator("button", { hasText: "Criar" }).first().click();
   await page.waitForFunction(() => /Escola Modelo/.test(document.body.innerText), { timeout: 5000 });
   const tenant = await page.evaluate(() => {
@@ -163,7 +164,7 @@ try {
   await page.locator("button", { hasText: "Carregar exemplo do Quintal" }).click();
   await page.waitForTimeout(300);
   await page.locator("button", { hasText: "Validar agora" }).click();
-  await page.waitForFunction(() => /Grafo válido/i.test(document.body.innerText), { timeout: 5000 });
+  await page.waitForFunction(() => /Cenário válido/i.test(document.body.innerText), { timeout: 5000 });
   assert(true, "exemplo do Quintal passa a validação dupla na tela");
 
   console.log("\n=== SA_AI · sem chaves no cliente + gate do plano ===");

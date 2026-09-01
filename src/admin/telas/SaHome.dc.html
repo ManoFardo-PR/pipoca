@@ -22,7 +22,8 @@
       </div>
       <button class="pip-sh-btn" onClick="{{ encerrarSessaoSuperAdmin }}" style="border:1px solid #d8cfbd;border-radius:999px;background:transparent;padding:9px 16px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6c56;cursor:pointer;">Sair</button>
     </div>
-    <p style="color:#7a6c56;font-family:'Nunito';font-size:14px;line-height:1.5;margin:0 0 20px;">Operador: <span style="font-family:monospace;font-size:13px;">{{ operadorId }}</span> · escopo: {{ escopoRotulo }}</p>
+    <!-- B11 (UI-A18): o operador se reconhece pelo e-mail; o hash é detalhe técnico. -->
+    <p style="color:#7a6c56;font-family:'Nunito';font-size:14px;line-height:1.5;margin:0 0 20px;">Operador: <b>{{ operadorNome }}</b> <span style="font-family:monospace;font-size:11px;color:#a89a80;">{{ operadorDetalhe }}</span> · escopo: {{ escopoRotulo }}</p>
 
     <div style="display:flex;flex-direction:column;gap:12px;">
       <sc-for list="{{ areas }}" as="a" hint-placeholder-count="4">
@@ -53,12 +54,14 @@ class Component extends DCLogic {
     const C = window.PipocaAdminCanonico;
     const sess = A ? A.estado.sessao : null;
     const escopo = sess ? sess.escopoTenants : null;
+    // B11 (UI-A16): vocabulário de produto — "conta (escola/família)" em vez de "tenant",
+    // "desligar para todos" em vez de "kill-switch".
     const defs = [
-      { id: 'tenants',   titulo: 'Contas, tenants e planos',   descricao: 'quem usa a plataforma e com quais limites', emoji: '🏫', rota: 'SA_TENANT' },
-      { id: 'conteudo',  titulo: 'Biblioteca de conteúdo',     descricao: 'grafos autorais: validar, versionar, publicar', emoji: '📚', rota: 'SA_CONTENT' },
-      { id: 'ia',        titulo: 'Configuração de IA',         descricao: 'provedores, cotas e fallback por tenant', emoji: '🤖', rota: 'SA_AI' },
-      { id: 'iaGlobal',  titulo: 'IA · Provedores & Chaves',   descricao: 'chaves no servidor, modelos padrão e fallback global', emoji: '🔑', rota: 'SA_IA_GLOBAL' },
-      { id: 'seguranca', titulo: 'Segurança e feature flags',  descricao: 'kill-switches e defaults seguros', emoji: '🛡️', rota: 'SA_SAFE' },
+      { id: 'tenants',   titulo: 'Contas e planos',            descricao: 'quem usa a plataforma (escolas e famílias) e com quais limites', emoji: '🏫', rota: 'SA_TENANT' },
+      { id: 'conteudo',  titulo: 'Biblioteca de conteúdo',     descricao: 'cenários autorais: validar, versionar, publicar', emoji: '📚', rota: 'SA_CONTENT' },
+      { id: 'ia',        titulo: 'Configuração de IA',         descricao: 'provedores, cotas e reserva por conta', emoji: '🤖', rota: 'SA_AI' },
+      { id: 'iaGlobal',  titulo: 'IA · Provedores & Chaves',   descricao: 'chaves no servidor, modelos padrão e a ordem de reserva global', emoji: '🔑', rota: 'SA_IA_GLOBAL' },
+      { id: 'seguranca', titulo: 'Segurança e feature flags',  descricao: 'desligar recursos para todos · tudo nasce desligado', emoji: '🛡️', rota: 'SA_SAFE' },
     ];
     const areas = defs.map((d) => {
       const disponivel = !!(sess && C && C.auth.areaDisponivel(escopo, d.id));
@@ -70,10 +73,12 @@ class Component extends DCLogic {
         abrir: () => { if (disponivel && A && C) A.irParaTela(C.rotas.ROTAS_ADMIN[d.rota]); },
       };
     });
+    const email = sess && (sess.email || sess.emailOperador) ? (sess.email || sess.emailOperador) : null;
     return {
       areas,
-      operadorId: (sess && sess.adminId) || '—',
-      escopoRotulo: escopo === 'todos' ? 'toda a plataforma' : (Array.isArray(escopo) ? escopo.length + ' tenant(s)' : '—'),
+      operadorNome: email || (sess && sess.adminId) || '—',
+      operadorDetalhe: email && sess && sess.adminId ? '(' + sess.adminId + ')' : '',
+      escopoRotulo: escopo === 'todos' ? 'toda a plataforma' : (Array.isArray(escopo) ? escopo.length + ' conta(s)' : '—'),
       encerrarSessaoSuperAdmin: () => { if (A) A.sairSuperAdmin(); },
     };
   }

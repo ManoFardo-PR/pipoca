@@ -225,8 +225,8 @@ try {
   await pa.waitForFunction(() => /Painel da plataforma/i.test(document.body.innerText), { timeout: 8000 }).catch(() => {});
   await foto(pa, "adm2-home");
   await pa.evaluate(() => window.PipocaAdmin.irParaTela(3));
-  await pa.waitForFunction(() => /Tenants e planos/i.test(document.body.innerText), { timeout: 8000 }).catch(() => {});
-  await pa.fill('[aria-label="Nome do tenant"]', "Escola Modelo");
+  await pa.waitForFunction(() => /Contas e planos/i.test(document.body.innerText), { timeout: 8000 }).catch(() => {});
+  await pa.fill('[aria-label="Nome da conta"]', "Escola Modelo");
   await pa.locator("button", { hasText: "Criar" }).first().click();
   await pa.waitForFunction(() => /Escola Modelo/.test(document.body.innerText), { timeout: 5000 }).catch(() => {});
   await foto(pa, "adm3-tenants");

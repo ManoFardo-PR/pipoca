@@ -60,7 +60,9 @@ const DESFECHOS = ["convergente", "aberto"];
  * estrutural deliberada para este módulo seguir PURO e sem dependência do
  * módulo de geração.
  */
-export interface OrigemHistoria {
+// C3 (Plan03): tipo INTERNO — nenhum consumidor externo (o shape público viaja
+// dentro de HistoriaSalva.origem).
+interface OrigemHistoria {
   fonte: "llm" | "fallback-a-mais";
   rota?: string;
   provedor?: string;

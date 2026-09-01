@@ -56,7 +56,7 @@ Ativos não-tela (recebem cabeçalho):
 
 ## Componentes de UI (`src/componentes/*.dc.html`)
 
-`Botao` · `CartaoHistoria` · `ChipObjeto` · `BarraLeitura` · `Vagalume`
+`Botao` · `ChipObjeto` · `BarraLeitura` · `Vagalume` · `BarraCrianca` · `Carregando`
 (o vaga-lume da economia) · `EsqueletoRef` · `ModalCuidador`. Todos `.dc.html`
 (dados/DOM, sem cabeçalho).
 

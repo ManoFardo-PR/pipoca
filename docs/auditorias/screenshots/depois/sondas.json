@@ -3,7 +3,7 @@
   "rotulo": "depois",
   "minimo": 48,
   "viewport": "1280x800",
-  "quando": "2026-08-28T19:53:16.799Z",
+  "quando": "2026-09-01T16:46:47.913Z",
   "telas": {
     "T01-portao": [
       {
@@ -49,149 +49,14 @@
         "rotulo": "Parágrafos"
       }
     ],
-    "T02-entrada": [
-      {
-        "w": 157,
-        "h": 42,
-        "rotulo": "⚙ Sou o cuidador"
-      }
-    ],
-    "T03-cenarios": [
-      {
-        "w": 42,
-        "h": 42,
-        "rotulo": "⚙"
-      },
-      {
-        "w": 34,
-        "h": 34,
-        "rotulo": "Guardar para sempre"
-      },
-      {
-        "w": 34,
-        "h": 34,
-        "rotulo": "Guardar para sempre"
-      },
-      {
-        "w": 34,
-        "h": 34,
-        "rotulo": "Guardar para sempre"
-      },
-      {
-        "w": 34,
-        "h": 34,
-        "rotulo": "Guardar para sempre"
-      },
-      {
-        "w": 34,
-        "h": 34,
-        "rotulo": "Guardar para sempre"
-      },
-      {
-        "w": 34,
-        "h": 34,
-        "rotulo": "Guardar para sempre"
-      },
-      {
-        "w": 34,
-        "h": 34,
-        "rotulo": "Guardar para sempre"
-      },
-      {
-        "w": 34,
-        "h": 34,
-        "rotulo": "Guardar para sempre"
-      }
-    ],
-    "T03-painel-a11y": [
-      {
-        "w": 42,
-        "h": 42,
-        "rotulo": "⚙"
-      },
-      {
-        "w": 34,
-        "h": 34,
-        "rotulo": "Guardar para sempre"
-      },
-      {
-        "w": 34,
-        "h": 34,
-        "rotulo": "Guardar para sempre"
-      },
-      {
-        "w": 34,
-        "h": 34,
-        "rotulo": "Guardar para sempre"
-      },
-      {
-        "w": 34,
-        "h": 34,
-        "rotulo": "Guardar para sempre"
-      },
-      {
-        "w": 34,
-        "h": 34,
-        "rotulo": "Guardar para sempre"
-      },
-      {
-        "w": 34,
-        "h": 34,
-        "rotulo": "Guardar para sempre"
-      },
-      {
-        "w": 34,
-        "h": 34,
-        "rotulo": "Guardar para sempre"
-      },
-      {
-        "w": 34,
-        "h": 34,
-        "rotulo": "Guardar para sempre"
-      }
-    ],
-    "T04-palco": [
-      {
-        "w": 40,
-        "h": 40,
-        "rotulo": "←"
-      },
-      {
-        "w": 40,
-        "h": 40,
-        "rotulo": "⚙"
-      }
-    ],
-    "T05-portao-leitura": [
-      {
-        "w": 40,
-        "h": 40,
-        "rotulo": "←"
-      },
-      {
-        "w": 40,
-        "h": 40,
-        "rotulo": "⚙"
-      }
-    ],
+    "T02-entrada": [],
+    "T03-cenarios": [],
+    "T03-painel-a11y": [],
+    "T04-palco": [],
+    "T04-palco-r2": [],
+    "T05-portao-leitura": [],
     "T06-recompensa": [],
-    "T07-pote": [
-      {
-        "w": 42,
-        "h": 42,
-        "rotulo": "⚙"
-      },
-      {
-        "w": 77,
-        "h": 44,
-        "rotulo": "Trocar"
-      },
-      {
-        "w": 89,
-        "h": 44,
-        "rotulo": "Faltam 2"
-      }
-    ],
+    "T07-pote": [],
     "T08-evolucao": [
       {
         "w": 92,

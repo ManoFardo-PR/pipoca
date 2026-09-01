@@ -161,6 +161,21 @@ try {
   await page.evaluate(() => { window.PipocaApp.iniciarComposicao(); });
   await irTela(page, 4); await esperarTela(page, 4); await esperarTexto(page, "história até agora|Ateliê|Quintal");
   await foto(page, "T04-palco");
+  // T4 em R2 com a peça nova colocada no meio (prova do B7: setas 48px, selo, lacunas).
+  await page.evaluate(() => {
+    const App = window.PipocaApp;
+    App.ordenarR1Composicao(App.estado.comp.banco.slice(0, 3));
+    App.abrirProximaRodadaComposicao();
+    App.setState({ tela: 3 });
+  });
+  await page.waitForTimeout(200);
+  await irTela(page, 4); await esperarTela(page, 4); await esperarTexto(page, "cresceu");
+  await page.evaluate(() => { const b = [...document.querySelectorAll("button.pip-chip")][0]; if (b) b.click(); });
+  await page.waitForTimeout(150);
+  await page.evaluate(() => { const g = [...document.querySelectorAll("button")].find((x) => (x.textContent || "").trim() === "+"); if (g) g.click(); });
+  await page.waitForTimeout(250);
+  await foto(page, "T04-palco-r2");
+  await page.evaluate(() => { window.PipocaApp.iniciarComposicao(); });
   await page.evaluate(() => {
     window.PipocaApp.setState({
       historia: { cenarioId: "quintal_anoitecer", objetos: ["vagalume"], aberta: true },

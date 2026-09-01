@@ -1,7 +1,6 @@
 # B9 — T7 (pote e cardápio): barra quebrada, "~2", alvos e celebração ao resgatar
 
-> Status: pendente
-
+> Status: concluída (2026-09-01 · ea396ff)
 **Unidade de deploy:** CRU (`src/telas/Tela7PoteCardapio.dc.html`). **Depende de:** nada.
 **Desbloqueia:** —.
 

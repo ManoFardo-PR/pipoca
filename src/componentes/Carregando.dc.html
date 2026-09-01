@@ -1,0 +1,29 @@
+<!-- Carregando.dc.html — O ÚNICO marcador de "espera" das telas da criança · Plan03 B6 (UI-C11)
+     ─────────────────────────────────────────────────────────────────────────────
+     Bolinha de vaga-lume pulsando (para com "reduzir movimento") + uma frase acolhedora.
+     Reusado em T2 (perfis), T4 (quintal) e T5 (história). Anuncia ao leitor de tela
+     (role=status, aria-live=polite).
+
+     Props:
+       frase   string — "Preparando a sua história… ✨"
+-->
+<x-dc>
+
+<div role="status" aria-live="polite" style="flex:1;min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--pip-esp-4);padding:var(--pip-esp-5);">
+  <div class="word-stuck" aria-hidden="true" style="width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 40% 35%,var(--pip-vagalume-creme),var(--pip-vagalume) 60%,var(--pip-vagalume-escuro));box-shadow:0 0 22px 6px rgba(247,191,96,.6);"></div>
+  <div style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:var(--pip-fs-5);line-height:var(--pip-lh-titulo);color:var(--pip-terracota-texto);text-align:center;">{{ frase }}</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script
+  data-props="{
+    &quot;frase&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Um instante…&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Carregando&quot;, &quot;label&quot;: &quot;Frase&quot; }
+  }">
+class Component extends DCLogic {
+  state = {};
+  renderVals() {
+    const p = this.props || {};
+    return { frase: p.frase || 'Um instante…' };
+  }
+}
+</script>

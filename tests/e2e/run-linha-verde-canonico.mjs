@@ -731,6 +731,64 @@ try {
   assert(uxConta16.emailOk && uxConta16.espelho === "casa-trocada@pipoca.dev", "alterarEmail atualiza o espelho da conta (modo local)");
   await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
 
+  // ── Plan03 · B5 (ML-3) · saídas da criança: T3 → T2 (trocar leitor) e T3 → T7 (pote)
+  // com 1 toque e sem portão; ⚙ "Do meu jeito" em T2 e T6; guarda KIDMODE intocada.
+  console.log("\n=== Plan03 · B5 · saídas da criança (T3→T2, T3→T7, ⚙ em T2/T6, KIDMODE) ===");
+  await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); window.PipocaApp.setState({ tela: 3 }); });
+  await page.waitForFunction(() => /Favorito de hoje/i.test(document.body.innerText), { timeout: 4000 });
+  await page.locator('[aria-label="Trocar quem está lendo"]').first().click();
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 2, { timeout: 4000 });
+  assert(true, "B5: tocar o avatar/saudação da T3 leva à T2 (trocar de leitor) sem portão");
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 3 }); });
+  await page.waitForFunction(() => /Favorito de hoje/i.test(document.body.innerText), { timeout: 4000 });
+  const alvosSaida = await page.evaluate(() => ["Trocar quem está lendo", "Ver meu pote de vaga-lumes"].map((a) => {
+    const el = document.querySelector(`[aria-label="${a}"]`); const r = el ? el.getBoundingClientRect() : { width: 0, height: 0 };
+    return Math.round(r.height);
+  }));
+  assert(alvosSaida.every((h) => h >= 48), `B5: as duas saídas da T3 têm ≥48px de altura (${alvosSaida.join("/")})`);
+  await page.locator('[aria-label="Ver meu pote de vaga-lumes"]').first().click();
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 7, { timeout: 4000 });
+  const t7SemComp = await page.evaluate(() => ({ comp: !!window.PipocaApp.estado.comp, texto: document.body.innerText }));
+  assert(true, "B5: tocar o saldo da T3 leva ao pote (T7) sem portão");
+  assert(t7SemComp.comp || /Voltar para as histórias|Escolher outra história/.test(t7SemComp.texto), "B5: na T7 sem história em curso a primária volta às histórias (não abre a T4 do nada)");
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 6 }); });
+  await page.waitForFunction(() => /Você leu/i.test(document.body.innerText), { timeout: 4000 });
+  const gearT6 = await page.evaluate(() => { const g = document.querySelector('[aria-label="Do meu jeito"]'); const r = g ? g.getBoundingClientRect() : null; return r ? Math.round(Math.min(r.width, r.height)) : 0; });
+  assert(gearT6 >= 48, `B5: a T6 tem ⚙ "Do meu jeito" com alvo ≥48px (${gearT6})`);
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 2 }); });
+  await page.waitForFunction(() => /Quem vai ler hoje/i.test(document.body.innerText), { timeout: 4000 });
+  await page.locator('[aria-label="Do meu jeito"]').first().click();
+  await page.waitForFunction(() => window.PipocaApp.estado.showA11y === true, { timeout: 4000 });
+  assert(true, "B5: a T2 abre o painel 'Do meu jeito' (ajustes sem portão)");
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => !window.PipocaApp.estado.showA11y, { timeout: 4000 });
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 11 }); });
+  await page.waitForTimeout(150);
+  assert((await page.evaluate(() => window.PipocaApp.estado.tela)) === 2, "B5: guarda KIDMODE intocada — setState({tela:11}) sem portão ainda redireciona à T2");
+
+  // ── Plan03 · B7 · T4 no FLUXO REAL: R1 pela UI (3 toques), 4º toque avisa, ler → T5,
+  // ← preserva o arranjo (voltar sem perdas), instrução nunca pede o impossível.
+  console.log("\n=== Plan03 · B7 · T4 palco: alvos 48, feedback, voltar sem perdas ===");
+  await page.evaluate(() => { const App = window.PipocaApp; App.iniciarComposicao(); App.setState({ rascunhoT4: null, gatePendente: null, tela: 4 }); });
+  await page.waitForFunction(() => /Monte sua cena/.test(document.body.innerText), { timeout: 4000 });
+  const bancoR1 = await page.evaluate(() => window.PipocaApp.estado.comp.banco.length);
+  assert(/Escolha 3 coisas/.test(await page.evaluate(() => document.body.innerText)) && bancoR1 >= 3, `B7: R1 real nasce com banco ${bancoR1} e pede 3 (nunca mais do que há)`);
+  for (let i = 0; i < 3; i++) { await page.locator("button.pip-chip").first().click(); await page.waitForTimeout(80); }
+  const aposTres = await page.evaluate(() => ({ chips: document.querySelectorAll("button.pip-chip").length, setas: document.querySelectorAll('[aria-label="Mover para a esquerda"]').length, h: Math.round((document.querySelector('[aria-label="Tirar"]') || { getBoundingClientRect: () => ({ height: 0 }) }).getBoundingClientRect().height) }));
+  assert(aposTres.setas === 3 && aposTres.h >= 48, `B7: 3 peças colocadas com setas/✕ de ≥48px (${aposTres.h}px)`);
+  await page.locator("button.pip-chip").first().click({ force: true }); // 4º toque (chip aria-disabled): deve AVISAR, não engolir
+  await page.waitForTimeout(120);
+  const aviso4 = await page.evaluate(() => (document.querySelector('[role="status"]') || {}).textContent || "");
+  assert(/Já tem 3/.test(aviso4), `B7: 4º toque avisa em role=status ("${aviso4.trim()}")`);
+  await page.locator("button", { hasText: "Ler em voz alta" }).first().click();
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 5, { timeout: 4000 });
+  await page.locator('[aria-label="Voltar"]').first().click();
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 4 && /Monte sua cena/.test(document.body.innerText), { timeout: 4000 });
+  await page.waitForTimeout(200);
+  const aposVoltar = await page.evaluate(() => ({ setas: document.querySelectorAll('[aria-label="Mover para a esquerda"]').length, texto: document.body.innerText }));
+  assert(aposVoltar.setas === 3 && /Prontinho/.test(aposVoltar.texto), "B7: voltar da T5 preserva o arranjo (3 peças seguem na cena; CTA pronto)");
+  await page.evaluate(() => { window.PipocaApp.setState({ rascunhoT4: null, gatePendente: null, tela: 2 }); });
+
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 
   console.log(`\n${"=".repeat(50)}`);

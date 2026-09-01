@@ -6,10 +6,11 @@
     "P3": "concluída (2026-08-28 · f9898f6)",
     "A0": "concluída (2026-08-28 · b65645e)",
     "B0": "concluída (2026-08-28 · 9de2035)",
-    "B-M1": "concluída (2026-08-28 · d1fe633)"
+    "B-M1": "concluída (2026-08-28 · 66fcbd8)",
+    "B-M2": "concluída (2026-09-01 · c2e6444)"
   },
   "verificacao": {
-    "quando": "2026-08-28T19:52:01.223Z",
+    "quando": "2026-09-01T16:45:27.054Z",
     "ok": true,
     "itens": {
       "tsc": {
@@ -24,12 +25,12 @@
       },
       "e2e:reordenar": {
         "ok": true,
-        "passou": 28,
+        "passou": 32,
         "falhou": 0
       },
       "e2e:linha-verde": {
         "ok": true,
-        "passou": 80,
+        "passou": 91,
         "falhou": 0
       },
       "e2e:admin": {
@@ -39,7 +40,7 @@
       },
       "e2e:geracao2": {
         "ok": true,
-        "passou": 47,
+        "passou": 48,
         "falhou": 0
       }
     },

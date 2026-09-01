@@ -133,8 +133,9 @@ try {
   await page.screenshot({ path: path.join(OUT, "T05-portao-contraste-1280x800.png") });
   await irTela(7, "agrado");
   const ctaT7 = await corDoBotao("Trocar");
-  const ctaT7b = await corDoBotao("Continuar lendo");
-  assert(!!ctaT7 && ctaT7.color === BRANCO && !!ctaT7b && ctaT7b.color === BRANCO, `T7 "Trocar" e "Continuar lendo" continuam brancos (${ctaT7 && ctaT7.color} / ${ctaT7b && ctaT7b.color})`);
+  // B5: sem história em curso a primária da T7 é "Voltar para as histórias" (senão "Continuar lendo").
+  const ctaT7b = (await corDoBotao("Continuar lendo")) || (await corDoBotao("Voltar para as histórias"));
+  assert(!!ctaT7 && ctaT7.color === BRANCO && !!ctaT7b && ctaT7b.color === BRANCO, `T7 "Trocar" e a primária continuam brancos (${ctaT7 && ctaT7.color} / ${ctaT7b && ctaT7b.color})`);
   await page.screenshot({ path: path.join(OUT, "T07-pote-contraste-1280x800.png") });
   // Telas adultas: chip selecionado azul mantém texto branco (UI-A37)
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
@@ -259,6 +260,84 @@ try {
   const focoVoltou = await page.evaluate(() => (document.activeElement && (document.activeElement.textContent || "").trim()) === "⚙");
   assert(focoVoltou, "Esc fecha o painel e o foco volta ao ⚙ que abriu");
   await a11y({ contrast: false });
+
+  console.log("\n=== B8 · T5 por teclado e leitor de tela; T6 anuncia a celebração ===");
+  await page.evaluate(() => { window.PipocaApp.setState({ gateTrecho: "Uma luzinha piscando no escuro.", gatePalavraIdx: 0, gateStage: "reading", gatePendente: null, tela: 5 }); });
+  await page.waitForFunction(() => document.querySelectorAll("button.pip-palavra").length >= 5, { timeout: 5000 });
+  await page.waitForTimeout(300);
+  const t5a = await page.evaluate(() => {
+    const ps = [...document.querySelectorAll("button.pip-palavra")];
+    const pb = document.querySelector('[role="progressbar"]');
+    const st = [...document.querySelectorAll('[role="status"]')].map((s) => s.textContent.trim()).find((t) => /Palavra 1 de/.test(t)) || "";
+    return { n: ps.length, atual: ps.findIndex((b) => b.getAttribute("aria-current") === "true"), aria0: ps[0].getAttribute("aria-label"), focado: document.activeElement === ps[0], pb: pb ? { now: pb.getAttribute("aria-valuenow"), max: pb.getAttribute("aria-valuemax"), label: pb.getAttribute("aria-label") } : null, status: st };
+  });
+  assert(t5a.n === 5 && t5a.atual === 0 && /Uma, palavra 1 de 5/.test(t5a.aria0), `T5: 5 palavras são <button> com aria-current na atual e aria-label "${t5a.aria0}"`);
+  assert(t5a.focado, "T5: ao entrar na leitura, o foco vai para a palavra atual");
+  assert(!!t5a.pb && t5a.pb.now === "1" && t5a.pb.max === "5" && !!t5a.pb.label, `T5: barra é role=progressbar (${t5a.pb && t5a.pb.now}/${t5a.pb && t5a.pb.max})`);
+  assert(/Frase para ler: Uma luzinha/.test(t5a.status) && /Palavra 1 de 5: Uma/.test(t5a.status), `T5: status anuncia a frase e a palavra atual ("${t5a.status.slice(0, 60)}…")`);
+  await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(200);
+  const t5b = await page.evaluate(() => {
+    const ps = [...document.querySelectorAll("button.pip-palavra")];
+    const st = [...document.querySelectorAll('[role="status"]')].map((s) => s.textContent.trim()).find((t) => /Palavra 2 de/.test(t)) || "";
+    return { atual: ps.findIndex((b) => b.getAttribute("aria-current") === "true"), focado: ps.indexOf(document.activeElement), status: st, now: (document.querySelector('[role="progressbar"]') || {}).getAttribute ? document.querySelector('[role="progressbar"]').getAttribute("aria-valuenow") : null };
+  });
+  assert(t5b.atual === 1 && t5b.focado === 1 && /Palavra 2 de 5: luzinha/.test(t5b.status) && t5b.now === "2", `T5: → move o foco e o destaque para a 2ª palavra e anuncia ("${t5b.status}")`);
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(150);
+  const t5c = await page.evaluate(() => [...document.querySelectorAll("button.pip-palavra")].findIndex((b) => b.getAttribute("aria-current") === "true"));
+  assert(t5c === 1, "T5: Enter na palavra em foco a toca (mesmo handler do toque; destaque permanece)");
+  await page.evaluate(() => { window.PipocaApp.setState({ gateEarned: 3, gateObjId: "vagalume", tela: 6 }); });
+  await page.waitForFunction(() => /Você leu/.test(document.body.innerText), { timeout: 5000 });
+  await page.waitForTimeout(200);
+  const t6 = await page.evaluate(() => {
+    const st = [...document.querySelectorAll('[role="status"]')].map((s) => s.textContent.trim()).find((t) => /Ganhou/.test(t)) || "";
+    const decor = document.querySelectorAll('[aria-hidden="true"]').length;
+    return { status: st, decor };
+  });
+  assert(/Você leu! Ganhou 3 vaga-lumes\. Novo amigo: vaga-lume\./.test(t6.status), `T6: celebração anunciada em role=status ("${t6.status.slice(0, 70)}…")`);
+  assert(t6.decor >= 3, `T6: decorativos escondidos do leitor de tela (${t6.decor} aria-hidden)`);
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 3 }); });
+
+  console.log("\n=== B9 · T7 pote: barra de verdade, números sem ~, alvos 48, resgate celebrado, sem saldo avisa ===");
+  const OUT_B9 = path.resolve(path.join("docs", "auditorias", "screenshots", "B9-pote"));
+  mkdirSync(OUT_B9, { recursive: true });
+  await page.evaluate(() => { window.PipocaApp.setState({ economia: { vagalumes: 7, poupado: 2 }, tela: 7 }); });
+  await page.waitForFunction(() => /dividir o que você/.test(document.body.innerText), { timeout: 5000 });
+  await page.waitForTimeout(300);
+  const t7a = await page.evaluate(() => {
+    const img = document.querySelector('[role="img"][aria-label^="Sugestão"]');
+    const fatias = img ? [...img.children].map((c) => Math.round(c.getBoundingClientRect().width)) : [];
+    const txt = document.body.innerText;
+    const trocar = [...document.querySelectorAll("button")].find((b) => / vaga-lumes por /.test((b.getAttribute("aria-label") || "")));
+    const faltam = [...document.querySelectorAll("button")].find((b) => /^Faltam/.test((b.getAttribute("aria-label") || "")));
+    const r = (b) => (b ? Math.round(b.getBoundingClientRect().height) : 0);
+    const pote = document.querySelector('[aria-label$="vaga-lumes no pote"]');
+    const luzesHidden = !!document.querySelector('.pip-luz-dot') && document.querySelector('.pip-luz-dot').closest('[aria-hidden="true"]') !== null;
+    return { fatias, semTil: !/~\d/.test(txt) && !/\bp\/ o sonho/.test(txt), trocarH: r(trocar), faltamH: r(faltam), trocarAria: trocar ? trocar.getAttribute("aria-label") : null, faltamAria: faltam ? faltam.getAttribute("aria-label") : null, poteAria: pote ? pote.getAttribute("aria-label") : null, luzesHidden };
+  });
+  assert(t7a.fatias.length === 2 && t7a.fatias[0] > 40 && t7a.fatias[1] > 20 && t7a.fatias[0] > t7a.fatias[1], `T7: barra "como dividir" tem 2 fatias proporcionais (${t7a.fatias.join("/")}px; era 100% azul)`);
+  assert(t7a.semTil, "T7: sem '~N' nem 'p/ o sonho' no texto visível");
+  assert(t7a.trocarH >= 48 && t7a.faltamH >= 48, `T7: botões do cardápio ≥48px (${t7a.trocarH}/${t7a.faltamH})`);
+  assert(/^Trocar 4 vaga-lumes por Pipoca no cinema$/.test(t7a.trocarAria || "") && /^Faltam 2 vaga-lumes para Gibi novo$/.test(t7a.faltamAria || ""), `T7: aria-label completos ("${t7a.trocarAria}" / "${t7a.faltamAria}")`);
+  assert(t7a.poteAria === "7 vaga-lumes no pote" && t7a.luzesHidden, `T7: leitor de tela lê "${t7a.poteAria}"; luzes decorativas escondidas`);
+  await page.screenshot({ path: path.join(OUT_B9, "T07-pote-1280x800.png") });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(300);
+  const retrato = await page.evaluate(() => { const c = document.querySelector(".pip-t7-conteudo"); return c ? getComputedStyle(c).flexDirection : null; });
+  assert(retrato === "column", `T7: em 390px o cardápio empilha abaixo do pote (flex-direction: ${retrato})`);
+  await page.screenshot({ path: path.join(OUT_B9, "T07-pote-390x844.png") });
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.waitForTimeout(200);
+  await page.locator('button[aria-label^="Faltam"]').first().click({ force: true });
+  await page.waitForTimeout(150);
+  const semSaldo = await page.evaluate(() => ({ status: [...document.querySelectorAll('[role="status"]')].map((s) => s.textContent.trim()).find((t) => /Faltam/.test(t)) || "", saldo: window.PipocaApp.estado.economia.vagalumes }));
+  assert(/Faltam 2 ainda/.test(semSaldo.status) && semSaldo.saldo === 7, `T7: toque sem saldo avisa ("${semSaldo.status}") e não debita`);
+  await page.locator('button[aria-label*=" vaga-lumes por "]').first().click();
+  await page.waitForTimeout(200);
+  const resgate = await page.evaluate(() => ({ status: [...document.querySelectorAll('[role="status"]')].map((s) => s.textContent.trim()).find((t) => /Combinado/.test(t)) || "", saldo: window.PipocaApp.estado.economia.vagalumes, anim: document.querySelectorAll(".pip-comemora").length }));
+  assert(/Combinado! Você trocou 4 vaga-lumes por Pipoca no cinema/.test(resgate.status) && resgate.saldo === 3 && resgate.anim >= 1, `T7: resgatar celebra ("${resgate.status}"), debita (${resgate.saldo}) e anima (${resgate.anim})`);
+  await page.evaluate(() => { window.PipocaApp.setState({ economia: { vagalumes: 7, poupado: 2 }, tela: 3 }); });
   assert(erros.length === 0, `sem erros de página (${erros.length ? erros.join(" | ") : "nenhum"})`);
 } catch (e) {
   console.error("ERRO na sonda a11y:", e);

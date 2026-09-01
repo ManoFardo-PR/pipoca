@@ -1,0 +1,131 @@
+<!-- BarraCrianca.dc.html — A barra superior ÚNICA das telas da criança (T3–T7) · Plan03 B6
+     ─────────────────────────────────────────────────────────────────────────────
+     Uma gramática só (UI-C10): 64px, mesmos alvos, mesma ordem.
+       esquerda  = ← (voltar, quando faz sentido)  OU  avatar + saudação (trocar de leitor, B5)
+       centro    = título curto (opcional)
+       direita   = saldo de vaga-lumes (toque = pote, B5; ou só leitura) · 🎁 guardado · ⚙ Do meu jeito
+     Todo alvo de navegação/ajuste tem ≥48px (UI-C16/C17). Cores/tipografia por tokens (B2).
+
+     Props (todas opcionais — a tela liga só o que usa):
+       voltar        fn      — mostra ← (aria-label "Voltar")
+       mostrarAvatar bool    — mostra avatar + saudação à esquerda
+       avatarRef     fn(el)  — ref onde a tela injeta o SVG do avatar (padrão _inject)
+       saudacao      string  — 1ª linha ao lado do avatar
+       subtitulo     string  — 2ª linha (menor)
+       trocarLeitor  fn      — se dado, o bloco avatar+saudação vira botão (aria "Trocar quem está lendo")
+       titulo        string  — texto central
+       mostrarSaldo  bool    — pílula 🟡 N
+       vagalumes     string  — número exibido
+       verPote       fn      — se dado, a pílula vira botão (aria "Ver meu pote de vaga-lumes")
+       poupado       string  — se > 0, pílula 🎁 (guardado para o sonho)
+       abrirAjustes  fn      — ⚙ (aria "Do meu jeito")
+-->
+<x-dc>
+
+<div style="height:64px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:var(--pip-esp-2);padding:0 var(--pip-esp-4);background:rgba(255,255,255,.55);backdrop-filter:blur(8px);border-bottom:1px solid var(--pip-areia-alfa);">
+
+  <!-- esquerda -->
+  <div style="display:flex;align-items:center;gap:var(--pip-esp-2);min-width:0;flex:1;">
+    <sc-if value="{{ temVoltar }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ voltar }}" aria-label="Voltar" title="Voltar" style="width:48px;height:48px;flex-shrink:0;border-radius:var(--pip-raio-1);border:1.5px solid var(--pip-areia-borda);background:rgba(255,255,255,.7);cursor:pointer;font-size:18px;color:var(--pip-tinta);display:flex;align-items:center;justify-content:center;">←</button>
+    </sc-if>
+    <sc-if value="{{ avatarClicavel }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ trocarLeitor }}" aria-label="Trocar quem está lendo" title="Trocar quem está lendo" style="display:flex;align-items:center;gap:var(--pip-esp-3);min-height:48px;min-width:0;padding:3px 12px 3px 3px;border:none;border-radius:var(--pip-raio-pill);background:transparent;cursor:pointer;text-align:left;color:var(--pip-tinta);">
+        <div ref="{{ avatarRef }}" aria-hidden="true" style="width:42px;height:42px;flex-shrink:0;border-radius:50%;overflow:hidden;background:var(--pip-superficie);box-shadow:var(--pip-sombra-card);"></div>
+        <div style="min-width:0;">
+          <div style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:var(--pip-fs-4);line-height:var(--pip-lh-titulo);color:var(--pip-heeler-escuro);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ saudacao }}</div>
+          <div style="font-size:var(--pip-fs-1);color:var(--pip-texto-suave);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ subtitulo }}</div>
+        </div>
+      </button>
+    </sc-if>
+    <sc-if value="{{ avatarEstatico }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:var(--pip-esp-3);min-height:48px;min-width:0;padding:3px 12px 3px 3px;">
+        <div ref="{{ avatarRef }}" aria-hidden="true" style="width:42px;height:42px;flex-shrink:0;border-radius:50%;overflow:hidden;background:var(--pip-superficie);box-shadow:var(--pip-sombra-card);"></div>
+        <div style="min-width:0;">
+          <div style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:var(--pip-fs-4);line-height:var(--pip-lh-titulo);color:var(--pip-heeler-escuro);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ saudacao }}</div>
+          <div style="font-size:var(--pip-fs-1);color:var(--pip-texto-suave);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ subtitulo }}</div>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+
+  <!-- centro -->
+  <sc-if value="{{ temTitulo }}" hint-placeholder-val="{{ false }}">
+    <div style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:var(--pip-fs-4);color:var(--pip-heeler-escuro);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;">{{ titulo }}</div>
+  </sc-if>
+
+  <!-- direita -->
+  <div style="display:flex;align-items:center;justify-content:flex-end;gap:var(--pip-esp-2);flex:1;">
+    <sc-if value="{{ saldoClicavel }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ verPote }}" aria-label="Ver meu pote de vaga-lumes" title="Ver meu pote" style="display:flex;align-items:center;gap:7px;min-height:48px;background:var(--pip-vagalume-fundo);border:1.5px solid var(--pip-vagalume-borda);border-radius:var(--pip-raio-pill);padding:6px 14px 6px 10px;cursor:pointer;">
+        <span aria-hidden="true" style="width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 40% 35%,var(--pip-vagalume-creme),var(--pip-vagalume) 60%,var(--pip-vagalume-escuro));box-shadow:0 0 8px 1px rgba(247,191,96,.7);"></span>
+        <span style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:var(--pip-fs-4);color:var(--pip-terracota-texto);">{{ vagalumes }}</span>
+      </button>
+    </sc-if>
+    <sc-if value="{{ saldoEstatico }}" hint-placeholder-val="{{ false }}">
+      <div aria-label="{{ vagalumes }} vaga-lumes no pote" style="display:flex;align-items:center;gap:7px;min-height:48px;background:var(--pip-vagalume-fundo);border:1.5px solid var(--pip-vagalume-borda);border-radius:var(--pip-raio-pill);padding:6px 14px 6px 10px;">
+        <span aria-hidden="true" style="width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 40% 35%,var(--pip-vagalume-creme),var(--pip-vagalume) 60%,var(--pip-vagalume-escuro));box-shadow:0 0 8px 1px rgba(247,191,96,.7);"></span>
+        <span style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:var(--pip-fs-4);color:var(--pip-terracota-texto);">{{ vagalumes }}</span>
+      </div>
+    </sc-if>
+    <sc-if value="{{ temPoupado }}" hint-placeholder-val="{{ false }}">
+      <div title="Guardado para o sonho" aria-label="{{ poupado }} guardados para o sonho" style="display:flex;align-items:center;gap:6px;min-height:48px;background:var(--pip-heeler-alfa);border:1.5px solid var(--pip-heeler-borda);border-radius:var(--pip-raio-pill);padding:6px 14px;">
+        <span aria-hidden="true" style="font-size:14px;">🎁</span>
+        <span style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:var(--pip-fs-3);color:var(--pip-heeler);">{{ poupado }}</span>
+      </div>
+    </sc-if>
+    <sc-if value="{{ temAjustes }}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{ abrirAjustes }}" aria-label="Do meu jeito" title="Do meu jeito" style="width:48px;height:48px;flex-shrink:0;border-radius:50%;border:1.5px solid var(--pip-areia-borda);background:rgba(255,255,255,.6);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--pip-tinta);">⚙</button>
+    </sc-if>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script
+  data-props="{
+    &quot;voltar&quot;: { &quot;editor&quot;: &quot;fn&quot;, &quot;default&quot;: null, &quot;tsType&quot;: &quot;(() => void) | null&quot;, &quot;section&quot;: &quot;BarraCrianca&quot;, &quot;label&quot;: &quot;Voltar&quot; },
+    &quot;mostrarAvatar&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;BarraCrianca&quot;, &quot;label&quot;: &quot;Mostrar avatar&quot; },
+    &quot;avatarRef&quot;: { &quot;editor&quot;: &quot;fn&quot;, &quot;default&quot;: null, &quot;tsType&quot;: &quot;((el: HTMLElement) => void) | null&quot;, &quot;section&quot;: &quot;BarraCrianca&quot;, &quot;label&quot;: &quot;Ref do avatar&quot; },
+    &quot;saudacao&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;BarraCrianca&quot;, &quot;label&quot;: &quot;Saudação&quot; },
+    &quot;subtitulo&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;BarraCrianca&quot;, &quot;label&quot;: &quot;Subtítulo&quot; },
+    &quot;trocarLeitor&quot;: { &quot;editor&quot;: &quot;fn&quot;, &quot;default&quot;: null, &quot;tsType&quot;: &quot;(() => void) | null&quot;, &quot;section&quot;: &quot;BarraCrianca&quot;, &quot;label&quot;: &quot;Trocar leitor&quot; },
+    &quot;titulo&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;BarraCrianca&quot;, &quot;label&quot;: &quot;Título&quot; },
+    &quot;mostrarSaldo&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;BarraCrianca&quot;, &quot;label&quot;: &quot;Mostrar saldo&quot; },
+    &quot;vagalumes&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;0&quot;, &quot;tsType&quot;: &quot;string | number&quot;, &quot;section&quot;: &quot;BarraCrianca&quot;, &quot;label&quot;: &quot;Vaga-lumes&quot; },
+    &quot;verPote&quot;: { &quot;editor&quot;: &quot;fn&quot;, &quot;default&quot;: null, &quot;tsType&quot;: &quot;(() => void) | null&quot;, &quot;section&quot;: &quot;BarraCrianca&quot;, &quot;label&quot;: &quot;Ver pote&quot; },
+    &quot;poupado&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;0&quot;, &quot;tsType&quot;: &quot;string | number&quot;, &quot;section&quot;: &quot;BarraCrianca&quot;, &quot;label&quot;: &quot;Guardado&quot; },
+    &quot;abrirAjustes&quot;: { &quot;editor&quot;: &quot;fn&quot;, &quot;default&quot;: null, &quot;tsType&quot;: &quot;(() => void) | null&quot;, &quot;section&quot;: &quot;BarraCrianca&quot;, &quot;label&quot;: &quot;Do meu jeito&quot; }
+  }">
+class Component extends DCLogic {
+  state = {};
+
+  renderVals() {
+    const p = this.props || {};
+    const fn = (f) => (typeof f === 'function' ? f : null);
+    const voltar = fn(p.voltar), trocarLeitor = fn(p.trocarLeitor), verPote = fn(p.verPote), abrirAjustes = fn(p.abrirAjustes), avatarRef = fn(p.avatarRef);
+    const mostrarAvatar = !!p.mostrarAvatar;
+    const mostrarSaldo = !!p.mostrarSaldo;
+    const poupadoNum = Number(p.poupado) || 0;
+    return {
+      temVoltar: !!voltar,
+      voltar: voltar || (() => {}),
+      avatarClicavel: mostrarAvatar && !!trocarLeitor,
+      avatarEstatico: mostrarAvatar && !trocarLeitor,
+      avatarRef: avatarRef || (() => {}),
+      saudacao: p.saudacao || '',
+      subtitulo: p.subtitulo || '',
+      trocarLeitor: trocarLeitor || (() => {}),
+      temTitulo: !!p.titulo,
+      titulo: p.titulo || '',
+      saldoClicavel: mostrarSaldo && !!verPote,
+      saldoEstatico: mostrarSaldo && !verPote,
+      vagalumes: p.vagalumes == null ? '0' : String(p.vagalumes),
+      verPote: verPote || (() => {}),
+      temPoupado: poupadoNum > 0,
+      poupado: String(poupadoNum),
+      temAjustes: !!abrirAjustes,
+      abrirAjustes: abrirAjustes || (() => {}),
+    };
+  }
+}
+</script>

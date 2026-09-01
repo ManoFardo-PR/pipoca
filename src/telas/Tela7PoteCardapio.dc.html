@@ -11,63 +11,67 @@
   <style>
     @keyframes pipLuzGlow { 0%,100%{opacity:.55;transform:scale(.9)} 50%{opacity:1;transform:scale(1.15)} }
     .pip-luz { animation: pipLuzGlow 2.4s ease-in-out infinite; }
+    /* B9: celebração ao resgatar e sacudida sem saldo — ambas pelo token de movimento. */
+    @keyframes pipComemora { 0%{transform:scale(1)} 35%{transform:scale(1.06)} 100%{transform:scale(1)} }
+    .pip-comemora { animation: pipComemora calc(.5s * var(--pip-mov)) ease; }
+    @keyframes pipSacode { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+    .pip-sacode { animation: pipSacode calc(.3s * var(--pip-mov)) ease; }
+    /* B9 (UI-C58): retrato — o cardápio empilha abaixo do pote em telas estreitas. */
+    .pip-t7-conteudo { flex:1; min-height:0; display:flex; gap:26px; padding:26px 34px 30px; }
+    .pip-t7-pote { width:320px; flex-shrink:0; display:flex; flex-direction:column; gap:16px; }
+    .pip-t7-pote-visual { flex:1; min-height:220px; }
+    @media (max-width: 700px) {
+      .pip-t7-conteudo { flex-direction:column; overflow-y:auto; padding:16px 16px 24px; }
+      .pip-t7-pote { width:100%; }
+      .pip-t7-pote-visual { flex:none; height:240px; }
+    }
   </style>
 </helmet>
 
 <div style="position:absolute;inset:0;display:flex;flex-direction:column;background:linear-gradient(180deg,#fdf3df,#f6ead2);">
 
-  <!-- Header -->
-  <div style="height:62px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:rgba(255,255,255,.55);backdrop-filter:blur(8px);border-bottom:1px solid rgba(160,140,110,.18);">
-    <div style="display:flex;align-items:center;gap:12px;">
-      <div ref="{{ childAvatarRef }}" style="width:42px;height:42px;border-radius:50%;overflow:hidden;background:#fffaf0;box-shadow:0 2px 6px rgba(74,59,44,.2);"></div>
-      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;color:#3a4f63;">O pote de {{ childName }}</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div style="display:flex;align-items:center;gap:7px;background:#fff3da;border:1.5px solid #f0d9a8;border-radius:999px;padding:6px 14px 6px 10px;">
-        <div style="width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 8px 1px rgba(247,191,96,.7);"></div>
-        <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16px;color:var(--pip-terracota-texto);">{{ vagalumes }}</span>
-      </div>
-      <button onClick="{{ abrirAjustesA11y }}" style="width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(160,140,110,.25);background:rgba(255,255,255,.6);cursor:pointer;font-size:18px;color:#7a6a54;">⚙</button>
-    </div>
-  </div>
+  <!-- Header — a barra única das telas da criança (B6): avatar + "O pote de {nome}" (toque =
+       trocar de leitor, B5), saldo (só leitura: já estamos no pote), ⚙. -->
+  <dc-import name="BarraCrianca" mostrarAvatar="{{ true }}" avatarRef="{{ childAvatarRef }}" saudacao="{{ tituloPote }}" subtitulo="trocar de leitor" trocarLeitor="{{ trocarLeitor }}" mostrarSaldo="{{ true }}" vagalumes="{{ vagalumes }}" abrirAjustes="{{ abrirAjustesA11y }}"></dc-import>
 
-  <!-- Conteúdo -->
-  <div style="flex:1;min-height:0;display:flex;gap:26px;padding:26px 34px 30px;">
+  <!-- Conteúdo (B9: empilha em retrato) -->
+  <div class="pip-t7-conteudo">
 
     <!-- Esquerda: pote -->
-    <div style="width:320px;flex-shrink:0;display:flex;flex-direction:column;gap:16px;">
+    <div class="pip-t7-pote {{ poteClass }}">
       <!-- Pote visual -->
-      <div style="flex:1;border-radius:24px;background:linear-gradient(180deg,#33406a,#4a4878 70%,#5e5183);position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 16px 36px -16px rgba(40,30,50,.5);">
+      <div class="pip-t7-pote-visual" style="border-radius:24px;background:linear-gradient(180deg,#33406a,#4a4878 70%,#5e5183);position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 16px 36px -16px rgba(40,30,50,.5);">
         <!-- estrelas pálidas do céu — nada âmbar fora do frasco, para não parecer vaga-lume solto -->
-        <div style="position:absolute;top:26px;left:32px;width:3px;height:3px;border-radius:50%;background:rgba(225,235,255,.7);box-shadow:0 0 4px 1px rgba(220,230,255,.35);"></div>
-        <div style="position:absolute;top:70px;right:46px;width:2px;height:2px;border-radius:50%;background:rgba(225,235,255,.6);box-shadow:0 0 3px 1px rgba(220,230,255,.3);"></div>
-        <div style="position:absolute;bottom:80px;left:60px;width:2px;height:2px;border-radius:50%;background:rgba(225,235,255,.55);box-shadow:0 0 3px 1px rgba(220,230,255,.28);"></div>
+        <div aria-hidden="true" style="position:absolute;top:26px;left:32px;width:3px;height:3px;border-radius:50%;background:rgba(225,235,255,.7);box-shadow:0 0 4px 1px rgba(220,230,255,.35);"></div>
+        <div aria-hidden="true" style="position:absolute;top:70px;right:46px;width:2px;height:2px;border-radius:50%;background:rgba(225,235,255,.6);box-shadow:0 0 3px 1px rgba(220,230,255,.3);"></div>
+        <div aria-hidden="true" style="position:absolute;bottom:80px;left:60px;width:2px;height:2px;border-radius:50%;background:rgba(225,235,255,.55);box-shadow:0 0 3px 1px rgba(220,230,255,.28);"></div>
         <!-- frasco -->
         <div style="width:150px;height:170px;border-radius:24px 24px 34px 34px;background:linear-gradient(180deg,rgba(190,225,232,.22),rgba(150,200,212,.12));border:2px solid rgba(207,234,240,.4);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-          <div style="position:absolute;top:-14px;width:96px;height:18px;border-radius:7px;background:#c89a64;box-shadow:0 2px 6px rgba(0,0,0,.25);z-index:3;"></div>
-          <!-- luzes: 1 vaga-lume aceso por unidade, até um teto visual; acima, intensifica -->
-          <div style="position:absolute;inset:0;z-index:1;pointer-events:none;">
+          <div aria-hidden="true" style="position:absolute;top:-14px;width:96px;height:18px;border-radius:7px;background:#c89a64;box-shadow:0 2px 6px rgba(0,0,0,.25);z-index:3;"></div>
+          <!-- luzes: 1 vaga-lume aceso por unidade, até um teto visual; acima, intensifica (decorativo — B9) -->
+          <div aria-hidden="true" style="position:absolute;inset:0;z-index:1;pointer-events:none;">
             <sc-for list="{{ luzes }}" as="lz" hint-placeholder-count="3">
               <div class="pip-luz-dot {{ lz.cls }}" style="{{ lz.style }}"></div>
             </sc-for>
           </div>
-          <div style="text-align:center;position:relative;z-index:2;">
-            <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:46px;color:#fff6da;text-shadow:0 0 18px rgba(247,191,96,.6);line-height:1;">{{ vagalumes }}</div>
-            <div style="font-size:12px;color:rgba(255,250,238,.8);font-weight:700;letter-spacing:.5px;">vaga-lumes</div>
+          <!-- número + rótulo num único nó para o leitor de tela ("7 vaga-lumes") -->
+          <div aria-label="{{ vagalumes }} vaga-lumes no pote" style="text-align:center;position:relative;z-index:2;">
+            <div aria-hidden="true" style="font-family:'Baloo 2',cursive;font-weight:800;font-size:46px;color:#fff6da;text-shadow:0 0 18px rgba(247,191,96,.6);line-height:1;">{{ vagalumes }}</div>
+            <div aria-hidden="true" style="font-size:12px;color:rgba(255,250,238,.8);font-weight:700;letter-spacing:.5px;">vaga-lumes</div>
           </div>
         </div>
       </div>
 
-      <!-- Sugestão 2/3 · 1/3 -->
+      <!-- Sugestão 2/3 · 1/3 (B9: barra com duas fatias de verdade; números sem "~"/"p/") -->
       <div style="background:var(--pip-superficie);border-radius:18px;padding:16px 18px;box-shadow:0 8px 20px -12px rgba(74,59,44,.28);">
         <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:14px;color:#6a5946;">Como dividir o que você juntou</div>
-        <div style="display:flex;height:16px;border-radius:8px;overflow:hidden;margin-top:12px;">
-          <div style="width:{{ spendPct }}%;background:linear-gradient(90deg,#e8965a,#d5713f);"></div>
+        <div role="img" aria-label="{{ dividirAria }}" style="display:flex;height:16px;border-radius:8px;overflow:hidden;margin-top:12px;">
+          <div style="width:{{ spendPct }};background:linear-gradient(90deg,#e8965a,#d5713f);"></div>
           <div style="flex:1;background:linear-gradient(90deg,#5a86b0,#3f6f9e);"></div>
         </div>
         <div style="display:flex;justify-content:space-between;margin-top:10px;">
-          <div><div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;color:var(--pip-terracota-texto);">~{{ spendSuggest }}</div><div style="font-size:11.5px;color:var(--pip-texto-suave);">gastar agora</div></div>
-          <div style="text-align:right;"><div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;color:#3f6f9e;">~{{ saveSuggest }}</div><div style="font-size:11.5px;color:var(--pip-texto-suave);">guardar p/ o sonho</div></div>
+          <div><div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;color:var(--pip-terracota-texto);">{{ spendSuggest }}</div><div style="font-size:11.5px;color:var(--pip-texto-suave);">gastar agora</div></div>
+          <div style="text-align:right;"><div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:18px;color:#3f6f9e;">{{ saveSuggest }}</div><div style="font-size:11.5px;color:var(--pip-texto-suave);">guardar para o sonho</div></div>
         </div>
       </div>
     </div>
@@ -79,19 +83,22 @@
         <div style="font-size:var(--pip-fs-2);line-height:var(--pip-lh-texto);color:var(--pip-texto-suave);margin-top:3px;">Você escolhe. Gastar é só seu — sem pressa, sem cobrança.</div>
       </div>
 
+      <!-- B9: resgatar é um momento (celebração) e toque sem saldo avisa — visível + anunciado. -->
+      <div role="status" aria-live="polite" style="min-height:22px;font-family:var(--pip-fonte-texto);font-weight:700;font-size:var(--pip-fs-3);color:var(--pip-terracota-texto);">{{ aviso }}</div>
+
       <!-- Cardápio configurável pode ter 6+ itens: a lista rola; as ações ficam fixas embaixo. -->
       <div style="flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding-right:4px;">
         <sc-for list="{{ rewardMenu }}" as="rw" hint-placeholder-count="3">
-          <div style="{{ rw.cardStyle }}">
-            <div style="width:52px;height:52px;flex-shrink:0;border-radius:14px;background:#f3ead8;display:flex;align-items:center;justify-content:center;font-size:26px;">{{ rw.icon }}</div>
+          <div class="{{ rw.cardClass }}" style="{{ rw.cardStyle }}">
+            <div aria-hidden="true" style="width:52px;height:52px;flex-shrink:0;border-radius:14px;background:#f3ead8;display:flex;align-items:center;justify-content:center;font-size:26px;">{{ rw.icon }}</div>
             <div style="flex:1;min-width:0;">
               <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:16.5px;color:#3a2c20;">{{ rw.label }}</div>
               <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
-                <div style="width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 6px 1px rgba(247,191,96,.6);"></div>
+                <div aria-hidden="true" style="width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff3cf,#f4b65a 60%,#e89132);box-shadow:0 0 6px 1px rgba(247,191,96,.6);"></div>
                 <span style="font-family:'Baloo 2',cursive;font-weight:700;font-size:14px;color:var(--pip-terracota-texto);">{{ rw.cost }} vaga-lumes</span>
               </div>
             </div>
-            <button onClick="{{ rw.redeem }}" style="{{ rw.btnStyle }}">{{ rw.btnLabel }}</button>
+            <button onClick="{{ rw.redeem }}" aria-label="{{ rw.btnAria }}" aria-disabled="{{ rw.inerte }}" style="{{ rw.btnStyle }}">{{ rw.btnLabel }}</button>
           </div>
         </sc-for>
       </div>
@@ -109,11 +116,48 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = {};
+  state = { aviso: '', comemoraId: null, sacodeId: null, poteComemora: false };
 
   _inject(el, html) { if (el && el._k !== html) { el.innerHTML = html; el._k = html; } }
 
   _getApp() { return window.PipocaApp; }
+
+  // ── B9 · feedback: resgatar é um momento; toque sem saldo avisa (nunca em silêncio) ──
+  _falar(texto) {
+    try {
+      const C = window.PipocaCanonico;
+      if (C && C.tts && typeof C.tts.falar === 'function') { C.tts.falar(texto, { lang: 'pt-BR', rate: 0.9 }); return; }
+      if (window.speechSynthesis && window.SpeechSynthesisUtterance) {
+        const u = new window.SpeechSynthesisUtterance(texto); u.lang = 'pt-BR'; u.rate = 0.9;
+        window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+      }
+    } catch (_) {}
+  }
+  _limparAnim() {
+    if (this._animTimer) clearTimeout(this._animTimer);
+    this._animTimer = setTimeout(() => { this.setState({ comemoraId: null, sacodeId: null, poteComemora: false }); }, 600);
+  }
+  _resgatar(item) {
+    const App = this._getApp();
+    if (!App) return;
+    const ec = App.estado.economia || { vagalumes: 0, poupado: 0 };
+    if (ec.vagalumes < item.cost) {
+      // Sem saldo: feedback honesto, sem culpa — e sacudida leve no cartão.
+      const faltam = item.cost - ec.vagalumes;
+      const texto = 'Faltam ' + faltam + ' ainda — continue lendo!';
+      this.setState({ aviso: texto, sacodeId: item.id, comemoraId: null });
+      this._falar(texto);
+      this._limparAnim();
+      return;
+    }
+    App.setState({ economia: { ...ec, vagalumes: Math.max(0, ec.vagalumes - item.cost) } });
+    // Celebração (decisão do dono: "Combinado! …"); sem registro na telemetria — não há
+    // evento de economia no núcleo (telemetria.ts) e a regra é não inventar um.
+    const texto = 'Combinado! Você trocou ' + item.cost + ' vaga-lumes por ' + item.label + '.';
+    this.setState({ aviso: texto, comemoraId: item.id, sacodeId: null, poteComemora: true });
+    this._falar(texto);
+    this._limparAnim();
+  }
 
   _avatarSVG(d) {
     if (!d) return '';
@@ -174,6 +218,12 @@ class Component extends DCLogic {
     if (App) App.setState({ showA11y: true });
   }
 
+  // B5/B6: trocar de leitor (T2) a partir do pote também — 1 toque, sem portão.
+  trocarLeitor() {
+    const App = this._getApp();
+    if (App) App.setState({ tela: 2 });
+  }
+
   renderVals() {
     const App = this._getApp();
     const estado = App ? App.estado : {};
@@ -231,19 +281,18 @@ class Component extends DCLogic {
         ];
     const rewardMenu = itens.map(m => {
       const aff = vagalumes >= m.cost;
+      const faltam = m.cost - vagalumes;
       return {
         label: m.label, icon: m.icon, cost: m.cost,
-        redeem: aff ? (() => {
-          const App2 = this._getApp();
-          if (App2) {
-            const ec = App2.estado.economia;
-            App2.setState({ economia: { ...ec, vagalumes: Math.max(0, ec.vagalumes - m.cost) } });
-            this.setState({});
-          }
-        }) : (() => {}),
-        btnLabel: aff ? 'Trocar' : 'Faltam ' + (m.cost - vagalumes),
-        btnStyle: 'border:none;border-radius:12px;padding:11px 18px;white-space:nowrap;font-family:"Baloo 2",cursive;font-weight:700;font-size:14px;cursor:'+(aff?'pointer':'not-allowed')+';'
+        // B9: o mesmo handler para os dois casos — sem saldo AVISA (nunca engole o toque).
+        redeem: () => this._resgatar(m),
+        inerte: !aff,
+        btnLabel: aff ? 'Trocar' : 'Faltam ' + faltam,
+        btnAria: aff ? ('Trocar ' + m.cost + ' vaga-lumes por ' + m.label) : ('Faltam ' + faltam + ' vaga-lumes para ' + m.label),
+        // B9 (UI-C19): alvo ≥48px.
+        btnStyle: 'border:none;border-radius:12px;min-height:48px;padding:0 18px;white-space:nowrap;font-family:"Baloo 2",cursive;font-weight:700;font-size:14px;cursor:'+(aff?'pointer':'not-allowed')+';'
           +(aff?'background:var(--pip-cta);color:#fff;box-shadow:0 6px 14px -5px rgba(181,86,40,.5);':'background:#ece2cf;color:#a8997e;'),
+        cardClass: this.state.comemoraId === m.id ? 'pip-comemora' : (this.state.sacodeId === m.id ? 'pip-sacode' : ''),
         cardStyle: 'display:flex;align-items:center;gap:14px;background:var(--pip-superficie);border-radius:18px;padding:14px 16px;box-shadow:0 8px 20px -12px rgba(74,59,44,.3);'+(aff?'':'opacity:.78;'),
       };
     });
@@ -252,6 +301,9 @@ class Component extends DCLogic {
     //  • história em andamento → "Continuar lendo" (retoma a rodada, T4) + secundária.
     //  • história convergida → só "Brincar de novo" (nova história).
     const convergiu = App && App.composicaoConvergiu ? App.composicaoConvergiu() : false;
+    // B5: chegando pelo saldo da T3 (sem composição em curso), "Continuar lendo" abriria a
+    // T4 e iniciaria uma história do nada — a primária vira "voltar para as histórias".
+    const emCurso = !!estado.comp && !convergiu;
     const estiloPrimaria = 'width:100%;padding:18px;border:none;border-radius:18px;background:var(--pip-cta);color:#fff;font-family:"Baloo 2",cursive;font-weight:700;font-size:18px;cursor:pointer;box-shadow:0 10px 24px -6px rgba(181,86,40,.5);';
     const estiloSecundaria = 'width:100%;padding:13px;border:1.5px solid rgba(160,140,110,.3);border-radius:16px;background:rgba(255,255,255,.7);color:#7a6a54;font-family:"Baloo 2",cursive;font-weight:700;font-size:15px;cursor:pointer;';
 
@@ -259,16 +311,22 @@ class Component extends DCLogic {
       vagalumes,
       luzes,
       childName,
+      tituloPote: 'O pote de ' + childName,
+      trocarLeitor: () => this.trocarLeitor(),
       childAvatarRef: (el) => { this._childAvatarEl = el; this._updateAvatar(); },
       spendSuggest: spend,
       saveSuggest: save,
+      // B9 (UI-C08): o template interpola width:{{ spendPct }} — o "%" vem daqui, uma vez só.
       spendPct: pct + '%',
+      dividirAria: 'Sugestão: gastar ' + spend + ' agora e guardar ' + save + ' para o sonho',
+      aviso: this.state.aviso || '',
+      poteClass: this.state.poteComemora ? 'pip-comemora' : '',
       rewardMenu,
-      acaoPrimaria: convergiu ? (() => this.brincarDeNovo()) : (() => this.continuar()),
-      // Fim da história: o caminho claro é voltar à casinha (T3) e escolher outra.
-      primariaLabel: convergiu ? '🏠 Escolher outra história' : '📖 Continuar lendo',
+      acaoPrimaria: emCurso ? (() => this.continuar()) : (() => this.brincarDeNovo()),
+      // Fim da história (ou sem história em curso): o caminho claro é voltar à casinha (T3).
+      primariaLabel: emCurso ? '📖 Continuar lendo' : (convergiu ? '🏠 Escolher outra história' : '🏠 Voltar para as histórias'),
       primariaStyle: estiloPrimaria,
-      mostrarSecundaria: !convergiu,
+      mostrarSecundaria: emCurso,
       acaoSecundaria: () => this.brincarDeNovo(),
       secundariaLabel: '🌱 Brincar de novo (nova história)',
       secundariaStyle: estiloSecundaria,

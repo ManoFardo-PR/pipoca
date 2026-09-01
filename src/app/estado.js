@@ -139,6 +139,12 @@
         }
         var R = window.PipocaRoteador;
         if (R) R.irParaTela(state.tela);
+        // B5 (UI-C38): o pedir-uma-vez do gênero só aparece na CHEGADA à T3 (a casinha),
+        // nunca sobre T4–T7 nem sobre telas adultas — a ativação deixa a pergunta pendente.
+        if (state.tela === 3 && _pedirGeneroPendente && state.perfil && !state.perfil.genero) {
+          _pedirGeneroPendente = false;
+          state.pedirGenero = true;
+        }
       }
       // UX por perfil · perfil trocado por fora do fluxo (e2e, remoção em T12):
       // invalida a gravação pendente do perfil anterior (nunca contamina o novo)
@@ -449,6 +455,9 @@
   // criança A não vaza pra B) e hidrata em paralelo (repo local resolve em
   // microtask). Mesmo id: passthrough — preserva a composição em curso.
   // `telaDestino` opcional (T2 passa 3; T12 não navega).
+  // B5: a pergunta do gênero fica PENDENTE na ativação e abre na chegada à T3 (setState).
+  var _pedirGeneroPendente = false;
+
   function selecionarPerfil(p, telaDestino) {
     if (!p || !p.id) return;
     flushSavePendente();
@@ -456,8 +465,9 @@
     if (state.perfil && state.perfil.id === p.id) {
       nav.perfil = p;
       // fase13 pós-incidente · perfil legado sem gênero: pergunta na ativação
-      // ("Depois" fecha; volta a perguntar na próxima ativação).
-      nav.pedirGenero = !p.genero;
+      // ("Depois" fecha; volta a perguntar na próxima ativação). B5: só na T3.
+      _pedirGeneroPendente = !p.genero;
+      nav.pedirGenero = false;
       setState(nav);
       return;
     }
@@ -468,7 +478,8 @@
     patch.gatePendente = null;
     patch.leitorHistoria = null; // a releitura da criança A não vaza pra B
     patch.ultimaHistoriaSalvaId = null;
-    patch.pedirGenero = !p.genero; // pedir-uma-vez (fase13 pós-incidente)
+    _pedirGeneroPendente = !p.genero; // pedir-uma-vez (fase13 pós-incidente) — abre na T3 (B5)
+    patch.pedirGenero = false;
     for (var k in nav) { if (Object.prototype.hasOwnProperty.call(nav, k)) patch[k] = nav[k]; }
     setState(patch);
     _hidratarPerfil(p);

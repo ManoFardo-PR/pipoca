@@ -184,13 +184,21 @@ assert(textoB !== textoA, "reordenar o miolo MUDA o texto lido no portão (prév
 assert(!textoB.includes("undefined"), "prévia (ordem 2) tece texto real, sem undefined");
 
 // ── (D) As pontas continuam fixas e a TELA as marca como âncora ─────────────
-console.log("\n=== Pontas fixas + selo 🔒 âncora ===");
+// B7 (Plan03): o selo da faixa etária é "🔒 fica aqui" (decisão do dono).
+console.log("\n=== Pontas fixas + selo 🔒 fica aqui ===");
 const html4 = lerRaiz("src/telas/Tela4Heroi.dc.html");
-assert(/🔒 âncora/.test(html4), "template da T4 tem o selo '🔒 âncora'");
+assert(/🔒 fica aqui/.test(html4) && !/🔒 âncora/.test(html4), "template da T4 tem o selo '🔒 fica aqui' (e não mais 'âncora')");
 assert(
-  /value="\{\{ cell\.travada \}\}"[\s\S]*?🔒 âncora/.test(html4),
-  "o selo '🔒 âncora' só aparece quando a célula é travada (âncora)"
+  /value="\{\{ cell\.travada \}\}"[\s\S]*?🔒 fica aqui/.test(html4),
+  "o selo '🔒 fica aqui' só aparece quando a célula é travada (ponta)"
 );
+// B7 · alvos e feedback: ◀ ✕ ▶ com 48px e nomeados; toque sem efeito avisa (status), nunca em silêncio.
+assert(/min-width:48px;min-height:48px/.test(t4.renderVals().linhaCells.find((c) => c.editavel).miniBtn), "B7: controles ◀ ✕ ▶ têm 48px (min-width/min-height)");
+assert(/aria-label="Mover para a esquerda"[\s\S]*aria-label="Tirar"[\s\S]*aria-label="Mover para a direita"/.test(html4), "B7: ◀ ✕ ▶ têm aria-label");
+const avisoAntes = t4.state.aviso;
+t4._colocarNoMiolo(0); // já há peça colocada → sem seleção → toque "engolido" deve avisar
+assert(typeof t4.state.aviso === "string" && t4.state.aviso.length > 0 && t4.state.aviso !== avisoAntes, `B7: toque sem efeito produz aviso em role=status ("${t4.state.aviso}")`);
+assert(!/âncora|reordenar/i.test(t4.renderVals().instrucaoAjuda), "B7: instrução sem 'âncora'/'reordenar' (copy da faixa etária)");
 const cells = t4.renderVals().linhaCells;
 const prim = cells[0], ult = cells[cells.length - 1];
 assert(prim.travada === true && ult.travada === true, "renderVals marca a 1ª e a última célula como travadas (âncora)");

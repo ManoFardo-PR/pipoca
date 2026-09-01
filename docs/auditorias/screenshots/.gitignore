@@ -15,3 +15,5 @@
 !B1-contraste/*.png
 # B4 = overlay "Do meu jeito" acessível (1280 e 390).
 !B4-painel/*.png
+# B9 = T7 com a barra de duas fatias, botões 48px e retrato empilhado (1280 e 390).
+!B9-pote/*.png

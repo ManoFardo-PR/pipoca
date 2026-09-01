@@ -62,17 +62,22 @@
     <sc-if value="{{ editando }}" hint-placeholder-val="{{ false }}">
       <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;margin-top:18px;">
         <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">{{ tituloForm }}</div>
+        <!-- C9: <form> de verdade (Enter salva); chips type="button" não submetem -->
+        <form onSubmit="{{ aoSubmeter }}">
 
-        <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:14px;">Nome da criança</label>
-        <input class="pip-pf-campo" style="margin-top:7px;" value="{{ nome }}" onInput="{{ setNome }}" placeholder="Como te chamam em casa?" aria-label="Nome da criança" />
+        <label for="pip-pf-nome" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:14px;">Nome da criança</label>
+        <input id="pip-pf-nome" ref="{{ refNome }}" class="pip-pf-campo" style="margin-top:7px;" value="{{ nome }}" onInput="{{ setNome }}" placeholder="Como te chamam em casa?" aria-label="Nome da criança" />
 
-        <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:16px;">Idade</label>
-        <input class="pip-pf-campo" style="margin-top:7px;max-width:120px;" value="{{ idade }}" onInput="{{ setIdade }}" type="number" min="3" max="12" aria-label="Idade" />
+        <label for="pip-pf-idade" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:16px;">Idade</label>
+        <input id="pip-pf-idade" class="pip-pf-campo" style="margin-top:7px;max-width:120px;" value="{{ idade }}" onInput="{{ setIdade }}" type="number" min="3" max="12" aria-label="Idade" aria-describedby="pip-pf-idade-erro" />
+        <sc-if value="{{ temErroIdade }}" hint-placeholder-val="{{ false }}">
+          <div id="pip-pf-idade-erro" role="status" style="margin-top:6px;color:#9a5a3a;font-family:'Nunito';font-size:13px;">{{ erroIdade }}</div>
+        </sc-if>
 
         <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:16px;">Nas histórias, quem vive as aventuras é…</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
           <sc-for list="{{ generos }}" as="ge" hint-placeholder-count="2">
-            <button class="pip-pf-btn" onClick="{{ ge.onTap }}" style="{{ ge.style }}">{{ ge.label }}</button>
+            <button type="button" class="pip-pf-btn" onClick="{{ ge.onTap }}" style="{{ ge.style }}">{{ ge.label }}</button>
           </sc-for>
         </div>
         <p style="color:#9a8a72;font-family:'Nunito';font-size:12px;line-height:1.4;margin:6px 0 0;">O nome da história é sempre o da criança — aqui é só a concordância.</p>
@@ -80,14 +85,14 @@
         <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:16px;">Nível de leitura</label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
           <sc-for list="{{ niveis }}" as="nv" hint-placeholder-count="4">
-            <button class="pip-pf-btn" onClick="{{ nv.onTap }}" style="{{ nv.style }}">{{ nv.label }}</button>
+            <button type="button" class="pip-pf-btn" onClick="{{ nv.onTap }}" style="{{ nv.style }}">{{ nv.label }}</button>
           </sc-for>
         </div>
 
         <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:16px;">Amiguinho</label>
         <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;">
           <sc-for list="{{ avatares }}" as="av" hint-placeholder-count="5">
-            <button class="pip-pf-btn" onClick="{{ av.onTap }}" aria-label="{{ av.name }}" aria-pressed="{{ av.pressed }}" style="{{ av.style }}">
+            <button type="button" class="pip-pf-btn" onClick="{{ av.onTap }}" aria-label="{{ av.name }}" aria-pressed="{{ av.pressed }}" style="{{ av.style }}">
               <span style="{{ av.disco }}">{{ av.inicial }}</span>
               <span style="font-family:'Nunito';font-weight:700;font-size:12px;color:#5a4a38;margin-top:6px;">{{ av.name }}</span>
             </button>
@@ -99,9 +104,10 @@
         </sc-if>
 
         <div style="display:flex;gap:12px;margin-top:20px;">
-          <button class="pip-pf-btn" onClick="{{ salvar }}" style="{{ salvarStyle }}">{{ salvarLabel }}</button>
-          <button class="pip-pf-btn" onClick="{{ cancelar }}" style="min-height:48px;border:2px solid #e3d4ba;border-radius:16px;background:transparent;padding:0 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#7a6a54;cursor:pointer;">Cancelar</button>
+          <button type="submit" class="pip-pf-btn" disabled="{{ salvarTravado }}" style="{{ salvarStyle }}">{{ salvarLabel }}</button>
+          <button type="button" class="pip-pf-btn" onClick="{{ cancelar }}" style="min-height:48px;border:2px solid #e3d4ba;border-radius:16px;background:transparent;padding:0 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#7a6a54;cursor:pointer;">Cancelar</button>
         </div>
+        </form>
       </div>
     </sc-if>
 
@@ -118,8 +124,16 @@ class Component extends DCLogic {
   state = {
     perfis: [], editando: false, editId: null,
     nome: '', idade: '7', nivel: 'n2', avatarId: 'pingo', genero: '',
-    erro: '', salvando: false, confirmandoId: null,
+    erro: '', erroIdade: '', salvando: false, confirmandoId: null,
   };
+
+  // C9: limites de idade do núcleo (fallback local até o bundle do C12).
+  _idadeLimites() {
+    const C = window.PipocaCanonico;
+    const min = (C && C.perfil && C.perfil.IDADE_MIN) || 3;
+    const max = (C && C.perfil && C.perfil.IDADE_MAX) || 12;
+    return { min, max };
+  }
 
   _generosDefs() {
     return [
@@ -173,9 +187,10 @@ class Component extends DCLogic {
   componentWillUnmount() { if (this._unsub) this._unsub(); }
 
   _abrirForm(p) {
+    this._focouForm = false; // C9: refoca o nome a cada abertura do form
     this.setState(p
-      ? { editando: true, editId: p.id, nome: p.nome, idade: String(p.idade), nivel: p.nivel, avatarId: p.avatarId, genero: p.genero || '', erro: '', confirmandoId: null }
-      : { editando: true, editId: null, nome: '', idade: '7', nivel: 'n2', avatarId: 'pingo', genero: '', erro: '', confirmandoId: null });
+      ? { editando: true, editId: p.id, nome: p.nome, idade: String(p.idade), nivel: p.nivel, avatarId: p.avatarId, genero: p.genero || '', erro: '', erroIdade: '', confirmandoId: null }
+      : { editando: true, editId: null, nome: '', idade: '7', nivel: 'n2', avatarId: 'pingo', genero: '', erro: '', erroIdade: '', confirmandoId: null });
   }
 
   async _salvar() {
@@ -188,7 +203,14 @@ class Component extends DCLogic {
     // de legado — fecha a lacuna que gerou o incidente da 1ª sessão real).
     if (!this.state.genero) { this.setState({ erro: 'Conte quem vive as aventuras para salvar.' }); return; }
     if (!App || !App.repo || !Canon || !Canon.perfil) { this.setState({ erro: 'App indisponível. Recarregue a página.' }); return; }
-    this.setState({ salvando: true, erro: '' });
+    // C9 (UI-A10): idade fora de 3–12 é RECUSADA no campo (antes "40" virava 7 em silêncio).
+    const lim = this._idadeLimites();
+    const idadeNum = parseInt(this.state.idade, 10);
+    if (!Number.isFinite(idadeNum) || idadeNum < lim.min || idadeNum > lim.max) {
+      this.setState({ erroIdade: 'Vale de ' + lim.min + ' a ' + lim.max + ' anos.' });
+      return;
+    }
+    this.setState({ salvando: true, erro: '', erroIdade: '' });
     // pós-fase06 · teto do plano SÓ na criação (editar nunca bloqueia — regra
     // "rebaixar não destrói"). Sem informação (offline/local) → null e segue
     // criando: o trigger do servidor é o enforcement real; aqui é acolhimento.
@@ -209,7 +231,7 @@ class Component extends DCLogic {
     const id = this.state.editId
       || ((window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('p' + Date.now()));
     const dados = {
-      nome, idade: parseInt(this.state.idade, 10) || 7,
+      nome, idade: idadeNum,
       nivel: this.state.nivel, avatarId: this.state.avatarId,
       genero: this.state.genero,
     };
@@ -320,16 +342,22 @@ class Component extends DCLogic {
       tituloForm: s.editId ? 'Editar perfil' : 'Novo perfil',
       nome: s.nome,
       idade: s.idade,
-      setNome: (e) => this.setState({ nome: e.target.value }),
-      setIdade: (e) => this.setState({ idade: e.target.value }),
+      setNome: (e) => this.setState({ nome: e.target.value, erro: '' }),
+      setIdade: (e) => this.setState({ idade: e.target.value, erroIdade: '' }),
       niveis,
       avatares,
       generos,
       erro: s.erro || '',
       temErro: !!s.erro,
+      erroIdade: s.erroIdade || '',
+      temErroIdade: !!s.erroIdade,
       novo: () => this._abrirForm(null),
-      salvar: () => this._salvar(),
-      cancelar: () => this.setState({ editando: false, editId: null, erro: '' }),
+      aoSubmeter: (e) => { if (e && e.preventDefault) e.preventDefault(); this._salvar(); },
+      // C9: cursor no nome quando o form abre (foco programático via ref).
+      refNome: (el) => { if (el && !this._focouForm) { this._focouForm = true; try { el.focus(); } catch (_) {} } },
+      cancelar: () => this.setState({ editando: false, editId: null, erro: '', erroIdade: '' }),
+      // C9 (UI-A26): apagado é DESABILITADO de verdade.
+      salvarTravado: !pode,
       salvarLabel: s.salvando ? 'Salvando…' : 'Salvar ✓',
       salvarStyle: 'flex:1;min-height:48px;border:none;border-radius:16px;font-family:Baloo 2;font-weight:800;font-size:16px;color:#fff;cursor:' + (pode ? 'pointer' : 'not-allowed') + ';'
         + (pode

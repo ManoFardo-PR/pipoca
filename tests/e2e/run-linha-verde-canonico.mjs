@@ -631,6 +631,29 @@ try {
     { timeout: 4000 }
   );
   assert(true, "T9 mostra 'Criar conta da família' e 'Esqueci a senha'");
+
+  // ── C9 · formulários honestos: disabled REAL, foco inicial, Enter submete no recuperar.
+  const c9T9 = await page.evaluate(() => {
+    const btn = Array.from(document.querySelectorAll('button[type="submit"]')).find((b) => /Entrar/.test(b.textContent));
+    const email = document.getElementById("pip-lf-email");
+    return {
+      travado: !!btn && btn.disabled === true,
+      focoNoEmail: !!email && document.activeElement === email,
+      temForm: !!(email && email.closest("form")),
+      temLabelFor: !!document.querySelector('label[for="pip-lf-email"]'),
+    };
+  });
+  assert(c9T9.travado, "C9: 'Entrar' com campos vazios é disabled REAL (clicar não chama o seam)");
+  assert(c9T9.focoNoEmail, "C9: o cursor já está no e-mail ao abrir a T9");
+  assert(c9T9.temForm && c9T9.temLabelFor, "C9: campos dentro de <form> e com <label for> visível");
+  // Enter no modo recuperar (antes NENHUM campo submetia — UI-A27)
+  await page.locator("button", { hasText: "Esqueci a senha" }).first().click();
+  await page.waitForFunction(() => /Recuperar a senha/i.test(document.body.innerText), { timeout: 4000 });
+  await page.fill('[aria-label="E-mail da família"]', "casa-recupera@pipoca.dev");
+  await page.locator('[aria-label="E-mail da família"]').press("Enter");
+  await page.waitForFunction(() => /enviamos um link/i.test(document.body.innerText), { timeout: 4000 });
+  assert(true, "C9: Enter no campo de e-mail SUBMETE o modo recuperar (aviso neutro aparece)");
+
   await page.locator("button", { hasText: "Criar conta da família" }).first().click();
   await page.waitForFunction(() => /Confirme a senha/i.test(document.body.innerText), { timeout: 4000 });
   assert(true, "modo criar conta monta (com confirmação de senha)");

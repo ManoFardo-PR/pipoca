@@ -49,11 +49,15 @@
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;margin-top:16px;">
       <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">Tempo de tela por dia</div>
       <p style="color:#7a6a54;font-family:'Nunito';font-size:13px;margin:6px 0 12px;">Opcional. Deixe em branco para não ter limite diário.</p>
+      <!-- C9: <form> (Enter aplica); "Sem limite" é type=button para não submeter -->
+      <form onSubmit="{{ aoSubmeterTempo }}">
+      <label for="pip-lm-tempo" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#3a2c20;margin-bottom:6px;">Minutos por dia</label>
       <div style="display:flex;gap:10px;align-items:center;">
-        <input class="pip-lm-campo" style="max-width:140px;" value="{{ tempoTela }}" onInput="{{ setTempoTela }}" type="number" min="5" step="5" placeholder="minutos" aria-label="Tempo de tela diário em minutos" />
-        <button class="pip-lm-btn" onClick="{{ aplicarTempo }}" style="min-height:44px;border:none;border-radius:14px;background:#3f6f9e;color:#fff;padding:0 18px;font-family:'Nunito';font-weight:700;font-size:14px;cursor:pointer;">Aplicar</button>
-        <button class="pip-lm-btn" onClick="{{ semLimite }}" style="min-height:44px;border:2px solid #e3d4ba;border-radius:14px;background:transparent;padding:0 14px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6a54;cursor:pointer;">Sem limite</button>
+        <input id="pip-lm-tempo" class="pip-lm-campo" style="max-width:140px;" value="{{ tempoTela }}" onInput="{{ setTempoTela }}" type="number" min="5" step="5" placeholder="minutos" aria-label="Tempo de tela diário em minutos" />
+        <button type="submit" class="pip-lm-btn" style="min-height:44px;border:none;border-radius:14px;background:#3f6f9e;color:#fff;padding:0 18px;font-family:'Nunito';font-weight:700;font-size:14px;cursor:pointer;">Aplicar</button>
+        <button type="button" class="pip-lm-btn" onClick="{{ semLimite }}" style="min-height:44px;border:2px solid #e3d4ba;border-radius:14px;background:transparent;padding:0 14px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6a54;cursor:pointer;">Sem limite</button>
       </div>
+      </form>
       <div role="status" aria-live="polite" style="margin-top:12px;font-family:'Nunito';font-size:13px;color:#7a6a54;">{{ tempoAtualTexto }}</div>
     </div>
 
@@ -153,7 +157,7 @@ class Component extends DCLogic {
       avisoSessao: s.avisoSessao,
       tempoTela: s.tempoTela,
       setTempoTela: (e) => this.setState({ tempoTela: e.target.value, avisoSessao: false }),
-      aplicarTempo: () => this._aplicarTempo(this.state.tempoTela),
+      aoSubmeterTempo: (e) => { if (e && e.preventDefault) e.preventDefault(); this._aplicarTempo(this.state.tempoTela); },
       semLimite: () => this._aplicarTempo(''),
       tempoAtualTexto: lim.tempoDeTelaMin != null
         ? 'Hoje: até ' + lim.tempoDeTelaMin + ' minutos por dia.'

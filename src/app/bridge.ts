@@ -137,7 +137,7 @@ import {
   aoPassarPortao,
   aoVoltarParaCrianca,
 } from "../core/modoApp.js";
-import { criarPerfil, AVATARES_DEF, AVATAR_PADRAO, normalizarAvatar, porIdAvatar } from "../core/perfil.js";
+import { criarPerfil, clampIdade, IDADE_MIN, IDADE_MAX, AVATARES_DEF, AVATAR_PADRAO, normalizarAvatar, porIdAvatar } from "../core/perfil.js";
 import { svgCena, galeriaCenas } from "../core/cenas.js";
 import { montarEstadoOnboarding, perfilDoOnboarding, BLOCO_PADRAO } from "../core/onboarding.js";
 import { iniciarSessao, tick, encerrarSessao, formatarRestante } from "../core/sessao.js";
@@ -245,7 +245,8 @@ const PipocaCanonico = {
     apenasCompletas,
     agruparPorDia,
   },
-  perfil: { criarPerfil },
+  // C9 (Plan03): limites de idade para os formulários validarem no campo.
+  perfil: { criarPerfil, clampIdade, IDADE_MIN, IDADE_MAX },
   // C4 (Plan03): a tabela ÚNICA dos avatars — as telas leem daqui (C5) em vez de
   // duplicar a definição visual em 6 lugares.
   avatares: { lista: AVATARES_DEF, padrao: AVATAR_PADRAO, normalizar: normalizarAvatar, porId: porIdAvatar },

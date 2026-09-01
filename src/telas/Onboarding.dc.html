@@ -30,23 +30,28 @@
     </div>
     <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 22px;">Crie o perfil de quem vai ler. É rapidinho e calmo — sem pressa.</p>
 
-    <!-- Cartão do formulário -->
+    <!-- Cartão do formulário — C9: <form> de verdade (Enter submete); os chips
+         são type="button" para NÃO submeter; primário com disabled real -->
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
+      <form onSubmit="{{ aoSubmeter }}">
 
       <!-- Nome -->
-      <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;">Nome da criança</label>
-      <input class="pip-ob-campo" style="margin-top:7px;" value="{{ nome }}" onInput="{{ setNome }}" placeholder="Como te chamam em casa?" aria-label="Nome da criança" />
+      <label for="pip-ob-nome" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;">Nome da criança</label>
+      <input id="pip-ob-nome" ref="{{ refNome }}" class="pip-ob-campo" style="margin-top:7px;" value="{{ nome }}" onInput="{{ setNome }}" placeholder="Como te chamam em casa?" aria-label="Nome da criança" />
 
       <!-- Idade -->
-      <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Idade</label>
-      <input class="pip-ob-campo" style="margin-top:7px;max-width:120px;" value="{{ idade }}" onInput="{{ setIdade }}" type="number" min="3" max="12" aria-label="Idade" />
+      <label for="pip-ob-idade" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Idade</label>
+      <input id="pip-ob-idade" class="pip-ob-campo" style="margin-top:7px;max-width:120px;" value="{{ idade }}" onInput="{{ setIdade }}" type="number" min="3" max="12" aria-label="Idade" aria-describedby="pip-ob-idade-erro" />
+      <sc-if value="{{ temErroIdade }}" hint-placeholder-val="{{ false }}">
+        <div id="pip-ob-idade-erro" role="status" style="margin-top:6px;color:#9a5a3a;font-family:'Nunito';font-size:13px;">{{ erroIdade }}</div>
+      </sc-if>
 
       <!-- Gênero do personagem (obrigatório · fase13 pós-incidente: o nome é
            sempre o da criança; aqui se escolhe só a concordância) -->
       <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Nas histórias, quem vive as aventuras é…</label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
         <sc-for list="{{ generos }}" as="ge" hint-placeholder-count="2">
-          <button class="pip-ob-opt" onClick="{{ ge.onTap }}" style="{{ ge.style }}">{{ ge.label }}</button>
+          <button type="button" class="pip-ob-opt" onClick="{{ ge.onTap }}" style="{{ ge.style }}">{{ ge.label }}</button>
         </sc-for>
       </div>
 
@@ -54,7 +59,7 @@
       <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Nível de leitura</label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
         <sc-for list="{{ niveis }}" as="nv" hint-placeholder-count="4">
-          <button class="pip-ob-opt" onClick="{{ nv.onTap }}" style="{{ nv.style }}">{{ nv.label }}</button>
+          <button type="button" class="pip-ob-opt" onClick="{{ nv.onTap }}" style="{{ nv.style }}">{{ nv.label }}</button>
         </sc-for>
       </div>
 
@@ -62,20 +67,21 @@
       <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Escolha um amiguinho</label>
       <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;">
         <sc-for list="{{ avatares }}" as="av" hint-placeholder-count="5">
-          <button class="pip-ob-opt" onClick="{{ av.onTap }}" aria-label="{{ av.name }}" aria-pressed="{{ av.pressed }}" style="{{ av.style }}">
+          <button type="button" class="pip-ob-opt" onClick="{{ av.onTap }}" aria-label="{{ av.name }}" aria-pressed="{{ av.pressed }}" style="{{ av.style }}">
             <span style="{{ av.disco }}">{{ av.inicial }}</span>
             <span style="font-family:'Nunito';font-weight:700;font-size:12px;color:#5a4a38;margin-top:6px;">{{ av.name }}</span>
           </button>
         </sc-for>
       </div>
 
-      <!-- Erro acolhedor -->
+      <!-- Erro acolhedor (geral: nome/gênero pendentes, falha ao salvar) -->
       <sc-if value="{{ temErro }}" hint-placeholder-val="{{ false }}">
         <div role="status" aria-live="polite" style="margin-top:16px;color:#9a5a3a;font-family:'Nunito';font-size:14px;">{{ erro }}</div>
       </sc-if>
 
       <!-- Tudo pronto -->
-      <button class="pip-ob-opt" onClick="{{ tudoPronto }}" style="{{ prontoStyle }}">{{ prontoLabel }}</button>
+      <button type="submit" class="pip-ob-opt" disabled="{{ prontoTravado }}" style="{{ prontoStyle }}">{{ prontoLabel }}</button>
+      </form>
     </div>
 
     <div style="height:24px;"></div>
@@ -84,7 +90,15 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { nome: '', idade: '7', nivel: 'n2', avatarId: 'pingo', genero: '', salvando: false, erro: '' };
+  state = { nome: '', idade: '7', nivel: 'n2', avatarId: 'pingo', genero: '', salvando: false, erro: '', erroIdade: '' };
+
+  // C9: limites de idade do núcleo (fallback local até o bundle do C12).
+  _idadeLimites() {
+    const C = window.PipocaCanonico;
+    const min = (C && C.perfil && C.perfil.IDADE_MIN) || 3;
+    const max = (C && C.perfil && C.perfil.IDADE_MAX) || 12;
+    return { min, max };
+  }
 
   _generosDefs() {
     return [
@@ -118,10 +132,16 @@ class Component extends DCLogic {
     if (!nome) { this.setState({ erro: 'Conte o nome da criança para começar.' }); return; }
     if (!this.state.genero) { this.setState({ erro: 'Conte quem vive as aventuras para continuar.' }); return; }
     if (!App || !Canon || !Canon.onboarding) { this.setState({ erro: 'App indisponível. Recarregue a página.' }); return; }
+    // C9 (UI-A10): idade fora de 3–12 é RECUSADA no campo (antes, "40" virava 7 em silêncio).
+    const lim = this._idadeLimites();
+    const idade = parseInt(this.state.idade, 10);
+    if (!Number.isFinite(idade) || idade < lim.min || idade > lim.max) {
+      this.setState({ erroIdade: 'Vale de ' + lim.min + ' a ' + lim.max + ' anos.' });
+      return;
+    }
 
-    this.setState({ salvando: true, erro: '' });
+    this.setState({ salvando: true, erro: '', erroIdade: '' });
     const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('p' + Date.now());
-    const idade = parseInt(this.state.idade, 10) || 7;
     const dados = { id, nome, idade, nivel: this.state.nivel, avatarId: this.state.avatarId, genero: this.state.genero };
     try {
       const perfil = Canon.onboarding.perfilDoOnboarding(dados);
@@ -187,14 +207,18 @@ class Component extends DCLogic {
     return {
       nome: s.nome,
       idade: s.idade,
-      setNome: (e) => this.setState({ nome: e.target.value }),
-      setIdade: (e) => this.setState({ idade: e.target.value }),
+      setNome: (e) => this.setState({ nome: e.target.value, erro: '' }),
+      setIdade: (e) => this.setState({ idade: e.target.value, erroIdade: '' }),
       niveis,
       generos,
       avatares,
       erro: s.erro || '',
       temErro: !!s.erro,
-      tudoPronto: () => this._tudoPronto(),
+      erroIdade: s.erroIdade || '',
+      temErroIdade: !!s.erroIdade,
+      aoSubmeter: (e) => { if (e && e.preventDefault) e.preventDefault(); this._tudoPronto(); },
+      // C9: cursor já no nome ao abrir (foco programático — autofocus não re-dispara em SPA).
+      refNome: (el) => { if (el && !this._focou) { this._focou = true; try { el.focus(); } catch (_) {} } },
       // Com perfis já criados (veio do hub), "↩" volta ao painel; no 1º uso, à criança.
       voltar: () => {
         const App = window.PipocaApp; if (!App) return;
@@ -205,6 +229,8 @@ class Component extends DCLogic {
           }).catch(() => App.aoVoltarParaCrianca());
         } else App.aoVoltarParaCrianca();
       },
+      // C9 (UI-A26): apagado é DESABILITADO de verdade.
+      prontoTravado: !podeSalvar,
       prontoLabel: s.salvando ? 'Salvando…' : 'Tudo pronto ✓',
       prontoStyle: 'margin-top:22px;width:100%;min-height:52px;border:none;border-radius:16px;'
         + 'font-family:Baloo 2;font-weight:800;font-size:17px;color:#fff;cursor:' + (podeSalvar ? 'pointer' : 'not-allowed') + ';'

@@ -259,8 +259,12 @@ class Component extends DCLogic {
       { key:'espaco',   name:'O Espaço',   desc:'Entre estrelas e planetas' },
       { key:'fundomar', name:'Fundo do Mar',desc:'Com peixes e corais' },
     ];
+    // C7: a lista liberada guarda IDS CANÔNICOS ('quintal_anoitecer'; os demais
+    // provisórios = a própria chave até E5 unificar chave↔id). O mapa é a costura
+    // única que E5 troca quando os ids reais nascerem.
+    const ID_POR_KEY = { quarto: 'quarto', floresta: 'floresta', espaco: 'espaco', fundomar: 'fundomar' };
     const gridCenas = gridDados.map(d => {
-      const disponivel = liberados.indexOf(d.key) >= 0;
+      const disponivel = liberados.indexOf(ID_POR_KEY[d.key] || d.key) >= 0;
       return {
         name: d.name,
         desc: d.desc,

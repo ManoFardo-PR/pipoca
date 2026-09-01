@@ -506,6 +506,39 @@ try {
     bia: /Bia/.test(document.body.innerText),
   }));
   assert(uxChips.ana && uxChips.bia, "T14 mostra os chips das crianças (configuração independente)");
+
+  // ── C7 · "Lugares das histórias": quintal sempre aberto, "em breve" travados,
+  // gesto travado inerte, e a liberação por criança reflete no switch (e na T3,
+  // já provado acima com cenariosLiberados=['quintal_anoitecer','quarto']).
+  await page.waitForFunction(() => /Lugares das histórias/i.test(document.body.innerText), { timeout: 4000 });
+  const c7Regras = await page.evaluate(() => {
+    const sws = Array.from(document.querySelectorAll('[aria-label^="Liberar "], [aria-label="O Quintal fica sempre aberto"]'));
+    const quintal = document.querySelector('[aria-label="O Quintal fica sempre aberto"]');
+    return {
+      total: sws.length,
+      quintalLigado: !!quintal && quintal.getAttribute("aria-checked") === "true" && quintal.getAttribute("aria-disabled") === "true",
+      travados: sws.filter((s) => s.getAttribute("aria-disabled") === "true").length,
+    };
+  });
+  assert(c7Regras.total === 5 && c7Regras.quintalLigado, "C7: 'Lugares das histórias' lista 5 lugares; quintal sempre aberto (switch ligado e travado)");
+  assert(c7Regras.travados === 5, "C7: sem história pronta, os 'em breve' ficam travados (honesto)");
+  // force: o Playwright recusa aria-disabled — aqui o clique É o teste (gesto inerte).
+  await page.locator('[aria-label^="Liberar O Quarto para "]').click({ force: true });
+  await page.waitForTimeout(150);
+  const c7Inerte = await page.evaluate(() => {
+    const sw = document.querySelector('[aria-label^="Liberar O Quarto para "]');
+    return !!sw && sw.getAttribute("aria-checked") === "false";
+  });
+  assert(c7Inerte, "C7: gesto num lugar 'em breve' é inerte (switch segue desligado)");
+  // Mesmo caminho de escrita da UI (gravarPrefsPerfil, por criança) → o switch reage.
+  await page.evaluate(() => window.PipocaApp.gravarPrefsPerfil(window.PipocaApp.estado.perfil.id, { cenariosLiberados: ["quintal_anoitecer", "quarto"] }));
+  await page.waitForFunction(() => {
+    const sw = document.querySelector('[aria-label^="Liberar O Quarto para "]');
+    return !!sw && sw.getAttribute("aria-checked") === "true";
+  }, { timeout: 4000 });
+  assert(true, "C7: liberar um lugar para a criança reflete no switch da Regras (save por criança)");
+  await page.evaluate(() => window.PipocaApp.gravarPrefsPerfil(window.PipocaApp.estado.perfil.id, { cenariosLiberados: null }));
+
   await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
 
   // ── UX por perfil (etapa 5) · dashboards: saldos por criança no hub (T11) e

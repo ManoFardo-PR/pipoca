@@ -1,8 +1,8 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-08-28T23:43:42.244Z · branch `onda-B-cru-ux` · HEAD `29d170b`
-- Progresso: **19/59** passos concluídos
-- Próximo passo: **B9** — T7 pote: barra 67%%, ~2, alvos, celebração ([abrir](onda-B-cru-ux/B9-t7-pote.md))
+- Gerado em: 2026-09-01T13:33:48.758Z · branch `onda-B-cru-ux` · HEAD `ea396ff`
+- Progresso: **20/59** passos concluídos
+- Próximo passo: **B-M2** — Merge da trilha navegação+mecânica em 28_08_26 (vai ao ar)
 - Última verificação: ✅ verde em 2026-08-28T19:52:01.223Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
   - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
@@ -27,7 +27,7 @@
 | A4 | [Edges: RPC de cota e MODELO_PADRAO alinhado](onda-A-seguranca/A4-edges-rpc-e-modelo-padrao.md) | [✓] concluída | 2026-08-28 | `8e3be20` |
 | A5 | [Fechamento A: SQL aplicada → redeploy ×2 → build:app → e2e → merge](onda-A-seguranca/A5-fechamento-onda-A.md) | [✓] concluída | 2026-08-28 | `9837eee` |
 
-## Onda B — UX servida crua · 10/15 · branch `onda-B-cru-ux` · CRU (commit = deploy)
+## Onda B — UX servida crua · 11/15 · branch `onda-B-cru-ux` · CRU (commit = deploy)
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
@@ -41,7 +41,7 @@
 | B6 | [Cabeçalhos T2–T7, alvos ≥48, copy, T2 no celular](onda-B-cru-ux/B6-cabecalhos-e-copy-t2-t7.md) | [✓] concluída | 2026-08-28 | `9eea1eb` |
 | B7 | [T4 palco: alvos, feedback, copy, beco](onda-B-cru-ux/B7-t4-palco.md) | [✓] concluída | 2026-08-28 | `5f77300` |
 | B8 | [T5 portão acessível; T6 anuncia a celebração](onda-B-cru-ux/B8-t5-portao-e-t6-aria.md) ∥ | [✓] concluída | 2026-08-28 | `29d170b` |
-| B9 | [T7 pote: barra 67%%, ~2, alvos, celebração](onda-B-cru-ux/B9-t7-pote.md) ∥ | [ ] pendente |  |  |
+| B9 | [T7 pote: barra 67%%, ~2, alvos, celebração](onda-B-cru-ux/B9-t7-pote.md) ∥ | [✓] concluída | 2026-09-01 | `ea396ff` |
 | B-M2 | Merge da trilha navegação+mecânica em 28_08_26 (vai ao ar) | [ ] pendente |  |  |
 | B10 | [Admin: overlap da barra, rota /admin, allowlist](onda-B-cru-ux/B10-admin-shell-rota-assets.md) | [ ] pendente |  |  |
 | B11 | [Admin: controles, navegação, vocabulário, erros](onda-B-cru-ux/B11-admin-controles-e-copy.md) | [ ] pendente |  |  |

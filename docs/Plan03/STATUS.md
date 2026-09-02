@@ -1,13 +1,11 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-01T18:58:50.765Z · branch `onda-C-bundle-app` · HEAD `2fe707a`
+- Gerado em: 2026-09-01T19:50:36.804Z · branch `onda-C-bundle-app` · HEAD `d25a10c`
 - Progresso: **36/59** passos concluídos
 - Próximo passo: nenhum disponível
-- Última verificação: ✅ verde em 2026-09-01T17:00:24.900Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
+- Última verificação: ✅ verde em 2026-09-01T19:49:58.339Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
   - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
-  - ⚠ pipoca.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/app/bridge.ts, src/dados (rebuild pendente)
-  - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
 ## Onda P — Preparação · 3/3 · branch `28_08_26` · —
 

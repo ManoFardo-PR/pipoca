@@ -12,7 +12,7 @@
     "C0": "concluída (2026-09-01 · 8807e4f)"
   },
   "verificacao": {
-    "quando": "2026-09-01T17:00:24.900Z",
+    "quando": "2026-09-01T19:49:58.339Z",
     "ok": true,
     "itens": {
       "tsc": {
@@ -32,7 +32,7 @@
       },
       "e2e:linha-verde": {
         "ok": true,
-        "passou": 91,
+        "passou": 101,
         "falhou": 0
       },
       "e2e:admin": {

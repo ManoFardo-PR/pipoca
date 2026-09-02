@@ -203,6 +203,11 @@ Replit (`.replit:41-43`), mas o conteúdo (`npm install --legacy-peer-deps`) é 
 
 ### ML-1 · "Histórias de hoje num rodapé; não sei se salvam, não consigo ler"
 
+> ✅ **Parte UI resolvida em 2026-09-01 (Plan03 · C1/C2/C3, commits `582a06a`/`0d799da`/`9bb3d6d`; bundle no fechamento C12, `d25a10c`):**
+> estante digna na T3 (só completas, título inteiro, grupos por dia, coração-irmão ≥48px, empilhada no celular);
+> `apenasCompletas`/`agruparPorDia` no núcleo; releitura via `LeitorHistoria` como dialog acessível (Esc, foco de volta).
+> A parte de SYNC do espelho (write-only no dia a dia, D-06/D-07) fica para a Onda D (D1/D2).
+
 **Intenção (reformulada):** dar às histórias terminadas um lugar visível e confiável —
 salvar de verdade, achar fácil, reler com prazer.
 
@@ -288,6 +293,10 @@ objetos globais vs por cenário. **Risco/esforço:** plumbing baixo/médio; o cu
 
 ### ML-3 · "Navegação: trocar de criança é difícil; da tela de cenários não chego na pontuação"
 
+> ✅ **Resolvido em 2026-08-28 (Plan03 · B5, commit `f60d04d`; complementado no C6, `32a7e3c`):** avatar/saudação
+> da T3 → T2 (trocar de leitor, sem portão); saldo → T7; ⚙ "Do meu jeito" na T2/T6; e "Usar este" na T12 com
+> resposta imediata (status + badge). Guarda KIDMODE intocada (coberto no e2e).
+
 **Intenção:** trocar de leitor e alcançar o pote (pontuação) sem descer ao portão parental.
 
 **O que está verificado hoje:**
@@ -314,6 +323,11 @@ alvo ≥44px. **Só o dono decide:** trocar de leitor exige portão? (recomenda�
 baixo/baixo (markup das telas + rebuild `build:app`; conferir os MARCADORES dos e2e).
 
 ### ML-4 · "Avatars parecem diabinhos; usar emoticons"
+
+> ✅ **Resolvido em 2026-09-01 (Plan03 · C4/C5, commits `845c7bf`/`88979ce`; bundle no fechamento C12, `d25a10c`):**
+> tabela ÚNICA `AVATARES_DEF` ({id, nome, cor, emoji}) em `src/core/perfil.ts` + `Canon.avatares`; render por emoji
+> sobre disco nas 5 superfícies; `src/telas/avatares.ts` e as cópias SVG inline removidos; ids canônicos preservados
+> (perfis existentes seguem válidos). Pendência do dono: conferir os emojis no tablet real (gate C, item manual).
 
 **Intenção:** trocar os 5 bichinhos SVG por rostos amigáveis (emojis), sem quebrar perfis.
 
@@ -495,7 +509,7 @@ dos hex REAIS dos arquivos (que divergem dos tokens nominais).
 |---|---|---|
 | 🔴 UI-C12 | T4 controles de reordenar ◀ ✕ ▶ (`Tela4:256`) — a mecânica-coração | **26×26** |
 | 🔴 UI-C13 | PainelA11y: 4 toggles (`PainelA11y:81`) | **50×28** |
-| 🔴 UI-C14 | T3 coração 🤍/💛 (dentro de outro alvo clicável, `Tela3:90`) | **34×34** |
+| 🔴 UI-C14 | T3 coração 🤍/💛 (dentro de outro alvo clicável, `Tela3:90`) | **34×34** — ✅ resolvido em 2026-09-01 (C2, `0d799da`): coração IRMÃO do cartão, ≥48px |
 | 🟡 UI-C15/C16/C17 | ✕ fechar (38), ← voltar e ⚙ (40-42) | 38-42 |
 Padrão: os alvos **primários** são generosos (avatares 140×180, CTAs 57px, PIN 99×56);
 os de **navegação/saída/ajuste/edição** estão todos abaixo de 44px — a criança avança,
@@ -569,7 +583,8 @@ com "reduzir movimento" LIGADO o chip continua saltando, só que instantâneo (p
   ajustes.
 - 🔴 **UI-C54 · T3 no celular**: grade 2×2 fixa espreme cartões a ~90px, textos
   quebrados em 3-5 linhas, pílula colidindo com texto (`Tela3:43,46,60` — flex/grid sem
-  wrap). 🟡 **UI-C55**: carrossel de histórias corta o 2º cartão sem pista de scroll.
+  wrap). 🟡 **UI-C55**: carrossel de histórias corta o 2º cartão sem pista de scroll — ✅ resolvido em
+  2026-09-01 (C2, `0d799da`): estante agrupada por dia, empilhada no retrato (sem carrossel cortado).
   🟢 UI-C57/C58: T5 é a que melhor sobrevive (graças ao `clamp()` de `Tela5:387-389` —
   única resposta responsiva genuinamente boa); T4/T7 sem plano para retrato.
 
@@ -586,11 +601,17 @@ com "reduzir movimento" LIGADO o chip continua saltando, só que instantâneo (p
 ### UI-A · Telas do cuidador (T8-T16) + admin (SA1-SA7)
 
 **Fluxo do cuidador:**
+- ✅ **UI-A20/A21/A22 resolvidos em 2026-09-01 (Plan03 · C6, commit `32a7e3c`)** — pós-PIN aterrissa no hub T11
+  (nomeado "Painel da casa", com quem está lendo agora); "Novo perfil" tem fluxo único (form inline de T12);
+  a Evolução aparece 1× (menu). Registro original:
 - 🔴 **UI-A20 · Aterrissagem pós-PIN em T8 é a escolha errada**: o gesto mais deliberado
   do produto (PIN) desemboca num relatório de zeros — não numa ferramenta
   (`estado.js:183-187`). 🟡 **UI-A21**: T8 aparece 2× na navegação e o hub T11 nunca é
   nomeado (só `↩ Painel`). 🟡 **UI-A22**: dois botões "➕ Novo perfil" idênticos com
   destinos diferentes (T11→Onboarding vs T12→formulário inline).
+- ✅ **UI-A23 resolvido em 2026-09-01 (Plan03 · C6, commit `32a7e3c`)** — T12 assina o App; "Usar este"
+  responde na hora ("Agora é a vez de {nome}. ✓" em role=status) e o badge "Em uso ✓" troca imediatamente.
+  Registro original:
 - 🔴 **UI-A23 · "Usar este" (T12) é quase mudo**: `Perfis.dc.html:239-246` seleciona sem
   navegar; a tela nem assina o App — o único feedback é um badge a ~300px do polegar.
   O gesto central de uma casa com 3 crianças parece não funcionar.
@@ -605,9 +626,20 @@ com "reduzir movimento" LIGADO o chip continua saltando, só que instantâneo (p
   o `true` gravado vira permissão retroativa sem novo consentimento. Combinar com PS-01:
   na prática é o inverso — a IA roda sem o consentimento. O padrão certo já existe na
   mesma tela ("Pela voz · Indisponível", `Regras:188`).
+- ✅ **UI-A25 resolvido em 2026-09-01 (Plan03 · C7, commit `cfdba65`)** — cartão "Lugares das histórias" na
+  Regras, por criança (gravarPrefsPerfil), quintal sempre aberto, "em breve" travados com motivo; a T3 compara
+  por id canônico (mapa provisório até E5). Registro original:
 - 🔴 **UI-A25 · Cenários liberados: capacidade sem UI** (=ML-2): o núcleo entrega
   (`bridge.ts:231`), a T3 lê (`Tela3:241`), o cabeçalho de `Regras.dc.html:5` promete —
   e nenhuma tela escreve o campo. `cenariosLiberados` é `null` para 100% das famílias.
+- ✅ **UI-A01/A02/A03/A04/A05/A06/A07 resolvidos em 2026-09-01 (Plan03 · C8, commit `8175280`)** — temDados
+  considera diasAtivos; pote em linha própria ("saldo de sempre, não do período"); engajamento como rótulo fora
+  do slot numérico; chips únicos (ChipsPerfil) com escopo dito ("Vendo os dados de:"/"Editando para:") e
+  radiogroup/radio; T15 nomeia a criança no controle de coleta; "Exportar JSON" → "Baixar meus dados"; com a
+  coleta desligada o vazio diz a verdade. ✅ **UI-A08/A09/A10 resolvidos no C9 (`0904744`)** — labels visíveis
+  na T16, cartão de senha atenuado/travado no modo local, idade validada no campo. ✅ **UI-A11 resolvido no
+  C12 (`d25a10c`)** — piso de 44px nas telas do cuidador (sonda `depois-C/sondas.json` limpa no app; admin
+  segue <44, registrado em ACHADOS-NOVOS). Registro original:
 - 🔴 **UI-A01 · T8 se autocontradiz no vazio**: "ainda não teve leitura" + MINUTOS 0 ao
   lado de "1 dia ativo" e "POTE ✨ 3" (`PainelEvolucao:195` vs `:229-234`). 🟡 UI-A02/A03:
   grade de 5 cartões em 2 colunas (pote órfão); texto longo no slot de valor numérico.
@@ -626,6 +658,12 @@ com "reduzir movimento" LIGADO o chip continua saltando, só que instantâneo (p
   invertido do esperado (adulto usa celular, com pressa, no escuro).
 
 **Login (T9):**
+- ✅ **UI-A26/A27/A28/A32 resolvidos em 2026-09-01 (Plan03 · C9, commit `0904744`)** — `disabled` real nos
+  primários (T9/T10/T12/T16/SaLogin), `<form>`/Enter em todos os modos (inclusive "recuperar"), labels
+  `for` visíveis, erro no campo culpado (aria-describedby + role=alert), foco no 1º campo ao abrir.
+  ✅ **UI-A29/A30/A31 resolvidos em 2026-09-01 (Plan03 · C10, commit `72632f0`)** — Google na identidade do
+  provedor (G multicolor SVG), falha sob o botão, "Criar conta da família" como botão secundário ≥48px.
+  Registro original:
 - 🔴 **UI-A26 · O "desabilitado" mente**: "Entrar" apagado com `cursor:not-allowed` mas
   SEM `disabled` e com onClick ativo (`LoginFamilia:62,259-263`; idem Onboarding e
   SaLogin). `disabled` real: 0 ocorrências em 19 telas. 🟡 UI-A27/A28: Enter não

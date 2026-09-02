@@ -1,11 +1,12 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-01T19:50:36.804Z · branch `onda-C-bundle-app` · HEAD `d25a10c`
-- Progresso: **36/59** passos concluídos
-- Próximo passo: nenhum disponível
+- Gerado em: 2026-09-02T19:23:16.529Z · branch `onda-C-bundle-app` · HEAD `e8827f5`
+- Progresso: **37/59** passos concluídos
+- Próximo passo: **D0** — Criar branch onda-D-bundle-app-admin a partir de 28_08_26
 - Última verificação: ✅ verde em 2026-09-01T19:49:58.339Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ branch atual "onda-C-bundle-app" ≠ esperada para D0 ("28_08_26")
+  - ⚠ árvore suja (1 arquivo(s)) — commite antes de concluir um passo
 
 ## Onda P — Preparação · 3/3 · branch `28_08_26` · —
 
@@ -46,7 +47,7 @@
 | B11 | [Admin: controles, navegação, vocabulário, erros](onda-B-cru-ux/B11-admin-controles-e-copy.md) | [✓] concluída | 2026-09-01 | `240fab7` |
 | B-M3 | Merge da trilha admin em 28_08_26 (vai ao ar) | [✓] concluída | 2026-09-01 | `3d1c4e2` |
 
-## Onda C — Bundle do app: histórias, avatars, cuidador · 12/13 · branch `onda-C-bundle-app` · BUNDLE app (+ admin)
+## Onda C — Bundle do app: histórias, avatars, cuidador · 13/13 · branch `onda-C-bundle-app` · BUNDLE app (+ admin)
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
@@ -62,7 +63,7 @@
 | C9 | [Formulários honestos: disabled, form/Enter, labels](onda-C-bundle-app/C9-formularios-honestos.md) | [✓] concluída | 2026-09-01 | `0904744` |
 | C10 | [Login: Google reconhecível, erro perto do gesto](onda-C-bundle-app/C10-login-polish.md) | [✓] concluída | 2026-09-01 | `72632f0` |
 | C11 | [ARIA nas telas adultas](onda-C-bundle-app/C11-aria-telas-adultas.md) | [✓] concluída | 2026-09-01 | `8f5a3d0` |
-| C12 | [Fechamento C: build:app + build:admin → e2e → merge](onda-C-bundle-app/C12-fechamento-onda-C.md) | […] em andamento | 2026-09-01 |  |
+| C12 | [Fechamento C: build:app + build:admin → e2e → merge](onda-C-bundle-app/C12-fechamento-onda-C.md) | [✓] concluída | 2026-09-02 | `e8827f5` |
 
 ## Onda D — Bundle app + admin: sync, faxina, CI · 0/10 · branch `onda-D-bundle-app-admin` · BUNDLE app + admin
 

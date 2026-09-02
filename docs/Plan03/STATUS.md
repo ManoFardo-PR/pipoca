@@ -1,12 +1,11 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-02T19:23:16.529Z · branch `onda-C-bundle-app` · HEAD `e8827f5`
-- Progresso: **37/59** passos concluídos
-- Próximo passo: **D0** — Criar branch onda-D-bundle-app-admin a partir de 28_08_26
+- Gerado em: 2026-09-02T20:29:24.625Z · branch `onda-D-bundle-app-admin` · HEAD `a631701`
+- Progresso: **38/59** passos concluídos
+- Próximo passo: **D7** — e2e portáteis (sem caminhos da máquina) ([abrir](onda-D-bundle-app-admin/D7-e2e-portateis.md))
 - Última verificação: ✅ verde em 2026-09-01T19:49:58.339Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ branch atual "onda-C-bundle-app" ≠ esperada para D0 ("28_08_26")
-  - ⚠ árvore suja (1 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
 
 ## Onda P — Preparação · 3/3 · branch `28_08_26` · —
 
@@ -65,11 +64,11 @@
 | C11 | [ARIA nas telas adultas](onda-C-bundle-app/C11-aria-telas-adultas.md) | [✓] concluída | 2026-09-01 | `8f5a3d0` |
 | C12 | [Fechamento C: build:app + build:admin → e2e → merge](onda-C-bundle-app/C12-fechamento-onda-C.md) | [✓] concluída | 2026-09-02 | `e8827f5` |
 
-## Onda D — Bundle app + admin: sync, faxina, CI · 0/10 · branch `onda-D-bundle-app-admin` · BUNDLE app + admin
+## Onda D — Bundle app + admin: sync, faxina, CI · 1/10 · branch `onda-D-bundle-app-admin` · BUNDLE app + admin
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
-| D0 | Criar branch onda-D-bundle-app-admin a partir de 28_08_26 | [ ] pendente |  |  |
+| D0 | Criar branch onda-D-bundle-app-admin a partir de 28_08_26 | [✓] concluída | 2026-09-02 | `a631701` |
 | D7 | [e2e portáteis (sem caminhos da máquina)](onda-D-bundle-app-admin/D7-e2e-portateis.md) | [ ] pendente |  |  |
 | D8 | [CI: typecheck → testes → build → bundle-check → e2e](onda-D-bundle-app-admin/D8-ci-workflow.md) | [ ] pendente |  |  |
 | D1 | [Leitura híbrida do espelho e desempate (D-07)](onda-D-bundle-app-admin/D1-leitura-hibrida-e-desempate.md) | [ ] pendente |  |  |

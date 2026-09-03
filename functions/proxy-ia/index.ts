@@ -67,7 +67,8 @@ function json(obj: unknown, status: number): Response {
   return new Response(JSON.stringify(obj), { status, headers: { ...CORS, "content-type": "application/json" } });
 }
 
-// ── guardrails-lite (espelho de src/ia/guardrails.ts — o canônico é o do repo) ──
+// ── guardrails-lite (espelho de src/core/seguranca/guardrails.ts — o canônico;
+//    paridade verificada por scripts/paridade-edge.mjs no CI, E2) ──
 const RE_TERMOS = new RegExp(
   "\\b(?:matar|morrer|morte|mortes|sangue|armas?|tiros?|facadas?|terror|pavor|pesadelos?|demonios?|cervejas?|vodka|cigarros?|drogas?|sexo|nudez|apostas?)\\b|\\b(?:assassin|violenc)"
 );

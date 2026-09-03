@@ -2,20 +2,20 @@
  * [guardrails.ts] — filtros de segurança infantil de entrada e saída, sempre
  *   no caminho da IA, independentes de provedor.
  *
- * PAPEL: core-lógica (orquestração de IA · GERAÇÃO 1 · GUARD)
- * POR QUE EXISTE: nada inseguro pode chegar à criança; envolve qualquer
- *   provedor (decorator) filtrando prompt antes e Trecho depois, e degrada
- *   por throw quando viola.
+ * PAPEL: core-lógica (segurança infantil · FONTE ÚNICA dos guardrails)
+ * POR QUE EXISTE: nada inseguro pode chegar à criança. E2 (Plan03): este é o
+ *   CANÔNICO das regexes/limiares — as edges (functions/proxy-ia e
+ *   functions/realizador) carregam CÓPIAS self-contained, verificadas por
+ *   `scripts/paridade-edge.mjs` (roda no CI): divergiu, o CI falha.
  * ENTRA: prompt (string) e Trecho a filtrar; RESULTADO com permitir/motivo.
  * SAI: Guardrails {filtrarEntrada, filtrarSaida} e envolverComGuardrails, que
  *   embrulha um GeradorDeTrecho e lança em caso de violação.
- * CHAMA: ../core/grafo/tipos.js:Trecho (só tipos; sem rede).
- * É CHAMADO POR: ia/adaptadores/selecionar.ts (envolverComGuardrails), ia/ia.test.ts.
- * RODA POR: boot do app (via pipoca.bundle.js) e testes; os testes das suítes que o importam
- *   (dentro de `bun run test`).
- * CUIDADO: cliente KEYLESS — nenhuma chave de provedor vive aqui (nem em src/):
- *   a credencial mora nos secrets da Edge Function proxy-ia. Violação → throw
- *   (degrada p/ Motor A), NÃO reformula no MVP. Motivos/logs SEM PII: só a categoria.
+ * CHAMA: ../grafo/tipos.js:Trecho (só tipos; sem rede).
+ * É CHAMADO POR: nenhum runtime do cliente hoje (a Geração 1 saiu no D4) — o
+ *   valor é ser a fonte de verdade verificável do conteúdo das edges.
+ * RODA POR: scripts/paridade-edge.mjs (CI · D8/E2).
+ * CUIDADO: mudar uma regex AQUI exige espelhar nas 2 edges e redeployar (E3);
+ *   o paridade-edge trava o esquecimento. Motivos/logs SEM PII: só a categoria.
  *
  * — detalhe preservado —
  * Pipoca — Guardrails de conteúdo infantil (GUARD) · doc fase05-05-08
@@ -29,7 +29,7 @@
  * sempre degrada (registrado no selo do doc).
  */
 
-import type { Trecho } from "../core/grafo/tipos.js";
+import type { Trecho } from "../grafo/tipos.js";
 
 export interface ResultadoFiltro {
   permitir: boolean;

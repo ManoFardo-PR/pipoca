@@ -56,7 +56,6 @@ jobs:
       - name: e2e geração 2
         run: node tests/e2e/run-geracao2-canonico.mjs
 
-      # Paridade cliente↔edge — o script nasce em E2; até lá o passo não bloqueia.
+      # Paridade cliente↔edge (E2): tabelas espelhadas divergiram → o CI FALHA.
       - name: Paridade cliente↔edge (E2)
         run: npm run check:paridade
-        continue-on-error: true

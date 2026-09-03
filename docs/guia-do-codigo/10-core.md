@@ -109,10 +109,11 @@ _Pacote de Composição_:
 
 - [`src/dados/niveis.ts`](../../src/dados/niveis.ts), [`schemas.ts`](../../src/dados/schemas.ts) — dados canônicos de níveis e schemas.
 - [`src/ia/`](../../src/ia/) — o que sobrou após o D4 (a orquestração da geração 1
-  saiu com os adaptadores): [`provedor.ts`](../../src/ia/provedor.ts) (tipos
-  `ProvedorIA`/`Transporte` + `transportePadrao`, usados por todo o backend) e
-  [`guardrails.ts`](../../src/ia/guardrails.ts) (canônico dos guardrails — as edges
-  o espelham; E2 o move para `src/core/seguranca/`).
+  saiu com os adaptadores): só [`provedor.ts`](../../src/ia/provedor.ts) (tipos
+  `ProvedorIA`/`Transporte` + `transportePadrao`, usados por todo o backend).
+- [`src/core/seguranca/guardrails.ts`](../../src/core/seguranca/guardrails.ts) —
+  a FONTE ÚNICA dos guardrails infantis (E2); as edges carregam cópias
+  verificadas por [`scripts/paridade-edge.mjs`](../../scripts/paridade-edge.mjs) no CI.
   ⚠️ A chave de provedor **não vive aqui** — vive nos secrets das edges.
 - [`src/servicos/`](../../src/servicos/) — [`asr.ts`](../../src/servicos/asr.ts) (fala→texto),
   [`tts.ts`](../../src/servicos/tts.ts) (texto→fala), e os repos

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * [provedor_realizador.ts] — Interface do provedor plugável do realizador + o
  *   adaptador Gemini: recebe prompt+config, devolve texto+metadados.
  *
@@ -28,7 +28,7 @@
  * CHAVE NUNCA NO CLIENTE nem lida aqui: `apiKey` chega por PARÂMETRO de quem
  * cria o provedor (na calibração, o script do experimento lê o env; em
  * produção, o padrão é a Edge Function com secrets — deploy é fase 13,
- * `functions/proxy-ia/index.ts:121-126` é a referência). Nenhum process.env
+ * a edge é a referência). Nenhum process.env
  * neste módulo.
  */
 

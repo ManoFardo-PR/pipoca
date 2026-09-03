@@ -1,11 +1,11 @@
-/**
+﻿/**
  * [ia_global.ts] — config GLOBAL de IA da plataforma (modelo padrão por provedor
  *   + cadeia de fallback) que os tenants herdam, e o formato do status MASCARADO da chave.
  *
  * PAPEL: admin (SA_IA_GLOBAL — lado plataforma; herança de IA)
  * POR QUE EXISTE: dar defaults de provedor/modelo e uma cascata de fallback comum
  *   a todos os tenants sem forçar cada um a configurar, mantendo a MESMA regra de
- *   herança que o ProxyIA aplica server-side.
+ *   herança que a edge realizador aplica server-side.
  * ENTRA: ConfigIaGlobal, ConfigIaTenant, StatusChaveIa; leitura de localStorage
  *   (chave "pipoca.admin.iaglobal.v1").
  * SAI: CONFIG_IA_GLOBAL_PADRAO, validação/normalização, helpers de herança
@@ -19,7 +19,7 @@
  *   só pela Edge Function; este módulo só conhece o STATUS MASCARADO (ex.:
  *   "****ab12"). O storage local é só espelho de LEITURA — o servidor é a verdade.
  *   Default fail-closed: sem modelo padrão e sem cadeia → tenant sem config
- *   própria segue SEM IA. A regra de herança é espelhada no ProxyIA (mantê-las iguais).
+ *   própria segue SEM IA. A regra de herança é espelhada na edge realizador (mantê-las iguais).
  *
  * — detalhe preservado —
  * Pipoca — Configuração GLOBAL de IA (SA_IA_GLOBAL) · tarefa #31
@@ -45,7 +45,7 @@ export interface ConfigIaGlobal {
 // A4 (Plan03): fail-closed de ponta a ponta — nenhum provedor nasce com modelo padrão
 // (antes o Gemini vinha pré-preenchido aqui enquanto as edges tinham OUTRO default
 // escondido). O operador define o padrão em SA_IA_GLOBAL; as edges (realizador,
-// proxy-ia) usam tenant → padrão global → sem modelo = não configurado.
+// realizador) usam tenant → padrão global → sem modelo = não configurado.
 export const CONFIG_IA_GLOBAL_PADRAO: ConfigIaGlobal = {
   modeloPadrao: { claude: null, gemini: null, openai: null, deepseek: null },
   cadeiaFallback: [],
@@ -109,7 +109,7 @@ export function normalizarConfigIaGlobal(raw: unknown): ConfigIaGlobal {
   return { modeloPadrao, cadeiaFallback: r.cadeiaFallback.slice() };
 }
 
-// ─── Herança (helpers puros — a MESMA regra é espelhada no ProxyIA) ─────────
+// ─── Herança (helpers puros — a MESMA regra é espelhada na edge realizador) ─────────
 
 /** Provedor efetivo do tenant: o próprio; senão o 1º da cadeia global; senão null. */
 export function provedorEfetivoGlobal(cfg: ConfigIaTenant, global: ConfigIaGlobal): ProvedorIaId | null {

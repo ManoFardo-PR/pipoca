@@ -20,7 +20,7 @@ um LLM (a "geração 2"), sempre com uma rede de segurança que garante texto fi
 | **core-lógica** | [`src/core/`](../../src/core/) (+ [`src/dados/`](../../src/dados/), [`src/ia/`](../../src/ia/), [`src/servicos/`](../../src/servicos/)) | O cérebro puro: compositor, realizador, validador, fallback, modelo de estado, economia de vaga-lumes, portão, perfis. Testável sem rede. |
 | **app / telas** | [`src/app/`](../../src/app/), [`src/telas/`](../../src/telas/), [`src/componentes/`](../../src/componentes/) | A interface da criança/cuidador: a ponte que expõe o core ao navegador e as telas `.dc.html`. |
 | **admin** | [`src/admin/`](../../src/admin/) | A plataforma do operador (super-admin): rotas SA_*, login, _tenants_, config de IA, flags globais. |
-| **backend / edge** | [`src/backend/`](../../src/backend/) + [`functions/`](../../functions/) | Os clientes **keyless** das Edge Functions e as **3 edges** (Supabase/Deno) onde a chave paga vive. |
+| **backend / edge** | [`src/backend/`](../../src/backend/) + [`functions/`](../../functions/) | Os clientes **keyless** das Edge Functions e as **2 edges** (Supabase/Deno) onde a chave paga vive. |
 | **testes (e2e + fumaça)** | [`tests/`](../../tests/) + `*.test.ts` espalhados | Testes unitários (offline), runners e2e (Playwright, offline) e a fumaça de presença. |
 | **scripts** | [`scripts/`](../../scripts/) | O smoke de produção (gasta API paga), o monitor do Plan03 e o hook de merge. |
 

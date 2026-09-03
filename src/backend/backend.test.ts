@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Pipoca — Testes da fase06 (backend trocável).
  * -------------------------------------------------------------------------------------
  * Grupos por doc: config/fachada (06-01/06-06) · escopoTenant (06-04) ·
@@ -120,8 +120,8 @@ console.log("\n=== obterBackend (06-01) — fachada e adaptador local ===");
 {
   armazem.limpar();
   const b = obterBackend({ provedor: "local" });
-  // D4: proxyIA saiu da fachada (Geração 1 removida; a geração 2 usa realizador)
-  assert(!!b.auth && !!b.repo && !("proxyIA" in b), "fachada devolve { auth, repo } — sem proxyIA (D4)");
+  // D4: a Geração 1 saiu da fachada (a geração 2 usa realizador)
+  assert(!!b.auth && !!b.repo && Object.keys(b).length === 2, "fachada local devolve só { auth, repo } (D4)");
 
   // config supabase → adaptadores REST reais (sem sessão em storage → null; sem rede aqui)
   const bSupa = obterBackend({ provedor: "supabase", supabaseUrl: "https://x.supabase.co", supabaseAnonKey: "k" });
@@ -1024,9 +1024,9 @@ console.log("\n=== telemetria — retenção remota (poda por filtro) e pull no 
   );
 }
 
-// ─── Etapa 5 · ProxyIA cliente — REMOVIDO no D4 (Plan03) ─────────────────────
-// A Geração 1 (orquestrador + criarProxyIA/provedorViaProxy) saiu do cliente;
-// a edge proxy-ia se aposenta em E3. O caminho vivo é o ProxyRealizador (5b).
+// ─── Etapa 5 · cliente da Geração 1 — REMOVIDO no D4 (Plan03) ────────────────
+// A Geração 1 saiu do cliente (D4) e a edge dela foi aposentada (E3).
+// O caminho vivo é o ProxyRealizador (5b).
 
 // ─── Etapa 5b · ProxyRealizador cliente (fase13-13-03) ───────────────────────
 
@@ -1059,12 +1059,14 @@ console.log("\n=== ProxyRealizador cliente (13-03) — keyless, cascata no edge 
     c.headers["Authorization"] === "Bearer tok-user" && c.headers["apikey"] === "anon-k",
     "bearer do USUÁRIO + anon key — nenhuma chave de provedor sai do cliente"
   );
+  // E3: o corpo é SÓ {pacote, tenantId?} — o prompt e a temperatura nascem na
+  // edge (espelho verificado do template); nada arbitrário sai do cliente.
   const corpo = c.corpo as Record<string, unknown>;
-  const promptEnviado = corpo["prompt"] as Record<string, unknown>;
   assert(
-    !!corpo["pacote"] && typeof promptEnviado["system"] === "string" && typeof promptEnviado["user"] === "string"
+    !!corpo["pacote"] && corpo["tenantId"] === "familia:u1"
+      && !("prompt" in corpo) && !("temperatura" in corpo)
       && !("provedor" in corpo) && !("modelo" in corpo) && !("apiKey" in corpo),
-    "payload = pacote + prompt montado do Pacote; o cliente NÃO escolhe provedor/modelo"
+    "payload E3 = {pacote, tenantId} — sem prompt/temperatura; o cliente NÃO escolhe nada"
   );
 
   // Qualquer não-200 → throw (o módulo de geração cai no fallback A+ v3 LOCAL).

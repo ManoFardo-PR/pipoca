@@ -4,8 +4,8 @@
  *
  * PAPEL: core-lógica (segurança infantil · FONTE ÚNICA dos guardrails)
  * POR QUE EXISTE: nada inseguro pode chegar à criança. E2 (Plan03): este é o
- *   CANÔNICO das regexes/limiares — as edges (functions/proxy-ia e
- *   functions/realizador) carregam CÓPIAS self-contained, verificadas por
+ *   CANÔNICO das regexes/limiares — a edge (functions/realizador) carrega
+ *   CÓPIA self-contained, verificada por
  *   `scripts/paridade-edge.mjs` (roda no CI): divergiu, o CI falha.
  * ENTRA: prompt (string) e Trecho a filtrar; RESULTADO com permitir/motivo.
  * SAI: Guardrails {filtrarEntrada, filtrarSaida} e envolverComGuardrails, que
@@ -14,7 +14,7 @@
  * É CHAMADO POR: nenhum runtime do cliente hoje (a Geração 1 saiu no D4) — o
  *   valor é ser a fonte de verdade verificável do conteúdo das edges.
  * RODA POR: scripts/paridade-edge.mjs (CI · D8/E2).
- * CUIDADO: mudar uma regex AQUI exige espelhar nas 2 edges e redeployar (E3);
+ * CUIDADO: mudar uma regex AQUI exige espelhar na edge e redeployar;
  *   o paridade-edge trava o esquecimento. Motivos/logs SEM PII: só a categoria.
  *
  * — detalhe preservado —

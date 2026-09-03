@@ -61,8 +61,8 @@ import { transportePadrao, type Transporte } from "../ia/provedor.js";
 
 /**
  * Fachada única (doc 06-01) + extensão opcional de sync.
- * D4 (Plan03): `proxyIA` saiu — a Geração 1 (orquestrador cliente) foi
- * removida e a edge `proxy-ia` se aposenta em E3; a geração 2 fala pelo
+ * D4/E3 (Plan03): o cliente da Geração 1 saiu e a edge dela foi aposentada;
+ * a geração 2 fala pelo
  * `realizador` (keyless, cascata no edge).
  */
 export interface Backend {
@@ -167,7 +167,7 @@ export function criarBackendLocal(): Backend {
 
 // ─── Adaptador SUPABASE (REST puro — auth GoTrue + repo PostgREST) ───────────
 // Remoto com fallback local: o repo é o SINCRONIZADO (local = base; o remoto
-// espelha fire-and-forget). O ProxyIA concreto chega na etapa do proxy.
+// espelha fire-and-forget).
 
 function criarBackendSupabase(cfg: ConfigBackend): Backend {
   const auth = criarAuthSupabase({ url: cfg.supabaseUrl as string, anonKey: cfg.supabaseAnonKey as string });
@@ -191,7 +191,7 @@ function criarBackendSupabase(cfg: ConfigBackend): Backend {
 /**
  * Espelho remoto da ConfigIaTenant (SA_AI → tabela `config_ia`): upsert
  * fire-and-forget quando há OPERADOR logado no backend supabase; devolve
- * false (sem lançar) em qualquer outra situação. O ProxyIA lê essa tabela
+ * false (sem lançar) em qualquer outra situação. A edge realizador lê essa tabela
  * server-side — é a config/cota de verdade da geração (06-05).
  */
 export async function espelharConfigIA(

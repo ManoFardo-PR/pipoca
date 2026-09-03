@@ -90,6 +90,7 @@ function corpoDeFuncao(codigo, nome, arquivo) {
 }
 
 // ─── Arquivos ────────────────────────────────────────────────────────────────
+// (E3: a edge proxy-ia foi aposentada — os pares dela saíram.)
 const GUARD = ler("src/core/seguranca/guardrails.ts");
 const VALID = ler("src/core/realizador/validador.ts");
 const PROMPT = ler("src/core/realizador/prompt_template.ts");
@@ -97,7 +98,6 @@ const COMPOS = ler("src/core/composicao.ts");
 const GRAM = ler("src/core/compositor/gramatica.ts");
 const IA_CFG = ler("src/admin/ia_config.ts");
 const IA_GLB = ler("src/admin/ia_global.ts");
-const ED_PROXY = ler("functions/proxy-ia/index.ts");
 const ED_REAL = ler("functions/realizador/index.ts");
 const ED_CHAVES = ler("functions/admin-chaves-ia/index.ts");
 
@@ -116,16 +116,14 @@ function comparar(nomeItem, valores) {
 
 console.log("=== Paridade cliente↔edge (E2 · DM-D) ===\n");
 
-// 1 · guardrails — regex de termos + URL/EMAIL/TELEFONE (canônico → 2 edges)
+// 1 · guardrails — regex de termos + URL/EMAIL/TELEFONE (canônico → edge)
 comparar("RE_TERMOS (blocklist infantil)", [
   ["src/core/seguranca", padraoDeRegexp(initializerDe(GUARD, "RE_TERMOS_BLOQUEADOS", "guardrails.ts"))],
-  ["edge proxy-ia", padraoDeRegexp(initializerDe(ED_PROXY, "RE_TERMOS", "proxy-ia"))],
   ["edge realizador", padraoDeRegexp(initializerDe(ED_REAL, "RE_TERMOS", "realizador"))],
 ]);
 for (const nome of ["RE_URL", "RE_EMAIL", "RE_TELEFONE"]) {
   comparar(nome, [
     ["src/core/seguranca", normalizar(initializerDe(GUARD, nome, "guardrails.ts"))],
-    ["edge proxy-ia", normalizar(initializerDe(ED_PROXY, nome, "proxy-ia"))],
     ["edge realizador", normalizar(initializerDe(ED_REAL, nome, "realizador"))],
   ]);
 }
@@ -151,12 +149,25 @@ for (const [nome, codigoSrc, rotuloSrc] of paresValidador) {
   ]);
 }
 
-// 3 · SECRET_POR_PROVEDOR — só nas edges (3 cópias entre si)
+// 3 · SECRET_POR_PROVEDOR — só nas edges (2 cópias entre si)
 comparar("SECRET_POR_PROVEDOR", [
   ["edge admin-chaves-ia", normalizar(initializerDe(ED_CHAVES, "SECRET_POR_PROVEDOR", "admin-chaves-ia"))],
-  ["edge proxy-ia", normalizar(initializerDe(ED_PROXY, "SECRET_POR_PROVEDOR", "proxy-ia"))],
   ["edge realizador", normalizar(initializerDe(ED_REAL, "SECRET_POR_PROVEDOR", "realizador"))],
 ]);
+
+// 3b · PROMPT-TEMPLATE (E3): o prompt nasce na edge — espelho do canônico
+for (const nome of ["DESCRICAO_NIVEL", "MAXIMO_PALAVRAS", "FEWSHOT_POR_NIVEL"]) {
+  comparar(nome + " (template)", [
+    ["src prompt_template", normalizar(initializerDe(PROMPT, nome, "prompt_template.ts"))],
+    ["edge realizador", normalizar(initializerDe(ED_REAL, nome, "realizador"))],
+  ]);
+}
+for (const nome of ["rotuloGenero", "personalizarExemplo", "maximoPalavrasDoPacote", "rodadaDoPacote", "montarPromptRealizador"]) {
+  comparar(nome + "() (template)", [
+    ["src prompt_template", normalizar(corpoDeFuncao(PROMPT, nome, "prompt_template.ts"))],
+    ["edge realizador", normalizar(corpoDeFuncao(ED_REAL, nome, "realizador"))],
+  ]);
+}
 
 // 4 · PROVEDORES — admin (2× src) × edge admin-chaves-ia
 comparar("PROVEDORES", [

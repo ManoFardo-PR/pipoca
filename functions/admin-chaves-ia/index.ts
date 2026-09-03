@@ -1,4 +1,4 @@
-/**
+﻿/**
  * [admin-chaves-ia/index.ts] — Edge Function admin-chaves-ia: gestão
  *   write-only das chaves dos provedores de IA (painel do operador
  *   SA_IA_GLOBAL); a resposta é SEMPRE mascarada.
@@ -50,7 +50,7 @@
  *
  * Erros (JSON {erro}): 401 nao_autenticado · 403 nao_autorizado ·
  * 400 requisicao_invalida · 503 nao_configurado. Self-contained (Deno),
- * fora de src/ — não entra no tsc do app (mesma disciplina do proxy-ia).
+ * fora de src/ — não entra no tsc do app (disciplina das edges).
  */
 
 declare const Deno: {
@@ -73,7 +73,7 @@ function cabecalhosServico(chave: string): Record<string, string> {
 }
 
 // A ASSINATURA é validada pela plataforma (deploy com verify_jwt, como o
-// proxy-ia). Aqui, defesa em profundidade: token expirado é recusado mesmo
+// nas demais edges). Aqui, defesa em profundidade: token expirado é recusado mesmo
 // que a checagem da borda falhe em alguma configuração.
 function uidDoJwt(jwt: string): string | null {
   try {

@@ -3,7 +3,7 @@
 ← [Mapa geral](00-MAPA-GERAL.md) · [Glossário](90-GLOSSARIO.md)
 
 Duas metades: os **clientes keyless** no dispositivo ([`src/backend/`](../../src/backend/))
-e as **3 Edge Functions** no servidor ([`functions/`](../../functions/)). A linha que
+e as **2 Edge Functions** no servidor ([`functions/`](../../functions/)). A linha que
 as separa é a fronteira mais importante do sistema.
 
 ## A fronteira da credencial (a lei)
@@ -25,12 +25,14 @@ as separa é a fronteira mais importante do sistema.
 - Testes trancam a invariante (a suíte de `src/backend/` asserta que não há
   chave/autorização de provedor no cliente).
 
-## As 3 edges (`functions/*/index.ts`, Deno, fora do `tsc` do app)
+## As 2 edges (`functions/*/index.ts`, Deno, fora do `tsc` do app)
+
+A edge da Geração 1 foi aposentada no E3 (Plan03) — sem consumidor; a remoção
+da função no Supabase acompanha o deploy do E3/E7.
 
 | Edge | O que faz | Falha (não-200) vira… |
 |---|---|---|
-| [`proxy-ia/index.ts`](../../functions/proxy-ia/index.ts) | **Geração 1** keyless: o servidor escolhe provedor/modelo pela `config_ia` do tenant, checa cota/custo em `uso_ia` ANTES de chamar, roda guardrails de entrada/saída, chama o LLM pago e devolve `{texto, ehFinal}`. | degradação no cliente para o _simulado_ / Motor A |
-| [`realizador/index.ts`](../../functions/realizador/index.ts) | **Geração 2** (irmã da proxy-ia): recebe um _Pacote_ + prompt e roda a _cascata_ INTEIRA no servidor (retry/fallback entre provedores) numa viagem de rede, valida fidelidade (→ _veredito_) e devolve o texto realizado. | _fallback_ A+ v3 **local** no dispositivo |
+| [`realizador/index.ts`](../../functions/realizador/index.ts) | **Geração 2**: recebe SÓ um _Pacote_ (`{pacote, tenantId?}`, E3 — o prompt nasce na edge, espelho verificado do `prompt_template.ts`), roda a _cascata_ INTEIRA no servidor (retry/fallback entre provedores) numa viagem de rede, valida fidelidade (→ _veredito_) e devolve o texto realizado. | _fallback_ A+ v3 **local** no dispositivo |
 | [`admin-chaves-ia/index.ts`](../../functions/admin-chaves-ia/index.ts) | Gestão **write-only** das chaves de provedor (`{acao: "status"\|"salvar"\|"testar"}`); guarda as chaves em tabela deny-all `chaves_ia`. | — (resposta **sempre mascarada** `"****ab12"`; a chave nunca volta ao cliente) |
 
 > O _fallback_ A+ v3 **não** vive na edge — roda no dispositivo, então independe da
@@ -38,8 +40,9 @@ as separa é a fronteira mais importante do sistema.
 
 ## Os clientes keyless + a plataforma (`src/backend/`)
 
-- [`proxy_realizador.ts`](../../src/backend/proxy_realizador.ts) — cliente keyless da edge `realizador` (geração 2).
-  O cliente da edge `proxy-ia` (geração 1) saiu no D4; a própria edge se aposenta em E3.
+- [`proxy_realizador.ts`](../../src/backend/proxy_realizador.ts) — cliente keyless da edge `realizador`
+  (geração 2); desde o E3 manda só `{pacote, tenantId?}` (o prompt nasce na edge).
+  O cliente da geração 1 saiu no D4 e a edge dela foi aposentada no E3.
 - [`espelho_admin.ts`](../../src/backend/espelho_admin.ts) — espelho remoto **admin-only**
   (chama a edge `admin-chaves-ia` via `statusChavesIa`/`salvarChaveIa`/`testarChaveIa`);
   importado só por [`bridge_admin.ts`](../../src/admin/bridge_admin.ts).

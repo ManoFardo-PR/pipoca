@@ -1,6 +1,6 @@
 # E3 — O cliente envia só o pacote; a edge monta o prompt; destino da edge `proxy-ia`; redeploy
 
-> Status: em andamento (2026-09-03)
+> Status: concluída (2026-09-03 · b13911f)
 **Unidade de deploy:** BUNDLE app (`src/backend/proxy_realizador.ts`) + EDGE `realizador`
 (+ `proxy-ia` se aposentada). **Depende de:** E1, E2. **Desbloqueia:** D4 (remoção de
 `proxy_ia.ts` se a edge for aposentada).

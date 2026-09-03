@@ -1,10 +1,11 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-03T13:16:41.821Z · branch `onda-E-edge-dados` · HEAD `40d726c`
-- Progresso: **50/59** passos concluídos
-- Próximo passo: nenhum disponível
+- Gerado em: 2026-09-03T14:33:53.052Z · branch `28_08_26` · HEAD `b13911f`
+- Progresso: **51/59** passos concluídos
+- Próximo passo: **E4** — Manifesto de cenários; id único; fetches derivados ([abrir](onda-E-edge-dados/E4-manifesto-de-cenarios.md))
 - Última verificação: ✅ verde em 2026-09-03T13:02:56.381Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
+  - ⚠ branch atual "28_08_26" ≠ esperada para E4 ("onda-E-edge-dados")
   - ⚠ árvore suja (1 arquivo(s)) — commite antes de concluir um passo
   - ⚠ pipoca.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/app/bridge.ts, src/dados (rebuild pendente)
   - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
@@ -81,14 +82,14 @@
 | D6 | [Branches, .gitignore, post-merge.sh](onda-D-bundle-app-admin/D6-branches-gitignore-hooks.md) | [✓] concluída | 2026-09-03 | `fc66881` |
 | D9 | [Fechamento D: build:all → CI verde → merge](onda-D-bundle-app-admin/D9-fechamento-onda-D.md) | [✓] concluída | 2026-09-03 | `61af9da` |
 
-## Onda E — Edge e dados · 3/8 · branch `onda-E-edge-dados` · BUNDLE app + EDGE + dados
+## Onda E — Edge e dados · 4/8 · branch `onda-E-edge-dados` · BUNDLE app + EDGE + dados
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
 | E0 | Criar branch onda-E-edge-dados a partir de 28_08_26 | [✓] concluída | 2026-09-03 | `b5faaf5` |
 | E1 | [Pacote v1.1: sentimento e sentido das fichas](onda-E-edge-dados/E1-pacote-v1-1-sentimentos.md) | [✓] concluída | 2026-09-03 | `c394af8` |
 | E2 | [Paridade cliente↔edge (script + guardrails + gramática)](onda-E-edge-dados/E2-paridade-cliente-edge.md) | [✓] concluída | 2026-09-03 | `f53697c` |
-| E3 | [Prompt na edge; aposentar proxy-ia; redeploy em 2 passos](onda-E-edge-dados/E3-prompt-na-edge-e-proxy-ia.md) | […] em andamento | 2026-09-03 |  |
+| E3 | [Prompt na edge; aposentar proxy-ia; redeploy em 2 passos](onda-E-edge-dados/E3-prompt-na-edge-e-proxy-ia.md) | [✓] concluída | 2026-09-03 | `b13911f` |
 | E4 | [Manifesto de cenários; id único; fetches derivados](onda-E-edge-dados/E4-manifesto-de-cenarios.md) | [ ] pendente |  |  |
 | E5 | [Galeria da T3 honesta; retrato; SVG sem cópia](onda-E-edge-dados/E5-galeria-t3-honesta.md) | [ ] pendente |  |  |
 | E6 | [Pipeline de autoria: lints no CI, guia, anexos](onda-E-edge-dados/E6-pipeline-de-autoria.md) | [ ] pendente |  |  |

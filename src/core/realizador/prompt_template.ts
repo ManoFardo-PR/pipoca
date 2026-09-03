@@ -197,6 +197,9 @@ export function montarPromptRealizador(pacote: PacoteComposicao): PromptRealizad
     linhasUser.push(`${i + 1}. ${beat.objeto} (${beat.papel})`);
     linhasUser.push(`   O QUE É: ${beat.descricao}`);
     linhasUser.push(`   CORPO: ${beat.corpo}`);
+    // E1 (ML-5): sentimento/sentido das fichas — matéria aditiva, só quando veio.
+    if (beat.sentimento) linhasUser.push(`   SENTIMENTO: ${beat.sentimento}`);
+    if (beat.sentido) linhasUser.push(`   SENTIDO: ${beat.sentido}`);
     for (const relacao of beat.relacoes) {
       linhasUser.push(`   INTERAÇÃO (com ${relacao.alvo}): ${relacao.interacao}`);
     }
@@ -211,6 +214,10 @@ export function montarPromptRealizador(pacote: PacoteComposicao): PromptRealizad
     "O lugar é o contador: a voz do lugar abre e costura a história.",
     // Lei 3 — desejo plantado, corpo colhido.
     "Plante a vontade na abertura; feche colhendo essa vontade no corpo.",
+    // E1 (ML-5) — o sentimento é CLIMA, não rótulo: sem copiar a palavra.
+    ...(pacote.beats.some((b) => b.sentimento || b.sentido)
+      ? ["Use o SENTIMENTO de cada elemento como clima da cena, SEM escrever essa palavra; o SENTIDO diz qual percepção guia (visão, tato, som…)."]
+      : []),
     // As quatro proibições, parametrizadas pelo Pacote (nunca "Joana" fixo).
     "NÃO invente acontecimentos, objetos, personagens ou falas.",
     "NÃO remova nenhum elemento. NÃO mude a ordem dos elementos.",

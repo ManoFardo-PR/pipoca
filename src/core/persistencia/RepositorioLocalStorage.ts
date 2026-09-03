@@ -33,7 +33,7 @@
 
 import type { Perfil } from "../perfil.js";
 import type { EstadoApp, EventoTelemetria } from "../estado.js";
-import type { RepositorioPersistencia } from "./index.js";
+import type { RepositorioPersistencia } from "./tipos.js"; // D3: contrato em arquivo próprio (fim do ciclo com o barril)
 import { validarEnvelopePerfil, validarEnvelopeSave } from "../../dados/schemas.js";
 import { validarEvento } from "../telemetria.js";
 import { podarPorRetencao, RETENCAO_DIAS_PADRAO } from "../../servicos/telemetria_repo.js";

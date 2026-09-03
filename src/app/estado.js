@@ -60,7 +60,10 @@
 (function () {
   "use strict";
 
-  var PERFIS_KEY_LEGADO = "pipoca.perfis.v1"; // chave antiga (array plano); o repo canônico usa envelopes
+  // D3 (D-21): a chave legada (array plano) só existe para a MIGRAÇÃO one-shot,
+  // que agora a APAGA ao terminar; o fallback grava na chave canônica (envelopes).
+  var PERFIS_KEY_LEGADO = "pipoca.perfis.v1"; // remover na próxima versão, junto com a migração
+  var PERFIS_KEY = "pipoca.perfil.v1"; // canônica (persistencia/chaves.ts:CHAVE_PERFIS)
 
   // Superfícies adultas (KIDMODE · modoApp.ts): Onboarding (10), hub e telas do
   // cuidador (11–15), painel de evolução (8) e Conta & segurança (16).
@@ -194,11 +197,20 @@
 
   // ─── Persistência (seam RepositorioPersistencia via bundle) ───────────────
   // O repo canônico (persistencia/index.ts) valida envelopes e cobre perfis,
-  // save e telemetria. Sem bundle, cai num fallback mínimo só de perfis
-  // (chave legada), para o app não morrer.
+  // save e telemetria. Sem bundle, cai num fallback mínimo só de perfis —
+  // na CHAVE CANÔNICA, com envelopes (D3: a legada não recebe mais escrita).
   function _lerPerfisLegado() {
     try {
       var raw = localStorage.getItem(PERFIS_KEY_LEGADO);
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (_) { return []; }
+  }
+
+  // Envelopes crus da chave canônica (o fallback preserva versões desconhecidas — D-09).
+  function _lerEnvelopesPerfil() {
+    try {
+      var raw = localStorage.getItem(PERFIS_KEY);
       var arr = raw ? JSON.parse(raw) : [];
       return Array.isArray(arr) ? arr : [];
     } catch (_) { return []; }
@@ -220,32 +232,50 @@
     return _repoCanonico;
   }
 
-  // Migração única: perfis da chave legada (array plano) entram no repo canônico
-  // quando ele ainda está vazio. A chave antiga NÃO é apagada (fallback de leitura).
+  // Migração única (D3/D-21): perfis da chave legada entram no repo canônico
+  // quando ele ainda está vazio e a legada é APAGADA ao final (só com todas as
+  // gravações ok). Canônica já povoada → a legada é resíduo e sai também.
+  // Manter por mais UMA versão; depois remover junto com PERFIS_KEY_LEGADO.
   function _migrarPerfisLegado() {
     var base = _repoBase();
     if (!base) return Promise.resolve();
     return base.carregarPerfis().then(function (arr) {
-      if ((arr || []).length > 0) return;
       var legados = _lerPerfisLegado();
       if (!legados.length) return;
+      if ((arr || []).length > 0) {
+        try { localStorage.removeItem(PERFIS_KEY_LEGADO); } catch (_) {}
+        return;
+      }
+      var falhas = 0;
       return Promise.all(legados.map(function (p) {
-        return base.salvarPerfil(p).catch(function () {});
-      })).then(function () {});
+        return base.salvarPerfil(p).catch(function () { falhas++; });
+      })).then(function () {
+        if (falhas === 0) { try { localStorage.removeItem(PERFIS_KEY_LEGADO); } catch (_) {} }
+      });
     }).catch(function () {});
   }
 
   var _fallbackRepo = {
-    carregarPerfis: function () { return Promise.resolve(_lerPerfisLegado()); },
-    salvarPerfil: function (perfil) {
-      var arr = _lerPerfisLegado();
-      var i = -1;
-      for (var j = 0; j < arr.length; j++) {
-        var p = arr[j];
-        if (p && perfil && perfil.id != null && p.id === perfil.id) { i = j; break; }
+    carregarPerfis: function () {
+      var arr = _lerEnvelopesPerfil();
+      var out = [];
+      for (var i = 0; i < arr.length; i++) {
+        var e = arr[i];
+        if (e && e.esquema === PERFIS_KEY && e.perfil) out.push(e.perfil);
       }
-      if (i >= 0) arr[i] = perfil; else arr.push(perfil);
-      try { localStorage.setItem(PERFIS_KEY_LEGADO, JSON.stringify(arr)); } catch (_) {}
+      return Promise.resolve(out);
+    },
+    salvarPerfil: function (perfil) {
+      // Mesmo envelope do repo canônico; envelopes de versão desconhecida ficam (D-09).
+      var arr = _lerEnvelopesPerfil();
+      var out = [];
+      for (var j = 0; j < arr.length; j++) {
+        var e = arr[j];
+        if (e && e.esquema === PERFIS_KEY && e.perfil && perfil && e.perfil.id === perfil.id) continue;
+        out.push(e);
+      }
+      out.push({ esquema: PERFIS_KEY, perfil: perfil });
+      try { localStorage.setItem(PERFIS_KEY, JSON.stringify(out)); } catch (_) {}
       return Promise.resolve();
     },
     apagarPerfil: function () { return Promise.resolve(); },

@@ -63,10 +63,10 @@ import { escopoTenant } from "./tenant.js";
 import { sincronizarInicial } from "./sync.js";
 import { transportePadrao, type Transporte } from "../ia/provedor.js";
 
-/** Contrato do doc 06-05 (ipsis litteris) — o cliente concreto chega na etapa do proxy. */
-export interface ProxyIA {
-  gerar(req: { prompt: string; schema: object; opts?: object }): Promise<Trecho>;
-}
+// D3 (Plan03): o contrato ProxyIA vive em ./tipos.ts (fim do ciclo type-only
+// com proxy_ia.ts); a fachada re-exporta para os consumidores existentes.
+import type { ProxyIA } from "./tipos.js";
+export type { ProxyIA } from "./tipos.js";
 
 /** Fachada única (doc 06-01, ipsis litteris) + extensão opcional de sync. */
 export interface Backend {

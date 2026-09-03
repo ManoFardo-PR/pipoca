@@ -37,7 +37,7 @@
 import type { Trecho } from "../core/grafo/tipos.js";
 import type { JsonSchema, OptsGeracao, ProvedorIA, Transporte } from "../ia/provedor.js";
 import { transportePadrao, validarTrechoGerado } from "../ia/provedor.js";
-import type { ProxyIA } from "./backend.js";
+import type { ProxyIA } from "./tipos.js"; // D3: contrato em arquivo próprio (fim do ciclo com a fachada)
 
 export interface OpcoesProxyIA {
   url: string; // base do projeto (a função vive em /functions/v1/proxy-ia)

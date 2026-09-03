@@ -90,15 +90,11 @@ class Component extends DCLogic {
   async componentDidMount() {
     this.setState({ carregando: true });
     try {
+      // D3 (lei do seam): a tela SÓ fala com o repo — o ramo que lia
+      // localStorage direto (chave legada) era para bundle antigo e saiu.
       const App = window.PipocaApp;
-      if (App && App.repo) {
-        const perfis = await App.repo.carregarPerfis();
-        this.setState({ perfis, carregando: false });
-      } else {
-        const savedRaw = localStorage.getItem('pipoca.perfis.v1');
-        const perfis = savedRaw ? JSON.parse(savedRaw) : [];
-        this.setState({ perfis, carregando: false });
-      }
+      const perfis = App && App.repo ? await App.repo.carregarPerfis() : [];
+      this.setState({ perfis, carregando: false });
     } catch(e) {
       this.setState({ perfis: [], carregando: false });
     }

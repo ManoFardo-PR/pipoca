@@ -832,6 +832,31 @@ try {
   assert(aposVoltar.setas === 3 && /Prontinho/.test(aposVoltar.texto), "B7: voltar da T5 preserva o arranjo (3 peças seguem na cena; CTA pronto)");
   await page.evaluate(() => { window.PipocaApp.setState({ rascunhoT4: null, gatePendente: null, tela: 2 }); });
 
+  // ── Plan03 · D3 (D-21) · chave legada: migração one-shot grava na canônica e
+  // APAGA a legada; boot sem legada segue idêntico. (Roda por último: dá reload.)
+  console.log("\n=== Plan03 · D3 · migração da chave legada pipoca.perfis.v1 ===");
+  await page.evaluate(() => {
+    localStorage.removeItem("pipoca.perfil.v1"); // canônica vazia força a migração
+    localStorage.setItem("pipoca.perfis.v1", JSON.stringify([
+      { id: "legado-1", nome: "Legada", idade: 7, nivel: "n2", avatarId: "lua", genero: "f" },
+    ]));
+  });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => !!window.PipocaApp && !!window.PipocaApp.repo, { timeout: 15000 });
+  await page.waitForFunction(() => localStorage.getItem("pipoca.perfis.v1") === null, { timeout: 5000 });
+  const d3 = await page.evaluate(async () => {
+    const perfis = await window.PipocaApp.repo.carregarPerfis();
+    const canonicaRaw = localStorage.getItem("pipoca.perfil.v1") || "[]";
+    const canonica = JSON.parse(canonicaRaw);
+    return {
+      migrou: perfis.some((p) => p.id === "legado-1"),
+      envelope: Array.isArray(canonica) && canonica.some((e) => e && e.esquema === "pipoca.perfil.v1" && e.perfil && e.perfil.id === "legado-1"),
+      legadaSumiu: localStorage.getItem("pipoca.perfis.v1") === null,
+    };
+  });
+  assert(d3.migrou && d3.envelope, "D3: migração one-shot leva o perfil legado à chave canônica (com envelope)");
+  assert(d3.legadaSumiu, "D3: a chave legada é APAGADA após a migração (decisão do dono)");
+
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 
   console.log(`\n${"=".repeat(50)}`);

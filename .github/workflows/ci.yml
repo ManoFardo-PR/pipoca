@@ -1,0 +1,62 @@
+# CI mínimo do Pipoca (Plan03 · D8): prova por máquina o que a varredura provou
+# à mão — typecheck limpo, unit, bundles EM DIA com a fonte (PS-05 nunca mais),
+# os 4 e2e num Chromium real e (quando E2 nascer) a paridade cliente↔edge.
+#
+# Toolchain espelhada da máquina de referência: bun 1.3.14 (build/test/tsc) +
+# node (runners e2e). Sem secrets: os e2e rodam com provedor "local" — nada
+# toca o Supabase.
+name: CI
+
+on:
+  push:
+    branches: ["main", "28_08_26", "onda-*"]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14 # fixado: bun build pode variar bytes entre versões
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # devDependencies (playwright-core — o harness dos e2e resolve daqui, D7)
+      - name: Dependências
+        run: npm install
+
+      - name: Typecheck
+        run: bun x tsc --noEmit
+
+      - name: Testes unitários
+        run: npm test
+
+      # Rebuilda os DOIS bundles e falha se divergirem do commitado (PS-05).
+      - name: Bundles em dia com a fonte
+        run: npm run check:bundles
+
+      # Chromium do playwright-core (+ libs de sistema do ubuntu).
+      - name: Instalar Chromium
+        run: |
+          npx playwright-core install-deps chromium
+          npm run e2e:install
+
+      - name: e2e reordenar
+        run: node tests/e2e/run-reordenar-miolo.mjs
+      - name: e2e linha verde
+        run: node tests/e2e/run-linha-verde-canonico.mjs
+      - name: e2e admin
+        run: node tests/e2e/run-admin.mjs
+      - name: e2e geração 2
+        run: node tests/e2e/run-geracao2-canonico.mjs
+
+      # Paridade cliente↔edge — o script nasce em E2; até lá o passo não bloqueia.
+      - name: Paridade cliente↔edge (E2)
+        run: npm run check:paridade
+        continue-on-error: true

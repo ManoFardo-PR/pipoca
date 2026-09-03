@@ -1,8 +1,8 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-03T12:15:09.249Z · branch `onda-D-bundle-app-admin` · HEAD `7d15658`
-- Progresso: **42/59** passos concluídos
-- Próximo passo: **D3** — Chave legada (D-21) e ciclos type-only ([abrir](onda-D-bundle-app-admin/D3-chave-legada-e-tipos.md))
+- Gerado em: 2026-09-03T12:27:36.028Z · branch `onda-D-bundle-app-admin` · HEAD `2c2e9cc`
+- Progresso: **43/59** passos concluídos
+- Próximo passo: **D4** — Remoção segura de mortos ([abrir](onda-D-bundle-app-admin/D4-remover-mortos.md))
 - Última verificação: ✅ verde em 2026-09-01T19:49:58.339Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
   - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
@@ -66,7 +66,7 @@
 | C11 | [ARIA nas telas adultas](onda-C-bundle-app/C11-aria-telas-adultas.md) | [✓] concluída | 2026-09-01 | `8f5a3d0` |
 | C12 | [Fechamento C: build:app + build:admin → e2e → merge](onda-C-bundle-app/C12-fechamento-onda-C.md) | [✓] concluída | 2026-09-02 | `e8827f5` |
 
-## Onda D — Bundle app + admin: sync, faxina, CI · 5/10 · branch `onda-D-bundle-app-admin` · BUNDLE app + admin
+## Onda D — Bundle app + admin: sync, faxina, CI · 6/10 · branch `onda-D-bundle-app-admin` · BUNDLE app + admin
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
@@ -75,7 +75,7 @@
 | D8 | [CI: typecheck → testes → build → bundle-check → e2e](onda-D-bundle-app-admin/D8-ci-workflow.md) | [✓] concluída | 2026-09-03 | `f9c3f2b` |
 | D1 | [Leitura híbrida do espelho e desempate (D-07)](onda-D-bundle-app-admin/D1-leitura-hibrida-e-desempate.md) | [✓] concluída | 2026-09-03 | `3655179` |
 | D2 | [Retry e sinal de falha no push (D-06)](onda-D-bundle-app-admin/D2-retry-e-telemetria-do-push.md) | [✓] concluída | 2026-09-03 | `7d15658` |
-| D3 | [Chave legada (D-21) e ciclos type-only](onda-D-bundle-app-admin/D3-chave-legada-e-tipos.md) | [ ] pendente |  |  |
+| D3 | [Chave legada (D-21) e ciclos type-only](onda-D-bundle-app-admin/D3-chave-legada-e-tipos.md) | [✓] concluída | 2026-09-03 | `2c2e9cc` |
 | D4 | [Remoção segura de mortos](onda-D-bundle-app-admin/D4-remover-mortos.md) | [ ] pendente |  |  |
 | D5 | [Ramo firebase, .agents/ e guia do código](onda-D-bundle-app-admin/D5-firebase-agents-e-guia.md) | [ ] pendente |  |  |
 | D6 | [Branches, .gitignore, post-merge.sh](onda-D-bundle-app-admin/D6-branches-gitignore-hooks.md) | [ ] pendente |  |  |

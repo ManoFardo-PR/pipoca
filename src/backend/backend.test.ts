@@ -21,6 +21,7 @@ import {
   lerTombstones,
 } from "./adaptadores/repo_sincronizado.js";
 import { sincronizarInicial } from "./sync.js";
+import { lerFilaRemota } from "./adaptadores/fila_remota.js";
 import { migrar } from "./migracao.js";
 import { criarProxyIA, provedorViaProxy } from "./proxy_ia.js";
 import {
@@ -720,7 +721,8 @@ console.log("\n=== repo sincronizado (06-03) — local base + espelho fail-soft 
   armazem.limpar();
   const local = repoMem("local");
   const remoto = repoMem("remoto");
-  const sinc = criarRepositorioSincronizado(local.repo, remoto.repo);
+  // D2: sem atrasos de retry no teste (o erro "offline" é transitório e teria backoff 1s/4s)
+  const sinc = criarRepositorioSincronizado(local.repo, remoto.repo, { atrasosRetryMs: [] });
 
   await sinc.salvarPerfil(PERFIL_A);
   await new Promise((r) => setTimeout(r, 0)); // deixa o fire-and-forget assentar
@@ -903,6 +905,76 @@ console.log("\n=== D1 · '2 aparelhos' — leitura híbrida e desempate por atua
   await new Promise((r) => setTimeout(r, 10));
   assert(offline.length === (await localA.carregarHistorias("p1")).length, "sem sessão/offline: comportamento idêntico ao atual (só o local)");
   aoMesclarHistorias(null); // não vazar o callback para os próximos testes
+}
+
+console.log("\n=== D2 · retry, fila persistente e sinal do espelho remoto (D-06) ===");
+{
+  armazem.limpar();
+  const agora = Date.now();
+  const mkH2 = (id: string): HistoriaSalva => ({
+    id, cenarioId: "quintal_anoitecer", texto: "Era uma noite mansa. Fim.",
+    linha: ["vagalume"], nivel: "n2", desfecho: "convergente",
+    titulo: "A história de o vaga-lume", emoji: "🌟",
+    criadaEm: agora, favorita: false, atualizadoEm: agora,
+  });
+  const stubRemoto = (salvarHistoria: (pid: string, h: HistoriaSalva) => Promise<void>): RepositorioPersistencia => ({
+    carregarPerfis: async () => [], carregarSave: async () => null, carregarTelemetria: async () => [],
+    salvarPerfil: async () => {}, salvarSave: async () => {}, registrarTelemetria: async () => {},
+    apagarPerfil: async () => {},
+    salvarHistoria,
+  });
+
+  // 1 · falha TRANSITÓRIA (503): retry curto sucede — nada vai à fila
+  const gravadas: string[] = [];
+  let falhas = 1;
+  const localD2 = new RepositorioLocalStorage();
+  const sincRetry = criarRepositorioSincronizado(localD2, stubRemoto(async (_pid, h) => {
+    if (falhas > 0) { falhas--; throw new Error("Supabase: HTTP 503 em POST /historias"); }
+    gravadas.push(h.id);
+  }), { atrasosRetryMs: [0] });
+  await sincRetry.salvarHistoria!("p1", mkH2("h-retry"));
+  await new Promise((r) => setTimeout(r, 20));
+  assert(gravadas.indexOf("h-retry") >= 0 && lerFilaRemota().length === 0,
+    "falha transitória (503) é repetida e sucede — nada fica na fila");
+
+  // 2 · falha PERSISTENTE (400): sem retry, vira item na fila com rastro
+  let chamadas400 = 0;
+  const sinc400 = criarRepositorioSincronizado(localD2, stubRemoto(async () => {
+    chamadas400++;
+    throw new Error("Supabase: HTTP 400 em POST /historias");
+  }), { atrasosRetryMs: [0, 0] });
+  await sinc400.salvarHistoria!("p1", mkH2("h-fila"));
+  await new Promise((r) => setTimeout(r, 20));
+  assert(chamadas400 === 1, "4xx NÃO é repetido (retry só para transitórios)");
+  let fila = lerFilaRemota();
+  assert(fila.length === 1 && fila[0]!.op === "salvarHistoria" && fila[0]!.id === "h-fila"
+    && fila[0]!.ultimoErro.indexOf("400") >= 0,
+    "falha persistente vira ITEM NA FILA com rastro (op, id, último erro)");
+
+  // 2b · dedupe: regravar o MESMO id substitui o item (a última versão vence)
+  await sinc400.salvarHistoria!("p1", { ...mkH2("h-fila"), favorita: true });
+  await new Promise((r) => setTimeout(r, 20));
+  fila = lerFilaRemota();
+  assert(fila.length === 1 && (fila[0]!.payload as HistoriaSalva).favorita === true,
+    "dedupe por op+perfil+id: a fila guarda a versão mais NOVA, sem duplicar");
+
+  // 3 · sinal local: evento espelho_falhou gravado no LOCAL, fora do painel da T8
+  const eventos = await localD2.carregarTelemetria("p1");
+  const sinal = eventos.find((e) => e.tipo === "espelho_falhou");
+  assert(!!sinal && (sinal.dados as { op: string }).op === "salvarHistoria",
+    "a falha deixa rastro de telemetria LOCAL (espelho_falhou com a op)");
+  const { resumir: resumirD2 } = await import("../core/agregadosTelemetria.js");
+  assert(resumirD2(eventos, "semana", agora).diasAtivos === 0,
+    "espelho_falhou NÃO conta como dia ativo no painel (evento de infra, filtrado)");
+
+  // 4 · drenagem no sincronizarInicial: o item chega ao remoto e a fila esvazia
+  const srvD2 = servidorSupabaseFake();
+  const remotoOk = new RepositorioSupabase({ url: "https://proj.supabase.co", anonKey: "k", obterToken: async () => "tok", transporte: srvD2.t });
+  const res = await sincronizarInicial(localD2, remotoOk);
+  assert(srvD2.historias.has("h-fila") && (srvD2.historias.get("h-fila")!.favorita as boolean) === true,
+    "drenagem grava o item pendente no remoto (a versão mais nova)");
+  assert(lerFilaRemota().length === 0 && res.filaDrenada === 1,
+    "fila esvazia após drenar e o sync reporta filaDrenada");
 }
 
 console.log("\n=== telemetria — retenção remota (poda por filtro) e pull no sync ===");

@@ -38,7 +38,8 @@ export type TipoEventoTelemetria =
   | "sessao_iniciada"
   | "sessao_encerrada"
   | "historia_concluida"
-  | "objeto_destravado";
+  | "objeto_destravado"
+  | "espelho_falhou"; // D2: sinal de INFRA (push remoto falhou) — fora do painel
 
 // --- payloads por tipo (união discriminada pelo `tipo` no nível do evento) ---
 export interface DadosLeituraConfirmada {
@@ -49,6 +50,8 @@ export interface DadosLeituraConfirmada {
   objetoId?: string; // objeto que destravou (se houver)
 }
 export interface DadosSessaoIniciada { cenarioId?: string; blocoMin: 10 | 15 | 20 | 25; }
+/** D2: rastro local de uma escrita remota que falhou (op do repo + último erro). */
+export interface DadosEspelhoFalhou { op: string; erro: string; }
 export interface DadosSessaoEncerrada { minutos: number; palavras: number; historias: number; }
 export interface DadosHistoriaConcluida { cenarioId: string; nivel: Nivel; objetos: number; palavras: number; }
 export interface DadosObjetoDestravado { cenarioId: string; objetoId: string; nivel: Nivel; }
@@ -58,7 +61,8 @@ export type DadosTelemetria =
   | DadosSessaoIniciada
   | DadosSessaoEncerrada
   | DadosHistoriaConcluida
-  | DadosObjetoDestravado;
+  | DadosObjetoDestravado
+  | DadosEspelhoFalhou;
 
 export interface EventoTelemetria {
   esquema: "pipoca.telemetria.v1";
@@ -74,6 +78,7 @@ const TIPOS_VALIDOS: TipoEventoTelemetria[] = [
   "sessao_encerrada",
   "historia_concluida",
   "objeto_destravado",
+  "espelho_falhou",
 ];
 
 /**

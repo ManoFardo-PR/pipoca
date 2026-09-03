@@ -42,11 +42,14 @@
 import type { RepositorioPersistencia } from "../core/persistencia/index.js";
 import { migrar } from "./migracao.js";
 import { lerTombstones, removerTombstone, aplicarMesclaHistorias } from "./adaptadores/repo_sincronizado.js";
+import { drenarFilaRemota } from "./adaptadores/fila_remota.js";
 
 export interface ResultadoSync {
   apagadosDrenados: number;
   puxados: number;
   empurrados: number;
+  /** D2: itens da fila remota (escritas que falharam) reenviados neste sync. */
+  filaDrenada?: number;
 }
 
 export async function sincronizarInicial(
@@ -64,6 +67,10 @@ export async function sincronizarInicial(
       /* segue na fila para a próxima */
     }
   }
+
+  // 1b · drena a FILA REMOTA (D2/D-06: escritas que falharam offline) antes da
+  // puxada — o remoto fica com o estado mais novo antes da mescla de histórias.
+  const fila = await drenarFilaRemota(remoto);
 
   // 2 · puxa só o que não existe localmente (união, local vence)
   const [locais, remotos] = await Promise.all([local.carregarPerfis(), remoto.carregarPerfis()]);
@@ -103,5 +110,5 @@ export async function sincronizarInicial(
 
   // 3 · empurra tudo que é local (upsert no remoto — local vence no mesmo id)
   const res = await migrar(local, remoto);
-  return { apagadosDrenados, puxados, empurrados: res.perfis };
+  return { apagadosDrenados, puxados, empurrados: res.perfis, filaDrenada: fila.drenados };
 }

@@ -106,10 +106,13 @@ export function filtrarPorPeriodo(
   periodo: PeriodoPainel,
   agora: number
 ): EventoTelemetria[] {
+  // D2: eventos de INFRA (espelho_falhou) nunca entram no painel — não são
+  // leitura e inflariam "dias ativos" (resumir conta qualquer evento no dia).
+  const soLeitura = eventos.filter((e) => e.tipo !== "espelho_falhou");
   const dias = diasDoPeriodo(periodo);
-  if (!Number.isFinite(dias)) return eventos.slice();
+  if (!Number.isFinite(dias)) return soLeitura;
   const limite = agora - dias * MS_POR_DIA;
-  return eventos.filter((e) => e.ts >= limite);
+  return soLeitura.filter((e) => e.ts >= limite);
 }
 
 /** Minutos de um evento `sessao_encerrada`, clampados ao teto (0..TETO). */

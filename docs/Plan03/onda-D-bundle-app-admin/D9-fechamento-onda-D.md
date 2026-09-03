@@ -1,7 +1,6 @@
 # D9 — Fechamento da Onda D: build dos 2 bundles, e2e, catálogo
 
-> Status: pendente
-
+> Status: em andamento (2026-09-03)
 **Unidade de deploy:** BUNDLE app + admin. **Depende de:** D1–D8 mergeadas na branch da onda.
 
 ## Objetivo

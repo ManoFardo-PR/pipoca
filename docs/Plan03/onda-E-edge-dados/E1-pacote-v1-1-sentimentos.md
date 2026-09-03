@@ -1,7 +1,6 @@
 # E1 — Pacote v1.1: o sentimento e o sentido das fichas viajam para a IA (ML-5)
 
-> Status: pendente
-
+> Status: concluída (2026-09-03 · c394af8)
 **Unidade de deploy:** BUNDLE app (`src/core/compositor`, `src/core/realizador`).
 **Depende de:** Onda A (gate de consentimento). **Desbloqueia:** E3.
 

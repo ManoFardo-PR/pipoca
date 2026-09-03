@@ -1,11 +1,13 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-03T13:07:02.459Z · branch `onda-E-edge-dados` · HEAD `b5faaf5`
-- Progresso: **48/59** passos concluídos
-- Próximo passo: **E1** — Pacote v1.1: sentimento e sentido das fichas ([abrir](onda-E-edge-dados/E1-pacote-v1-1-sentimentos.md))
+- Gerado em: 2026-09-03T13:10:39.261Z · branch `onda-E-edge-dados` · HEAD `c394af8`
+- Progresso: **49/59** passos concluídos
+- Próximo passo: **E2** — Paridade cliente↔edge (script + guardrails + gramática) ([abrir](onda-E-edge-dados/E2-paridade-cliente-edge.md))
 - Última verificação: ✅ verde em 2026-09-03T13:02:56.381Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
   - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ pipoca.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/app/bridge.ts, src/dados (rebuild pendente)
+  - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
 ## Onda P — Preparação · 3/3 · branch `28_08_26` · —
 
@@ -79,12 +81,12 @@
 | D6 | [Branches, .gitignore, post-merge.sh](onda-D-bundle-app-admin/D6-branches-gitignore-hooks.md) | [✓] concluída | 2026-09-03 | `fc66881` |
 | D9 | [Fechamento D: build:all → CI verde → merge](onda-D-bundle-app-admin/D9-fechamento-onda-D.md) | [✓] concluída | 2026-09-03 | `61af9da` |
 
-## Onda E — Edge e dados · 1/8 · branch `onda-E-edge-dados` · BUNDLE app + EDGE + dados
+## Onda E — Edge e dados · 2/8 · branch `onda-E-edge-dados` · BUNDLE app + EDGE + dados
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
 | E0 | Criar branch onda-E-edge-dados a partir de 28_08_26 | [✓] concluída | 2026-09-03 | `b5faaf5` |
-| E1 | [Pacote v1.1: sentimento e sentido das fichas](onda-E-edge-dados/E1-pacote-v1-1-sentimentos.md) | [ ] pendente |  |  |
+| E1 | [Pacote v1.1: sentimento e sentido das fichas](onda-E-edge-dados/E1-pacote-v1-1-sentimentos.md) | [✓] concluída | 2026-09-03 | `c394af8` |
 | E2 | [Paridade cliente↔edge (script + guardrails + gramática)](onda-E-edge-dados/E2-paridade-cliente-edge.md) | [ ] pendente |  |  |
 | E3 | [Prompt na edge; aposentar proxy-ia; redeploy em 2 passos](onda-E-edge-dados/E3-prompt-na-edge-e-proxy-ia.md) | [ ] pendente |  |  |
 | E4 | [Manifesto de cenários; id único; fetches derivados](onda-E-edge-dados/E4-manifesto-de-cenarios.md) | [ ] pendente |  |  |

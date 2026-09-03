@@ -1,11 +1,11 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-03T13:16:22.112Z · branch `onda-E-edge-dados` · HEAD `f53697c`
+- Gerado em: 2026-09-03T13:16:41.821Z · branch `onda-E-edge-dados` · HEAD `40d726c`
 - Progresso: **50/59** passos concluídos
-- Próximo passo: **E3** — Prompt na edge; aposentar proxy-ia; redeploy em 2 passos ([abrir](onda-E-edge-dados/E3-prompt-na-edge-e-proxy-ia.md))
+- Próximo passo: nenhum disponível
 - Última verificação: ✅ verde em 2026-09-03T13:02:56.381Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ árvore suja (1 arquivo(s)) — commite antes de concluir um passo
   - ⚠ pipoca.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/app/bridge.ts, src/dados (rebuild pendente)
   - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
@@ -88,7 +88,7 @@
 | E0 | Criar branch onda-E-edge-dados a partir de 28_08_26 | [✓] concluída | 2026-09-03 | `b5faaf5` |
 | E1 | [Pacote v1.1: sentimento e sentido das fichas](onda-E-edge-dados/E1-pacote-v1-1-sentimentos.md) | [✓] concluída | 2026-09-03 | `c394af8` |
 | E2 | [Paridade cliente↔edge (script + guardrails + gramática)](onda-E-edge-dados/E2-paridade-cliente-edge.md) | [✓] concluída | 2026-09-03 | `f53697c` |
-| E3 | [Prompt na edge; aposentar proxy-ia; redeploy em 2 passos](onda-E-edge-dados/E3-prompt-na-edge-e-proxy-ia.md) | [ ] pendente |  |  |
+| E3 | [Prompt na edge; aposentar proxy-ia; redeploy em 2 passos](onda-E-edge-dados/E3-prompt-na-edge-e-proxy-ia.md) | […] em andamento | 2026-09-03 |  |
 | E4 | [Manifesto de cenários; id único; fetches derivados](onda-E-edge-dados/E4-manifesto-de-cenarios.md) | [ ] pendente |  |  |
 | E5 | [Galeria da T3 honesta; retrato; SVG sem cópia](onda-E-edge-dados/E5-galeria-t3-honesta.md) | [ ] pendente |  |  |
 | E6 | [Pipeline de autoria: lints no CI, guia, anexos](onda-E-edge-dados/E6-pipeline-de-autoria.md) | [ ] pendente |  |  |

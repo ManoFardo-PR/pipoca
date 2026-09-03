@@ -1,7 +1,6 @@
 # D8 — CI mínimo: typecheck → testes → build → bundle-check → e2e → paridade
 
-> Status: pendente
-
+> Status: concluída (2026-09-03 · f9c3f2b)
 **Unidade de deploy:** CRU (`.github/workflows/ci.yml`). **Depende de:** D7 (e2e portáteis).
 **Desbloqueia:** D9; E2 (script de paridade roda aqui).
 

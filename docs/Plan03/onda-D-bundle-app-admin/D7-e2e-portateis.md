@@ -1,7 +1,6 @@
 # D7 — e2e portáteis: sem caminhos da máquina do autor
 
-> Status: pendente
-
+> Status: concluída (2026-09-03 · 7eb64b5)
 **Unidade de deploy:** nenhuma (testes). **Depende de:** nada. **Desbloqueia:** D8.
 
 ## Objetivo

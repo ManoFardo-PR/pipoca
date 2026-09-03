@@ -1485,8 +1485,15 @@
     "sessao_iniciada",
     "sessao_encerrada",
     "historia_concluida",
-    "objeto_destravado"
+    "objeto_destravado",
+    "espelho_falhou"
   ];
+  function criarEvento(tipo, perfilId, dados, agora) {
+    if (typeof agora !== "number" || !Number.isFinite(agora)) {
+      throw new Error("criarEvento: `agora` (ts) deve ser número finito injetado pela borda");
+    }
+    return { esquema: ESQUEMA_TELEMETRIA, tipo, perfilId, ts: agora, dados };
+  }
   function validarEvento(e) {
     if (typeof e !== "object" || e === null)
       return false;
@@ -1575,6 +1582,7 @@
     const pacoteOrigem = sanearPacoteOrigem(r["pacoteOrigem"]);
     const paragrafos = sanearParagrafos(r["paragrafos"]);
     const rodada = typeof r["rodada"] === "number" && Number.isInteger(r["rodada"]) && r["rodada"] >= 1 && r["rodada"] <= 4 ? r["rodada"] : undefined;
+    const atualizadoEm = typeof r["atualizadoEm"] === "number" && Number.isFinite(r["atualizadoEm"]) ? r["atualizadoEm"] : undefined;
     return {
       id: r["id"],
       cenarioId: r["cenarioId"],
@@ -1590,7 +1598,8 @@
       ...pacoteOrigem ? { pacoteOrigem } : {},
       ...rodada !== undefined ? { rodada } : {},
       ...r["intermediaria"] === true ? { intermediaria: true } : {},
-      ...paragrafos ? { paragrafos } : {}
+      ...paragrafos ? { paragrafos } : {},
+      ...atualizadoEm !== undefined ? { atualizadoEm } : {}
     };
   }
   function dentroDaRetencaoHistoria(h, agora, retencaoDias = RETENCAO_HISTORIAS_DIAS) {
@@ -1624,6 +1633,28 @@
       resultado.push(h);
     }
     return resultado;
+  }
+  function mesclarHistorias(locais, remotas) {
+    const porId = new Map;
+    for (const h of Array.isArray(locais) ? locais : [])
+      porId.set(h.id, h);
+    for (const r of Array.isArray(remotas) ? remotas : []) {
+      const l = porId.get(r.id);
+      if (!l) {
+        porId.set(r.id, r);
+        continue;
+      }
+      const cl = typeof l.atualizadoEm === "number" ? l.atualizadoEm : undefined;
+      const cr = typeof r.atualizadoEm === "number" ? r.atualizadoEm : undefined;
+      if (cl !== undefined && cr !== undefined) {
+        if (cr > cl)
+          porId.set(r.id, r);
+      } else if (cr !== undefined) {
+        if (l.favorita !== r.favorita || l.texto !== r.texto)
+          porId.set(r.id, r);
+      }
+    }
+    return [...porId.values()];
   }
   function criarEnvelopeHistoria(historia) {
     return { esquema: ESQUEMA_HISTORIAS, historia };
@@ -1926,10 +1957,6 @@
       }
       return { ...CONFIG_LOCAL };
     }
-    if (provedor === "firebase") {
-      const opcoes = r["opcoes"];
-      return { provedor: "firebase", opcoes: opcoes && typeof opcoes === "object" ? opcoes : {} };
-    }
     return { ...CONFIG_LOCAL };
   }
   function configDoAmbiente() {
@@ -1941,68 +1968,7 @@
     }
   }
 
-  // src/backend/adaptadores/auth_firebase.ts
-  var NAO_CONFIGURADO = "Backend Firebase não configurado neste build (paridade documentada — fase06).";
-  function criarAuthFirebase() {
-    return {
-      entrarFamilia(_cred) {
-        return Promise.reject(new Error(NAO_CONFIGURADO));
-      },
-      entrarSuperAdmin(_cred) {
-        return Promise.reject(new Error(NAO_CONFIGURADO));
-      },
-      sair() {
-        return Promise.resolve();
-      },
-      sessaoAtual() {
-        return null;
-      }
-    };
-  }
-
-  // src/backend/adaptadores/repo_firebase.ts
-  var NAO_CONFIGURADO2 = "RepositorioFirebase não configurado neste build (paridade documentada — fase06).";
-
-  class RepositorioFirebase {
-    carregarPerfis() {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    salvarPerfil(_p) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    carregarSave(_perfilId) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    salvarSave(_perfilId, _estado) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    registrarTelemetria(_evento) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    carregarTelemetria(_perfilId) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    apagarPerfil(_perfilId) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-  }
-
   // src/ia/provedor.ts
-  function validarTrechoGerado(bruto) {
-    if (!bruto || typeof bruto !== "object") {
-      throw new Error("Saída do provedor não é um objeto Trecho.");
-    }
-    const r = bruto;
-    const texto = r["texto"];
-    const ehFinal = r["ehFinal"];
-    if (typeof texto !== "string" || texto.trim() === "") {
-      throw new Error("Trecho gerado sem texto.");
-    }
-    if (typeof ehFinal !== "boolean") {
-      throw new Error("Trecho gerado sem ehFinal booleano.");
-    }
-    return { texto, ehFinal };
-  }
   function transportePadrao() {
     return (url, init) => fetch(url, init);
   }
@@ -2388,21 +2354,29 @@
       return 0;
     }
     async carregarHistorias(perfilId) {
-      const linhas = await this.req("/historias?select=dados&perfil_id=eq." + encodeURIComponent(perfilId) + "&order=criada_em.desc", "GET");
+      const linhas = await this.req("/historias?select=dados,atualizado_em&perfil_id=eq." + encodeURIComponent(perfilId) + "&order=criada_em.desc", "GET");
       const out = [];
       for (const l of Array.isArray(linhas) ? linhas : []) {
         const h = validarHistoriaSalva(l && l.dados ? l.dados.historia : null);
-        if (h !== null)
-          out.push(h);
+        if (h === null)
+          continue;
+        if (h.atualizadoEm === undefined && typeof l.atualizado_em === "string") {
+          const t = Date.parse(l.atualizado_em);
+          if (Number.isFinite(t))
+            h.atualizadoEm = t;
+        }
+        out.push(h);
       }
       return out;
     }
     async salvarHistoria(perfilId, historia) {
+      const carimbo = typeof historia.atualizadoEm === "number" ? historia.atualizadoEm : Date.now();
       await this.req("/historias?on_conflict=id", "POST", [{
         id: historia.id,
         perfil_id: perfilId,
         favorita: historia.favorita === true,
         criada_em: new Date(historia.criadaEm).toISOString(),
+        atualizado_em: new Date(carimbo).toISOString(),
         dados: { esquema: ESQUEMA_HISTORIAS, historia: { ...historia } }
       }], "resolution=merge-duplicates,return=minimal");
     }
@@ -2423,8 +2397,11 @@
     }
   }
 
-  // src/backend/adaptadores/repo_sincronizado.ts
-  var CHAVE_TOMBSTONES = "pipoca.sync.apagados.v1";
+  // src/backend/adaptadores/fila_remota.ts
+  var CHAVE_FILA_REMOTA = "pipoca.fila-remota.v1";
+  var TETO_FILA_REMOTA = 50;
+  var MAX_TENTATIVAS_ITEM = 10;
+  var OPS = ["salvarPerfil", "salvarSave", "registrarTelemetria", "salvarHistoria", "apagarHistoria"];
   function storage2() {
     try {
       const g = globalThis;
@@ -2433,8 +2410,109 @@
       return null;
     }
   }
-  function lerTombstones() {
+  function lerFilaRemota() {
     const st = storage2();
+    if (!st)
+      return [];
+    try {
+      const raw = st.getItem(CHAVE_FILA_REMOTA);
+      const arr = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(arr))
+        return [];
+      return arr.filter((x) => {
+        const r = x;
+        return typeof x === "object" && x !== null && OPS.includes(r["op"]) && typeof r["perfilId"] === "string" && typeof r["id"] === "string" && typeof r["tentativas"] === "number";
+      });
+    } catch {
+      return [];
+    }
+  }
+  function gravarFila(itens) {
+    if (!gravarItem(CHAVE_FILA_REMOTA, itens) && itens.length > 1) {
+      gravarItem(CHAVE_FILA_REMOTA, itens.slice(1));
+    }
+  }
+  function enfileirarRemoto(item) {
+    const chave = item.op + "|" + item.perfilId + "|" + item.id;
+    const fila = lerFilaRemota().filter((x) => x.op + "|" + x.perfilId + "|" + x.id !== chave);
+    fila.push({ ...item, tentativas: 0, quando: item.quando ?? Date.now() });
+    gravarFila(fila.slice(-TETO_FILA_REMOTA));
+  }
+  function executar(remoto, item) {
+    switch (item.op) {
+      case "salvarPerfil":
+        return remoto.salvarPerfil(item.payload);
+      case "salvarSave":
+        return remoto.salvarSave(item.perfilId, item.payload);
+      case "registrarTelemetria":
+        return remoto.registrarTelemetria(item.payload);
+      case "salvarHistoria":
+        return remoto.salvarHistoria ? remoto.salvarHistoria(item.perfilId, item.payload) : Promise.resolve();
+      case "apagarHistoria":
+        return remoto.apagarHistoria ? remoto.apagarHistoria(item.perfilId, item.id) : Promise.resolve();
+    }
+  }
+  async function drenarFilaRemota(remoto) {
+    const fila = lerFilaRemota();
+    if (!fila.length)
+      return { drenados: 0, restantes: 0 };
+    const sobras = [];
+    let drenados = 0;
+    for (const item of fila) {
+      try {
+        await executar(remoto, item);
+        drenados++;
+      } catch (e) {
+        const ultimoErro = String(e?.message || e);
+        const tentativas = item.tentativas + 1;
+        if (tentativas >= MAX_TENTATIVAS_ITEM) {
+          console.warn("[pipoca.sync] item da fila remota DESCARTADO após " + tentativas + " tentativas", {
+            op: item.op,
+            perfilId: item.perfilId,
+            id: item.id,
+            ultimoErro
+          });
+        } else {
+          sobras.push({ ...item, tentativas, ultimoErro });
+        }
+      }
+    }
+    gravarFila(sobras);
+    return { drenados, restantes: sobras.length };
+  }
+
+  // src/backend/adaptadores/repo_sincronizado.ts
+  var _aoMesclarHistorias = null;
+  function historiaDiverge(a, b) {
+    if (!a)
+      return true;
+    return (a.atualizadoEm || 0) !== (b.atualizadoEm || 0) || a.favorita !== b.favorita || a.texto !== b.texto;
+  }
+  async function aplicarMesclaHistorias(local, perfilId, locais, remotas, agora) {
+    if (!local.salvarHistoria || !remotas.length)
+      return 0;
+    const mescla = normalizarHistorias(mesclarHistorias(locais, remotas), agora);
+    const antes = new Map(locais.map((h) => [h.id, h]));
+    let gravadas = 0;
+    for (const h of mescla) {
+      if (!historiaDiverge(antes.get(h.id), h))
+        continue;
+      await local.salvarHistoria(perfilId, h);
+      gravadas++;
+    }
+    return gravadas;
+  }
+  var CHAVE_TOMBSTONES = "pipoca.sync.apagados.v1";
+  function storage3() {
+    try {
+      const g = globalThis;
+      return g.localStorage || null;
+    } catch {
+      return null;
+    }
+  }
+  function lerTombstones() {
+    const st = storage3();
     if (!st)
       return [];
     try {
@@ -2446,7 +2524,7 @@
     }
   }
   function gravarTombstones(ids) {
-    const st = storage2();
+    const st = storage3();
     if (!st)
       return;
     try {
@@ -2464,79 +2542,112 @@
   function removerTombstone(id) {
     gravarTombstones(lerTombstones().filter((x) => x !== id));
   }
-  function criarRepositorioSincronizado(local, remoto) {
+  function ehTransitorio(e) {
+    const m = String(e?.message ?? e ?? "");
+    const http = /HTTP (\d{3})/.exec(m);
+    if (http) {
+      const s = Number(http[1]);
+      return s >= 500 || s === 429 || s === 408;
+    }
+    if (/sem sessão/i.test(m))
+      return false;
+    return true;
+  }
+  var _avisouLeituraRemota = false;
+  function _avisarLeituraUmaVez(e) {
+    if (_avisouLeituraRemota)
+      return;
+    _avisouLeituraRemota = true;
+    console.info("[pipoca.sync] leitura remota de histórias indisponível (offline/sem sessão) — seguimos no local", String(e?.message ?? e ?? ""));
+  }
+  function criarRepositorioSincronizado(local, remoto, opcoes) {
+    const atrasos = opcoes && opcoes.atrasosRetryMs || [1000, 4000];
+    const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
+    async function tentarRemoto(exec) {
+      let ultimo;
+      for (let i = 0;i <= atrasos.length; i++) {
+        try {
+          await exec();
+          return;
+        } catch (e) {
+          ultimo = e;
+          if (!ehTransitorio(e) || i === atrasos.length)
+            break;
+          await dormir(atrasos[i]);
+        }
+      }
+      throw ultimo;
+    }
+    function espelhar(op, perfilId, id, payload, exec) {
+      tentarRemoto(exec).catch((e) => {
+        const erro = String(e?.message ?? e ?? "");
+        console.warn("[pipoca.sync] espelho remoto falhou — item na fila", { op, perfilId, id, erro });
+        try {
+          enfileirarRemoto({ op, perfilId, id, payload, ultimoErro: erro });
+        } catch {}
+        try {
+          local.registrarTelemetria(criarEvento("espelho_falhou", perfilId, { op, erro }, Date.now())).catch((e2) => console.warn("[pipoca.sync] rastro local da falha não gravou (o warn acima fica)", String(e2?.message ?? e2 ?? "")));
+        } catch {}
+      });
+    }
     return {
       carregarPerfis: () => local.carregarPerfis(),
       carregarSave: (perfilId) => local.carregarSave(perfilId),
       carregarTelemetria: (perfilId) => local.carregarTelemetria(perfilId),
       async salvarPerfil(p) {
         await local.salvarPerfil(p);
-        remoto.salvarPerfil(p).catch(() => {});
+        espelhar("salvarPerfil", p.id, p.id, p, () => remoto.salvarPerfil(p));
       },
       async salvarSave(perfilId, estado) {
         await local.salvarSave(perfilId, estado);
-        remoto.salvarSave(perfilId, estado).catch(() => {});
+        espelhar("salvarSave", perfilId, perfilId, estado, () => remoto.salvarSave(perfilId, estado));
       },
       async registrarTelemetria(evento) {
         await local.registrarTelemetria(evento);
-        remoto.registrarTelemetria(evento).catch(() => {});
+        espelhar("registrarTelemetria", evento.perfilId, evento.tipo + ":" + evento.ts, evento, () => remoto.registrarTelemetria(evento));
       },
       async podarTelemetria(perfilId, agora, retencaoDias) {
         const removidos = local.podarTelemetria ? await local.podarTelemetria(perfilId, agora, retencaoDias) : 0;
-        if (remoto.podarTelemetria)
-          remoto.podarTelemetria(perfilId, agora, retencaoDias).catch(() => {});
+        if (remoto.podarTelemetria) {
+          remoto.podarTelemetria(perfilId, agora, retencaoDias).catch((e) => console.warn("[pipoca.sync] poda remota de telemetria falhou (refeita na próxima borda)", { perfilId, erro: String(e?.message ?? e ?? "") }));
+        }
         return removidos;
       },
       async apagarPerfil(perfilId) {
         await local.apagarPerfil(perfilId);
         adicionarTombstone(perfilId);
-        remoto.apagarPerfil(perfilId).then(() => removerTombstone(perfilId)).catch(() => {});
+        remoto.apagarPerfil(perfilId).then(() => removerTombstone(perfilId)).catch((e) => console.warn("[pipoca.sync] apagar remoto falhou — tombstone fica na fila", { perfilId, erro: String(e?.message ?? e ?? "") }));
       },
-      carregarHistorias: (perfilId) => local.carregarHistorias ? local.carregarHistorias(perfilId) : Promise.resolve([]),
+      carregarHistorias(perfilId) {
+        const locais = local.carregarHistorias ? local.carregarHistorias(perfilId) : Promise.resolve([]);
+        if (remoto.carregarHistorias) {
+          Promise.all([locais, remoto.carregarHistorias(perfilId)]).then(([l, r]) => aplicarMesclaHistorias(local, perfilId, l, r, Date.now())).then((gravadas) => {
+            if (gravadas > 0 && _aoMesclarHistorias)
+              _aoMesclarHistorias(perfilId);
+          }).catch(_avisarLeituraUmaVez);
+        }
+        return locais;
+      },
       async salvarHistoria(perfilId, historia) {
         if (local.salvarHistoria)
           await local.salvarHistoria(perfilId, historia);
-        if (remoto.salvarHistoria)
-          remoto.salvarHistoria(perfilId, historia).catch(() => {});
+        if (remoto.salvarHistoria) {
+          espelhar("salvarHistoria", perfilId, historia.id, historia, () => remoto.salvarHistoria(perfilId, historia));
+        }
       },
       async apagarHistoria(perfilId, historiaId) {
         if (local.apagarHistoria)
           await local.apagarHistoria(perfilId, historiaId);
-        if (remoto.apagarHistoria)
-          remoto.apagarHistoria(perfilId, historiaId).catch(() => {});
+        if (remoto.apagarHistoria) {
+          espelhar("apagarHistoria", perfilId, historiaId, null, () => remoto.apagarHistoria(perfilId, historiaId));
+        }
       },
       async podarHistorias(perfilId, agora) {
         const removidas = local.podarHistorias ? await local.podarHistorias(perfilId, agora) : 0;
-        if (remoto.podarHistorias)
-          remoto.podarHistorias(perfilId, agora).catch(() => {});
-        return removidas;
-      }
-    };
-  }
-
-  // src/backend/proxy_ia.ts
-  function criarProxyIA(op) {
-    const transporte = op.transporte || transportePadrao();
-    const base = op.url.replace(/\/+$/, "");
-    return {
-      async gerar(req) {
-        const token = await op.obterToken();
-        if (!token)
-          throw new Error("ProxyIA: sem sessão para gerar.");
-        const tenant = op.tenantId ? op.tenantId() : null;
-        const resp = await transporte(base + "/functions/v1/proxy-ia", {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-            apikey: op.anonKey,
-            Authorization: "Bearer " + token
-          },
-          body: JSON.stringify({ ...req, ...tenant ? { tenantId: tenant } : {} })
-        });
-        if (resp.status !== 200) {
-          throw new Error("ProxyIA: HTTP " + resp.status + " — degradando para o provedor local.");
+        if (remoto.podarHistorias) {
+          remoto.podarHistorias(perfilId, agora).catch((e) => console.warn("[pipoca.sync] poda remota de histórias falhou (refeita na próxima borda)", { perfilId, erro: String(e?.message ?? e ?? "") }));
         }
-        return validarTrechoGerado(await resp.json());
+        return removidas;
       }
     };
   }
@@ -2755,42 +2866,37 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
         apagadosDrenados++;
       } catch {}
     }
+    const fila = await drenarFilaRemota(remoto);
     const [locais, remotos] = await Promise.all([local.carregarPerfis(), remoto.carregarPerfis()]);
     const idsLocais = new Set(locais.map((p) => p.id));
     let puxados = 0;
     for (const p of remotos) {
-      if (idsLocais.has(p.id))
-        continue;
-      await local.salvarPerfil(p);
-      const save = await remoto.carregarSave(p.id);
-      if (save)
-        await local.salvarSave(p.id, save);
-      if (remoto.carregarHistorias && local.salvarHistoria) {
+      const ausente = !idsLocais.has(p.id);
+      if (ausente) {
+        await local.salvarPerfil(p);
+        const save = await remoto.carregarSave(p.id);
+        if (save)
+          await local.salvarSave(p.id, save);
         try {
-          for (const h of await remoto.carregarHistorias(p.id)) {
-            await local.salvarHistoria(p.id, h);
+          for (const ev of await remoto.carregarTelemetria(p.id)) {
+            await local.registrarTelemetria(ev);
           }
         } catch {}
+        puxados++;
       }
-      try {
-        for (const ev of await remoto.carregarTelemetria(p.id)) {
-          await local.registrarTelemetria(ev);
-        }
-      } catch {}
-      puxados++;
+      if (remoto.carregarHistorias && local.salvarHistoria) {
+        try {
+          const remotas = await remoto.carregarHistorias(p.id);
+          const loc = ausente || !local.carregarHistorias ? [] : await local.carregarHistorias(p.id);
+          await aplicarMesclaHistorias(local, p.id, loc, remotas, Date.now());
+        } catch {}
+      }
     }
     const res = await migrar(local, remoto);
-    return { apagadosDrenados, puxados, empurrados: res.perfis };
+    return { apagadosDrenados, puxados, empurrados: res.perfis, filaDrenada: fila.drenados };
   }
 
   // src/backend/backend.ts
-  function proxyIndisponivel(motivo) {
-    return {
-      gerar() {
-        return Promise.reject(new Error(motivo));
-      }
-    };
-  }
   function sessaoAdminLocal() {
     try {
       const raw = localStorage.getItem("pipoca.admin.sessao.v1");
@@ -2862,15 +2968,7 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
   function criarBackendLocal() {
     return {
       auth: criarAuthLocal(),
-      repo: criarRepositorio(),
-      proxyIA: proxyIndisponivel("ProxyIA indisponível no backend local — degradando para o provedor simulado.")
-    };
-  }
-  function criarBackendFirebase() {
-    return {
-      auth: criarAuthFirebase(),
-      repo: new RepositorioFirebase,
-      proxyIA: proxyIndisponivel("ProxyIA Firebase não configurado neste build.")
+      repo: criarRepositorio()
     };
   }
   function criarBackendSupabase(cfg) {
@@ -2883,19 +2981,13 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
     });
     const local = criarRepositorio();
     const repo = criarRepositorioSincronizado(local, remoto);
-    const proxyIA = criarProxyIA({
-      url: cfg.supabaseUrl,
-      anonKey: cfg.supabaseAnonKey,
-      obterToken: () => auth.obterToken(),
-      tenantId: () => escopoTenant(auth.sessaoAtual())
-    });
     const realizador = criarProxyRealizador({
       url: cfg.supabaseUrl,
       anonKey: cfg.supabaseAnonKey,
       obterToken: () => auth.obterToken(),
       tenantId: () => escopoTenant(auth.sessaoAtual())
     });
-    return { auth, repo, proxyIA, realizador, sincronizar: () => sincronizarInicial(local, remoto) };
+    return { auth, repo, realizador, sincronizar: () => sincronizarInicial(local, remoto) };
   }
   async function espelharConfigIA(tenantId, dados, config, transporte) {
     const cfg = config || configDoAmbiente();
@@ -2934,8 +3026,6 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
     if (cfg.provedor === "supabase" && cfg.supabaseUrl && cfg.supabaseAnonKey) {
       return criarBackendSupabase(cfg);
     }
-    if (cfg.provedor === "firebase")
-      return criarBackendFirebase();
     return criarBackendLocal();
   }
 

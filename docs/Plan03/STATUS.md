@@ -1,11 +1,11 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-03T13:01:48.671Z · branch `onda-D-bundle-app-admin` · HEAD `5504aee`
+- Gerado em: 2026-09-03T13:03:38.440Z · branch `onda-D-bundle-app-admin` · HEAD `41d36e2`
 - Progresso: **46/59** passos concluídos
 - Próximo passo: nenhum disponível
-- Última verificação: ✅ verde em 2026-09-01T19:49:58.339Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
+- Última verificação: ✅ verde em 2026-09-03T13:02:56.381Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ árvore suja (1 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ árvore suja (3 arquivo(s)) — commite antes de concluir um passo
   - ⚠ pipoca.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/app/bridge.ts, src/dados (rebuild pendente)
   - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 

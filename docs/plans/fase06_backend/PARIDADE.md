@@ -1,9 +1,15 @@
 # Fase 06 · Paridade de backend (Supabase ↔ Firebase) e operação
 
+> ⚰️ **Ramo Firebase APOSENTADO em 2026-09-03 (Plan03 · D5):** decisão de ficar
+> no Postgres/Supabase (contexto na migração `2026-08-28_otimizacao-rls-cascade-cota.sql`).
+> Os stubs (`auth_firebase.ts`, `repo_firebase.ts`, `rules_firebase.txt`), o tipo
+> `"firebase"` e o ramo de dispatch saíram do código; config antiga com
+> `provedor:"firebase"` cai em `local` (fail-closed). Este documento fica como
+> registro histórico da matriz de paridade — a lei do backend segue valendo:
+> adotar outro BaaS um dia = escrever o adaptador e trocar a config.
+
 > Anexo do doc 06-06. Este build usa **Supabase real** (projeto `pipoca`,
-> ref `bamlljvllcxdnsheatqv`, região sa-east-1, plano free); o Firebase tem
-> adaptadores stub honestos + template de rules — a lei do backend garante
-> que ativá-lo é trocar adaptador, sem mexer em tela/CORE.
+> ref `bamlljvllcxdnsheatqv`, região sa-east-1, plano free).
 
 ## Matriz de paridade
 

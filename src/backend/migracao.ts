@@ -1,9 +1,9 @@
-/**
+﻿/**
  * [migracao.ts] — `migrar(de, para)` copia perfis, saves e histórias entre dois
  *   RepositorioPersistencia pelo seam (serve para qualquer par de adaptadores).
  *
  * PAPEL: backend (utilitário de portabilidade)
- * POR QUE EXISTE: portar dados entre adaptadores (local↔Supabase↔Firebase)
+ * POR QUE EXISTE: portar dados entre adaptadores (local↔Supabase)
  *   usando os schemas congelados, operando só pelo seam.
  * ENTRA: dois RepositorioPersistencia (de, para).
  * SAI: ResultadoMigracao {perfis, saves}; grava no destino, não apaga a origem.
@@ -21,7 +21,7 @@
  * -----------------------------------------------------------------------
  * `migrar(de, para)` copia perfis e saves de um `RepositorioPersistencia` para outro,
  * usando os MESMOS schemas congelados (pipoca.perfil.v1 / pipoca.save.v1). Como opera
- * apenas pelo seam, funciona para qualquer par de adaptadores (local↔Supabase↔Firebase).
+ * apenas pelo seam, funciona para qualquer par de adaptadores (local↔Supabase).
  *
  * Escopo atual: perfis + saves (o seam `RepositorioPersistencia` só expõe escrita de
  * telemetria, não leitura; a migração de telemetria entra junto do adaptador remoto real,

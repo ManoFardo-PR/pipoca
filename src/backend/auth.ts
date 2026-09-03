@@ -1,4 +1,4 @@
-/**
+﻿/**
  * [auth.ts] — Contrato/tipos ÚNICO do serviço de autenticação (família +
  *   operador): a UI de login não conhece o provedor.
  *
@@ -10,7 +10,7 @@
  *   neutro (ERRO_LOGIN_NEUTRO, ERRO_CRIAR_CONTA).
  * CHAMA: nada (arquivo só de tipos/constantes).
  * É CHAMADO POR: backend.ts, adaptadores/auth_supabase.ts,
- *   adaptadores/auth_firebase.ts, tenant.ts, backend.test.ts.
+ *   tenant.ts, backend.test.ts.
  * RODA POR: boot do app/admin (bundle); cliente das Edge Functions.
  * CUIDADO: sessaoAtual() é SÍNCRONO por contrato (o boot não espera rede — os
  *   adaptadores espelham a sessão em storage e renovam token em background).

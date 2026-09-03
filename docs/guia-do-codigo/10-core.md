@@ -1,4 +1,4 @@
-# 10 · core-lógica
+﻿# 10 · core-lógica
 
 ← [Mapa geral](00-MAPA-GERAL.md) · [Glossário](90-GLOSSARIO.md)
 
@@ -61,8 +61,9 @@ _Pacote de Composição_:
 
 ### `src/core/grafo/` — tipos congelados (v1, legado)
 - [`tipos.ts`](../../src/core/grafo/tipos.ts) — tipos v1 do grafo (`Nivel`,
-  `ModoDesfecho`, `Trecho`, `MotorNarrativa`…). O grafo/leitor foram arquivados em
-  `old/` desde o Motor A+, mas o vocabulário genérico segue vivo em core/ia/backend.
+  `ModoDesfecho`, `Trecho`, `MotorNarrativa`…). O grafo/leitor v1 foram
+  aposentados no Motor A+ (o arquivo histórico saiu do repo no D4), mas o
+  vocabulário genérico segue vivo em core/ia/backend.
 
 ### `src/core/persistencia/` — a lei da fronteira de dados
 - [`index.ts`](../../src/core/persistencia/index.ts) — fábrica `criarRepositorio()`;
@@ -78,7 +79,7 @@ _Pacote de Composição_:
   `cascata.ts` e `geracao.ts`; mexer aqui quebra o fallback fiel. (Selo em
   [`docs/plans/`](../plans/) fase 08.)
 - [`estado.ts`](../../src/core/estado.ts) — `EstadoApp`, a fonte única de verdade do app.
-- [`perfil.ts`](../../src/core/perfil.ts) — perfil da criança + repo em memória.
+- [`perfil.ts`](../../src/core/perfil.ts) — perfil da criança + a tabela única dos avatars (`AVATARES_DEF`, C4).
 - [`historia.ts`](../../src/core/historia.ts) — estado da história (mecânica tira/
   quebra-cabeça). Marcado SUPERSEDED pelo A+ v3, mantido como registro vivo.
 - [`historias.ts`](../../src/core/historias.ts) — histórias salvas (puro): auto-guarda
@@ -101,17 +102,18 @@ _Pacote de Composição_:
 - [`agregadosTelemetria.ts`](../../src/core/agregadosTelemetria.ts) — agregação para o painel do cuidador.
 - [`a11y.ts`](../../src/core/a11y.ts) — helpers de estilo de acessibilidade (fonte disléxica, contraste, etc.).
 - [`lint_grafo.ts`](../../src/core/lint_grafo.ts) — lint autoral do conteúdo do grafo v3.
-- [`roteador.ts`](../../src/core/roteador.ts) / [`roteador.js`](../../src/core/roteador.js) — roteador de telas mínimo (`irParaTela`).
+- [`roteador.js`](../../src/core/roteador.js) — roteador de telas mínimo (`irParaTela`;
+  o espelho `.ts` sem importadores saiu no D4 — o contrato dele divergia do vivo).
 
-## Dados, IA (geração 1) e serviços
+## Dados, IA e serviços
 
 - [`src/dados/niveis.ts`](../../src/dados/niveis.ts), [`schemas.ts`](../../src/dados/schemas.ts) — dados canônicos de níveis e schemas.
-- [`src/ia/`](../../src/ia/) — a orquestração de IA da **geração 1** (keyless):
-  [`orquestrador.ts`](../../src/ia/orquestrador.ts), [`guardrails.ts`](../../src/ia/guardrails.ts),
-  [`prompt.ts`](../../src/ia/prompt.ts), [`provedor.ts`](../../src/ia/provedor.ts),
-  [`simulado.ts`](../../src/ia/simulado.ts) (provedor local offline), e os
-  [`adaptadores/`](../../src/ia/adaptadores/) (claude, deepseek, gemini, openai, selecionar).
-  ⚠️ A chave de provedor **não vive aqui** — vive nos secrets da edge `proxy-ia`.
+- [`src/ia/`](../../src/ia/) — o que sobrou após o D4 (a orquestração da geração 1
+  saiu com os adaptadores): [`provedor.ts`](../../src/ia/provedor.ts) (tipos
+  `ProvedorIA`/`Transporte` + `transportePadrao`, usados por todo o backend) e
+  [`guardrails.ts`](../../src/ia/guardrails.ts) (canônico dos guardrails — as edges
+  o espelham; E2 o move para `src/core/seguranca/`).
+  ⚠️ A chave de provedor **não vive aqui** — vive nos secrets das edges.
 - [`src/servicos/`](../../src/servicos/) — [`asr.ts`](../../src/servicos/asr.ts) (fala→texto),
   [`tts.ts`](../../src/servicos/tts.ts) (texto→fala), e os repos
   [`acesso_repo.ts`](../../src/servicos/acesso_repo.ts) / [`conta_repo.ts`](../../src/servicos/conta_repo.ts) / [`telemetria_repo.ts`](../../src/servicos/telemetria_repo.ts).

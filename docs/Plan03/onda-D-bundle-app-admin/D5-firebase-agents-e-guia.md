@@ -1,7 +1,6 @@
 # D5 — Aposentar o ramo Firebase, migrar `.agents/` para `docs/`, corrigir o guia do código
 
-> Status: pendente
-
+> Status: em andamento (2026-09-03)
 **Unidade de deploy:** BUNDLE app + admin (`src/backend/{backend,config}.ts`) + CRU (docs).
 **Depende de:** D4 (mesma faxina). **Desbloqueia:** —.
 

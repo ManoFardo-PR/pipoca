@@ -1,7 +1,7 @@
-/**
+﻿/**
  * [backend.ts] — Fachada única do backend trocável: monta `Backend {auth,
- *   repo, proxyIA, realizador?, sincronizar?}` e `obterBackend(config)` escolhe
- *   o adaptador (local / supabase / firebase).
+ *   repo, realizador?, sincronizar?}` e `obterBackend(config)` escolhe
+ *   o adaptador (local / supabase).
  *
  * PAPEL: backend (fachada/seam)
  * POR QUE EXISTE: app/CORE/telas falam SÓ com o seam Backend; trocar de BaaS =
@@ -11,8 +11,8 @@
  * SAI: instância Backend; espelharConfigIA devolve boolean (upsert
  *   fire-and-forget de config_ia por-tenant).
  * CHAMA: config.ts:configDoAmbiente, auth.ts, adaptadores/{auth_supabase,
- *   repo_supabase,repo_sincronizado,auth_firebase,repo_firebase},
- *   proxy_ia.ts:criarProxyIA, proxy_realizador.ts:criarProxyRealizador,
+ *   repo_supabase,repo_sincronizado},
+ *   proxy_realizador.ts:criarProxyRealizador,
  *   tenant.ts:escopoTenant, sync.ts:sincronizarInicial,
  *   core/persistencia:criarRepositorio, core/contaFamilia, servicos/conta_repo,
  *   admin/auth (operador local), ia/provedor:transportePadrao.
@@ -22,22 +22,22 @@
  *   nunca vê erro). No auth local a FAMÍLIA tem precedência sobre o operador em
  *   sair()/sessaoAtual() (mesmo navegador). espelharConfigIA só age com OPERADOR
  *   logado no supabase; a chave de provedor NÃO vive aqui (só a anon key
- *   pública). proxyIndisponivel rejeita limpo → orquestrador degrada p/ simulado
- *   → Motor A.
+ *   pública).
  *
  * — detalhe preservado —
  * Pipoca — Fachada do backend trocável (fase06-06-01)
  * ----------------------------------------------------
- * `Backend { auth, repo, proxyIA }` + `obterBackend(config)`.
+ * `Backend { auth, repo }` + `obterBackend(config)`.
  *
  * LEI DO BACKEND: app/CORE/telas falam SÓ com `Backend`/`ServicoAuth`/
- * `RepositorioPersistencia`/`ProxyIA`; nenhum SDK ou URL de provedor fora
+ * `RepositorioPersistencia`; nenhum SDK ou URL de provedor fora
  * de `src/backend/adaptadores/`. Trocar de BaaS = trocar adaptador —
  * exatamente como Motor A ↔ Motor B na fábrica.
  *
  * Provedores: "local" (default, offline-first — delega aos núcleos que o
  * app já usa), "supabase" (REST puro via Transporte; adaptadores nas
- * etapas seguintes) e "firebase" (stub honesto; paridade em PARIDADE.md).
+ * etapas seguintes). O ramo do BaaS alternativo foi aposentado no D5
+ * (Plan03) — registro em docs/plans/fase06_backend/PARIDADE.md.
  * FAIL-SOFT: qualquer dúvida cai no local — a criança nunca vê erro.
  */
 
@@ -51,8 +51,6 @@ import { sessaoSuperAdminValida } from "../admin/auth/sessaoSuperAdmin.js";
 import type { SessaoSuperAdmin } from "../admin/auth/tiposAdmin.js";
 import { ERRO_LOGIN_NEUTRO, type CredenciaisLogin, type ServicoAuth, type SessaoAuth } from "./auth.js";
 import { configDoAmbiente, type ConfigBackend } from "./config.js";
-import { criarAuthFirebase } from "./adaptadores/auth_firebase.js";
-import { RepositorioFirebase } from "./adaptadores/repo_firebase.js";
 import { criarAuthSupabase } from "./adaptadores/auth_supabase.js";
 import { RepositorioSupabase } from "./adaptadores/repo_supabase.js";
 import { criarRepositorioSincronizado } from "./adaptadores/repo_sincronizado.js";
@@ -166,12 +164,6 @@ export function criarBackendLocal(): Backend {
   };
 }
 
-function criarBackendFirebase(): Backend {
-  return {
-    auth: criarAuthFirebase(),
-    repo: new RepositorioFirebase(),
-  };
-}
 
 // ─── Adaptador SUPABASE (REST puro — auth GoTrue + repo PostgREST) ───────────
 // Remoto com fallback local: o repo é o SINCRONIZADO (local = base; o remoto
@@ -246,6 +238,7 @@ export function obterBackend(config?: ConfigBackend): Backend {
   if (cfg.provedor === "supabase" && cfg.supabaseUrl && cfg.supabaseAnonKey) {
     return criarBackendSupabase(cfg);
   }
-  if (cfg.provedor === "firebase") return criarBackendFirebase();
+  // D5: o ramo do BaaS alternativo foi aposentado (PARIDADE.md) — provedor
+  // desconhecido/antigo cai no local (fail-closed, regra 4 do 06-01).
   return criarBackendLocal();
 }

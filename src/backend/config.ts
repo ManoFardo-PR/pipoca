@@ -22,16 +22,18 @@
  * — detalhe preservado —
  * Pipoca — Config do backend trocável (fase06-06-06)
  * ---------------------------------------------------
- * `ConfigBackend { provedor: "supabase"|"firebase"|"local"; ... }` vem de
+ * `ConfigBackend { provedor: "supabase"|"local"; ... }` vem de
  * `window.PIPOCA_CONFIG` (arquivo público `pipoca.config.js`, carregado nos
  * dois entries ANTES dos bundles; só valores públicos — URL + anon key,
  * protegidos por RLS). A leitura é LAZY (na chamada, nunca no load do
  * módulo) para o e2e poder injetar `{provedor:"local"}` via addInitScript.
  * FAIL-SAFE: ausente/malformado/incompleto → "local" (offline-first,
- * regra 4 do doc 06-01).
+ * regra 4 do doc 06-01). D5 (Plan03): o ramo do BaaS alternativo foi
+ * APOSENTADO (decisão de ficar no Supabase — ver docs/plans/fase06_backend/
+ * PARIDADE.md); provedor desconhecido/antigo cai em "local".
  */
 
-export type ProvedorBackend = "supabase" | "firebase" | "local";
+export type ProvedorBackend = "supabase" | "local";
 
 export interface ConfigBackend {
   provedor: ProvedorBackend;
@@ -56,10 +58,7 @@ export function normalizarConfigBackend(raw: unknown): ConfigBackend {
     }
     return { ...CONFIG_LOCAL }; // supabase sem credenciais públicas → local
   }
-  if (provedor === "firebase") {
-    const opcoes = r["opcoes"];
-    return { provedor: "firebase", opcoes: opcoes && typeof opcoes === "object" ? (opcoes as Record<string, unknown>) : {} };
-  }
+  // D5: provedor aposentado (PARIDADE.md) ou desconhecido → local (fail-closed)
   return { ...CONFIG_LOCAL };
 }
 

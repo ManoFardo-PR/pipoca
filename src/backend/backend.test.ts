@@ -95,8 +95,9 @@ console.log("\n=== ConfigBackend (06-06) — normalização fail-safe ===");
   assert(normalizarConfigBackend({ provedor: "supabase" }).provedor === "local", "supabase SEM url/anon → local (fail-safe)");
   const ok = normalizarConfigBackend({ provedor: "supabase", supabaseUrl: "https://x.supabase.co/", supabaseAnonKey: "anon" });
   assert(ok.provedor === "supabase" && ok.supabaseUrl === "https://x.supabase.co", "supabase completo → supabase (barra final aparada)");
-  assert(normalizarConfigBackend({ provedor: "firebase" }).provedor === "firebase", "firebase → firebase (stub)");
-  assert(normalizarConfigBackend({ provedor: "marciano" }).provedor === "local", "provedor desconhecido → local");
+  // D5: o ramo do BaaS alternativo foi aposentado (PARIDADE.md) — config antiga
+  // com o provedor antigo cai no MESMO caminho de qualquer valor desconhecido.
+  assert(normalizarConfigBackend({ provedor: "marciano" }).provedor === "local", "provedor desconhecido/aposentado → local, sem lançar");
   assert(CONFIG_LOCAL.provedor === "local", "CONFIG_LOCAL é local");
 
   const g = globalThis as unknown as { PIPOCA_CONFIG?: unknown };
@@ -126,13 +127,10 @@ console.log("\n=== obterBackend (06-01) — fachada e adaptador local ===");
   const bSupa = obterBackend({ provedor: "supabase", supabaseUrl: "https://x.supabase.co", supabaseAnonKey: "k" });
   assert(!!bSupa.auth && bSupa.auth.sessaoAtual() === null && typeof bSupa.repo.carregarPerfis === "function", "config supabase → backend supabase montado, sem sessão no boot limpo");
 
-  const bFire = obterBackend({ provedor: "firebase" });
-  let fireErro = "";
-  await bFire.auth.entrarFamilia({ email: "a@b.c", senha: "x" }).catch((e: Error) => {
-    fireErro = e.message;
-  });
-  assert(/não configurado/i.test(fireErro), "firebase é stub honesto: erro limpo de não configurado");
-  assert(bFire.auth.sessaoAtual() === null, "firebase stub: sessaoAtual null");
+  // D5: config antiga com provedor aposentado (normalizada → local) monta o backend LOCAL
+  const bDesconhecido = obterBackend(normalizarConfigBackend({ provedor: "marciano" }));
+  assert(!!bDesconhecido.auth && !!bDesconhecido.repo && typeof bDesconhecido.repo.carregarPerfis === "function",
+    "provedor aposentado/desconhecido cai no backend local (fail-closed)");
 }
 
 console.log("\n=== auth LOCAL (06-02) — delega ao stub da família + credencial do operador ===");

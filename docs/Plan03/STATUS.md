@@ -1,11 +1,11 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-03T12:47:13.636Z · branch `onda-D-bundle-app-admin` · HEAD `5198d60`
+- Gerado em: 2026-09-03T12:47:24.993Z · branch `onda-D-bundle-app-admin` · HEAD `5171d0d`
 - Progresso: **44/59** passos concluídos
-- Próximo passo: **D5** — Ramo firebase, .agents/ e guia do código ([abrir](onda-D-bundle-app-admin/D5-firebase-agents-e-guia.md))
+- Próximo passo: nenhum disponível
 - Última verificação: ✅ verde em 2026-09-01T19:49:58.339Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ árvore suja (1 arquivo(s)) — commite antes de concluir um passo
   - ⚠ pipoca.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/app/bridge.ts, src/dados (rebuild pendente)
   - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
@@ -77,7 +77,7 @@
 | D2 | [Retry e sinal de falha no push (D-06)](onda-D-bundle-app-admin/D2-retry-e-telemetria-do-push.md) | [✓] concluída | 2026-09-03 | `7d15658` |
 | D3 | [Chave legada (D-21) e ciclos type-only](onda-D-bundle-app-admin/D3-chave-legada-e-tipos.md) | [✓] concluída | 2026-09-03 | `2c2e9cc` |
 | D4 | [Remoção segura de mortos](onda-D-bundle-app-admin/D4-remover-mortos.md) | [✓] concluída | 2026-09-03 | `5198d60` |
-| D5 | [Ramo firebase, .agents/ e guia do código](onda-D-bundle-app-admin/D5-firebase-agents-e-guia.md) | [ ] pendente |  |  |
+| D5 | [Ramo firebase, .agents/ e guia do código](onda-D-bundle-app-admin/D5-firebase-agents-e-guia.md) | […] em andamento | 2026-09-03 |  |
 | D6 | [Branches, .gitignore, post-merge.sh](onda-D-bundle-app-admin/D6-branches-gitignore-hooks.md) | [ ] pendente |  |  |
 | D9 | [Fechamento D: build:all → CI verde → merge](onda-D-bundle-app-admin/D9-fechamento-onda-D.md) | [ ] pendente |  |  |
 

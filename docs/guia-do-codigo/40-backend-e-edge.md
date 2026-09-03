@@ -1,4 +1,4 @@
-# 40 · backend e edge
+﻿# 40 · backend e edge
 
 ← [Mapa geral](00-MAPA-GERAL.md) · [Glossário](90-GLOSSARIO.md)
 
@@ -21,9 +21,9 @@ as separa é a fronteira mais importante do sistema.
   Supabase.
 - O único `apiKey`/`x-goog-api-key` em `src/` está em
   [`src/core/realizador/provedor_realizador.ts`](../../src/core/realizador/provedor_realizador.ts),
-  e **chega por parâmetro** (usado pelos experimentos/contexto de edge), nunca lido do cliente.
-- Testes trancam a invariante (ex.: a suíte de `src/ia/` e `src/backend/` assertam que
-  não há chave/autorização de provedor no cliente).
+  e **chega por parâmetro** (contexto de edge), nunca lido do cliente.
+- Testes trancam a invariante (a suíte de `src/backend/` asserta que não há
+  chave/autorização de provedor no cliente).
 
 ## As 3 edges (`functions/*/index.ts`, Deno, fora do `tsc` do app)
 
@@ -38,8 +38,8 @@ as separa é a fronteira mais importante do sistema.
 
 ## Os clientes keyless + a plataforma (`src/backend/`)
 
-- [`proxy_ia.ts`](../../src/backend/proxy_ia.ts) — cliente keyless da edge `proxy-ia` (geração 1).
 - [`proxy_realizador.ts`](../../src/backend/proxy_realizador.ts) — cliente keyless da edge `realizador` (geração 2).
+  O cliente da edge `proxy-ia` (geração 1) saiu no D4; a própria edge se aposenta em E3.
 - [`espelho_admin.ts`](../../src/backend/espelho_admin.ts) — espelho remoto **admin-only**
   (chama a edge `admin-chaves-ia` via `statusChavesIa`/`salvarChaveIa`/`testarChaveIa`);
   importado só por [`bridge_admin.ts`](../../src/admin/bridge_admin.ts).
@@ -50,8 +50,12 @@ as separa é a fronteira mais importante do sistema.
   [`limites_familia.ts`](../../src/backend/limites_familia.ts) ·
   [`migracao.ts`](../../src/backend/migracao.ts).
 - Adaptadores [`adaptadores/`](../../src/backend/adaptadores/) — repositórios e auth
-  plugáveis: `repo_local.ts`, `repo_supabase.ts`, `repo_firebase.ts`,
-  `repo_sincronizado.ts`, `auth_supabase.ts`, `auth_firebase.ts`.
+  plugáveis: `repo_local.ts`, `repo_supabase.ts`, `repo_sincronizado.ts`,
+  `fila_remota.ts`, `auth_supabase.ts`. Os provedores são `local` e `supabase`
+  (o ramo firebase foi aposentado no D5 — decisão de ficar no Supabase;
+  registro em [PARIDADE.md](../plans/fase06_backend/PARIDADE.md)).
+- Como publicar edges/SQL no projeto real (Management API) e as pegadinhas de
+  provedor: [docs/notas/supabase-deploy-real.md](../notas/supabase-deploy-real.md).
 
 ## Dados (sem cabeçalho de código)
 
@@ -62,5 +66,5 @@ as separa é a fronteira mais importante do sistema.
 ## Como rodar
 Os clientes entram nos bundles (`build:app`/`build:admin`) e são cobertos por
 `bun run test`. As edges são deployadas na plataforma Supabase (Deno); o smoke de
-produção que as exercita de verdade está em [60 · scripts e experimentos](60-scripts-e-experimentos.md)
+produção que as exercita de verdade está em [60 · scripts](60-scripts.md)
 (⚠️ gasta API paga).

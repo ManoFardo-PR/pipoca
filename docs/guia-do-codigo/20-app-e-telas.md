@@ -7,7 +7,8 @@ A interface da criança e do cuidador. Mora em [`src/app/`](../../src/app/),
 
 ## Como o app sobe (boot)
 
-[`index.html`](../../index.html) é servido em `/app` por [`server.js`](../../server.js).
+[`index.html`](../../index.html) é servido em `/app` por [`server.js`](../../server.js)
+(o PORQUÊ da raiz servir a landing está em [docs/notas/roteamento-landing.md](../notas/roteamento-landing.md)).
 A cadeia de boot:
 
 ```

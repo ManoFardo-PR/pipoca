@@ -1,4 +1,4 @@
-/**
+﻿/**
  * [index.ts] — Fábrica e contrato do repositório de persistência: a interface
  *   RepositorioPersistencia + criarRepositorio() (o LOCAL, base do aparelho).
  *
@@ -11,7 +11,7 @@
  * CHAMA: RepositorioLocalStorage.ts (impl local) + tipos de perfil.ts, estado.ts,
  *   historias.ts.
  * É CHAMADO POR: app/bridge.ts (criarRepositorio no boot), backend/backend.ts e
- *   adaptadores/{repo_supabase,repo_sincronizado,repo_firebase,repo_local}.ts,
+ *   adaptadores/{repo_supabase,repo_sincronizado,repo_local}.ts,
  *   backend/{sync,migracao}.ts, core/{captura,lgpd}.ts.
  * RODA POR: boot do app (via pipoca.bundle.js) e testes.
  * CUIDADO: o adaptador REMOTO real (fase06) vive em src/backend/adaptadores/

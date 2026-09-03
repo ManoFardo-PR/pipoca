@@ -1,4 +1,4 @@
-<!-- ConfigIA.dc.html — Configuração de IA por tenant (SA_AI) · doc fase04-04-05
+﻿<!-- ConfigIA.dc.html — Configuração de IA por tenant (SA_AI) · doc fase04-04-05
      ─────────────────────────────────────────────────────────────
      Provedor/modelo/cotas/fallback POR TENANT, com gate do plano
      (iaPermitida) e da flag global (SA_SAFE). CHAVES NUNCA AQUI: o bloco
@@ -160,7 +160,7 @@ class Component extends DCLogic {
     const erros = C.ia.validarConfigIA(this.state.config);
     if (erros.length) { this.setState({ erros }); return; }
     C.ia.salvarConfigIA(this.state.tenantId, this.state.config);
-    // fase06 · espelho remoto fire-and-forget: o ProxyIA lê config_ia no
+    // fase06 · espelho remoto fire-and-forget: a edge realizador lê config_ia no
     // servidor (cota/config de verdade). Sem backend remoto → no-op (false).
     try {
       if (C.backend && C.backend.espelharConfigIA) {
@@ -200,7 +200,7 @@ class Component extends DCLogic {
     }));
 
     // tarefa #31 · herança do global (só EXIBIÇÃO — o formato salvo por
-    // tenant não muda; a resolução de verdade acontece no ProxyIA).
+    // tenant não muda; a resolução de verdade acontece na edge realizador).
     const globalCfg = C && C.iaGlobal ? C.iaGlobal.carregarConfigIaGlobal() : { modeloPadrao: {}, cadeiaFallback: [] };
     const herdaProvedor = cfg.provedor === null && globalCfg.cadeiaFallback.length > 0;
     const provedorHerdado = herdaProvedor && C ? C.iaGlobal.provedorEfetivoGlobal(cfg, globalCfg) : null;

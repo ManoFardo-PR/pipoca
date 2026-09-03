@@ -1,4 +1,4 @@
-<!-- ContaCuidador.dc.html — Conta & segurança do cuidador (T16)
+﻿<!-- ContaCuidador.dc.html — Conta & segurança do cuidador (T16)
      ─────────────────────────────────────────────────────────────
      Atrás do PINGATE. Três cartões: trocar o PIN do portão (exige o PIN
      atual — mesmo lockout do PINGATE), trocar a senha da conta (logado,
@@ -25,7 +25,7 @@
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Conta &amp; segurança</div>
       </div>
-      <button class="pip-cc-btn" onClick="{{ voltar }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
+      <button class="pip-cc-btn" onClick="{{ voltar }}" style="min-height:44px;border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
     </div>
     <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 22px;">O PIN protege o portão neste aparelho; a senha e o e-mail são da conta da família.</p>
 
@@ -33,41 +33,64 @@
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
       <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">PIN do portão (4 números)</div>
       <p style="color:#7a6a54;font-family:'Nunito';font-size:13px;margin:6px 0 12px;">Para trocar, confirme o PIN de agora. Errar demais tranca por um instante — igual ao portão.</p>
+      <!-- C9 (UI-A08): rótulos VISÍVEIS — dois campos de bolinhas iguais não se distinguem só por placeholder -->
+      <form onSubmit="{{ submeterPin }}">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <input class="pip-cc-campo" value="{{ pinAtual }}" onInput="{{ setPinAtual }}" type="password" inputmode="numeric" maxlength="4" placeholder="PIN atual" aria-label="PIN atual" />
-        <input class="pip-cc-campo" value="{{ pinNovo }}" onInput="{{ setPinNovo }}" type="password" inputmode="numeric" maxlength="4" placeholder="PIN novo" aria-label="PIN novo" />
+        <div>
+          <label for="pip-cc-pin-atual" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#3a2c20;margin-bottom:6px;">PIN atual</label>
+          <input id="pip-cc-pin-atual" ref="{{ refPinAtual }}" class="pip-cc-campo" value="{{ pinAtual }}" onInput="{{ setPinAtual }}" type="password" inputmode="numeric" maxlength="4" placeholder="••••" aria-label="PIN atual" />
+        </div>
+        <div>
+          <label for="pip-cc-pin-novo" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#3a2c20;margin-bottom:6px;">PIN novo</label>
+          <input id="pip-cc-pin-novo" class="pip-cc-campo" value="{{ pinNovo }}" onInput="{{ setPinNovo }}" type="password" inputmode="numeric" maxlength="4" placeholder="••••" aria-label="PIN novo" />
+        </div>
       </div>
       <sc-if value="{{ temMsgPin }}" hint-placeholder-val="{{ false }}">
         <div role="status" aria-live="polite" style="margin-top:12px;font-family:'Nunito';font-size:13px;color:{{ corMsgPin }};">{{ msgPin }}</div>
       </sc-if>
-      <button class="pip-cc-btn" onClick="{{ trocarPin }}" style="margin-top:14px;min-height:46px;border:none;border-radius:14px;background:#3f6f9e;color:#fff;padding:0 18px;font-family:'Baloo 2';font-weight:800;font-size:14px;cursor:pointer;">Trocar o PIN</button>
+      <button type="submit" class="pip-cc-btn" disabled="{{ pinTravado }}" style="{{ pinBtnStyle }}">Trocar o PIN</button>
+      </form>
     </div>
 
-    <!-- Senha da conta -->
-    <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;margin-top:16px;">
+    <!-- Senha da conta — C9 (UI-A09): no modo local o cartão INTEIRO fica atenuado
+         e o botão desabilitado (a dica explica; nada promete o que não faz) -->
+    <div style="{{ cartaoSenhaStyle }}">
       <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">Senha da conta</div>
       <p style="color:#7a6a54;font-family:'Nunito';font-size:13px;margin:6px 0 12px;">{{ dicaSenha }}</p>
+      <form onSubmit="{{ submeterSenha }}">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <input class="pip-cc-campo" value="{{ senhaNova }}" onInput="{{ setSenhaNova }}" type="password" autocomplete="new-password" placeholder="Nova senha (6+)" aria-label="Nova senha" />
-        <input class="pip-cc-campo" value="{{ senhaNova2 }}" onInput="{{ setSenhaNova2 }}" type="password" autocomplete="new-password" placeholder="Confirme a nova senha" aria-label="Confirme a nova senha" />
+        <div>
+          <label for="pip-cc-senha" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#3a2c20;margin-bottom:6px;">Nova senha (6+)</label>
+          <input id="pip-cc-senha" class="pip-cc-campo" value="{{ senhaNova }}" onInput="{{ setSenhaNova }}" type="password" autocomplete="new-password" placeholder="Escolha a nova" aria-label="Nova senha" />
+        </div>
+        <div>
+          <label for="pip-cc-senha2" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#3a2c20;margin-bottom:6px;">Confirme a nova senha</label>
+          <input id="pip-cc-senha2" class="pip-cc-campo" value="{{ senhaNova2 }}" onInput="{{ setSenhaNova2 }}" type="password" autocomplete="new-password" placeholder="A mesma, de novo" aria-label="Confirme a nova senha" />
+        </div>
       </div>
       <sc-if value="{{ temMsgSenha }}" hint-placeholder-val="{{ false }}">
         <div role="status" aria-live="polite" style="margin-top:12px;font-family:'Nunito';font-size:13px;color:{{ corMsgSenha }};">{{ msgSenha }}</div>
       </sc-if>
-      <button class="pip-cc-btn" onClick="{{ trocarSenha }}" style="margin-top:14px;min-height:46px;border:none;border-radius:14px;background:#3f6f9e;color:#fff;padding:0 18px;font-family:'Baloo 2';font-weight:800;font-size:14px;cursor:pointer;">{{ trocarSenhaLabel }}</button>
+      <button type="submit" class="pip-cc-btn" disabled="{{ senhaTravada }}" style="{{ senhaBtnStyle }}">{{ trocarSenhaLabel }}</button>
+      </form>
     </div>
 
     <!-- E-mail da conta -->
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;margin-top:16px;">
       <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">E-mail da conta</div>
       <p style="color:#7a6a54;font-family:'Nunito';font-size:13px;margin:6px 0 12px;">Hoje: <b>{{ emailAtual }}</b>. Ao trocar, enviamos uma confirmação para o novo endereço.</p>
-      <div style="display:flex;gap:10px;align-items:center;">
-        <input class="pip-cc-campo" style="flex:1;" value="{{ emailNovo }}" onInput="{{ setEmailNovo }}" type="email" autocomplete="email" placeholder="novo@email.com" aria-label="Novo e-mail" />
-        <button class="pip-cc-btn" onClick="{{ trocarEmail }}" style="min-height:46px;border:none;border-radius:14px;background:#3f6f9e;color:#fff;padding:0 18px;font-family:'Baloo 2';font-weight:800;font-size:14px;cursor:pointer;">Trocar</button>
+      <form onSubmit="{{ submeterEmail }}">
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div style="flex:1;">
+          <label for="pip-cc-email" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#3a2c20;margin-bottom:6px;">Novo e-mail</label>
+          <input id="pip-cc-email" class="pip-cc-campo" value="{{ emailNovo }}" onInput="{{ setEmailNovo }}" type="email" autocomplete="email" placeholder="novo@email.com" aria-label="Novo e-mail" />
+        </div>
+        <button type="submit" class="pip-cc-btn" disabled="{{ emailTravado }}" style="{{ emailBtnStyle }}">Trocar</button>
       </div>
       <sc-if value="{{ temMsgEmail }}" hint-placeholder-val="{{ false }}">
         <div role="status" aria-live="polite" style="margin-top:12px;font-family:'Nunito';font-size:13px;color:{{ corMsgEmail }};">{{ msgEmail }}</div>
       </sc-if>
+      </form>
     </div>
 
     <div style="height:24px;"></div>
@@ -125,6 +148,14 @@ class Component extends DCLogic {
     const s = this.state;
     const App = window.PipocaApp;
     const soDigitos = (v) => String(v || '').replace(/\D/g, '').slice(0, 4);
+    const local = this._modoLocal();
+    // C9: submit real + disabled real (mantendo o visual apagado quando travado).
+    const btnBase = 'margin-top:14px;min-height:46px;border:none;border-radius:14px;padding:0 18px;font-family:Baloo 2;font-weight:800;font-size:14px;color:#fff;';
+    const btnStyle = (pode) => btnBase + (pode ? 'background:#3f6f9e;cursor:pointer;' : 'background:#cbb692;opacity:.7;cursor:not-allowed;');
+    const podePin = s.pinAtual.length === 4 && s.pinNovo.length === 4;
+    const podeSenha = !local && !s.trocandoSenha && !!s.senhaNova && !!s.senhaNova2;
+    const podeEmail = !!(s.emailNovo || '').trim();
+    const cartao = 'background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;margin-top:16px;';
     return {
       voltar: () => { if (App) App.setState({ tela: 11 }); },
       // PIN
@@ -132,23 +163,32 @@ class Component extends DCLogic {
       pinNovo: s.pinNovo,
       setPinAtual: (e) => this.setState({ pinAtual: soDigitos(e.target.value), msgPin: '' }),
       setPinNovo: (e) => this.setState({ pinNovo: soDigitos(e.target.value), msgPin: '' }),
-      trocarPin: () => this._trocarPin(),
+      submeterPin: (e) => { if (e && e.preventDefault) e.preventDefault(); this._trocarPin(); },
+      pinTravado: !podePin,
+      pinBtnStyle: btnStyle(podePin),
+      // C9: cursor já no 1º campo ao abrir a tela.
+      refPinAtual: (el) => { if (el && !this._focou) { this._focou = true; try { el.focus(); } catch (_) {} } },
       msgPin: s.msgPin, temMsgPin: !!s.msgPin, corMsgPin: s.pinOk ? '#5a6b53' : '#9a5a3a',
-      // Senha
-      dicaSenha: this._modoLocal()
-        ? 'Neste modo local (sem servidor), a senha não é usada para entrar — a troca fica sem efeito.'
+      // Senha — no modo local o cartão inteiro atenua e o botão trava (UI-A09).
+      cartaoSenhaStyle: cartao + (local ? 'opacity:.72;' : ''),
+      dicaSenha: local
+        ? 'Neste modo local (sem servidor), a senha não é usada para entrar — por isso a troca fica desligada.'
         : 'Troca na hora, sem e-mail — você já está na sua conta.',
       senhaNova: s.senhaNova, senhaNova2: s.senhaNova2,
       setSenhaNova: (e) => this.setState({ senhaNova: e.target.value, msgSenha: '' }),
       setSenhaNova2: (e) => this.setState({ senhaNova2: e.target.value, msgSenha: '' }),
-      trocarSenha: () => this._trocarSenha(),
+      submeterSenha: (e) => { if (e && e.preventDefault) e.preventDefault(); this._trocarSenha(); },
+      senhaTravada: !podeSenha,
+      senhaBtnStyle: btnStyle(podeSenha),
       trocarSenhaLabel: s.trocandoSenha ? 'Trocando…' : 'Trocar a senha',
       msgSenha: s.msgSenha, temMsgSenha: !!s.msgSenha, corMsgSenha: s.senhaOk ? '#5a6b53' : '#9a5a3a',
       // E-mail
       emailAtual: (App && App.emailDaConta && App.emailDaConta()) || '—',
       emailNovo: s.emailNovo,
       setEmailNovo: (e) => this.setState({ emailNovo: e.target.value, msgEmail: '' }),
-      trocarEmail: () => this._trocarEmail(),
+      submeterEmail: (e) => { if (e && e.preventDefault) e.preventDefault(); this._trocarEmail(); },
+      emailTravado: !podeEmail,
+      emailBtnStyle: btnStyle(podeEmail).replace('margin-top:14px;', ''),
       msgEmail: s.msgEmail, temMsgEmail: !!s.msgEmail, corMsgEmail: s.emailOk ? '#5a6b53' : '#9a5a3a',
     };
   }

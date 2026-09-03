@@ -1,7 +1,6 @@
 # D1 — Leitura híbrida do espelho remoto e desempate por `atualizado_em` (ML-1 sync, D-07)
 
-> Status: pendente
-
+> Status: concluída (2026-09-03 · 3655179)
 **Unidade de deploy:** BUNDLE app + admin (`src/backend/**`). **Depende de:** nada.
 **Desbloqueia:** D2.
 

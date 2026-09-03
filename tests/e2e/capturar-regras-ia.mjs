@@ -14,16 +14,9 @@
  * RODA POR: `node tests/e2e/capturar-regras-ia.mjs`
  * CUIDADO: offline (PIPOCA_CONFIG local); contexto novo (PIN nasce 1234 no 1º uso).
  */
-import { createRequire } from "node:module";
-import { spawn } from "node:child_process";
 import { mkdirSync } from "node:fs";
-import net from "node:net";
 import path from "node:path";
-
-const require = createRequire(import.meta.url);
-const PW_CORE = process.env.PW_CORE || "C:/Users/mfard/AppData/Local/npm-cache/_npx/705bc6b22212b352/node_modules/playwright-core";
-const EXEC = process.env.PW_CHROME || "C:/Users/mfard/AppData/Local/ms-playwright/chromium-1223/chrome-win64/chrome.exe";
-const { chromium } = require(PW_CORE);
+import { chromium, executavelChromium, bootServer } from "./_harness.mjs";
 
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf(k); return i >= 0 && argv[i + 1] ? argv[i + 1] : d; };
@@ -35,23 +28,10 @@ mkdirSync(OUT, { recursive: true });
 let passou = 0, falhou = 0;
 const assert = (cond, msg) => { if (cond) { console.log(`  ✓ ${msg}`); passou++; } else { console.error(`  ✗ ${msg}`); falhou++; } };
 
-function esperarPorta(port, timeoutMs = 15000) {
-  const inicio = Date.now();
-  return new Promise((resolve, reject) => {
-    const tentar = () => {
-      const s = net.connect(port, "localhost");
-      s.on("connect", () => { s.end(); resolve(); });
-      s.on("error", () => { s.destroy(); if (Date.now() - inicio > timeoutMs) reject(new Error("timeout esperando o server")); else setTimeout(tentar, 200); });
-    };
-    tentar();
-  });
-}
-
-const server = spawn("node", ["server.js"], { stdio: "ignore", env: { ...process.env, PORT: String(PORT) } });
+const server = await bootServer(PORT);
 let browser;
 try {
-  await esperarPorta(PORT);
-  browser = await chromium.launch({ headless: true, executablePath: EXEC });
+  browser = await chromium.launch({ headless: true, executablePath: executavelChromium() });
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   await page.addInitScript(() => { window.PIPOCA_CONFIG = { provedor: "local" }; });
   const erros = [];
@@ -69,7 +49,7 @@ try {
   await page.locator("button", { hasText: "Tudo pronto" }).first().click();
   await page.waitForFunction(() => window.PipocaApp.estado.tela === 2 && !!window.PipocaApp.estado.perfil, { timeout: 5000 });
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
-  await page.waitForFunction(() => window.PipocaApp.estado.tela === 8, { timeout: 5000 });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 5000 }); // C6: pós-PIN → hub
   await page.evaluate(() => { window.PipocaApp.setState({ tela: 14 }); });
   await page.waitForFunction(() => /Histórias com IA/.test(document.body.innerText), { timeout: 5000 });
 

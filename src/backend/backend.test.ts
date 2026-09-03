@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Pipoca — Testes da fase06 (backend trocável).
  * -------------------------------------------------------------------------------------
  * Grupos por doc: config/fachada (06-01/06-06) · escopoTenant (06-04) ·
@@ -15,13 +15,14 @@ import { RepositorioSupabase } from "./adaptadores/repo_supabase.js";
 import { RepositorioLocalStorage } from "./adaptadores/repo_local.js";
 import {
   adicionarTombstone,
+  aoMesclarHistorias,
   CHAVE_TOMBSTONES,
   criarRepositorioSincronizado,
   lerTombstones,
 } from "./adaptadores/repo_sincronizado.js";
 import { sincronizarInicial } from "./sync.js";
+import { lerFilaRemota } from "./adaptadores/fila_remota.js";
 import { migrar } from "./migracao.js";
-import { criarProxyIA, provedorViaProxy } from "./proxy_ia.js";
 import {
   espelharTenantRemoto,
   espelharCenarioRemoto,
@@ -43,7 +44,6 @@ import { criarRepositorioTenant, novoTenant } from "../admin/tenant/repositorioT
 import { listarCenarios, type CenarioVersionado } from "../admin/validar_grafo.js";
 import { aplicarFlagsAosModos, carregarFlags, salvarFlags } from "../admin/flags.js";
 import { modosPadrao } from "../core/modos.js";
-import { criarOrquestrador } from "../ia/orquestrador.js";
 import type { RepositorioPersistencia } from "../core/persistencia/index.js";
 import { criarPerfil, type Perfil } from "../core/perfil.js";
 import type { HistoriaSalva } from "../core/historias.js";
@@ -95,8 +95,9 @@ console.log("\n=== ConfigBackend (06-06) — normalização fail-safe ===");
   assert(normalizarConfigBackend({ provedor: "supabase" }).provedor === "local", "supabase SEM url/anon → local (fail-safe)");
   const ok = normalizarConfigBackend({ provedor: "supabase", supabaseUrl: "https://x.supabase.co/", supabaseAnonKey: "anon" });
   assert(ok.provedor === "supabase" && ok.supabaseUrl === "https://x.supabase.co", "supabase completo → supabase (barra final aparada)");
-  assert(normalizarConfigBackend({ provedor: "firebase" }).provedor === "firebase", "firebase → firebase (stub)");
-  assert(normalizarConfigBackend({ provedor: "marciano" }).provedor === "local", "provedor desconhecido → local");
+  // D5: o ramo do BaaS alternativo foi aposentado (PARIDADE.md) — config antiga
+  // com o provedor antigo cai no MESMO caminho de qualquer valor desconhecido.
+  assert(normalizarConfigBackend({ provedor: "marciano" }).provedor === "local", "provedor desconhecido/aposentado → local, sem lançar");
   assert(CONFIG_LOCAL.provedor === "local", "CONFIG_LOCAL é local");
 
   const g = globalThis as unknown as { PIPOCA_CONFIG?: unknown };
@@ -119,25 +120,17 @@ console.log("\n=== obterBackend (06-01) — fachada e adaptador local ===");
 {
   armazem.limpar();
   const b = obterBackend({ provedor: "local" });
-  assert(!!b.auth && !!b.repo && !!b.proxyIA, "fachada devolve { auth, repo, proxyIA }");
-
-  let proxyRejeitou = false;
-  await b.proxyIA.gerar({ prompt: "x", schema: {} }).catch(() => {
-    proxyRejeitou = true;
-  });
-  assert(proxyRejeitou, "proxyIA local rejeita limpo (orquestrador degrada p/ simulado)");
+  // D4: a Geração 1 saiu da fachada (a geração 2 usa realizador)
+  assert(!!b.auth && !!b.repo && Object.keys(b).length === 2, "fachada local devolve só { auth, repo } (D4)");
 
   // config supabase → adaptadores REST reais (sem sessão em storage → null; sem rede aqui)
   const bSupa = obterBackend({ provedor: "supabase", supabaseUrl: "https://x.supabase.co", supabaseAnonKey: "k" });
   assert(!!bSupa.auth && bSupa.auth.sessaoAtual() === null && typeof bSupa.repo.carregarPerfis === "function", "config supabase → backend supabase montado, sem sessão no boot limpo");
 
-  const bFire = obterBackend({ provedor: "firebase" });
-  let fireErro = "";
-  await bFire.auth.entrarFamilia({ email: "a@b.c", senha: "x" }).catch((e: Error) => {
-    fireErro = e.message;
-  });
-  assert(/não configurado/i.test(fireErro), "firebase é stub honesto: erro limpo de não configurado");
-  assert(bFire.auth.sessaoAtual() === null, "firebase stub: sessaoAtual null");
+  // D5: config antiga com provedor aposentado (normalizada → local) monta o backend LOCAL
+  const bDesconhecido = obterBackend(normalizarConfigBackend({ provedor: "marciano" }));
+  assert(!!bDesconhecido.auth && !!bDesconhecido.repo && typeof bDesconhecido.repo.carregarPerfis === "function",
+    "provedor aposentado/desconhecido cai no backend local (fail-closed)");
 }
 
 console.log("\n=== auth LOCAL (06-02) — delega ao stub da família + credencial do operador ===");
@@ -478,7 +471,7 @@ function servidorSupabaseFake() {
   const perfis = new Map<string, { id: string; tenant_id?: string; dados: unknown }>();
   const saves = new Map<string, { perfil_id: string; dados: unknown }>();
   const telemetria: Array<{ perfil_id: string; evento: unknown; criado_em: string }> = [];
-  const historias = new Map<string, { id: string; perfil_id: string; favorita: boolean; criada_em: string; dados: unknown }>();
+  const historias = new Map<string, { id: string; perfil_id: string; favorita: boolean; criada_em: string; atualizado_em?: string; dados: unknown }>();
   // pós-fase06 (iteração 2): tabelas do espelho do admin
   const tenants = new Map<string, { id: string; dados: unknown }>();
   const conteudo = new Map<string, Record<string, unknown>>(); // chave cenario_id:versao
@@ -513,7 +506,7 @@ function servidorSupabaseFake() {
           [...historias.values()]
             .filter((x) => x.perfil_id === id)
             .sort((a, b) => (a.criada_em < b.criada_em ? 1 : -1))
-            .map((x) => ({ dados: x.dados }))
+            .map((x) => ({ dados: x.dados, atualizado_em: x.atualizado_em })) // D1: coluna viaja no select
         );
       }
       if (tabela === "tenants") {
@@ -719,7 +712,8 @@ console.log("\n=== repo sincronizado (06-03) — local base + espelho fail-soft 
   armazem.limpar();
   const local = repoMem("local");
   const remoto = repoMem("remoto");
-  const sinc = criarRepositorioSincronizado(local.repo, remoto.repo);
+  // D2: sem atrasos de retry no teste (o erro "offline" é transitório e teria backoff 1s/4s)
+  const sinc = criarRepositorioSincronizado(local.repo, remoto.repo, { atrasosRetryMs: [] });
 
   await sinc.salvarPerfil(PERFIL_A);
   await new Promise((r) => setTimeout(r, 0)); // deixa o fire-and-forget assentar
@@ -832,10 +826,146 @@ console.log("\n=== histórias salvas — espelho remoto, poda por filtro e sync 
   const srv2 = servidorSupabaseFake();
   const remoto2 = new RepositorioSupabase({ url: "https://proj.supabase.co", anonKey: "k", obterToken: async () => "tok", transporte: srv2.t });
   await remoto2.salvarPerfil(PERFIL_B);
-  await remoto2.salvarHistoria!("p-bbb", mkH("h-remota", 3));
+  // criadaEm RELATIVO ao relógio real: a mescla do D1 normaliza com Date.now()
+  // e uma história do epoch fixo (2025) cairia na retenção de 20 dias.
+  await remoto2.salvarHistoria!("p-bbb", { ...mkH("h-remota", 3), criadaEm: Date.now() - 3 * DIA });
   const localNovo = new RepositorioLocalStorage();
   await sincronizarInicial(localNovo, remoto2);
   assert((await localNovo.carregarHistorias("p-bbb")).some((h) => h.id === "h-remota"), "aparelho novo puxa as histórias junto do perfil");
+}
+
+console.log("\n=== D1 · '2 aparelhos' — leitura híbrida e desempate por atualizadoEm ===");
+{
+  armazem.limpar();
+  const DIA = 86_400_000;
+  const agora = Date.now(); // retenção conta a partir de agora — carimbos reais
+  const mkH = (id: string, diasAtras: number, extra: Partial<HistoriaSalva> = {}): HistoriaSalva => ({
+    id, cenarioId: "quintal_anoitecer", texto: "Era uma noite mansa. Fim.",
+    linha: ["vagalume"], nivel: "n2", desfecho: "convergente",
+    titulo: "A história de o vaga-lume", emoji: "🌟",
+    criadaEm: agora - diasAtras * DIA, favorita: false, ...extra,
+  });
+
+  const srv = servidorSupabaseFake();
+  const remoto = new RepositorioSupabase({
+    url: "https://proj.supabase.co", anonKey: "k", obterToken: async () => "tok", transporte: srv.t,
+  });
+
+  // Aparelho A (local): h1 sem favorito, carimbo antigo. Aparelho B (já no
+  // remoto): h1 FAVORITADA depois (carimbo maior) + h2 que A nunca viu.
+  const localA = new RepositorioLocalStorage();
+  await localA.salvarHistoria("p1", mkH("h1", 5, { atualizadoEm: agora - 60_000 }));
+  await remoto.salvarHistoria!("p1", mkH("h1", 5, { favorita: true, atualizadoEm: agora - 1_000 }));
+  await remoto.salvarHistoria!("p1", mkH("h2", 1, { atualizadoEm: agora - 1_000 }));
+
+  let avisos = 0;
+  aoMesclarHistorias(() => { avisos++; });
+  const sinc = criarRepositorioSincronizado(localA, remoto);
+  const naHora = await sinc.carregarHistorias!("p1");
+  assert(naHora.length === 1 && naHora[0]!.favorita === false, "leitura devolve o LOCAL na hora (offline-first; o remoto chega depois)");
+  await new Promise((r) => setTimeout(r, 10)); // a mescla reativa assenta
+  const depois = await localA.carregarHistorias("p1");
+  assert(depois.some((h) => h.id === "h2"), "história gravada no outro aparelho APARECE (h2 mesclada no local)");
+  assert(depois.find((h) => h.id === "h1")!.favorita === true, "conflito: o carimbo remoto MAIOR vence (h1 volta favorita)");
+  assert(avisos >= 1, "a mescla que mudou algo NOTIFICA o app (aoMesclarHistorias)");
+  const upsertsAntes = srv.chamadas.filter((c) => c.metodo === "POST" && c.url.includes("/historias")).length;
+  await sinc.carregarHistorias!("p1");
+  await new Promise((r) => setTimeout(r, 10));
+  const upsertsDepois = srv.chamadas.filter((c) => c.metodo === "POST" && c.url.includes("/historias")).length;
+  assert(upsertsDepois === upsertsAntes, "a mescla grava SÓ no local — sem eco de upsert ao remoto");
+
+  // Conflito com carimbo LOCAL mais novo → o local vence (edição daqui é a última)
+  await localA.salvarHistoria("p1", mkH("h1", 5, { texto: "Edicao local mais nova. Fim.", atualizadoEm: agora + 5_000 }));
+  await sinc.carregarHistorias!("p1");
+  await new Promise((r) => setTimeout(r, 10));
+  const local2 = await localA.carregarHistorias("p1");
+  assert(local2.find((h) => h.id === "h1")!.texto === "Edicao local mais nova. Fim.", "conflito: carimbo LOCAL mais novo vence (nada sobrescreve a edição daqui)");
+
+  // sincronizarInicial mescla histórias mesmo com o perfil JÁ presente (ML-1 sync)
+  await remoto.salvarPerfil(PERFIL_A);
+  await localA.salvarPerfil(PERFIL_A); // presente dos dois lados
+  await remoto.salvarHistoria!("p-aaa", mkH("h-so-remota", 2, { atualizadoEm: agora - 1_000 }));
+  await sincronizarInicial(localA, remoto);
+  assert((await localA.carregarHistorias("p-aaa")).some((h) => h.id === "h-so-remota"),
+    "sincronizarInicial puxa histórias TAMBÉM do perfil já presente (troca de aparelho não some com o banco)");
+
+  // Regressão: remoto morto → leitura devolve o local e nada quebra
+  const remotoMorto = new RepositorioSupabase({ url: "https://x.supabase.co", anonKey: "k", obterToken: async () => null, transporte: srv.t });
+  const sincOff = criarRepositorioSincronizado(localA, remotoMorto);
+  const offline = await sincOff.carregarHistorias!("p1");
+  await new Promise((r) => setTimeout(r, 10));
+  assert(offline.length === (await localA.carregarHistorias("p1")).length, "sem sessão/offline: comportamento idêntico ao atual (só o local)");
+  aoMesclarHistorias(null); // não vazar o callback para os próximos testes
+}
+
+console.log("\n=== D2 · retry, fila persistente e sinal do espelho remoto (D-06) ===");
+{
+  armazem.limpar();
+  const agora = Date.now();
+  const mkH2 = (id: string): HistoriaSalva => ({
+    id, cenarioId: "quintal_anoitecer", texto: "Era uma noite mansa. Fim.",
+    linha: ["vagalume"], nivel: "n2", desfecho: "convergente",
+    titulo: "A história de o vaga-lume", emoji: "🌟",
+    criadaEm: agora, favorita: false, atualizadoEm: agora,
+  });
+  const stubRemoto = (salvarHistoria: (pid: string, h: HistoriaSalva) => Promise<void>): RepositorioPersistencia => ({
+    carregarPerfis: async () => [], carregarSave: async () => null, carregarTelemetria: async () => [],
+    salvarPerfil: async () => {}, salvarSave: async () => {}, registrarTelemetria: async () => {},
+    apagarPerfil: async () => {},
+    salvarHistoria,
+  });
+
+  // 1 · falha TRANSITÓRIA (503): retry curto sucede — nada vai à fila
+  const gravadas: string[] = [];
+  let falhas = 1;
+  const localD2 = new RepositorioLocalStorage();
+  const sincRetry = criarRepositorioSincronizado(localD2, stubRemoto(async (_pid, h) => {
+    if (falhas > 0) { falhas--; throw new Error("Supabase: HTTP 503 em POST /historias"); }
+    gravadas.push(h.id);
+  }), { atrasosRetryMs: [0] });
+  await sincRetry.salvarHistoria!("p1", mkH2("h-retry"));
+  await new Promise((r) => setTimeout(r, 20));
+  assert(gravadas.indexOf("h-retry") >= 0 && lerFilaRemota().length === 0,
+    "falha transitória (503) é repetida e sucede — nada fica na fila");
+
+  // 2 · falha PERSISTENTE (400): sem retry, vira item na fila com rastro
+  let chamadas400 = 0;
+  const sinc400 = criarRepositorioSincronizado(localD2, stubRemoto(async () => {
+    chamadas400++;
+    throw new Error("Supabase: HTTP 400 em POST /historias");
+  }), { atrasosRetryMs: [0, 0] });
+  await sinc400.salvarHistoria!("p1", mkH2("h-fila"));
+  await new Promise((r) => setTimeout(r, 20));
+  assert(chamadas400 === 1, "4xx NÃO é repetido (retry só para transitórios)");
+  let fila = lerFilaRemota();
+  assert(fila.length === 1 && fila[0]!.op === "salvarHistoria" && fila[0]!.id === "h-fila"
+    && fila[0]!.ultimoErro.indexOf("400") >= 0,
+    "falha persistente vira ITEM NA FILA com rastro (op, id, último erro)");
+
+  // 2b · dedupe: regravar o MESMO id substitui o item (a última versão vence)
+  await sinc400.salvarHistoria!("p1", { ...mkH2("h-fila"), favorita: true });
+  await new Promise((r) => setTimeout(r, 20));
+  fila = lerFilaRemota();
+  assert(fila.length === 1 && (fila[0]!.payload as HistoriaSalva).favorita === true,
+    "dedupe por op+perfil+id: a fila guarda a versão mais NOVA, sem duplicar");
+
+  // 3 · sinal local: evento espelho_falhou gravado no LOCAL, fora do painel da T8
+  const eventos = await localD2.carregarTelemetria("p1");
+  const sinal = eventos.find((e) => e.tipo === "espelho_falhou");
+  assert(!!sinal && (sinal.dados as { op: string }).op === "salvarHistoria",
+    "a falha deixa rastro de telemetria LOCAL (espelho_falhou com a op)");
+  const { resumir: resumirD2 } = await import("../core/agregadosTelemetria.js");
+  assert(resumirD2(eventos, "semana", agora).diasAtivos === 0,
+    "espelho_falhou NÃO conta como dia ativo no painel (evento de infra, filtrado)");
+
+  // 4 · drenagem no sincronizarInicial: o item chega ao remoto e a fila esvazia
+  const srvD2 = servidorSupabaseFake();
+  const remotoOk = new RepositorioSupabase({ url: "https://proj.supabase.co", anonKey: "k", obterToken: async () => "tok", transporte: srvD2.t });
+  const res = await sincronizarInicial(localD2, remotoOk);
+  assert(srvD2.historias.has("h-fila") && (srvD2.historias.get("h-fila")!.favorita as boolean) === true,
+    "drenagem grava o item pendente no remoto (a versão mais nova)");
+  assert(lerFilaRemota().length === 0 && res.filaDrenada === 1,
+    "fila esvazia após drenar e o sync reporta filaDrenada");
 }
 
 console.log("\n=== telemetria — retenção remota (poda por filtro) e pull no sync ===");
@@ -894,67 +1024,9 @@ console.log("\n=== telemetria — retenção remota (poda por filtro) e pull no 
   );
 }
 
-// ─── Etapa 5 · ProxyIA cliente (06-05, lado cliente) ─────────────────────────
-
-console.log("\n=== ProxyIA cliente (06-05) — bearer do usuário, servidor decide ===");
-{
-  armazem.limpar();
-  const trechoOk = { texto: "✨ vindo do servidor", ehFinal: false };
-  const { t, chamadas } = transporteRotas([
-    { casa: (u) => u.indexOf("/functions/v1/proxy-ia") >= 0, responder: () => ({ status: 200, json: trechoOk }) },
-  ]);
-  const proxy = criarProxyIA({
-    url: URL_SUPA,
-    anonKey: "anon-k",
-    obterToken: async () => "tok-user",
-    tenantId: () => "familia:u1",
-    transporte: t,
-  });
-  const trecho = await proxy.gerar({ prompt: "conte a abertura", schema: { type: "object" }, opts: { system: "s" } });
-  assert(trecho.texto.indexOf("servidor") >= 0 && trecho.ehFinal === false, "200 → Trecho validado");
-  const c = chamadas[0]!;
-  assert(c.headers["Authorization"] === "Bearer tok-user" && c.headers["apikey"] === "anon-k", "bearer do USUÁRIO + anon key — nenhuma chave de provedor no cliente");
-  const corpo = c.corpo as Record<string, unknown>;
-  assert(
-    corpo["prompt"] === "conte a abertura" && corpo["tenantId"] === "familia:u1" && !("provedor" in corpo) && !("modelo" in corpo),
-    "o cliente NÃO escolhe provedor/modelo (o servidor decide pela config_ia)"
-  );
-
-  const { t: t503 } = transporteRotas([{ casa: () => true, responder: () => ({ status: 503, json: { erro: "nao_configurado" } }) }]);
-  let degradou = false;
-  await criarProxyIA({ url: URL_SUPA, anonKey: "k", obterToken: async () => "tok", transporte: t503 })
-    .gerar({ prompt: "x", schema: {} })
-    .catch(() => {
-      degradou = true;
-    });
-  assert(degradou, "qualquer não-200 → throw (o orquestrador degrada p/ simulado)");
-
-  const { t: tNunca, chamadas: cNunca } = transporteRotas([{ casa: () => true, responder: () => ({ status: 200, json: trechoOk }) }]);
-  let semSessao = false;
-  await criarProxyIA({ url: URL_SUPA, anonKey: "k", obterToken: async () => null, transporte: tNunca })
-    .gerar({ prompt: "x", schema: {} })
-    .catch(() => {
-      semSessao = true;
-    });
-  assert(semSessao && cNunca.length === 0, "sem sessão → rejeita SEM ir à rede");
-
-  const proxyFalho = criarProxyIA({ url: URL_SUPA, anonKey: "k", obterToken: async () => "tok", transporte: t503 });
-  const simuladinho = {
-    async gerar() {
-      return { texto: "✨ do simulado", ehFinal: false };
-    },
-  };
-  const cadeia = criarOrquestrador([provedorViaProxy(proxyFalho), simuladinho]);
-  const viaCadeia = await cadeia.gerar("conte a abertura", {});
-  assert(viaCadeia.texto.indexOf("simulado") >= 0, "proxy falho na cadeia → simulado atende (a criança nunca fica sem história)");
-
-  const bSupa = obterBackend({ provedor: "supabase", supabaseUrl: URL_SUPA, supabaseAnonKey: "k" });
-  let proxySemSessao = false;
-  await bSupa.proxyIA.gerar({ prompt: "x", schema: {} }).catch(() => {
-    proxySemSessao = true;
-  });
-  assert(proxySemSessao, "backend supabase SEM sessão → proxy rejeita sem rede (fail-soft)");
-}
+// ─── Etapa 5 · cliente da Geração 1 — REMOVIDO no D4 (Plan03) ────────────────
+// A Geração 1 saiu do cliente (D4) e a edge dela foi aposentada (E3).
+// O caminho vivo é o ProxyRealizador (5b).
 
 // ─── Etapa 5b · ProxyRealizador cliente (fase13-13-03) ───────────────────────
 
@@ -987,12 +1059,14 @@ console.log("\n=== ProxyRealizador cliente (13-03) — keyless, cascata no edge 
     c.headers["Authorization"] === "Bearer tok-user" && c.headers["apikey"] === "anon-k",
     "bearer do USUÁRIO + anon key — nenhuma chave de provedor sai do cliente"
   );
+  // E3: o corpo é SÓ {pacote, tenantId?} — o prompt e a temperatura nascem na
+  // edge (espelho verificado do template); nada arbitrário sai do cliente.
   const corpo = c.corpo as Record<string, unknown>;
-  const promptEnviado = corpo["prompt"] as Record<string, unknown>;
   assert(
-    !!corpo["pacote"] && typeof promptEnviado["system"] === "string" && typeof promptEnviado["user"] === "string"
+    !!corpo["pacote"] && corpo["tenantId"] === "familia:u1"
+      && !("prompt" in corpo) && !("temperatura" in corpo)
       && !("provedor" in corpo) && !("modelo" in corpo) && !("apiKey" in corpo),
-    "payload = pacote + prompt montado do Pacote; o cliente NÃO escolhe provedor/modelo"
+    "payload E3 = {pacote, tenantId} — sem prompt/temperatura; o cliente NÃO escolhe nada"
   );
 
   // Qualquer não-200 → throw (o módulo de geração cai no fallback A+ v3 LOCAL).

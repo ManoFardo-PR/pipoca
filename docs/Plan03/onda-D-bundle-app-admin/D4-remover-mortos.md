@@ -1,7 +1,6 @@
 # D4 — Remoção segura: Geração 1, `roteador.ts`, `playwright.config.ts`, assets, exports, dirs vazios
 
-> Status: pendente
-
+> Status: concluída (2026-09-03 · 5198d60)
 **Unidade de deploy:** BUNDLE app + admin (remoções em `src/`) + CRU (assets).
 **Depende de:** decisão de E3 sobre a edge `proxy-ia` (define se `src/backend/proxy_ia.ts`
 sai junto). **Desbloqueia:** D5.

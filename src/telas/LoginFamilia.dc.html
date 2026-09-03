@@ -1,4 +1,4 @@
-<!-- LoginFamilia.dc.html — Login da família (HH_LOGIN) · doc fase02-02-01
+﻿<!-- LoginFamilia.dc.html — Login da família (HH_LOGIN) · doc fase02-02-01
      ─────────────────────────────────────────────────────────────
      Uma conta por casa. Rota inicial quando não há sessão de conta válida
      (estado.js decide no boot). Login ok → KIDMODE → T2 (o cuidador só alcança
@@ -31,25 +31,36 @@
       <p style="color:#7a6a54;font-family:'Nunito';font-size:14px;line-height:1.5;margin:8px 0 0;">{{ subtitulo }}</p>
     </div>
 
-    <!-- Cartão do formulário -->
+    <!-- Cartão do formulário — C9: <form> de verdade (Enter submete em TODO modo,
+         gerenciador de senha/teclado "Ir" funcionam) e botão primário com disabled REAL -->
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
+      <form onSubmit="{{ aoSubmeter }}">
 
       <sc-if value="{{ mostrarEmail }}" hint-placeholder-val="{{ true }}">
-        <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;">E-mail</label>
-        <input class="pip-lf-campo" style="margin-top:7px;" value="{{ email }}" onInput="{{ setEmail }}" type="email" autocomplete="email" placeholder="nome@exemplo.com" aria-label="E-mail da família" />
+        <label for="pip-lf-email" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;">E-mail</label>
+        <input id="pip-lf-email" ref="{{ refEmail }}" class="pip-lf-campo" style="margin-top:7px;" value="{{ email }}" onInput="{{ setEmail }}" type="email" autocomplete="email" placeholder="nome@exemplo.com" aria-label="E-mail da família" aria-describedby="pip-lf-email-erro" />
+        <sc-if value="{{ temErroEmail }}" hint-placeholder-val="{{ false }}">
+          <div id="pip-lf-email-erro" role="alert" style="margin-top:6px;color:#9a5a3a;font-family:'Nunito';font-size:13px;">{{ erroEmail }}</div>
+        </sc-if>
       </sc-if>
 
       <sc-if value="{{ mostrarSenha }}" hint-placeholder-val="{{ true }}">
-        <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">{{ rotuloSenha }}</label>
-        <input class="pip-lf-campo" style="margin-top:7px;" value="{{ senha }}" onInput="{{ setSenha }}" onKeyDown="{{ aoTeclar }}" type="password" autocomplete="{{ autoSenha }}" placeholder="{{ placeholderSenha }}" aria-label="Senha" />
+        <label for="pip-lf-senha" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">{{ rotuloSenha }}</label>
+        <input id="pip-lf-senha" ref="{{ refSenha }}" class="pip-lf-campo" style="margin-top:7px;" value="{{ senha }}" onInput="{{ setSenha }}" type="password" autocomplete="{{ autoSenha }}" placeholder="{{ placeholderSenha }}" aria-label="Senha" aria-describedby="pip-lf-senha-erro" />
+        <sc-if value="{{ temErroSenha }}" hint-placeholder-val="{{ false }}">
+          <div id="pip-lf-senha-erro" role="alert" style="margin-top:6px;color:#9a5a3a;font-family:'Nunito';font-size:13px;">{{ erroSenha }}</div>
+        </sc-if>
       </sc-if>
 
       <sc-if value="{{ mostrarSenha2 }}" hint-placeholder-val="{{ false }}">
-        <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Confirme a senha</label>
-        <input class="pip-lf-campo" style="margin-top:7px;" value="{{ senha2 }}" onInput="{{ setSenha2 }}" onKeyDown="{{ aoTeclar }}" type="password" autocomplete="new-password" placeholder="A mesma senha, de novo" aria-label="Confirme a senha" />
+        <label for="pip-lf-senha2" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:14px;color:#3a2c20;margin-top:18px;">Confirme a senha</label>
+        <input id="pip-lf-senha2" class="pip-lf-campo" style="margin-top:7px;" value="{{ senha2 }}" onInput="{{ setSenha2 }}" type="password" autocomplete="new-password" placeholder="A mesma senha, de novo" aria-label="Confirme a senha" aria-describedby="pip-lf-senha2-erro" />
+        <sc-if value="{{ temErroSenha2 }}" hint-placeholder-val="{{ false }}">
+          <div id="pip-lf-senha2-erro" role="alert" style="margin-top:6px;color:#9a5a3a;font-family:'Nunito';font-size:13px;">{{ erroSenha2 }}</div>
+        </sc-if>
       </sc-if>
 
-      <!-- Erro acolhedor (sem X vermelho) -->
+      <!-- Erro acolhedor (sem X vermelho) — servidor/geral; o erro de campo fica no campo -->
       <sc-if value="{{ temErro }}" hint-placeholder-val="{{ false }}">
         <div role="status" aria-live="polite" style="margin-top:16px;color:#9a5a3a;font-family:'Nunito';font-size:14px;">{{ erro }}</div>
       </sc-if>
@@ -59,31 +70,41 @@
         <div role="status" aria-live="polite" style="margin-top:16px;color:#5a6b53;font-family:'Nunito';font-size:14px;">{{ aviso }}</div>
       </sc-if>
 
-      <button class="pip-lf-btn" onClick="{{ acaoPrimaria }}" style="{{ primariaStyle }}">{{ primariaLabel }}</button>
+      <button class="pip-lf-btn" type="submit" disabled="{{ primariaTravada }}" style="{{ primariaStyle }}">{{ primariaLabel }}</button>
+      </form>
 
-      <!-- Entrar com Google (provedor OAuth nativo do Supabase) — só em entrar/criar -->
+      <!-- Entrar com Google (provedor OAuth nativo do Supabase) — só em entrar/criar.
+           C10 (UI-A29): botão na identidade do PROVEDOR (guideline de marca): fundo
+           branco, borda #747775, G multicolor em SVG inline (por ref, sem fetch). -->
       <sc-if value="{{ mostrarGoogle }}" hint-placeholder-val="{{ true }}">
         <div style="display:flex;align-items:center;gap:12px;margin:18px 0 6px;">
           <div style="flex:1;height:1px;background:#e3d4ba;"></div>
           <span style="font-family:'Nunito';font-size:12.5px;color:#9a8a72;">ou</span>
           <div style="flex:1;height:1px;background:#e3d4ba;"></div>
         </div>
-        <button class="pip-lf-btn" onClick="{{ entrarGoogle }}" aria-label="Entrar com a conta Google" style="width:100%;min-height:50px;border:2px solid #e3d4ba;border-radius:16px;background:#fffdf7;display:flex;align-items:center;justify-content:center;gap:10px;font-family:'Baloo 2';font-weight:800;font-size:16px;color:#3a2c20;">
-          <span aria-hidden="true" style="display:inline-flex;width:22px;height:22px;border-radius:50%;background:#fff;border:1px solid #e3d4ba;align-items:center;justify-content:center;font-family:'Baloo 2';font-weight:800;font-size:14px;color:#4285F4;">G</span>
-          Entrar com Google
+        <button class="pip-lf-btn" onClick="{{ entrarGoogle }}" style="width:100%;min-height:50px;border:1px solid #747775;border-radius:16px;background:#ffffff;display:flex;align-items:center;justify-content:center;gap:12px;font-family:Roboto,'Nunito',sans-serif;font-weight:600;font-size:15px;color:#1f1f1f;">
+          <span ref="{{ refLogoGoogle }}" aria-hidden="true" style="display:inline-flex;width:20px;height:20px;"></span>
+          Entrar com o Google
         </button>
+        <!-- C10 (UI-A30): a falha do Google aparece ONDE o dedo está — sob o botão -->
+        <sc-if value="{{ temErroGoogle }}" hint-placeholder-val="{{ false }}">
+          <div role="status" aria-live="polite" style="margin-top:10px;color:#9a5a3a;font-family:'Nunito';font-size:13.5px;">{{ erroGoogle }}</div>
+        </sc-if>
       </sc-if>
 
-      <!-- Caminhos secundários por modo -->
-      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;margin-top:14px;">
-        <sc-if value="{{ mostrarCriar }}" hint-placeholder-val="{{ true }}">
-          <button class="pip-lf-link" onClick="{{ irCriar }}">Criar conta da família</button>
-        </sc-if>
+      <!-- C10 (UI-A31): o caminho do usuário NOVO é ação visível (botão secundário
+           ≥48px), não o menor texto da tela -->
+      <sc-if value="{{ mostrarCriar }}" hint-placeholder-val="{{ true }}">
+        <button class="pip-lf-btn" onClick="{{ irCriar }}" style="margin-top:14px;width:100%;min-height:48px;border:2px solid #3f6f9e;border-radius:16px;background:transparent;font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3f6f9e;">Criar conta da família</button>
+      </sc-if>
+
+      <!-- Caminhos secundários por modo (links com alvo ≥44px) -->
+      <div style="display:flex;justify-content:flex-end;flex-wrap:wrap;gap:4px;margin-top:8px;">
         <sc-if value="{{ mostrarRecuperar }}" hint-placeholder-val="{{ true }}">
-          <button class="pip-lf-link" onClick="{{ irRecuperar }}">Esqueci a senha</button>
+          <button class="pip-lf-link" onClick="{{ irRecuperar }}" style="min-height:44px;">Esqueci a senha</button>
         </sc-if>
         <sc-if value="{{ mostrarVoltar }}" hint-placeholder-val="{{ false }}">
-          <button class="pip-lf-link" onClick="{{ irEntrar }}">← Já tenho conta, entrar</button>
+          <button class="pip-lf-link" onClick="{{ irEntrar }}" style="min-height:44px;">← Já tenho conta, entrar</button>
         </sc-if>
       </div>
     </div>
@@ -94,7 +115,8 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { modo: 'entrar', email: '', senha: '', senha2: '', erro: '', aviso: '', ocupado: false, tokenRecuperacao: '' };
+  state = { modo: 'entrar', email: '', senha: '', senha2: '', erro: '', aviso: '', ocupado: false, tokenRecuperacao: '',
+    erroEmail: '', erroSenha: '', erroSenha2: '', erroGoogle: '' };
 
   componentDidMount() {
     // Link de recuperação do e-mail: o GoTrue volta com #access_token=…&type=recovery.
@@ -120,7 +142,18 @@ class Component extends DCLogic {
   }
 
   _irPara(modo) {
-    this.setState({ modo, erro: '', aviso: '', senha: '', senha2: '', ocupado: false });
+    this.setState({ modo, erro: '', aviso: '', senha: '', senha2: '', ocupado: false,
+      erroEmail: '', erroSenha: '', erroSenha2: '', erroGoogle: '' });
+  }
+
+  // C9: foca o 1º campo do modo ao abrir (autofocus não re-dispara em SPA;
+  // ref + focus() uma vez por modo).
+  _refFoco(el, modoDoCampo) {
+    if (!el) return;
+    if (modoDoCampo === 'senha' && this.state.modo !== 'novaSenha') return; // e-mail é o 1º nos demais modos
+    if (this._focoModo === this.state.modo) return;
+    this._focoModo = this.state.modo;
+    try { el.focus(); } catch (_) {}
   }
 
   async _entrar() {
@@ -146,12 +179,25 @@ class Component extends DCLogic {
   _google() {
     const App = window.PipocaApp;
     if (!App || typeof App.entrarComGoogle !== 'function' || !App.entrarComGoogle()) {
-      this.setState({ erro: 'Login com Google indisponível agora. Entre com e-mail e senha.' });
+      // C10 (UI-A30): a falha aparece SOB o botão Google (onde o dedo está).
+      this.setState({ erroGoogle: 'Login com Google indisponível agora. Entre com e-mail e senha.' });
       return;
     }
     // App.entrarComGoogle() redireciona o navegador ao consentimento; o retorno
     // (tokens no fragmento) é assentado no boot. Nada mais a fazer aqui.
-    this.setState({ ocupado: true, erro: '', aviso: '' });
+    this.setState({ ocupado: true, erro: '', aviso: '', erroGoogle: '' });
+  }
+
+  // C10: o "G" oficial multicolor (guideline de marca), inline por ref — sem fetch.
+  _injetarLogoGoogle(el) {
+    if (!el || el._k) return;
+    el._k = true;
+    el.innerHTML = "<svg viewBox='0 0 48 48' width='20' height='20' xmlns='http://www.w3.org/2000/svg'>"
+      + "<path fill='#EA4335' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/>"
+      + "<path fill='#4285F4' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/>"
+      + "<path fill='#FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/>"
+      + "<path fill='#34A853' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/>"
+      + "</svg>";
   }
 
   async _criar() {
@@ -159,9 +205,10 @@ class Component extends DCLogic {
     const App = window.PipocaApp;
     if (!App || !App.criarConta) { this.setState({ erro: 'App indisponível. Recarregue a página.' }); return; }
     const senha = this.state.senha || '';
-    if (senha.length < 6) { this.setState({ erro: 'A senha precisa de pelo menos 6 caracteres.' }); return; }
-    if (senha !== this.state.senha2) { this.setState({ erro: 'As senhas não conferem — digite a mesma nas duas caixas.' }); return; }
-    this.setState({ ocupado: true, erro: '', aviso: '' });
+    // C9: o erro aparece no campo culpado (aria-describedby), não num aviso longe.
+    if (senha.length < 6) { this.setState({ erroSenha: 'Precisa de pelo menos 6 caracteres.', erroSenha2: '' }); return; }
+    if (senha !== this.state.senha2) { this.setState({ erroSenha2: 'Não conferem — digite a mesma senha aqui.', erroSenha: '' }); return; }
+    this.setState({ ocupado: true, erro: '', aviso: '', erroSenha: '', erroSenha2: '' });
     const r = await App.criarConta(this.state.email, senha);
     if (!r || !r.ok) {
       this.setState({ ocupado: false, erro: (r && r.erro) || 'Não foi possível criar a conta. Tente de novo.' });
@@ -182,8 +229,8 @@ class Component extends DCLogic {
     const App = window.PipocaApp;
     if (!App || !App.recuperarSenha) { this.setState({ erro: 'App indisponível. Recarregue a página.' }); return; }
     const email = (this.state.email || '').trim();
-    if (!email || email.indexOf('@') < 0) { this.setState({ erro: 'Conte o e-mail da conta para enviarmos o link.' }); return; }
-    this.setState({ ocupado: true, erro: '', aviso: '' });
+    if (!email || email.indexOf('@') < 0) { this.setState({ erroEmail: 'Conte o e-mail da conta para enviarmos o link.' }); return; }
+    this.setState({ ocupado: true, erro: '', aviso: '', erroEmail: '' });
     await App.recuperarSenha(email);
     // SEMPRE neutro: não revela se a conta existe.
     this.setState({ modo: 'entrar', ocupado: false, senha: '',
@@ -195,9 +242,9 @@ class Component extends DCLogic {
     const App = window.PipocaApp;
     if (!App || !App.redefinirSenha) { this.setState({ erro: 'App indisponível. Recarregue a página.' }); return; }
     const senha = this.state.senha || '';
-    if (senha.length < 6) { this.setState({ erro: 'A nova senha precisa de pelo menos 6 caracteres.' }); return; }
-    if (senha !== this.state.senha2) { this.setState({ erro: 'As senhas não conferem — digite a mesma nas duas caixas.' }); return; }
-    this.setState({ ocupado: true, erro: '', aviso: '' });
+    if (senha.length < 6) { this.setState({ erroSenha: 'Precisa de pelo menos 6 caracteres.', erroSenha2: '' }); return; }
+    if (senha !== this.state.senha2) { this.setState({ erroSenha2: 'Não conferem — digite a mesma senha aqui.', erroSenha: '' }); return; }
+    this.setState({ ocupado: true, erro: '', aviso: '', erroSenha: '', erroSenha2: '' });
     const r = await App.redefinirSenha(this.state.tokenRecuperacao, senha);
     if (!r || !r.ok) {
       this.setState({ ocupado: false, erro: (r && r.erro) || 'Não deu para salvar a nova senha. Peça um novo link.' });
@@ -240,10 +287,19 @@ class Component extends DCLogic {
       email: s.email,
       senha: s.senha,
       senha2: s.senha2,
-      setEmail: (e) => this.setState({ email: e.target.value }),
-      setSenha: (e) => this.setState({ senha: e.target.value }),
-      setSenha2: (e) => this.setState({ senha2: e.target.value }),
-      aoTeclar: (e) => { if (e && e.key === 'Enter') this._acao(); },
+      setEmail: (e) => this.setState({ email: e.target.value, erroEmail: '' }),
+      setSenha: (e) => this.setState({ senha: e.target.value, erroSenha: '' }),
+      setSenha2: (e) => this.setState({ senha2: e.target.value, erroSenha2: '' }),
+      // C9: Enter submete pelo <form> em todos os modos (o onKeyDown por campo saiu).
+      aoSubmeter: (e) => { if (e && e.preventDefault) e.preventDefault(); this._acao(); },
+      refEmail: (el) => this._refFoco(el, 'email'),
+      refSenha: (el) => this._refFoco(el, 'senha'),
+      erroEmail: s.erroEmail || '',
+      temErroEmail: !!s.erroEmail,
+      erroSenha: s.erroSenha || '',
+      temErroSenha: !!s.erroSenha,
+      erroSenha2: s.erroSenha2 || '',
+      temErroSenha2: !!s.erroSenha2,
       mostrarEmail: precisaEmail,
       mostrarSenha: precisaSenha,
       mostrarSenha2: precisaSenha2,
@@ -254,7 +310,8 @@ class Component extends DCLogic {
       temErro: !!s.erro,
       aviso: s.aviso || '',
       temAviso: !!s.aviso && !s.erro,
-      acaoPrimaria: () => this._acao(),
+      // C9 (UI-A26): apagado é DESABILITADO de verdade — clicar não chama o seam.
+      primariaTravada: !pode,
       primariaLabel: s.ocupado ? t.ocupado : t.botao,
       primariaStyle: 'margin-top:22px;width:100%;min-height:52px;border:none;border-radius:16px;'
         + 'font-family:Baloo 2;font-weight:800;font-size:17px;color:#fff;cursor:' + (pode ? 'pointer' : 'not-allowed') + ';'
@@ -263,6 +320,9 @@ class Component extends DCLogic {
           : 'background:#cbb692;opacity:.7;'),
       mostrarGoogle: (m === 'entrar' || m === 'criar'),
       entrarGoogle: () => this._google(),
+      refLogoGoogle: (el) => this._injetarLogoGoogle(el),
+      erroGoogle: s.erroGoogle || '',
+      temErroGoogle: !!s.erroGoogle,
       mostrarCriar: m === 'entrar',
       mostrarRecuperar: m === 'entrar',
       mostrarVoltar: m !== 'entrar',

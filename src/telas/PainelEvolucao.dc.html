@@ -1,4 +1,4 @@
-<!-- PainelEvolucao.dc.html — Painel de evolução da leitura (PC_DASH) · doc fase03-03-02
+﻿<!-- PainelEvolucao.dc.html — Painel de evolução da leitura (PC_DASH) · doc fase03-03-02
      ─────────────────────────────────────────────────────────────
      Tela 8 do brief, atrás do PINGATE. READ-ONLY: nunca grava telemetria.
      Frase calorosa + cartões grandes (minutos/palavras/histórias/engajamento)
@@ -25,61 +25,71 @@
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Evolução da leitura</div>
       </div>
-      <button class="pip-pe-btn" onClick="{{ voltar }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
+      <button class="pip-pe-btn" onClick="{{ voltar }}" style="min-height:44px;border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
     </div>
 
-    <!-- Perfis (quando há mais de um) -->
-    <sc-if value="{{ temVariosPerfis }}" hint-placeholder-val="{{ false }}">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;">
-        <sc-for list="{{ chipsPerfis }}" as="cp" hint-placeholder-count="2">
-          <button class="pip-pe-btn" onClick="{{ cp.onTap }}" style="{{ cp.style }}">{{ cp.nome }}</button>
-        </sc-for>
-      </div>
-    </sc-if>
+    <!-- Perfis (quando há mais de um) — C8: escopo dito antes do toque -->
+    <dc-import name="ChipsPerfil" rotulo="Vendo os dados de:" perfis="{{ perfisChips }}" selecionadoId="{{ chipSelId }}" aoEscolher="{{ escolherChip }}"></dc-import>
 
     <!-- Frase calorosa -->
     <p style="color:#5a4a38;font-family:'Nunito';font-weight:700;font-size:16px;line-height:1.5;margin:0 0 16px;">{{ frase }}</p>
 
-    <!-- Seletor de período -->
-    <div style="display:flex;gap:8px;margin-bottom:16px;">
+    <!-- Seletor de período — C11: seleção com semântica (radiogroup/radio) -->
+    <div role="radiogroup" aria-label="Período" style="display:flex;gap:8px;margin-bottom:16px;">
       <sc-for list="{{ periodos }}" as="p" hint-placeholder-count="3">
-        <button class="pip-pe-btn" onClick="{{ p.onTap }}" style="{{ p.style }}">{{ p.label }}</button>
+        <button class="pip-pe-btn" role="radio" aria-checked="{{ p.sel }}" onClick="{{ p.onTap }}" style="{{ p.style }}">{{ p.label }}</button>
       </sc-for>
     </div>
 
-    <!-- Cartões grandes -->
+    <!-- Cartões grandes (2×2) — C8: engajamento é RÓTULO (fonte menor), não número.
+         C11: cada cartão tem UM nome acessível ("Minutos: 20, de leitura no período"). -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
       <sc-for list="{{ cartoes }}" as="c" hint-placeholder-count="4">
-        <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:16px 18px;">
-          <div style="font-family:'Nunito';font-weight:700;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:#9a8a72;">{{ c.rot }}</div>
-          <div style="font-family:'Baloo 2';font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:4px;">{{ c.valor }}</div>
-          <div style="font-family:'Nunito';font-size:12px;color:#7a6a54;margin-top:2px;">{{ c.sub }}</div>
+        <div role="group" aria-label="{{ c.aria }}" style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:16px 18px;">
+          <div aria-hidden="true" style="font-family:'Nunito';font-weight:700;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:#9a8a72;">{{ c.rot }}</div>
+          <div aria-hidden="true" style="{{ c.valorStyle }}">{{ c.valor }}</div>
+          <div aria-hidden="true" style="font-family:'Nunito';font-size:12px;color:#7a6a54;margin-top:2px;">{{ c.sub }}</div>
         </div>
       </sc-for>
     </div>
 
-    <!-- Estado vazio encorajador -->
+    <!-- Pote em linha própria (C8: não é métrica do período — não disputa a grade) -->
+    <div role="group" aria-label="{{ poteAria }}" style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:16px 18px;margin-top:12px;">
+      <div aria-hidden="true" style="font-family:'Nunito';font-weight:700;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:#9a8a72;">Pote de vaga-lumes</div>
+      <div aria-hidden="true" style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:4px;">
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;">{{ poteValor }}</div>
+        <div style="font-family:'Nunito';font-size:12px;color:#7a6a54;">{{ poteSub }}</div>
+      </div>
+    </div>
+
+    <!-- Estado vazio encorajador (C8: um estado só, coerente com o pote e a coleta) -->
     <sc-if value="{{ vazio }}" hint-placeholder-val="{{ false }}">
-      <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;padding:22px;margin-top:16px;font-family:'Nunito';font-size:14px;color:#7a6a54;line-height:1.6;">A jornada de leitura aparece aqui assim que a primeira história for lida. Tudo bem começar devagar — o ritmo é da criança. 🌱</div>
+      <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;padding:22px;margin-top:16px;font-family:'Nunito';font-size:14px;color:#7a6a54;line-height:1.6;">{{ vazioTexto }}</div>
     </sc-if>
 
     <!-- Gráficos (SVG via ref + _inject; estáticos) -->
     <sc-if value="{{ temGraficos }}" hint-placeholder-val="{{ false }}">
+      <!-- C11: cada gráfico ganha aria-label no SVG e uma tabela textual oculta
+           (.pip-sr-only) com os valores — o leitor de tela lê os números de verdade -->
       <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:18px;margin-top:16px;">
         <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3a2c20;margin-bottom:8px;">Minutos por dia</div>
-        <div ref="{{ refMinutos }}" style="width:100%;"></div>
+        <div ref="{{ refMinutos }}" aria-hidden="true" style="width:100%;"></div>
+        <div class="pip-sr-only">{{ tabelaMinutos }}</div>
       </div>
       <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:18px;margin-top:12px;">
         <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3a2c20;margin-bottom:8px;">Palavras por dia</div>
-        <div ref="{{ refPalavras }}" style="width:100%;"></div>
+        <div ref="{{ refPalavras }}" aria-hidden="true" style="width:100%;"></div>
+        <div class="pip-sr-only">{{ tabelaPalavras }}</div>
       </div>
       <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:18px;margin-top:12px;">
         <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3a2c20;margin-bottom:8px;">Histórias por semana</div>
-        <div ref="{{ refHistorias }}" style="width:100%;"></div>
+        <div ref="{{ refHistorias }}" aria-hidden="true" style="width:100%;"></div>
+        <div class="pip-sr-only">{{ tabelaHistorias }}</div>
       </div>
       <div style="background:var(--pip-creme,#fffaf0);border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:18px;margin-top:12px;">
         <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3a2c20;margin-bottom:8px;">Presença da leitura, dia a dia</div>
-        <div ref="{{ refEngajamento }}" style="width:100%;"></div>
+        <div ref="{{ refEngajamento }}" aria-hidden="true" style="width:100%;"></div>
+        <div class="pip-sr-only">Curva da presença de leitura dia a dia — o resumo em palavras está no cartão de engajamento.</div>
       </div>
     </sc-if>
 
@@ -89,7 +99,7 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { perfis: [], perfilId: null, eventos: [], economia: { vagalumes: 0, poupado: 0 }, periodo: 'semana', carregando: true };
+  state = { perfis: [], perfilId: null, eventos: [], economia: { vagalumes: 0, poupado: 0 }, coleta: true, periodo: 'semana', carregando: true };
 
   async componentDidMount() {
     const App = window.PipocaApp;
@@ -108,13 +118,20 @@ class Component extends DCLogic {
     // UX por perfil: o pote entra no painel — saldo da criança do chip
     // (lerPrefsPerfil: ativa → vivo; senão → save).
     let economia = { vagalumes: 0, poupado: 0 };
+    // C8 (UI-A06): a coleta da criança do chip muda o texto do vazio — com o
+    // registro desligado, a promessa "aparece na 1ª história" seria mentira.
+    let coleta = true;
     try {
-      if (App && App.lerPrefsPerfil) economia = (await App.lerPrefsPerfil(perfilId)).economia || economia;
+      if (App && App.lerPrefsPerfil) {
+        const prefs = await App.lerPrefsPerfil(perfilId);
+        economia = prefs.economia || economia;
+        coleta = prefs.coletaTelemetria !== false;
+      }
     } catch (_) {}
     try {
       const eventos = App && App.repo ? await App.repo.carregarTelemetria(perfilId) : [];
-      this.setState({ perfilId, eventos: eventos || [], economia, carregando: false });
-    } catch (_) { this.setState({ perfilId, eventos: [], economia, carregando: false }); }
+      this.setState({ perfilId, eventos: eventos || [], economia, coleta, carregando: false });
+    } catch (_) { this.setState({ perfilId, eventos: [], economia, coleta, carregando: false }); }
   }
 
   _inject(el, html) { if (el && el._k !== html) { el.innerHTML = html; el._k = html; } }
@@ -167,6 +184,14 @@ class Component extends DCLogic {
       + "</svg>";
   }
 
+  // C11: versão em TEXTO do gráfico para o leitor de tela (só os dias com valor;
+  // vazio → frase calma). Rótulos vêm de Canon.agregados (MM-DD).
+  _tabelaTexto(pontos, unidade) {
+    const comValor = (pontos || []).filter((p) => p.valor > 0);
+    if (!comValor.length) return 'Sem registros neste período.';
+    return 'Valores: ' + comValor.map((p) => p.rotulo + ': ' + p.valor + ' ' + unidade).join('; ') + '.';
+  }
+
   // Rótulo caloroso do engajamento (nunca nota/percentual).
   _rotuloEngajamento(media, diasAtivos) {
     if (!diasAtivos) return 'começando';
@@ -192,46 +217,66 @@ class Component extends DCLogic {
     const perfil = s.perfis.find((p) => p.id === s.perfilId) || null;
     const nome = perfil ? perfil.nome : 'a criança';
     const periodoTxt = s.periodo === 'semana' ? 'Nesta semana' : (s.periodo === 'mes' ? 'Neste mês' : 'Até aqui');
-    const temDados = resumo.minutos > 0 || resumo.palavras > 0 || resumo.historias > 0;
+    // C8 (UI-A01): "teve leitura" também quando só há dias ativos — nunca dizer
+    // "ainda não teve leitura" ao lado de "1 dia ativo".
+    const temDados = resumo.minutos > 0 || resumo.palavras > 0 || resumo.historias > 0 || resumo.diasAtivos > 0;
     const frase = !s.perfilId
       ? 'Crie um perfil para acompanhar a leitura por aqui.'
       : (temDados
         ? periodoTxt + ', ' + nome + ' leu ' + resumo.historias + (resumo.historias === 1 ? ' história' : ' histórias')
           + ' e ' + resumo.palavras + ' palavras 🌱'
         : periodoTxt + ' ainda não teve leitura — tudo bem, o ritmo varia. 🌙');
+    // C8 (UI-A06): com a coleta desligada, o vazio diz a verdade (nada novo entra
+    // aqui) em vez de prometer a jornada; o pote segue vivo nos dois casos.
+    const vazioTexto = s.coleta
+      ? 'A jornada de leitura aparece aqui assim que a primeira história for lida. Tudo bem começar devagar — o ritmo é da criança. O pote continua aqui: ✨ ' + s.economia.vagalumes + '. 🌱'
+      : 'Você desligou o registro do progresso para ' + nome + ' (em Privacidade) — nada novo entra aqui. O pote segue contando: ✨ ' + s.economia.vagalumes + '. 🌙';
 
-    const chipBase = 'min-height:38px;border-radius:999px;border:2px solid;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;padding:6px 16px;';
+    const chipBase = 'min-height:44px;border-radius:999px;border:2px solid;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;padding:6px 16px;'; // C12: ≥44
     const chipSel = 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;';
     const chipOff = 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;';
 
+    // C8 (UI-A03): valor numérico em 26px; o engajamento é RÓTULO, em fonte de
+    // texto menor — nunca disputa o slot dos números.
+    const valorNum = 'font-family:\'Baloo 2\';font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:4px;';
+    const valorRotulo = 'font-family:\'Nunito\';font-weight:800;font-size:17px;color:#3a2c20;line-height:1.3;margin-top:8px;';
+
     return {
       frase,
-      temVariosPerfis: s.perfis.length > 1,
-      chipsPerfis: s.perfis.map((p) => ({
-        nome: p.nome,
-        onTap: () => this._carregar(p.id),
-        style: chipBase + (p.id === s.perfilId ? chipSel : chipOff),
-      })),
+      vazioTexto,
+      // C8: chips componentizados (ChipsPerfil) com rótulo de escopo.
+      perfisChips: s.perfis,
+      chipSelId: s.perfilId || '',
+      escolherChip: (id) => this._carregar(id),
       periodos: [
         { id: 'semana', label: 'Semana' },
         { id: 'mes', label: 'Mês' },
         { id: 'tudo', label: 'Tudo' },
       ].map((p) => ({
         label: p.label,
+        sel: s.periodo === p.id, // C11: seleção com semântica, não só cor
         onTap: () => this.setState({ periodo: p.id }),
         style: chipBase + (s.periodo === p.id ? chipSel : chipOff),
       })),
       cartoes: [
-        { rot: 'Minutos', valor: String(resumo.minutos), sub: 'de leitura no período' },
-        { rot: 'Palavras', valor: String(resumo.palavras), sub: 'lidas no portão' },
-        { rot: 'Histórias', valor: String(resumo.historias), sub: 'concluídas até o fim' },
+        { rot: 'Minutos', valor: String(resumo.minutos), sub: 'de leitura no período', valorStyle: valorNum },
+        { rot: 'Palavras', valor: String(resumo.palavras), sub: 'lidas no portão', valorStyle: valorNum },
+        { rot: 'Histórias', valor: String(resumo.historias), sub: 'concluídas até o fim', valorStyle: valorNum },
+        // Rótulo caloroso, nunca nota/percentual (decisão de produto — manter).
         { rot: 'Engajamento', valor: this._rotuloEngajamento(engMedia, resumo.diasAtivos),
           sub: resumo.diasAtivos + (resumo.diasAtivos === 1 ? ' dia ativo' : ' dias ativos')
-            + (resumo.sequenciaDias > 1 ? ' · ' + resumo.sequenciaDias + ' seguidos' : '') },
-        // UX por perfil: saldo do pote no dashboard (sempre atual, não por período).
-        { rot: 'Pote de vaga-lumes', valor: '✨ ' + s.economia.vagalumes,
-          sub: s.economia.poupado + (s.economia.poupado === 1 ? ' guardado p/ o sonho' : ' guardados p/ o sonho') },
-      ],
+            + (resumo.sequenciaDias > 1 ? ' · ' + resumo.sequenciaDias + ' seguidos' : ''),
+          valorStyle: valorRotulo },
+      ].map((c) => Object.assign(c, { aria: c.rot + ': ' + c.valor + ', ' + c.sub })), // C11
+      // UX por perfil: saldo do pote no dashboard — linha própria, porque é de
+      // SEMPRE (não do período) e não disputa a grade das métricas (UI-A02).
+      poteValor: '✨ ' + s.economia.vagalumes,
+      poteSub: s.economia.poupado + (s.economia.poupado === 1 ? ' guardado p/ o sonho' : ' guardados p/ o sonho') + ' · saldo de sempre, não do período',
+      poteAria: 'Pote de vaga-lumes: ' + s.economia.vagalumes + ' no pote, ' + s.economia.poupado + ' guardados para o sonho (saldo de sempre, não do período)',
+      // C11: tabela textual oculta com os valores reais dos gráficos.
+      tabelaMinutos: this._tabelaTexto(series.minutosPorDia, 'minutos'),
+      tabelaPalavras: this._tabelaTexto(series.palavrasPorDia, 'palavras'),
+      tabelaHistorias: this._tabelaTexto(series.historiasPorSemana, 'histórias'),
       vazio: !s.carregando && !temDados,
       temGraficos: temDados,
       refMinutos: (el) => this._grafico(el, this._svgBarras(series.minutosPorDia, '#7a9a5b')),

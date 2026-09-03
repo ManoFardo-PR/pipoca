@@ -1,11 +1,12 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-01T17:03:04.345Z · branch `28_08_26` · HEAD `afbd0d9`
-- Progresso: **24/59** passos concluídos
-- Próximo passo: **C0** — Criar branch onda-C-bundle-app a partir de 28_08_26
-- Última verificação: ✅ verde em 2026-09-01T17:00:24.900Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
+- Gerado em: 2026-09-03T13:16:41.821Z · branch `onda-E-edge-dados` · HEAD `40d726c`
+- Progresso: **50/59** passos concluídos
+- Próximo passo: nenhum disponível
+- Última verificação: ✅ verde em 2026-09-03T13:02:56.381Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ árvore suja (1 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ pipoca.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/app/bridge.ts, src/dados (rebuild pendente)
   - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
 ## Onda P — Preparação · 3/3 · branch `28_08_26` · —
@@ -47,47 +48,47 @@
 | B11 | [Admin: controles, navegação, vocabulário, erros](onda-B-cru-ux/B11-admin-controles-e-copy.md) | [✓] concluída | 2026-09-01 | `240fab7` |
 | B-M3 | Merge da trilha admin em 28_08_26 (vai ao ar) | [✓] concluída | 2026-09-01 | `3d1c4e2` |
 
-## Onda C — Bundle do app: histórias, avatars, cuidador · 0/13 · branch `onda-C-bundle-app` · BUNDLE app (+ admin)
+## Onda C — Bundle do app: histórias, avatars, cuidador · 13/13 · branch `onda-C-bundle-app` · BUNDLE app (+ admin)
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
-| C0 | Criar branch onda-C-bundle-app a partir de 28_08_26 | [ ] pendente |  |  |
-| C1 | [Core de histórias: só completas, agrupar por dia](onda-C-bundle-app/C1-core-historias-filtro-e-agrupamento.md) | [ ] pendente |  |  |
-| C2 | [Estante de histórias digna](onda-C-bundle-app/C2-estante-de-historias.md) | [ ] pendente |  |  |
-| C3 | [Remover CartaoHistoria e exports mortos](onda-C-bundle-app/C3-cartao-historia-e-exports.md) | [ ] pendente |  |  |
-| C4 | [Canon.avatares: tabela única no core](onda-C-bundle-app/C4-canon-avatares.md) | [ ] pendente |  |  |
-| C5 | [Render por emoji nas 5 telas; cenas via bridge](onda-C-bundle-app/C5-render-emoji-e-cenas.md) | [ ] pendente |  |  |
-| C6 | [Fluxo do cuidador: pós-PIN → hub; Usar este; menu](onda-C-bundle-app/C6-fluxo-cuidador-hub-e-usar-este.md) | [ ] pendente |  |  |
-| C7 | [UI de cenários liberados na Regras](onda-C-bundle-app/C7-cenarios-liberados-ui.md) ∥ | [ ] pendente |  |  |
-| C8 | [T8 coerente; chips com escopo; T15 com nome](onda-C-bundle-app/C8-t8-coerente-e-chips-com-escopo.md) ∥ | [ ] pendente |  |  |
-| C9 | [Formulários honestos: disabled, form/Enter, labels](onda-C-bundle-app/C9-formularios-honestos.md) | [ ] pendente |  |  |
-| C10 | [Login: Google reconhecível, erro perto do gesto](onda-C-bundle-app/C10-login-polish.md) | [ ] pendente |  |  |
-| C11 | [ARIA nas telas adultas](onda-C-bundle-app/C11-aria-telas-adultas.md) | [ ] pendente |  |  |
-| C12 | [Fechamento C: build:app + build:admin → e2e → merge](onda-C-bundle-app/C12-fechamento-onda-C.md) | [ ] pendente |  |  |
+| C0 | Criar branch onda-C-bundle-app a partir de 28_08_26 | [✓] concluída | 2026-09-01 | `8807e4f` |
+| C1 | [Core de histórias: só completas, agrupar por dia](onda-C-bundle-app/C1-core-historias-filtro-e-agrupamento.md) | [✓] concluída | 2026-09-01 | `582a06a` |
+| C2 | [Estante de histórias digna](onda-C-bundle-app/C2-estante-de-historias.md) | [✓] concluída | 2026-09-01 | `0d799da` |
+| C3 | [Remover CartaoHistoria e exports mortos](onda-C-bundle-app/C3-cartao-historia-e-exports.md) | [✓] concluída | 2026-09-01 | `9bb3d6d` |
+| C4 | [Canon.avatares: tabela única no core](onda-C-bundle-app/C4-canon-avatares.md) | [✓] concluída | 2026-09-01 | `845c7bf` |
+| C5 | [Render por emoji nas 5 telas; cenas via bridge](onda-C-bundle-app/C5-render-emoji-e-cenas.md) | [✓] concluída | 2026-09-01 | `88979ce` |
+| C6 | [Fluxo do cuidador: pós-PIN → hub; Usar este; menu](onda-C-bundle-app/C6-fluxo-cuidador-hub-e-usar-este.md) | [✓] concluída | 2026-09-01 | `32a7e3c` |
+| C7 | [UI de cenários liberados na Regras](onda-C-bundle-app/C7-cenarios-liberados-ui.md) ∥ | [✓] concluída | 2026-09-01 | `cfdba65` |
+| C8 | [T8 coerente; chips com escopo; T15 com nome](onda-C-bundle-app/C8-t8-coerente-e-chips-com-escopo.md) ∥ | [✓] concluída | 2026-09-01 | `8175280` |
+| C9 | [Formulários honestos: disabled, form/Enter, labels](onda-C-bundle-app/C9-formularios-honestos.md) | [✓] concluída | 2026-09-01 | `0904744` |
+| C10 | [Login: Google reconhecível, erro perto do gesto](onda-C-bundle-app/C10-login-polish.md) | [✓] concluída | 2026-09-01 | `72632f0` |
+| C11 | [ARIA nas telas adultas](onda-C-bundle-app/C11-aria-telas-adultas.md) | [✓] concluída | 2026-09-01 | `8f5a3d0` |
+| C12 | [Fechamento C: build:app + build:admin → e2e → merge](onda-C-bundle-app/C12-fechamento-onda-C.md) | [✓] concluída | 2026-09-02 | `e8827f5` |
 
-## Onda D — Bundle app + admin: sync, faxina, CI · 0/10 · branch `onda-D-bundle-app-admin` · BUNDLE app + admin
-
-| Passo | Título | Status | Data | Commit |
-|---|---|---|---|---|
-| D0 | Criar branch onda-D-bundle-app-admin a partir de 28_08_26 | [ ] pendente |  |  |
-| D7 | [e2e portáteis (sem caminhos da máquina)](onda-D-bundle-app-admin/D7-e2e-portateis.md) | [ ] pendente |  |  |
-| D8 | [CI: typecheck → testes → build → bundle-check → e2e](onda-D-bundle-app-admin/D8-ci-workflow.md) | [ ] pendente |  |  |
-| D1 | [Leitura híbrida do espelho e desempate (D-07)](onda-D-bundle-app-admin/D1-leitura-hibrida-e-desempate.md) | [ ] pendente |  |  |
-| D2 | [Retry e sinal de falha no push (D-06)](onda-D-bundle-app-admin/D2-retry-e-telemetria-do-push.md) | [ ] pendente |  |  |
-| D3 | [Chave legada (D-21) e ciclos type-only](onda-D-bundle-app-admin/D3-chave-legada-e-tipos.md) | [ ] pendente |  |  |
-| D4 | [Remoção segura de mortos](onda-D-bundle-app-admin/D4-remover-mortos.md) | [ ] pendente |  |  |
-| D5 | [Ramo firebase, .agents/ e guia do código](onda-D-bundle-app-admin/D5-firebase-agents-e-guia.md) | [ ] pendente |  |  |
-| D6 | [Branches, .gitignore, post-merge.sh](onda-D-bundle-app-admin/D6-branches-gitignore-hooks.md) | [ ] pendente |  |  |
-| D9 | [Fechamento D: build:all → CI verde → merge](onda-D-bundle-app-admin/D9-fechamento-onda-D.md) | [ ] pendente |  |  |
-
-## Onda E — Edge e dados · 0/8 · branch `onda-E-edge-dados` · BUNDLE app + EDGE + dados
+## Onda D — Bundle app + admin: sync, faxina, CI · 10/10 · branch `onda-D-bundle-app-admin` · BUNDLE app + admin
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
-| E0 | Criar branch onda-E-edge-dados a partir de 28_08_26 | [ ] pendente |  |  |
-| E1 | [Pacote v1.1: sentimento e sentido das fichas](onda-E-edge-dados/E1-pacote-v1-1-sentimentos.md) | [ ] pendente |  |  |
-| E2 | [Paridade cliente↔edge (script + guardrails + gramática)](onda-E-edge-dados/E2-paridade-cliente-edge.md) | [ ] pendente |  |  |
-| E3 | [Prompt na edge; aposentar proxy-ia; redeploy em 2 passos](onda-E-edge-dados/E3-prompt-na-edge-e-proxy-ia.md) | [ ] pendente |  |  |
+| D0 | Criar branch onda-D-bundle-app-admin a partir de 28_08_26 | [✓] concluída | 2026-09-02 | `a631701` |
+| D7 | [e2e portáteis (sem caminhos da máquina)](onda-D-bundle-app-admin/D7-e2e-portateis.md) | [✓] concluída | 2026-09-03 | `7eb64b5` |
+| D8 | [CI: typecheck → testes → build → bundle-check → e2e](onda-D-bundle-app-admin/D8-ci-workflow.md) | [✓] concluída | 2026-09-03 | `f9c3f2b` |
+| D1 | [Leitura híbrida do espelho e desempate (D-07)](onda-D-bundle-app-admin/D1-leitura-hibrida-e-desempate.md) | [✓] concluída | 2026-09-03 | `3655179` |
+| D2 | [Retry e sinal de falha no push (D-06)](onda-D-bundle-app-admin/D2-retry-e-telemetria-do-push.md) | [✓] concluída | 2026-09-03 | `7d15658` |
+| D3 | [Chave legada (D-21) e ciclos type-only](onda-D-bundle-app-admin/D3-chave-legada-e-tipos.md) | [✓] concluída | 2026-09-03 | `2c2e9cc` |
+| D4 | [Remoção segura de mortos](onda-D-bundle-app-admin/D4-remover-mortos.md) | [✓] concluída | 2026-09-03 | `5198d60` |
+| D5 | [Ramo firebase, .agents/ e guia do código](onda-D-bundle-app-admin/D5-firebase-agents-e-guia.md) | [✓] concluída | 2026-09-03 | `8c93b63` |
+| D6 | [Branches, .gitignore, post-merge.sh](onda-D-bundle-app-admin/D6-branches-gitignore-hooks.md) | [✓] concluída | 2026-09-03 | `fc66881` |
+| D9 | [Fechamento D: build:all → CI verde → merge](onda-D-bundle-app-admin/D9-fechamento-onda-D.md) | [✓] concluída | 2026-09-03 | `61af9da` |
+
+## Onda E — Edge e dados · 3/8 · branch `onda-E-edge-dados` · BUNDLE app + EDGE + dados
+
+| Passo | Título | Status | Data | Commit |
+|---|---|---|---|---|
+| E0 | Criar branch onda-E-edge-dados a partir de 28_08_26 | [✓] concluída | 2026-09-03 | `b5faaf5` |
+| E1 | [Pacote v1.1: sentimento e sentido das fichas](onda-E-edge-dados/E1-pacote-v1-1-sentimentos.md) | [✓] concluída | 2026-09-03 | `c394af8` |
+| E2 | [Paridade cliente↔edge (script + guardrails + gramática)](onda-E-edge-dados/E2-paridade-cliente-edge.md) | [✓] concluída | 2026-09-03 | `f53697c` |
+| E3 | [Prompt na edge; aposentar proxy-ia; redeploy em 2 passos](onda-E-edge-dados/E3-prompt-na-edge-e-proxy-ia.md) | […] em andamento | 2026-09-03 |  |
 | E4 | [Manifesto de cenários; id único; fetches derivados](onda-E-edge-dados/E4-manifesto-de-cenarios.md) | [ ] pendente |  |  |
 | E5 | [Galeria da T3 honesta; retrato; SVG sem cópia](onda-E-edge-dados/E5-galeria-t3-honesta.md) | [ ] pendente |  |  |
 | E6 | [Pipeline de autoria: lints no CI, guia, anexos](onda-E-edge-dados/E6-pipeline-de-autoria.md) | [ ] pendente |  |  |

@@ -11,16 +11,9 @@
  * CHAMA: node server.js, playwright-core; dirige window.PipocaApp (setState a11y).
  * RODA POR: `node tests/e2e/sondar-a11y.mjs`
  */
-import { createRequire } from "node:module";
-import { spawn } from "node:child_process";
 import { mkdirSync } from "node:fs";
-import net from "node:net";
 import path from "node:path";
-
-const require = createRequire(import.meta.url);
-const PW_CORE = process.env.PW_CORE || "C:/Users/mfard/AppData/Local/npm-cache/_npx/705bc6b22212b352/node_modules/playwright-core";
-const EXEC = process.env.PW_CHROME || "C:/Users/mfard/AppData/Local/ms-playwright/chromium-1223/chrome-win64/chrome.exe";
-const { chromium } = require(PW_CORE);
+import { chromium, executavelChromium, bootServer } from "./_harness.mjs";
 
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf(k); return i >= 0 && argv[i + 1] ? argv[i + 1] : d; };
@@ -32,26 +25,13 @@ mkdirSync(OUT, { recursive: true });
 let passou = 0, falhou = 0;
 const assert = (cond, msg) => { if (cond) { console.log(`  ✓ ${msg}`); passou++; } else { console.error(`  ✗ ${msg}`); falhou++; } };
 
-function esperarPorta(port, timeoutMs = 15000) {
-  const inicio = Date.now();
-  return new Promise((resolve, reject) => {
-    const tentar = () => {
-      const s = net.connect(port, "localhost");
-      s.on("connect", () => { s.end(); resolve(); });
-      s.on("error", () => { s.destroy(); if (Date.now() - inicio > timeoutMs) reject(new Error("timeout esperando o server")); else setTimeout(tentar, 200); });
-    };
-    tentar();
-  });
-}
-
 const BRANCO = "rgb(255, 255, 255)";
 const lum = (rgb) => { const m = /(\d+),\s*(\d+),\s*(\d+)/.exec(rgb || ""); if (!m) return 1; return (0.2126 * m[1] + 0.7152 * m[2] + 0.0722 * m[3]) / 255; };
 
-const server = spawn("node", ["server.js"], { stdio: "ignore", env: { ...process.env, PORT: String(PORT) } });
+const server = await bootServer(PORT);
 let browser;
 try {
-  await esperarPorta(PORT);
-  browser = await chromium.launch({ headless: true, executablePath: EXEC });
+  browser = await chromium.launch({ headless: true, executablePath: executavelChromium() });
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   await page.addInitScript(() => { window.PIPOCA_CONFIG = { provedor: "local" }; });
   const erros = [];
@@ -141,7 +121,7 @@ try {
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
   await page.waitForTimeout(100);
   const semPin = await page.evaluate(() => window.PipocaApp.estado.tela);
-  if (semPin !== 8) { // 1º uso: cria o PIN pelo portão
+  if (semPin !== 8 && semPin !== 11) { // 1º uso: cria o PIN pelo portão (C6: pós-PIN → 11)
     await page.evaluate(() => { localStorage.removeItem("pipoca.acesso.v1"); window.PipocaApp.abrirPortao(); });
     await page.waitForFunction(() => window.PipocaApp.estado.tela === 1, { timeout: 5000 });
     for (const d of "1234") { await page.locator(`[aria-label="${d}"]`).first().click(); await page.waitForTimeout(40); }
@@ -202,7 +182,10 @@ try {
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
   await page.waitForTimeout(150);
   await page.evaluate(() => { window.PipocaApp.setState({ modoApp: "cuidador", tela: 12 }); });
-  await page.waitForFunction(() => /Perfis/i.test(document.body.innerText), { timeout: 5000 }).catch(() => {});
+  // Texto EXCLUSIVO da T12: /Perfis/ também casa com o menu da T11 (pós-PIN → hub, C6)
+  // e os Tabs corriam antes da T12 montar — o foco morria na troca de DOM.
+  await page.waitForFunction(() => /Cada perfil guarda o próprio pote/i.test(document.body.innerText), { timeout: 5000 }).catch(() => {});
+  await page.waitForTimeout(250); // deixa o anúncio/foco da troca de tela (C11) assentar antes do Tab
   const focoT12 = await tabAte(2);
   assert(focoT12.tag !== "body" && focoT12.outlineStyle === "solid", `T12 (cuidador): Tab mostra anel em <${focoT12.tag}> "${focoT12.rotulo}"`);
   const inputSemOutlineNone = await page.evaluate(() => {

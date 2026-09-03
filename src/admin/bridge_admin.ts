@@ -1,4 +1,4 @@
-/**
+﻿/**
  * [bridge_admin.ts] — junta todos os núcleos canônicos de src/admin num objeto só
  *   e o publica em window.PipocaAdminCanonico para as telas SA_* e o estadoAdmin.js.
  *
@@ -116,7 +116,7 @@ import {
 } from "./flags.js";
 import { modosPadrao } from "../core/modos.js";
 // fase06: fachada do backend trocável (auth remota do operador + espelho da
-// config de IA que o ProxyIA lê server-side). Config "local" → tudo local.
+// config de IA que a edge realizador lê server-side). Config "local" → tudo local.
 import { espelharConfigIA, obterBackend } from "../backend/backend.js";
 import { configDoAmbiente, normalizarConfigBackend } from "../backend/config.js";
 // pós-fase06: espelho remoto de tenants/conteúdo/flags + pull no login do

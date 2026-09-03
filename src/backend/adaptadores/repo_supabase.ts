@@ -177,19 +177,29 @@ export class RepositorioSupabase implements RepositorioPersistencia {
   // retenção remota ser um DELETE por filtro — idempotente, sem tombstones.
 
   async carregarHistorias(perfilId: string): Promise<HistoriaSalva[]> {
+    // D1: a coluna `atualizado_em` viaja junto — vira o carimbo `atualizadoEm`
+    // da mescla entre aparelhos quando o envelope (pré-D1) não o traz.
     const linhas = (await this.req(
-      "/historias?select=dados&perfil_id=eq." + encodeURIComponent(perfilId) + "&order=criada_em.desc",
+      "/historias?select=dados,atualizado_em&perfil_id=eq." + encodeURIComponent(perfilId) + "&order=criada_em.desc",
       "GET"
-    )) as Array<{ dados?: { historia?: unknown } }>;
+    )) as Array<{ dados?: { historia?: unknown }; atualizado_em?: string }>;
     const out: HistoriaSalva[] = [];
     for (const l of Array.isArray(linhas) ? linhas : []) {
       const h = validarHistoriaSalva(l && l.dados ? l.dados.historia : null);
-      if (h !== null) out.push(h);
+      if (h === null) continue;
+      if (h.atualizadoEm === undefined && typeof l.atualizado_em === "string") {
+        const t = Date.parse(l.atualizado_em);
+        if (Number.isFinite(t)) h.atualizadoEm = t;
+      }
+      out.push(h);
     }
     return out;
   }
 
   async salvarHistoria(perfilId: string, historia: HistoriaSalva): Promise<void> {
+    // D1: o upsert grava o carimbo explicitamente (merge-duplicates não tem
+    // trigger de moddatetime — sem isto, `atualizado_em` congelaria no insert).
+    const carimbo = typeof historia.atualizadoEm === "number" ? historia.atualizadoEm : Date.now();
     await this.req(
       "/historias?on_conflict=id",
       "POST",
@@ -198,6 +208,7 @@ export class RepositorioSupabase implements RepositorioPersistencia {
         perfil_id: perfilId,
         favorita: historia.favorita === true,
         criada_em: new Date(historia.criadaEm).toISOString(),
+        atualizado_em: new Date(carimbo).toISOString(),
         dados: { esquema: ESQUEMA_HISTORIAS, historia: { ...historia } },
       }],
       "resolution=merge-duplicates,return=minimal"

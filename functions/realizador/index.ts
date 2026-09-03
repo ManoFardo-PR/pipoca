@@ -1,14 +1,15 @@
-/**
+﻿/**
  * [realizador/index.ts] — Edge Function realizador: a rota edge da GERAÇÃO 2
  *   que roda a CASCATA inteira no servidor (chama o LLM, valida a fidelidade
- *   e devolve o texto realizado); irmã do proxy-ia.
+ *   e devolve o texto realizado).
  *
  * PAPEL: edge (GERAÇÃO 2 — cascata completa no servidor)
  * POR QUE EXISTE: rodar a cascata do fase12-12-04 numa única viagem de rede,
- *   com as chaves pagas fora do cliente; o app manda Pacote + prompt já
- *   montado e o servidor decide provedor/modelo, checa cota, chama a API
+ *   com as chaves pagas fora do cliente; o app manda SÓ o Pacote (E3) e o
+ *   servidor monta o prompt, decide provedor/modelo, checa cota, chama a API
  *   paga, valida a fidelidade e responde.
- * ENTRA: POST JSON { pacote, prompt:{system,user}, temperatura?, tenantId? } +
+ * ENTRA: POST JSON { pacote, tenantId? } (E3; `prompt`/`temperatura` legados
+ *   são aceitos e IGNORADOS na transição — ver ACEITAR_PROMPT_LEGADO) +
  *   header Authorization: Bearer <JWT> (verify_jwt). Secrets do ambiente:
  *   ANTHROPIC_API_KEY/OPENAI_API_KEY/GEMINI_API_KEY/DEEPSEEK_API_KEY,
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY. Lê config_ia/uso_ia.
@@ -37,7 +38,7 @@
  * — detalhe preservado —
  * Pipoca — Realizador (Supabase Edge Function) · fase13-13-03
  * -------------------------------------------------------------
- * A rota edge da GERAÇÃO 2, irmã de `proxy-ia` (mesma disciplina):
+ * A rota edge da GERAÇÃO 2 (a edge da geração 1 foi aposentada no E3):
  * AS CHAVES DOS PROVEDORES VIVEM SÓ AQUI (secrets do ambiente da função):
  *   ANTHROPIC_API_KEY · OPENAI_API_KEY · GEMINI_API_KEY · DEEPSEEK_API_KEY
  * Deploy com verify_jwt: a plataforma rejeita requisições sem bearer válido.
@@ -49,12 +50,13 @@
  * tentativa por provedor; teto global 4 chamadas. O fallback A+ v3 NÃO vive
  * aqui — roda no dispositivo (o fallback não depende do edge, 13-03).
  *
- * Entrada: POST { pacote, prompt: {system, user}, temperatura?, tenantId? }.
- * O prompt vem montado do cliente (determinístico, 100% derivado do Pacote,
- * sem segredo — precedente do proxy-ia, em que o cliente manda o prompt).
+ * Entrada: POST { pacote, tenantId? } (E3). O PROMPT nasce AQUI, 100%
+ * derivado do Pacote (espelho verificado de prompt_template.ts) — uma fonte
+ * de verdade, sem prompt arbitrário do cliente; `prompt`/`temperatura` no
+ * corpo são legado da transição (ignorados; rejeitados no 2º deploy).
  * A VALIDAÇÃO de fidelidade roda aqui: espelho compacto do CANÔNICO
  * `src/core/realizador/validador.ts` + tabela canônica de comprimento do
- * `prompt_template.ts` (mesmo precedente do guardrails-lite do proxy-ia —
+ * `prompt_template.ts` (mesmo precedente do guardrails-lite —
  * o canônico é o do repo; recalibrações lá exigem redeploy daqui).
  * Self-contained: nada importado do repo (Deno); fica FORA de src/ para não
  * entrar no tsc do app.
@@ -80,7 +82,8 @@ function json(obj: unknown, status: number): Response {
   return new Response(JSON.stringify(obj), { status, headers: { ...CORS, "content-type": "application/json" } });
 }
 
-// ── guardrails-lite de SAÍDA (espelho de src/ia/guardrails.ts, como no proxy-ia) ──
+// ── guardrails-lite de SAÍDA (espelho de src/core/seguranca/guardrails.ts, o
+//    canônico; paridade verificada por scripts/paridade-edge.mjs no CI, E2) ──
 const RE_TERMOS = new RegExp(
   "\\b(?:matar|morrer|morte|mortes|sangue|armas?|tiros?|facadas?|terror|pavor|pesadelos?|demonios?|cervejas?|vodka|cigarros?|drogas?|sexo|nudez|apostas?)\\b|\\b(?:assassin|violenc)"
 );
@@ -96,7 +99,7 @@ function bloqueado(texto: string): boolean {
   return RE_TERMOS.test(norm);
 }
 
-// ── infra: PostgREST com service role (config_ia / uso_ia — mesmo desenho do proxy-ia) ──
+// ── infra: PostgREST com service role (config_ia / uso_ia — deny-all p/ cliente) ──
 function cabecalhosServico(chave: string): Record<string, string> {
   return { apikey: chave, Authorization: "Bearer " + chave, "content-type": "application/json" };
 }
@@ -140,7 +143,7 @@ async function lerUso(url: string, chave: string, tenant: string, mes: string): 
 // ── config GLOBAL (SA_IA_GLOBAL): linha reservada 'plataforma:global' em config_ia ──
 // dados = ConfigIaGlobal { modeloPadrao: provedor→modelo|null, cadeiaFallback: provedor[] }
 // A4 (Plan03): o realizador passa a ler o padrão GLOBAL de modelo — a mesma regra de
-// herança do proxy-ia e do admin (src/admin/ia_global.ts). Sem modelo = fail-closed.
+// herança do admin (src/admin/ia_global.ts). Sem modelo = fail-closed.
 interface ConfigIaGlobal {
   modeloPadrao: Record<string, string | null>;
   cadeiaFallback: string[];
@@ -200,6 +203,9 @@ interface Beat {
   papel: string;
   descricao: string;
   corpo: string;
+  /** E1 (aditivos no v1): sentimento (sensacao.registro) e sentido (dominante). */
+  sentimento?: string;
+  sentido?: string;
   relacoes: Array<{ alvo: string; interacao: string }>;
 }
 interface Pacote {
@@ -222,6 +228,189 @@ function pacoteValido(p: unknown): p is Pacote {
   if (!["n1", "n2", "n3", "n4"].includes(r["nivel"] as string)) return false;
   if (!Array.isArray(r["beats"]) || (r["beats"] as unknown[]).length === 0) return false;
   return true;
+}
+
+// ── PROMPT-TEMPLATE — espelho de src/core/realizador/prompt_template.ts (o
+//    canônico; paridade verificada por scripts/paridade-edge.mjs no CI, E3).
+//    E3: o prompt nasce AQUI a partir do pacote — o cliente manda só
+//    {pacote, tenantId?} (uma fonte de verdade; sem prompt arbitrário). ──
+type NivelKey = "n1" | "n2" | "n3" | "n4";
+
+const DESCRICAO_NIVEL: Record<NivelKey, string> = {
+  n1: "Primeiras palavras — sílabas e palavras soltas",
+  n2: "Frases curtas — uma linha",
+  n3: "Pequenos textos — frases ligadas",
+  n4: "Parágrafos — histórias mais longas",
+};
+
+interface ExemploFewShot {
+  entrada: string;
+  saida: string;
+}
+
+const FEWSHOT_POR_NIVEL: Record<NivelKey, ExemploFewShot[]> = {
+  n1: [
+    {
+      entrada: "ELEMENTOS: vagalume → folha → vento · PERSONAGEM: Joana (menina)",
+      saida:
+        "O quintal sussurra segredos, Joana quer ver tudo. A grama fria toca seu pé. Uma luz pisca no fundo, os olhos de Joana seguem. Uma folha desce rodando, o dedo de Joana segue. O vento pula o muro, a pele de Joana sente o fresco. O quintal conta tudo, Joana sente os segredos.",
+    },
+  ],
+  n2: [
+    {
+      entrada: "ELEMENTOS: vagalume → vento → frasco · PERSONAGEM: Joana (menina)",
+      saida:
+        "O quintal sussurra segredos. Joana sente a grama fria, quer ver tudo. Seus olhos seguem o vaga-lume piscando no fundo. Ela chega perto na ponta dos pés, e a faísca entra no pote, vira sua lanterninha. O vento pula o muro e corre, fresco, mexendo em tudo. A pele de Joana arrepia, o cabelo mexe. Ela segura o pote de vidro frio e liso com as duas mãos, espiando o mundo lá dentro.",
+    },
+    {
+      entrada: "ELEMENTOS: folha → frasco → gato → vento · PERSONAGEM: Pietro (menino)",
+      saida:
+        "O quintal sussurra segredos. A grama fria no pé de Pietro faz a vontade de ver tudo. Uma folha solta do galho, desce rodando. O dedo de Pietro acompanha, os olhos dançam. Um pote frio e liso espera na grama. Pietro o segura, espia o mundo. Um gato quieto aparece na cerca, olhos verdes. Pietro silencia, prende a respiração. O gato vê a folha, pula, brincando. O vento pula o muro, corre, fresco. A pele de Pietro arrepia, o cabelo mexe. O quintal continua a sussurrar segredos.",
+    },
+  ],
+  n3: [
+    {
+      entrada: "ELEMENTOS: vento → vagalume → gato → frasco · PERSONAGEM: Pietro (menino)",
+      saida:
+        "O quintal sussurra segredos; a grama fria nos pés de Pietro traz vontade de descobrir. O vento rola pelo muro, corre no quintal, fresco de longe, mexe de leve. Os braços de Pietro arrepiam, o cabelo mexe. No canto escuro, luzinha acende e apaga; vaga-lume pisca devagar como estrela. Os olhos de Pietro seguem a pisca, querendo perto.\n\nNa cerca, gato aparece sem barulho, quieto feito sombra, olhos verdes acesos feito lanternas. Pietro fica em silêncio, prende a respiração, troca olhar com o gato, que espia a luzinha. Então, Pietro vê pote de vidro escondido na grama, frio e liso feito pedra de rio, que entorta o mundo. Ele o segura com as duas mãos, fecha um olho para espiar. A faísca do vaga-lume entra no pote, piscando lá dentro — uma lanterninha viva pra carregar. Pietro agora tem um segredo do quintal, guardado bem perto.",
+    },
+    {
+      entrada: "ELEMENTOS: vagalume → folha → gato → frasco · PERSONAGEM: Pietro (menino)",
+      saida:
+        "O quintal sussurra segredos, um por um. A grama fria nos pés de Pietro traz a vontade de descobrir. No canto escuro, um vaga-lume acende e apaga, estrelinha pra brincar. Os olhos de Pietro seguem a pisca, e ele na ponta dos pés quer chegar perto. A faísca entra no pote de vidro, virando lanterninha viva. Uma folha se solta do galho alto, descendo rodando no ar. O dedo de Pietro acompanha cada volta, sua mão aberta, esperando. Na cerca, um gato aparece sem barulho, quieto feito sombra, olhos verdes acesos. Pietro fica em silêncio, prende a respiração, e troca um olhar demorado. O gato espia a luzinha piscando, movendo a cabeça. Um pote de vidro, frio e liso feito pedra de rio, está na grama, entortando o mundo. Pietro o segura com as duas mãos, fecha um olho e espia, colhendo os segredos do quintal.",
+    },
+  ],
+  n4: [
+    {
+      entrada: "ELEMENTOS: folha → vagalume → frasco · PERSONAGEM: Pietro (menino)",
+      saida:
+        "O quintal sussurra segredos, e a grama fria nos pés de Pietro faz seu coração bater forte de vontade de saber. Do galho alto, uma folha se despede e desce no ar escuro, rodando leve. O dedo de Pietro acompanha as voltas, e sua mão se abre feito ninho, esperando a folha pousar. No canto escuro perto da cerca, uma luzinha acende e apaga, um vaga-lume. Os olhos de Pietro seguem a pisca, e a vontade o move na ponta dos pés, prendendo a respiração, até um pote de vidro na grama. A faísca entra no pote frio e liso, piscando lá dentro, presa e livre, uma lanterninha viva. Pietro o segura com as duas mãos, ergue contra a luz, fecha um olho e espia o mundo que entorta e brilha, pequeno e curvo, e a vontade de saber se colhe no brilho da lanterninha viva.",
+    },
+    {
+      entrada: "ELEMENTOS: frasco → vento → gato → vagalume · PERSONAGEM: Pietro (menino)",
+      saida:
+        "O quintal sussurra segredos para quem vem ver, e a grama fria nos pés descalços de Pietro faz seu coração bater forte de vontade de saber. Ele segura um pote de vidro com as duas mãos, erguendo-o contra a luz, e fecha um olho para espiar o mundo que entorta lá dentro, virando devagar. O pote vazio parece à espera, e Pietro sente a certeza boa de que a noite ainda vai mandar uma coisinha brilhante para morar ali.\n\nO vento chega rolando por cima do muro, balançando a grama e cheirando a terra molhada. A pele dos braços de Pietro arrepia, ele fecha os olhos e respira fundo, deixando o vento passar como se fosse noite. Em cima da cerca, um gato já está sentado, e Pietro fica em silêncio, prendendo a respiração, trocando um olhar demorado e piscando devagar de volta. No canto do quintal, uma luzinha acende e apaga, flutuando. Os olhos de Pietro seguem a pisca, e a vontade de chegar perto o guia, então a faísca roda no ar, encontra o pote e entra devagarinho, piscando quentinha, como quem chega em casa.",
+    },
+  ],
+};
+
+interface PromptRealizador {
+  system: string;
+  user: string;
+}
+
+function rotuloGenero(genero: "m" | "f"): string {
+  return genero === "f" ? "menina" : "menino";
+}
+
+function personalizarExemplo(ex: ExemploFewShot, nomeAlvo: string, generoAlvo: "m" | "f"): ExemploFewShot {
+  const m = ex.entrada.match(/PERSONAGEM:\s*([^()]+?)\s*\((menina|menino)\)/);
+  if (!m) return ex; // sem personagem reconhecível — não mexe
+  const nomeFonte = m[1].trim();
+  const generoFonte: "m" | "f" = m[2] === "menina" ? "f" : "m";
+  const trocar = (s: string): string => {
+    let out = s.replace(new RegExp("\\b" + nomeFonte.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g"), nomeAlvo);
+    if (generoFonte !== generoAlvo) {
+      const pares: Array<[string, string]> = generoAlvo === "m"
+        ? [["menina", "menino"], ["Ela", "Ele"], ["ela", "ele"], ["Dela", "Dele"], ["dela", "dele"]]
+        : [["menino", "menina"], ["Ele", "Ela"], ["ele", "ela"], ["Dele", "Dela"], ["dele", "dela"]];
+      for (const [de, para] of pares) out = out.replace(new RegExp("\\b" + de + "\\b", "g"), para);
+    }
+    return out;
+  };
+  return { entrada: trocar(ex.entrada), saida: trocar(ex.saida) };
+}
+
+function maximoPalavrasDoPacote(pacote: Pacote): number {
+  return MAXIMO_PALAVRAS[pacote.nivel][rodadaDoPacote(pacote) - 1];
+}
+
+function montarPromptRealizador(pacote: Pacote): PromptRealizador {
+  const nivel = pacote.nivel;
+  const nome = pacote.personagem.nome;
+  const genero = rotuloGenero(pacote.personagem.genero);
+  const maximo = maximoPalavrasDoPacote(pacote);
+
+  // ---------- user (MATÉRIA — só o Pacote, já resolvido no nível) ----------
+  const linhasUser: string[] = [];
+  linhasUser.push(`LUGAR: ${pacote.cenario.descricao}`);
+  linhasUser.push(`VOZ DO LUGAR: ${pacote.cenario.voz_do_contador}`);
+  linhasUser.push(`O QUE O LUGAR FAZ SENTIR: ${pacote.cenario.sensacao_no_personagem}`);
+  linhasUser.push(`PERSONAGEM: ${nome} (${genero})`);
+  linhasUser.push("", "ELEMENTOS, NA ORDEM:");
+  pacote.beats.forEach((beat, i) => {
+    linhasUser.push(`${i + 1}. ${beat.objeto} (${beat.papel})`);
+    linhasUser.push(`   O QUE É: ${beat.descricao}`);
+    linhasUser.push(`   CORPO: ${beat.corpo}`);
+    // E1 (ML-5): sentimento/sentido das fichas — matéria aditiva, só quando veio.
+    if (beat.sentimento) linhasUser.push(`   SENTIMENTO: ${beat.sentimento}`);
+    if (beat.sentido) linhasUser.push(`   SENTIDO: ${beat.sentido}`);
+    for (const relacao of beat.relacoes) {
+      linhasUser.push(`   INTERAÇÃO (com ${relacao.alvo}): ${relacao.interacao}`);
+    }
+  });
+
+  // ---------- system (MÉTODO — as 3 leis vivem aqui, D-11.1) ----------
+  const linhasSystem = [
+    "Escreva uma história infantil curta a partir do MATERIAL abaixo.",
+    // Lei 1 — o corpo da criança é o centro.
+    `O corpo de ${nome} guia cada cena: use os gestos dados em CORPO, não invente emoções abstratas.`,
+    // Lei 2 — o cenário é o contador (voz_do_contador + sensacao_no_personagem, D-11.2).
+    "O lugar é o contador: a voz do lugar abre e costura a história.",
+    // Lei 3 — desejo plantado, corpo colhido.
+    "Plante a vontade na abertura; feche colhendo essa vontade no corpo.",
+    // E1 (ML-5) — o sentimento é CLIMA, não rótulo: sem copiar a palavra.
+    ...(pacote.beats.some((b) => b.sentimento || b.sentido)
+      ? ["Use o SENTIMENTO de cada elemento como clima da cena, SEM escrever essa palavra; o SENTIDO diz qual percepção guia (visão, tato, som…)."]
+      : []),
+    // As quatro proibições, parametrizadas pelo Pacote (nunca "Joana" fixo).
+    "NÃO invente acontecimentos, objetos, personagens ou falas.",
+    "NÃO remova nenhum elemento. NÃO mude a ordem dos elementos.",
+    `NÃO troque o nome (${nome}), o gênero (${genero}) ou a idade.`,
+    // Achados do ciclo 1 (herança 3): presente + anáfora.
+    "Escreva no tempo PRESENTE (a história acontece agora), como nos exemplos abaixo.",
+    `Não use "ele" ou "ela" para objetos — repita o nome do objeto.`,
+    `Mantenha o vocabulário do nível ${nivel} (${DESCRICAO_NIVEL[nivel]}) — nem mais simples, nem mais difícil.`,
+  ];
+  if (nivel === "n1") {
+    // Regras de fusão do n1 (achados do ciclo 1 + fase12-12-05).
+    linhasSystem.push(
+      "Nível n1: frases bem curtas, UMA sensação de corpo por elemento.",
+      'Integre a sensação de corpo na frase do evento com "e" — no máximo 2 frases por elemento.',
+      "Repetir o nome do objeto ou da personagem é bem-vindo (repetição coesiva).",
+      "No máximo 1 fragmento exclamativo em todo o texto."
+    );
+  } else {
+    linhasSystem.push(
+      'Uma frase pode unir-se à outra com "e", "mas", "então", "depois". Menos pontos finais, sem frases picadas.'
+    );
+  }
+
+  // Few-shot do nível (D-12.2) — só o nível pedido; exemplo de um envenena o
+  // outro. Parametrizado pela identidade do Pacote (A1/C1): o few-shot passa a
+  // falar do MESMO personagem que se pede — sem prior de nome/gênero conflitante.
+  const exemplos = FEWSHOT_POR_NIVEL[nivel];
+  if (exemplos.length > 0) {
+    linhasSystem.push("", `EXEMPLOS do nível ${nivel} (siga o tom, o ritmo e o comprimento):`);
+    exemplos.forEach((exemploBruto, i) => {
+      const exemplo = personalizarExemplo(exemploBruto, nome, pacote.personagem.genero);
+      linhasSystem.push(`EXEMPLO ${i + 1} — ${exemplo.entrada}`, exemplo.saida, "");
+    });
+  }
+
+  // Eco: instrução AUSENTE quando nulo (12-01 — mais seguro que condicional).
+  if (pacote.eco !== null) {
+    linhasSystem.push(`Termine ecoando ${pacote.eco.abre_com} com as próprias palavras.`);
+  }
+
+  const paragrafosTxt =
+    pacote.restricoes.paragrafos === 1 ? "1 parágrafo" : `${pacote.restricoes.paragrafos} parágrafos`;
+  linhasSystem.push(
+    `Escreva em ${paragrafosTxt} (separados por uma linha em branco). Máximo ${maximo} palavras no total.`,
+    "Devolva só o texto final."
+  );
+
+  return { system: linhasSystem.join("\n"), user: linhasUser.join("\n") };
 }
 
 // ── VALIDADOR — espelho compacto de src/core/realizador/validador.ts (canônico) ──
@@ -279,8 +468,9 @@ function temMarcaDeCorpo(texto: string, nomeNorm: string): boolean {
   return TERMOS_CORPO.some((termo) => toks.includes(norm(termo)));
 }
 
-function rodadaDoPacote(p: Pacote): 1 | 2 | 3 | 4 {
-  return Math.max(1, Math.min(4, p.beats.length - 2)) as 1 | 2 | 3 | 4;
+function rodadaDoPacote(pacote: Pacote): 1 | 2 | 3 | 4 {
+  const r = pacote.beats.length - 2;
+  return (r < 1 ? 1 : r > 4 ? 4 : r) as 1 | 2 | 3 | 4;
 }
 
 interface Veredito {
@@ -494,22 +684,27 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const uid = uidDoJwt(jwt);
   if (!uid) return json({ erro: "nao_autenticado" }, 401);
 
+  // E3 · TRANSIÇÃO: bundles antigos ainda mandam {prompt, temperatura} — a edge
+  // ACEITA e IGNORA (o prompt nasce AQUI, do pacote; uma fonte de verdade).
+  // Depois do flip do bundle (E7), trocar para false e redeployar: o corpo com
+  // `prompt` passa a ser rejeitado (decisão do dono: rejeitar após a transição).
+  const ACEITAR_PROMPT_LEGADO = true;
+
   const corpo = (await req.json().catch(() => null)) as {
     pacote?: unknown;
-    prompt?: { system?: string; user?: string };
-    temperatura?: number;
+    prompt?: unknown; // legado (pré-E3) — ignorado; rejeitado após a transição
+    temperatura?: unknown; // legado — ignorado (o "tom" é decisão do servidor)
     tenantId?: string;
   } | null;
-  if (
-    !corpo || !pacoteValido(corpo.pacote) ||
-    !corpo.prompt || typeof corpo.prompt.system !== "string" || typeof corpo.prompt.user !== "string" ||
-    !corpo.prompt.user.trim()
-  ) {
+  if (!corpo || !pacoteValido(corpo.pacote)) {
+    return json({ erro: "requisicao_invalida" }, 400);
+  }
+  if (!ACEITAR_PROMPT_LEGADO && corpo.prompt !== undefined) {
     return json({ erro: "requisicao_invalida" }, 400);
   }
   const pacote = corpo.pacote;
-  const prompt = { system: corpo.prompt.system, user: corpo.prompt.user };
-  const temperatura = typeof corpo.temperatura === "number" ? corpo.temperatura : 0.4;
+  const prompt = montarPromptRealizador(pacote);
+  const temperatura = 0.4; // fixa no servidor (se houver "tom da casa", vira campo de config_ia)
 
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
   const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
@@ -521,7 +716,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const configEfetiva = config || (await lerConfigIa(SUPABASE_URL, SERVICE_KEY, "plataforma"));
   if (!configEfetiva || !configEfetiva.provedor) return json({ erro: "nao_configurado" }, 503);
 
-  // cota/custo ANTES da chamada (mesma régua do proxy-ia)
+  // cota/custo ANTES da chamada (régua da plataforma)
   const mes = new Date().toISOString().slice(0, 7);
   const uso = await lerUso(SUPABASE_URL, SERVICE_KEY, tenant, mes);
   const cota = Number(configEfetiva.cotaMensal) || 0;

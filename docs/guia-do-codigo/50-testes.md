@@ -1,4 +1,4 @@
-# 50 · testes (e2e + fumaça)
+﻿# 50 · testes (e2e + fumaça)
 
 ← [Mapa geral](00-MAPA-GERAL.md) · [Glossário](90-GLOSSARIO.md)
 
@@ -9,7 +9,8 @@ presença e e2e de navegador. Moram junto do código (`*.test.ts`) e em
 ## Camada 1 · Testes unitários (`*.test.ts`)
 
 Rodam sem rede (injetam provedores/transportes fake). O comando `bun run test`
-encadeia estas 12 suítes, nesta ordem:
+encadeia estas 10 suítes, nesta ordem (D4: `ia.test.ts` saiu com a Geração 1;
+o teste do experimento de fichas saiu com a pasta de experimentos):
 
 1. [`src/core/composicao.test.ts`](../../src/core/composicao.test.ts) — Motor A+ v3.
 2. [`src/core/fichas/fichas.test.ts`](../../src/core/fichas/fichas.test.ts) — contrato de fichas.
@@ -18,18 +19,12 @@ encadeia estas 12 suítes, nesta ordem:
 5. [`src/core/geracao/geracao.test.ts`](../../src/core/geracao/geracao.test.ts) — a costura ponta-a-ponta.
 6. [`src/core/persistencia/persistencia.test.ts`](../../src/core/persistencia/persistencia.test.ts) — repositório.
 7. [`src/core/parciais.test.ts`](../../src/core/parciais.test.ts) — parciais do motor.
-8. [`src/ia/ia.test.ts`](../../src/ia/ia.test.ts) — orquestração keyless (assere: nenhuma chave no cliente).
-9. [`src/backend/backend.test.ts`](../../src/backend/backend.test.ts) — clientes keyless (assere: sem chave de provedor no corpo).
-10. [`src/admin/admin.test.ts`](../../src/admin/admin.test.ts) — plataforma do operador.
-11. [`experimentos/fichas-para-historias/fichas-experimento.test.ts`](../../experimentos/fichas-para-historias/fichas-experimento.test.ts) — o experimento fichas (parte offline).
-12. [`tests/fumaca-presenca-v3.ts`](../../tests/fumaca-presenca-v3.ts) — a fumaça (camada 2, abaixo).
+8. [`src/backend/backend.test.ts`](../../src/backend/backend.test.ts) — clientes keyless (assere: sem chave de provedor no corpo), sync/fila remota.
+9. [`src/admin/admin.test.ts`](../../src/admin/admin.test.ts) — plataforma do operador.
+10. [`tests/fumaca-presenca-v3.ts`](../../tests/fumaca-presenca-v3.ts) — a fumaça (camada 2, abaixo).
 
 > **Cabeçalho conciso**: cada `*.test.ts` leva só uma linha do que cobre + o comando
 > `bun run <caminho>`. Não têm o template grande.
-
-Fora do `bun run test` (rodados à mão, também offline): os testes do experimento
-_beats-para-paragrafos_ — [`gerar-historias.test.ts`](../../experimentos/beats-para-paragrafos/gerar-historias.test.ts)
-e [`avaliar/avaliar-pares.test.ts`](../../experimentos/beats-para-paragrafos/avaliar/avaliar-pares.test.ts).
 
 ## Camada 2 · Fumaça de presença (offline, sem custo)
 
@@ -42,7 +37,9 @@ e [`avaliar/avaliar-pares.test.ts`](../../experimentos/beats-para-paragrafos/ava
 
 Cada runner sobe [`server.js`](../../server.js) e injeta `window.PIPOCA_CONFIG =
 { provedor: "local" }` antes do boot, forçando o backend local — nenhuma chamada
-paga. Config em [`playwright.config.ts`](../../playwright.config.ts).
+paga. O Chromium vem do `playwright-core` (devDependency; `npm run e2e:install`)
+via [`tests/e2e/_harness.mjs`](../../tests/e2e/_harness.mjs) — não há
+`playwright.config.ts` (os runners não usam `@playwright/test`; D4/D7).
 
 | Runner | Comando | Cobre |
 |---|---|---|
@@ -59,4 +56,4 @@ O validador canônico é [`src/core/realizador/validador.ts`](../../src/core/rea
 (`pass = motivos.length === 0`); a edge tem um espelho compacto em
 [`functions/realizador/index.ts`](../../functions/realizador/index.ts). É exercitado
 pelo `realizador.test.ts`, pela e2e da geração 2 e pelo smoke pago (ver
-[60 · scripts e experimentos](60-scripts-e-experimentos.md)).
+[60 · scripts](60-scripts.md)).

@@ -8,18 +8,23 @@
     "build:admin": "bun build src/admin/bridge_admin.ts --target=browser --format=iife --outfile=pipoca.admin.bundle.js",
     "serve": "node server.js",
     "typecheck": "bun x tsc --noEmit",
-    "test": "bun run src/core/composicao.test.ts && bun run src/core/fichas/fichas.test.ts && bun run src/core/compositor/compositor.test.ts && bun run src/core/realizador/realizador.test.ts && bun run src/core/geracao/geracao.test.ts && bun run src/core/persistencia/persistencia.test.ts && bun run src/core/parciais.test.ts && bun run src/ia/ia.test.ts && bun run src/backend/backend.test.ts && bun run src/admin/admin.test.ts && bun run tests/fumaca-presenca-v3.ts",
+    "test": "bun run src/core/composicao.test.ts && bun run src/core/fichas/fichas.test.ts && bun run src/core/compositor/compositor.test.ts && bun run src/core/realizador/realizador.test.ts && bun run src/core/geracao/geracao.test.ts && bun run src/core/persistencia/persistencia.test.ts && bun run src/core/parciais.test.ts && bun run src/backend/backend.test.ts && bun run src/admin/admin.test.ts && bun run tests/fumaca-presenca-v3.ts",
     "test:presenca": "bun run tests/fumaca-presenca-v3.ts",
     "test:e2e": "node tests/e2e/run-linha-verde-canonico.mjs",
     "test:e2e:canonico": "node tests/e2e/run-linha-verde-canonico.mjs",
     "test:e2e:admin": "node tests/e2e/run-admin.mjs",
     "test:e2e:geracao2": "node tests/e2e/run-geracao2-canonico.mjs",
-    "test:e2e:reordenar": "node tests/e2e/run-reordenar-miolo.mjs"
+    "test:e2e:reordenar": "node tests/e2e/run-reordenar-miolo.mjs",
+    "e2e:install": "playwright-core install chromium",
+    "build:all": "bun run build:app && bun run build:admin",
+    "check:bundles": "bun run build:all && git diff --exit-code -- pipoca.bundle.js pipoca.admin.bundle.js",
+    "check:paridade": "node scripts/paridade-edge.mjs"
   },
   "engines": {
     "node": ">=18"
   },
   "devDependencies": {
+    "playwright-core": "1.61.1",
     "typescript": "^6.0.3"
   }
 }

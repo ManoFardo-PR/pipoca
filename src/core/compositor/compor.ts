@@ -151,6 +151,10 @@ export function compor(
       papel: derivarPapel(indice, estado.linha.length),
       descricao: celula(ficha.descricao, nivel, objeto, "descricao"),
       corpo: celula(ficha.sensacao ? ficha.sensacao.corpo : undefined, nivel, objeto, "sensacao.corpo"),
+      // E1 (ML-5): o sentimento (registro) e o sentido (dominante) já escritos
+      // nas fichas viajam para a IA — aditivos, só quando a ficha os tem.
+      ...(ficha.sensacao && ficha.sensacao.registro ? { sentimento: ficha.sensacao.registro } : {}),
+      ...(ficha.sensacao && ficha.sensacao.dominante ? { sentido: ficha.sensacao.dominante } : {}),
       relacoes: vencedoras
         .filter((r) => r.objeto === objeto)
         .map((r) => ({ alvo: r.alvo, interacao: celula(r.interacao, nivel, r.objeto, "interacao") })),

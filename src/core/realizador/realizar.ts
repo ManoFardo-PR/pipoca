@@ -1,4 +1,4 @@
-/**
+﻿/**
  * [realizar.ts] — Porta de entrada do realizador: recebe o Pacote, monta o prompt e
  *   delega à cascata; devolve { texto, paragrafos, veredito, origem, metadados }.
  *
@@ -28,7 +28,7 @@
  * provedor é injetável (12-02); a validação é determinística (12-03); a
  * política de falha é a cascata com fallback A+ v3 (12-04).
  * Em produção, provedor/modelo são decididos no SERVIDOR (precedente
- * `functions/proxy-ia/index.ts:266-270`); `opcoes` plena é para
+ * a edge da geração 1, hoje aposentada); `opcoes` plena é para
  * teste/calibração. Fiação no app e deploy edge são fase 13.
  */
 

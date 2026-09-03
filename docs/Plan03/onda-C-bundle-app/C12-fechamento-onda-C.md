@@ -1,7 +1,6 @@
 # C12 — Fechamento da Onda C: build do app, e2e, screenshots, catálogo
 
-> Status: pendente
-
+> Status: concluída (2026-09-02 · e8827f5)
 **Unidade de deploy:** BUNDLE app. **Depende de:** C1–C11 mergeadas na branch da onda.
 
 ## Objetivo

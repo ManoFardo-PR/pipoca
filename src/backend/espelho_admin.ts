@@ -1,4 +1,4 @@
-/**
+﻿/**
  * [espelho_admin.ts] — Espelho remoto (admin-only) do painel do operador:
  *   upserts/pulls de tenants, conteúdo, flags e config-IA no PostgREST + cliente
  *   KEYLESS da Edge Function admin-chaves-ia.
@@ -248,7 +248,7 @@ export async function puxarAdminDoServidor(
 export const ID_CONFIG_IA_GLOBAL = "plataforma:global";
 
 /**
- * Upsert da config global de IA na linha reservada de `config_ia` (o ProxyIA
+ * Upsert da config global de IA na linha reservada de `config_ia` (a edge realizador
  * lê essa linha server-side para herança de modelo padrão e cadeia de
  * fallback). Recusa payload inválido — inclusive qualquer "chave" (a mesma
  * lei do por-tenant: chave nunca sai do servidor nem entra pelo cliente).

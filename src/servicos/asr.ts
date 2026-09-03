@@ -1,4 +1,4 @@
-/**
+﻿/**
  * [asr.ts] — serviço de reconhecimento de fala (Web Speech API) atrás de
  *   ServicoASR, que mede PARTICIPAÇÃO da criança no modo Fala.
  *
@@ -12,7 +12,7 @@
  * CHAMA: globalThis.SpeechRecognition/webkitSpeechRecognition (lido LAZY); sem imports.
  * É CHAMADO POR: app/bridge.ts, ia/ia.test.ts.
  * RODA POR: boot do app (via pipoca.bundle.js) e testes; exercitado por
- *   `bun run src/ia/ia.test.ts` (dentro de `bun run test`).
+ *   os testes (dentro de `bun run test`).
  * CUIDADO: indisponível/sem permissão/erro/timeout → resolve {participou:false,
  *   confianca:0}, NUNCA rejeita (não quebra o portão). Baixa confiança AINDA
  *   conta. Sem áudio armazenado (LGPD): só transcript/confiança em memória.

@@ -18,9 +18,9 @@
  *   é um entrypoint (nenhum módulo o importa).
  * RODA POR: `bun run test:e2e:canonico`
  * CUIDADO: roda SEMPRE offline — PIPOCA_CONFIG local é injetado ANTES de qualquer
- *   script e vence o pipoca.config.js commitado; depende de caminhos ABSOLUTOS
- *   de máquina (PW_CORE/PW_CHROME em C:/Users/mfard/...), sobrescrevíveis por env,
- *   e do bundle BUILDADO (bun run build:app). Cliente keyless: nenhuma chave de IA.
+ *   script e vence o pipoca.config.js commitado; Chromium via _harness.mjs (D7:
+ *   devDependency playwright-core + `npm run e2e:install`; PW_CORE/PW_CHROME só
+ *   como override) e bundle BUILDADO (bun run build:app). Cliente keyless.
  *
  * — detalhe preservado —
  * Runner e2e da LINHA VERDE CANÔNICA (TRILHA Marco M-A).
@@ -37,16 +37,8 @@
  *
  * Usa playwright-core em cache (registry offline). Porta dedicada 5137.
  */
-import { createRequire } from "node:module";
-import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
-import net from "node:net";
-
-const require = createRequire(import.meta.url);
-const PW_CORE =
-  process.env.PW_CORE ||
-  "C:/Users/mfard/AppData/Local/npm-cache/_npx/705bc6b22212b352/node_modules/playwright-core";
-const { chromium } = require(PW_CORE);
+import { chromium, executavelChromium, bootServer } from "./_harness.mjs";
 
 const PORT = Number(process.env.E2E_PORT) || 5137;
 const BASE = `http://localhost:${PORT}`;
@@ -56,22 +48,6 @@ const assert = (cond, msg) => {
   if (cond) { console.log(`  ✓ ${msg}`); passou++; }
   else { console.error(`  ✗ ${msg}`); falhou++; }
 };
-
-function esperarPorta(port, timeoutMs = 15000) {
-  const inicio = Date.now();
-  return new Promise((resolve, reject) => {
-    const tentar = () => {
-      const s = net.connect(port, "localhost");
-      s.on("connect", () => { s.end(); resolve(); });
-      s.on("error", () => {
-        s.destroy();
-        if (Date.now() - inicio > timeoutMs) reject(new Error("timeout esperando o server"));
-        else setTimeout(tentar, 200);
-      });
-    };
-    tentar();
-  });
-}
 
 // Marcadores de montagem por tela (texto sempre visível quando a tela renderiza).
 const MARCADORES = {
@@ -83,14 +59,10 @@ const MARCADORES = {
   7: /agrado|dividir o que você/i,
 };
 
-const server = spawn("node", ["server.js"], { stdio: "ignore", env: { ...process.env, PORT: String(PORT) } });
+const server = await bootServer(PORT);
 let browser;
 try {
-  await esperarPorta(PORT);
-  const EXEC =
-    process.env.PW_CHROME ||
-    "C:/Users/mfard/AppData/Local/ms-playwright/chromium-1223/chrome-win64/chrome.exe";
-  browser = await chromium.launch({ headless: true, executablePath: EXEC });
+  browser = await chromium.launch({ headless: true, executablePath: executavelChromium() });
   const page = await browser.newPage();
   // fase06 · o e2e roda SEMPRE offline: força o backend "local" ANTES de
   // qualquer script da página (o pipoca.config.js commitado respeita via ||).
@@ -497,22 +469,62 @@ try {
 
   // Chips das crianças aparecem na tela do cuidador (T14 Regras & IA).
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
-  await page.waitForFunction(() => window.PipocaApp.estado.tela === 8, { timeout: 4000 });
-  assert(true, "pós-PIN aterrissa na Evolução da leitura (T8) — o hub fica a um toque");
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 }); // C6: pós-PIN → hub
+  assert(true, "C6: pós-PIN aterrissa no HUB (T11) — a Evolução fica no menu");
   await page.evaluate(() => { window.PipocaApp.setState({ tela: 14 }); });
   await page.waitForFunction(() => /Quem confirma a leitura/i.test(document.body.innerText), { timeout: 4000 });
-  const uxChips = await page.evaluate(() => ({
-    ana: /Ana/.test(document.body.innerText),
-    bia: /Bia/.test(document.body.innerText),
-  }));
-  assert(uxChips.ana && uxChips.bia, "T14 mostra os chips das crianças (configuração independente)");
+  // Os chips carregam async (carregarPerfis no mount) — esperar por eles, não só pela tela.
+  const uxChips = await page.waitForFunction(
+    () => /Ana/.test(document.body.innerText) && /Bia/.test(document.body.innerText),
+    { timeout: 4000 }
+  ).then(() => true).catch(() => false);
+  assert(uxChips, "T14 mostra os chips das crianças (configuração independente)");
+  // C8: o grupo de chips DIZ o escopo e tem semântica de seleção (radiogroup/radio).
+  const c8Chips = await page.evaluate(() => {
+    const rg = document.querySelector('[role="radiogroup"][aria-label="Editando para:"]');
+    return { tem: !!rg, radios: rg ? rg.querySelectorAll('[role="radio"]').length : 0, marcados: rg ? rg.querySelectorAll('[role="radio"][aria-checked="true"]').length : 0 };
+  });
+  assert(c8Chips.tem && c8Chips.radios >= 2 && c8Chips.marcados === 1, "C8: chips com rótulo de escopo ('Editando para:') e radiogroup/radio (1 marcado)");
+
+  // ── C7 · "Lugares das histórias": quintal sempre aberto, "em breve" travados,
+  // gesto travado inerte, e a liberação por criança reflete no switch (e na T3,
+  // já provado acima com cenariosLiberados=['quintal_anoitecer','quarto']).
+  await page.waitForFunction(() => /Lugares das histórias/i.test(document.body.innerText), { timeout: 4000 });
+  const c7Regras = await page.evaluate(() => {
+    const sws = Array.from(document.querySelectorAll('[aria-label^="Liberar "], [aria-label="O Quintal fica sempre aberto"]'));
+    const quintal = document.querySelector('[aria-label="O Quintal fica sempre aberto"]');
+    return {
+      total: sws.length,
+      quintalLigado: !!quintal && quintal.getAttribute("aria-checked") === "true" && quintal.getAttribute("aria-disabled") === "true",
+      travados: sws.filter((s) => s.getAttribute("aria-disabled") === "true").length,
+    };
+  });
+  assert(c7Regras.total === 5 && c7Regras.quintalLigado, "C7: 'Lugares das histórias' lista 5 lugares; quintal sempre aberto (switch ligado e travado)");
+  assert(c7Regras.travados === 5, "C7: sem história pronta, os 'em breve' ficam travados (honesto)");
+  // force: o Playwright recusa aria-disabled — aqui o clique É o teste (gesto inerte).
+  await page.locator('[aria-label^="Liberar O Quarto para "]').click({ force: true });
+  await page.waitForTimeout(150);
+  const c7Inerte = await page.evaluate(() => {
+    const sw = document.querySelector('[aria-label^="Liberar O Quarto para "]');
+    return !!sw && sw.getAttribute("aria-checked") === "false";
+  });
+  assert(c7Inerte, "C7: gesto num lugar 'em breve' é inerte (switch segue desligado)");
+  // Mesmo caminho de escrita da UI (gravarPrefsPerfil, por criança) → o switch reage.
+  await page.evaluate(() => window.PipocaApp.gravarPrefsPerfil(window.PipocaApp.estado.perfil.id, { cenariosLiberados: ["quintal_anoitecer", "quarto"] }));
+  await page.waitForFunction(() => {
+    const sw = document.querySelector('[aria-label^="Liberar O Quarto para "]');
+    return !!sw && sw.getAttribute("aria-checked") === "true";
+  }, { timeout: 4000 });
+  assert(true, "C7: liberar um lugar para a criança reflete no switch da Regras (save por criança)");
+  await page.evaluate(() => window.PipocaApp.gravarPrefsPerfil(window.PipocaApp.estado.perfil.id, { cenariosLiberados: null }));
+
   await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
 
   // ── UX por perfil (etapa 5) · dashboards: saldos por criança no hub (T11) e
   // cartão do pote no painel de evolução (T8).
   console.log("\n=== UX por perfil · dashboards (T11 saldos, T8 pote) ===");
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
-  await page.waitForFunction(() => window.PipocaApp.estado.tela === 8, { timeout: 4000 });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 }); // C6: pós-PIN → hub
   await page.evaluate(() => { window.PipocaApp.setState({ tela: 11 }); });
   await page.waitForFunction(() => /guardados/i.test(document.body.innerText), { timeout: 4000 });
   const t11Saldos = await page.evaluate(() => ({
@@ -524,6 +536,13 @@ try {
   await page.waitForFunction(() => /Pote de vaga-lumes/i.test(document.body.innerText), { timeout: 4000 });
   const t8Pote = await page.evaluate(() => /✨\s*7/.test(document.body.innerText));
   assert(t8Pote, "T8 mostra o cartão do pote com o saldo da criança do chip");
+  // C8: T8 diz o escopo dos chips e nunca contradiz ("ainda não teve leitura" + dias ativos).
+  const c8T8 = await page.evaluate(() => ({
+    // text-transform:uppercase reflete no innerText — comparar sem caixa.
+    escopo: /Vendo os dados de:/i.test(document.body.innerText),
+    contradiz: /ainda não teve leitura/i.test(document.body.innerText) && /[1-9]\d* dias? ativos?/i.test(document.body.innerText),
+  }));
+  assert(c8T8.escopo && !c8T8.contradiz, "C8: T8 com rótulo 'Vendo os dados de:' e sem contradição vazio×dias ativos");
   await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
 
   // ── UX por perfil (etapa 6) · engrenagem → "Sou o adulto" → PIN → painel →
@@ -549,7 +568,7 @@ try {
   assert(true, "⚙ → 'Sou o adulto' fecha o modal e abre o PINGATE");
   // PIN certo → hub do cuidador; "Para a criança" → volta pra T5, não pra T2
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
-  await page.waitForFunction(() => window.PipocaApp.estado.tela === 8, { timeout: 4000 });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 }); // C6: pós-PIN → hub
   await page.evaluate(() => { window.PipocaApp.aoVoltarParaCrianca(); });
   await page.waitForFunction(() => window.PipocaApp.estado.tela === 5, { timeout: 4000 });
   const volta = await page.evaluate(() => ({
@@ -585,6 +604,29 @@ try {
     { timeout: 4000 }
   );
   assert(true, "T9 mostra 'Criar conta da família' e 'Esqueci a senha'");
+
+  // ── C9 · formulários honestos: disabled REAL, foco inicial, Enter submete no recuperar.
+  const c9T9 = await page.evaluate(() => {
+    const btn = Array.from(document.querySelectorAll('button[type="submit"]')).find((b) => /Entrar/.test(b.textContent));
+    const email = document.getElementById("pip-lf-email");
+    return {
+      travado: !!btn && btn.disabled === true,
+      focoNoEmail: !!email && document.activeElement === email,
+      temForm: !!(email && email.closest("form")),
+      temLabelFor: !!document.querySelector('label[for="pip-lf-email"]'),
+    };
+  });
+  assert(c9T9.travado, "C9: 'Entrar' com campos vazios é disabled REAL (clicar não chama o seam)");
+  assert(c9T9.focoNoEmail, "C9: o cursor já está no e-mail ao abrir a T9");
+  assert(c9T9.temForm && c9T9.temLabelFor, "C9: campos dentro de <form> e com <label for> visível");
+  // Enter no modo recuperar (antes NENHUM campo submetia — UI-A27)
+  await page.locator("button", { hasText: "Esqueci a senha" }).first().click();
+  await page.waitForFunction(() => /Recuperar a senha/i.test(document.body.innerText), { timeout: 4000 });
+  await page.fill('[aria-label="E-mail da família"]', "casa-recupera@pipoca.dev");
+  await page.locator('[aria-label="E-mail da família"]').press("Enter");
+  await page.waitForFunction(() => /enviamos um link/i.test(document.body.innerText), { timeout: 4000 });
+  assert(true, "C9: Enter no campo de e-mail SUBMETE o modo recuperar (aviso neutro aparece)");
+
   await page.locator("button", { hasText: "Criar conta da família" }).first().click();
   await page.waitForFunction(() => /Confirme a senha/i.test(document.body.innerText), { timeout: 4000 });
   assert(true, "modo criar conta monta (com confirmação de senha)");
@@ -662,7 +704,8 @@ try {
     { timeout: 4000 }
   );
   assert(true, "T3 lista o cartão da história recém-terminada");
-  await page.locator("div[role='button']", { hasText: uxHist.titulo }).first().click();
+  // C2: o cartão virou <button> (sem botão aninhado); o coração é irmão.
+  await page.locator("button", { hasText: uxHist.titulo }).first().click();
   await page.waitForFunction(() => /Guardar para sempre/i.test(document.body.innerText), { timeout: 4000 });
   assert(true, "tap no cartão abre o leitor (modal) da história");
 
@@ -704,7 +747,7 @@ try {
   // ── Conta & segurança (T16) · trocar PIN exige o atual; senha/e-mail pelo seam ──
   console.log("\n=== Conta & segurança (T16) · PIN, senha e e-mail ===");
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
-  await page.waitForFunction(() => window.PipocaApp.estado.tela === 8, { timeout: 4000 });
+  await page.waitForFunction(() => window.PipocaApp.estado.tela === 11, { timeout: 4000 }); // C6: pós-PIN → hub
   await page.evaluate(() => { window.PipocaApp.setState({ tela: 16 }); });
   await page.waitForFunction(() => /Conta & segurança|PIN do portão/i.test(document.body.innerText), { timeout: 4000 });
   assert(true, "T16 monta (Conta & segurança) a partir do hub");
@@ -788,6 +831,31 @@ try {
   const aposVoltar = await page.evaluate(() => ({ setas: document.querySelectorAll('[aria-label="Mover para a esquerda"]').length, texto: document.body.innerText }));
   assert(aposVoltar.setas === 3 && /Prontinho/.test(aposVoltar.texto), "B7: voltar da T5 preserva o arranjo (3 peças seguem na cena; CTA pronto)");
   await page.evaluate(() => { window.PipocaApp.setState({ rascunhoT4: null, gatePendente: null, tela: 2 }); });
+
+  // ── Plan03 · D3 (D-21) · chave legada: migração one-shot grava na canônica e
+  // APAGA a legada; boot sem legada segue idêntico. (Roda por último: dá reload.)
+  console.log("\n=== Plan03 · D3 · migração da chave legada pipoca.perfis.v1 ===");
+  await page.evaluate(() => {
+    localStorage.removeItem("pipoca.perfil.v1"); // canônica vazia força a migração
+    localStorage.setItem("pipoca.perfis.v1", JSON.stringify([
+      { id: "legado-1", nome: "Legada", idade: 7, nivel: "n2", avatarId: "lua", genero: "f" },
+    ]));
+  });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => !!window.PipocaApp && !!window.PipocaApp.repo, { timeout: 15000 });
+  await page.waitForFunction(() => localStorage.getItem("pipoca.perfis.v1") === null, { timeout: 5000 });
+  const d3 = await page.evaluate(async () => {
+    const perfis = await window.PipocaApp.repo.carregarPerfis();
+    const canonicaRaw = localStorage.getItem("pipoca.perfil.v1") || "[]";
+    const canonica = JSON.parse(canonicaRaw);
+    return {
+      migrou: perfis.some((p) => p.id === "legado-1"),
+      envelope: Array.isArray(canonica) && canonica.some((e) => e && e.esquema === "pipoca.perfil.v1" && e.perfil && e.perfil.id === "legado-1"),
+      legadaSumiu: localStorage.getItem("pipoca.perfis.v1") === null,
+    };
+  });
+  assert(d3.migrou && d3.envelope, "D3: migração one-shot leva o perfil legado à chave canônica (com envelope)");
+  assert(d3.legadaSumiu, "D3: a chave legada é APAGADA após a migração (decisão do dono)");
 
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 

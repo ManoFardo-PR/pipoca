@@ -161,6 +161,13 @@
 
   // src/core/perfil.ts
   var AVATARES = ["pingo", "fubá", "cacau", "lua", "tuca"];
+  var AVATARES_DEF = [
+    { id: "pingo", nome: "Pingo", cor: "#3f6f9e", emoji: "\uD83D\uDC36" },
+    { id: "fubá", nome: "Fubá", cor: "#d98a4e", emoji: "\uD83E\uDD8A" },
+    { id: "cacau", nome: "Cacau", cor: "#7a9a5b", emoji: "\uD83D\uDC3B" },
+    { id: "lua", nome: "Lua", cor: "#9c7cb0", emoji: "\uD83D\uDC31" },
+    { id: "tuca", nome: "Tuca", cor: "#5fa9b8", emoji: "\uD83D\uDC26" }
+  ];
   var NOME_PADRAO = "Pipoquinha";
   var NIVEL_PADRAO = "n1";
   var AVATAR_PADRAO = "pingo";
@@ -183,6 +190,10 @@
     if (AVATARES.includes(avatarId))
       return avatarId;
     return AVATAR_PADRAO;
+  }
+  function porIdAvatar(avatarId) {
+    const id = normalizarAvatar(avatarId);
+    return AVATARES_DEF.find((a) => a.id === id) ?? AVATARES_DEF[0];
   }
   function normalizarGenero(genero) {
     return genero === "m" || genero === "f" ? genero : undefined;
@@ -220,27 +231,6 @@
       erros.push("avatarId deve ser string");
     }
     return erros;
-  }
-
-  class RepositorioPerfil {
-    _perfis = new Map;
-    listar() {
-      return [...this._perfis.values()];
-    }
-    buscar(id) {
-      return this._perfis.get(id) ?? null;
-    }
-    salvar(p) {
-      this._perfis.set(p.id, { ...p });
-    }
-    remover(id) {
-      return this._perfis.delete(id);
-    }
-    carregar(perfis) {
-      this._perfis.clear();
-      for (const p of perfis)
-        this._perfis.set(p.id, { ...p });
-    }
   }
 
   // src/core/modos.ts
@@ -648,7 +638,8 @@
     "sessao_iniciada",
     "sessao_encerrada",
     "historia_concluida",
-    "objeto_destravado"
+    "objeto_destravado",
+    "espelho_falhou"
   ];
   function criarEvento(tipo, perfilId, dados, agora) {
     if (typeof agora !== "number" || !Number.isFinite(agora)) {
@@ -744,6 +735,7 @@
     const pacoteOrigem = sanearPacoteOrigem(r["pacoteOrigem"]);
     const paragrafos = sanearParagrafos(r["paragrafos"]);
     const rodada = typeof r["rodada"] === "number" && Number.isInteger(r["rodada"]) && r["rodada"] >= 1 && r["rodada"] <= 4 ? r["rodada"] : undefined;
+    const atualizadoEm = typeof r["atualizadoEm"] === "number" && Number.isFinite(r["atualizadoEm"]) ? r["atualizadoEm"] : undefined;
     return {
       id: r["id"],
       cenarioId: r["cenarioId"],
@@ -759,7 +751,8 @@
       ...pacoteOrigem ? { pacoteOrigem } : {},
       ...rodada !== undefined ? { rodada } : {},
       ...r["intermediaria"] === true ? { intermediaria: true } : {},
-      ...paragrafos ? { paragrafos } : {}
+      ...paragrafos ? { paragrafos } : {},
+      ...atualizadoEm !== undefined ? { atualizadoEm } : {}
     };
   }
   function dentroDaRetencaoHistoria(h, agora, retencaoDias = RETENCAO_HISTORIAS_DIAS) {
@@ -793,6 +786,46 @@
       resultado.push(h);
     }
     return resultado;
+  }
+  function mesclarHistorias(locais, remotas) {
+    const porId = new Map;
+    for (const h of Array.isArray(locais) ? locais : [])
+      porId.set(h.id, h);
+    for (const r of Array.isArray(remotas) ? remotas : []) {
+      const l = porId.get(r.id);
+      if (!l) {
+        porId.set(r.id, r);
+        continue;
+      }
+      const cl = typeof l.atualizadoEm === "number" ? l.atualizadoEm : undefined;
+      const cr = typeof r.atualizadoEm === "number" ? r.atualizadoEm : undefined;
+      if (cl !== undefined && cr !== undefined) {
+        if (cr > cl)
+          porId.set(r.id, r);
+      } else if (cr !== undefined) {
+        if (l.favorita !== r.favorita || l.texto !== r.texto)
+          porId.set(r.id, r);
+      }
+    }
+    return [...porId.values()];
+  }
+  function apenasCompletas(lista) {
+    return (Array.isArray(lista) ? lista : []).filter((h) => h.intermediaria !== true);
+  }
+  function agruparPorDia(lista, agora) {
+    const grupos = [];
+    const porRotulo = new Map;
+    for (const h of Array.isArray(lista) ? lista : []) {
+      const rotulo = dataRelativa(h.criadaEm, agora);
+      let grupo = porRotulo.get(rotulo);
+      if (!grupo) {
+        grupo = { rotulo, historias: [] };
+        porRotulo.set(rotulo, grupo);
+        grupos.push(grupo);
+      }
+      grupo.historias.push(h);
+    }
+    return grupos;
   }
   function tituloDaHistoria(ultimoObjeto) {
     const nome = ultimoObjeto && ultimoObjeto.nome ? String(ultimoObjeto.nome).trim() : "";
@@ -1249,10 +1282,6 @@
       }
       return { ...CONFIG_LOCAL };
     }
-    if (provedor === "firebase") {
-      const opcoes = r["opcoes"];
-      return { provedor: "firebase", opcoes: opcoes && typeof opcoes === "object" ? opcoes : {} };
-    }
     return { ...CONFIG_LOCAL };
   }
   function configDoAmbiente() {
@@ -1264,68 +1293,7 @@
     }
   }
 
-  // src/backend/adaptadores/auth_firebase.ts
-  var NAO_CONFIGURADO = "Backend Firebase não configurado neste build (paridade documentada — fase06).";
-  function criarAuthFirebase() {
-    return {
-      entrarFamilia(_cred) {
-        return Promise.reject(new Error(NAO_CONFIGURADO));
-      },
-      entrarSuperAdmin(_cred) {
-        return Promise.reject(new Error(NAO_CONFIGURADO));
-      },
-      sair() {
-        return Promise.resolve();
-      },
-      sessaoAtual() {
-        return null;
-      }
-    };
-  }
-
-  // src/backend/adaptadores/repo_firebase.ts
-  var NAO_CONFIGURADO2 = "RepositorioFirebase não configurado neste build (paridade documentada — fase06).";
-
-  class RepositorioFirebase {
-    carregarPerfis() {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    salvarPerfil(_p) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    carregarSave(_perfilId) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    salvarSave(_perfilId, _estado) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    registrarTelemetria(_evento) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    carregarTelemetria(_perfilId) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    apagarPerfil(_perfilId) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-  }
-
   // src/ia/provedor.ts
-  function validarTrechoGerado(bruto) {
-    if (!bruto || typeof bruto !== "object") {
-      throw new Error("Saída do provedor não é um objeto Trecho.");
-    }
-    const r = bruto;
-    const texto = r["texto"];
-    const ehFinal = r["ehFinal"];
-    if (typeof texto !== "string" || texto.trim() === "") {
-      throw new Error("Trecho gerado sem texto.");
-    }
-    if (typeof ehFinal !== "boolean") {
-      throw new Error("Trecho gerado sem ehFinal booleano.");
-    }
-    return { texto, ehFinal };
-  }
   function transportePadrao() {
     return (url, init) => fetch(url, init);
   }
@@ -1711,21 +1679,29 @@
       return 0;
     }
     async carregarHistorias(perfilId) {
-      const linhas = await this.req("/historias?select=dados&perfil_id=eq." + encodeURIComponent(perfilId) + "&order=criada_em.desc", "GET");
+      const linhas = await this.req("/historias?select=dados,atualizado_em&perfil_id=eq." + encodeURIComponent(perfilId) + "&order=criada_em.desc", "GET");
       const out = [];
       for (const l of Array.isArray(linhas) ? linhas : []) {
         const h = validarHistoriaSalva(l && l.dados ? l.dados.historia : null);
-        if (h !== null)
-          out.push(h);
+        if (h === null)
+          continue;
+        if (h.atualizadoEm === undefined && typeof l.atualizado_em === "string") {
+          const t = Date.parse(l.atualizado_em);
+          if (Number.isFinite(t))
+            h.atualizadoEm = t;
+        }
+        out.push(h);
       }
       return out;
     }
     async salvarHistoria(perfilId, historia) {
+      const carimbo = typeof historia.atualizadoEm === "number" ? historia.atualizadoEm : Date.now();
       await this.req("/historias?on_conflict=id", "POST", [{
         id: historia.id,
         perfil_id: perfilId,
         favorita: historia.favorita === true,
         criada_em: new Date(historia.criadaEm).toISOString(),
+        atualizado_em: new Date(carimbo).toISOString(),
         dados: { esquema: ESQUEMA_HISTORIAS, historia: { ...historia } }
       }], "resolution=merge-duplicates,return=minimal");
     }
@@ -1746,8 +1722,11 @@
     }
   }
 
-  // src/backend/adaptadores/repo_sincronizado.ts
-  var CHAVE_TOMBSTONES = "pipoca.sync.apagados.v1";
+  // src/backend/adaptadores/fila_remota.ts
+  var CHAVE_FILA_REMOTA = "pipoca.fila-remota.v1";
+  var TETO_FILA_REMOTA = 50;
+  var MAX_TENTATIVAS_ITEM = 10;
+  var OPS = ["salvarPerfil", "salvarSave", "registrarTelemetria", "salvarHistoria", "apagarHistoria"];
   function storage2() {
     try {
       const g = globalThis;
@@ -1756,8 +1735,112 @@
       return null;
     }
   }
-  function lerTombstones() {
+  function lerFilaRemota() {
     const st = storage2();
+    if (!st)
+      return [];
+    try {
+      const raw = st.getItem(CHAVE_FILA_REMOTA);
+      const arr = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(arr))
+        return [];
+      return arr.filter((x) => {
+        const r = x;
+        return typeof x === "object" && x !== null && OPS.includes(r["op"]) && typeof r["perfilId"] === "string" && typeof r["id"] === "string" && typeof r["tentativas"] === "number";
+      });
+    } catch {
+      return [];
+    }
+  }
+  function gravarFila(itens) {
+    if (!gravarItem(CHAVE_FILA_REMOTA, itens) && itens.length > 1) {
+      gravarItem(CHAVE_FILA_REMOTA, itens.slice(1));
+    }
+  }
+  function enfileirarRemoto(item) {
+    const chave = item.op + "|" + item.perfilId + "|" + item.id;
+    const fila = lerFilaRemota().filter((x) => x.op + "|" + x.perfilId + "|" + x.id !== chave);
+    fila.push({ ...item, tentativas: 0, quando: item.quando ?? Date.now() });
+    gravarFila(fila.slice(-TETO_FILA_REMOTA));
+  }
+  function executar(remoto, item) {
+    switch (item.op) {
+      case "salvarPerfil":
+        return remoto.salvarPerfil(item.payload);
+      case "salvarSave":
+        return remoto.salvarSave(item.perfilId, item.payload);
+      case "registrarTelemetria":
+        return remoto.registrarTelemetria(item.payload);
+      case "salvarHistoria":
+        return remoto.salvarHistoria ? remoto.salvarHistoria(item.perfilId, item.payload) : Promise.resolve();
+      case "apagarHistoria":
+        return remoto.apagarHistoria ? remoto.apagarHistoria(item.perfilId, item.id) : Promise.resolve();
+    }
+  }
+  async function drenarFilaRemota(remoto) {
+    const fila = lerFilaRemota();
+    if (!fila.length)
+      return { drenados: 0, restantes: 0 };
+    const sobras = [];
+    let drenados = 0;
+    for (const item of fila) {
+      try {
+        await executar(remoto, item);
+        drenados++;
+      } catch (e) {
+        const ultimoErro = String(e?.message || e);
+        const tentativas = item.tentativas + 1;
+        if (tentativas >= MAX_TENTATIVAS_ITEM) {
+          console.warn("[pipoca.sync] item da fila remota DESCARTADO após " + tentativas + " tentativas", {
+            op: item.op,
+            perfilId: item.perfilId,
+            id: item.id,
+            ultimoErro
+          });
+        } else {
+          sobras.push({ ...item, tentativas, ultimoErro });
+        }
+      }
+    }
+    gravarFila(sobras);
+    return { drenados, restantes: sobras.length };
+  }
+
+  // src/backend/adaptadores/repo_sincronizado.ts
+  var _aoMesclarHistorias = null;
+  function aoMesclarHistorias(fn) {
+    _aoMesclarHistorias = fn;
+  }
+  function historiaDiverge(a, b) {
+    if (!a)
+      return true;
+    return (a.atualizadoEm || 0) !== (b.atualizadoEm || 0) || a.favorita !== b.favorita || a.texto !== b.texto;
+  }
+  async function aplicarMesclaHistorias(local, perfilId, locais, remotas, agora) {
+    if (!local.salvarHistoria || !remotas.length)
+      return 0;
+    const mescla = normalizarHistorias(mesclarHistorias(locais, remotas), agora);
+    const antes = new Map(locais.map((h) => [h.id, h]));
+    let gravadas = 0;
+    for (const h of mescla) {
+      if (!historiaDiverge(antes.get(h.id), h))
+        continue;
+      await local.salvarHistoria(perfilId, h);
+      gravadas++;
+    }
+    return gravadas;
+  }
+  var CHAVE_TOMBSTONES = "pipoca.sync.apagados.v1";
+  function storage3() {
+    try {
+      const g = globalThis;
+      return g.localStorage || null;
+    } catch {
+      return null;
+    }
+  }
+  function lerTombstones() {
+    const st = storage3();
     if (!st)
       return [];
     try {
@@ -1769,7 +1852,7 @@
     }
   }
   function gravarTombstones(ids) {
-    const st = storage2();
+    const st = storage3();
     if (!st)
       return;
     try {
@@ -1787,79 +1870,112 @@
   function removerTombstone(id) {
     gravarTombstones(lerTombstones().filter((x) => x !== id));
   }
-  function criarRepositorioSincronizado(local, remoto) {
+  function ehTransitorio(e) {
+    const m = String(e?.message ?? e ?? "");
+    const http = /HTTP (\d{3})/.exec(m);
+    if (http) {
+      const s = Number(http[1]);
+      return s >= 500 || s === 429 || s === 408;
+    }
+    if (/sem sessão/i.test(m))
+      return false;
+    return true;
+  }
+  var _avisouLeituraRemota = false;
+  function _avisarLeituraUmaVez(e) {
+    if (_avisouLeituraRemota)
+      return;
+    _avisouLeituraRemota = true;
+    console.info("[pipoca.sync] leitura remota de histórias indisponível (offline/sem sessão) — seguimos no local", String(e?.message ?? e ?? ""));
+  }
+  function criarRepositorioSincronizado(local, remoto, opcoes) {
+    const atrasos = opcoes && opcoes.atrasosRetryMs || [1000, 4000];
+    const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
+    async function tentarRemoto(exec) {
+      let ultimo;
+      for (let i = 0;i <= atrasos.length; i++) {
+        try {
+          await exec();
+          return;
+        } catch (e) {
+          ultimo = e;
+          if (!ehTransitorio(e) || i === atrasos.length)
+            break;
+          await dormir(atrasos[i]);
+        }
+      }
+      throw ultimo;
+    }
+    function espelhar(op, perfilId, id, payload, exec) {
+      tentarRemoto(exec).catch((e) => {
+        const erro = String(e?.message ?? e ?? "");
+        console.warn("[pipoca.sync] espelho remoto falhou — item na fila", { op, perfilId, id, erro });
+        try {
+          enfileirarRemoto({ op, perfilId, id, payload, ultimoErro: erro });
+        } catch {}
+        try {
+          local.registrarTelemetria(criarEvento("espelho_falhou", perfilId, { op, erro }, Date.now())).catch((e2) => console.warn("[pipoca.sync] rastro local da falha não gravou (o warn acima fica)", String(e2?.message ?? e2 ?? "")));
+        } catch {}
+      });
+    }
     return {
       carregarPerfis: () => local.carregarPerfis(),
       carregarSave: (perfilId) => local.carregarSave(perfilId),
       carregarTelemetria: (perfilId) => local.carregarTelemetria(perfilId),
       async salvarPerfil(p) {
         await local.salvarPerfil(p);
-        remoto.salvarPerfil(p).catch(() => {});
+        espelhar("salvarPerfil", p.id, p.id, p, () => remoto.salvarPerfil(p));
       },
       async salvarSave(perfilId, estado) {
         await local.salvarSave(perfilId, estado);
-        remoto.salvarSave(perfilId, estado).catch(() => {});
+        espelhar("salvarSave", perfilId, perfilId, estado, () => remoto.salvarSave(perfilId, estado));
       },
       async registrarTelemetria(evento) {
         await local.registrarTelemetria(evento);
-        remoto.registrarTelemetria(evento).catch(() => {});
+        espelhar("registrarTelemetria", evento.perfilId, evento.tipo + ":" + evento.ts, evento, () => remoto.registrarTelemetria(evento));
       },
       async podarTelemetria(perfilId, agora, retencaoDias) {
         const removidos = local.podarTelemetria ? await local.podarTelemetria(perfilId, agora, retencaoDias) : 0;
-        if (remoto.podarTelemetria)
-          remoto.podarTelemetria(perfilId, agora, retencaoDias).catch(() => {});
+        if (remoto.podarTelemetria) {
+          remoto.podarTelemetria(perfilId, agora, retencaoDias).catch((e) => console.warn("[pipoca.sync] poda remota de telemetria falhou (refeita na próxima borda)", { perfilId, erro: String(e?.message ?? e ?? "") }));
+        }
         return removidos;
       },
       async apagarPerfil(perfilId) {
         await local.apagarPerfil(perfilId);
         adicionarTombstone(perfilId);
-        remoto.apagarPerfil(perfilId).then(() => removerTombstone(perfilId)).catch(() => {});
+        remoto.apagarPerfil(perfilId).then(() => removerTombstone(perfilId)).catch((e) => console.warn("[pipoca.sync] apagar remoto falhou — tombstone fica na fila", { perfilId, erro: String(e?.message ?? e ?? "") }));
       },
-      carregarHistorias: (perfilId) => local.carregarHistorias ? local.carregarHistorias(perfilId) : Promise.resolve([]),
+      carregarHistorias(perfilId) {
+        const locais = local.carregarHistorias ? local.carregarHistorias(perfilId) : Promise.resolve([]);
+        if (remoto.carregarHistorias) {
+          Promise.all([locais, remoto.carregarHistorias(perfilId)]).then(([l, r]) => aplicarMesclaHistorias(local, perfilId, l, r, Date.now())).then((gravadas) => {
+            if (gravadas > 0 && _aoMesclarHistorias)
+              _aoMesclarHistorias(perfilId);
+          }).catch(_avisarLeituraUmaVez);
+        }
+        return locais;
+      },
       async salvarHistoria(perfilId, historia) {
         if (local.salvarHistoria)
           await local.salvarHistoria(perfilId, historia);
-        if (remoto.salvarHistoria)
-          remoto.salvarHistoria(perfilId, historia).catch(() => {});
+        if (remoto.salvarHistoria) {
+          espelhar("salvarHistoria", perfilId, historia.id, historia, () => remoto.salvarHistoria(perfilId, historia));
+        }
       },
       async apagarHistoria(perfilId, historiaId) {
         if (local.apagarHistoria)
           await local.apagarHistoria(perfilId, historiaId);
-        if (remoto.apagarHistoria)
-          remoto.apagarHistoria(perfilId, historiaId).catch(() => {});
+        if (remoto.apagarHistoria) {
+          espelhar("apagarHistoria", perfilId, historiaId, null, () => remoto.apagarHistoria(perfilId, historiaId));
+        }
       },
       async podarHistorias(perfilId, agora) {
         const removidas = local.podarHistorias ? await local.podarHistorias(perfilId, agora) : 0;
-        if (remoto.podarHistorias)
-          remoto.podarHistorias(perfilId, agora).catch(() => {});
-        return removidas;
-      }
-    };
-  }
-
-  // src/backend/proxy_ia.ts
-  function criarProxyIA(op) {
-    const transporte = op.transporte || transportePadrao();
-    const base = op.url.replace(/\/+$/, "");
-    return {
-      async gerar(req) {
-        const token = await op.obterToken();
-        if (!token)
-          throw new Error("ProxyIA: sem sessão para gerar.");
-        const tenant = op.tenantId ? op.tenantId() : null;
-        const resp = await transporte(base + "/functions/v1/proxy-ia", {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-            apikey: op.anonKey,
-            Authorization: "Bearer " + token
-          },
-          body: JSON.stringify({ ...req, ...tenant ? { tenantId: tenant } : {} })
-        });
-        if (resp.status !== 200) {
-          throw new Error("ProxyIA: HTTP " + resp.status + " — degradando para o provedor local.");
+        if (remoto.podarHistorias) {
+          remoto.podarHistorias(perfilId, agora).catch((e) => console.warn("[pipoca.sync] poda remota de histórias falhou (refeita na próxima borda)", { perfilId, erro: String(e?.message ?? e ?? "") }));
         }
-        return validarTrechoGerado(await resp.json());
+        return removidas;
       }
     };
   }
@@ -2078,42 +2194,37 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
         apagadosDrenados++;
       } catch {}
     }
+    const fila = await drenarFilaRemota(remoto);
     const [locais, remotos] = await Promise.all([local.carregarPerfis(), remoto.carregarPerfis()]);
     const idsLocais = new Set(locais.map((p) => p.id));
     let puxados = 0;
     for (const p of remotos) {
-      if (idsLocais.has(p.id))
-        continue;
-      await local.salvarPerfil(p);
-      const save = await remoto.carregarSave(p.id);
-      if (save)
-        await local.salvarSave(p.id, save);
-      if (remoto.carregarHistorias && local.salvarHistoria) {
+      const ausente = !idsLocais.has(p.id);
+      if (ausente) {
+        await local.salvarPerfil(p);
+        const save = await remoto.carregarSave(p.id);
+        if (save)
+          await local.salvarSave(p.id, save);
         try {
-          for (const h of await remoto.carregarHistorias(p.id)) {
-            await local.salvarHistoria(p.id, h);
+          for (const ev of await remoto.carregarTelemetria(p.id)) {
+            await local.registrarTelemetria(ev);
           }
         } catch {}
+        puxados++;
       }
-      try {
-        for (const ev of await remoto.carregarTelemetria(p.id)) {
-          await local.registrarTelemetria(ev);
-        }
-      } catch {}
-      puxados++;
+      if (remoto.carregarHistorias && local.salvarHistoria) {
+        try {
+          const remotas = await remoto.carregarHistorias(p.id);
+          const loc = ausente || !local.carregarHistorias ? [] : await local.carregarHistorias(p.id);
+          await aplicarMesclaHistorias(local, p.id, loc, remotas, Date.now());
+        } catch {}
+      }
     }
     const res = await migrar(local, remoto);
-    return { apagadosDrenados, puxados, empurrados: res.perfis };
+    return { apagadosDrenados, puxados, empurrados: res.perfis, filaDrenada: fila.drenados };
   }
 
   // src/backend/backend.ts
-  function proxyIndisponivel(motivo) {
-    return {
-      gerar() {
-        return Promise.reject(new Error(motivo));
-      }
-    };
-  }
   function sessaoAdminLocal() {
     try {
       const raw = localStorage.getItem("pipoca.admin.sessao.v1");
@@ -2185,15 +2296,7 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
   function criarBackendLocal() {
     return {
       auth: criarAuthLocal(),
-      repo: criarRepositorio(),
-      proxyIA: proxyIndisponivel("ProxyIA indisponível no backend local — degradando para o provedor simulado.")
-    };
-  }
-  function criarBackendFirebase() {
-    return {
-      auth: criarAuthFirebase(),
-      repo: new RepositorioFirebase,
-      proxyIA: proxyIndisponivel("ProxyIA Firebase não configurado neste build.")
+      repo: criarRepositorio()
     };
   }
   function criarBackendSupabase(cfg) {
@@ -2206,27 +2309,19 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
     });
     const local = criarRepositorio();
     const repo = criarRepositorioSincronizado(local, remoto);
-    const proxyIA = criarProxyIA({
-      url: cfg.supabaseUrl,
-      anonKey: cfg.supabaseAnonKey,
-      obterToken: () => auth.obterToken(),
-      tenantId: () => escopoTenant(auth.sessaoAtual())
-    });
     const realizador = criarProxyRealizador({
       url: cfg.supabaseUrl,
       anonKey: cfg.supabaseAnonKey,
       obterToken: () => auth.obterToken(),
       tenantId: () => escopoTenant(auth.sessaoAtual())
     });
-    return { auth, repo, proxyIA, realizador, sincronizar: () => sincronizarInicial(local, remoto) };
+    return { auth, repo, realizador, sincronizar: () => sincronizarInicial(local, remoto) };
   }
   function obterBackend(config) {
     const cfg = config || configDoAmbiente();
     if (cfg.provedor === "supabase" && cfg.supabaseUrl && cfg.supabaseAnonKey) {
       return criarBackendSupabase(cfg);
     }
-    if (cfg.provedor === "firebase")
-      return criarBackendFirebase();
     return criarBackendLocal();
   }
 
@@ -3228,6 +3323,80 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
     return "crianca";
   }
 
+  // src/core/cenas.ts
+  function svgCena(key) {
+    const S = {
+      quintal: `<svg viewBox='0 0 400 300' width='100%' height='100%' preserveAspectRatio='xMidYMid slice' xmlns='http://www.w3.org/2000/svg'>
+      <defs><linearGradient id='qsky' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#fce7bd'/><stop offset='.55' stop-color='#f8d291'/><stop offset='1' stop-color='#f4ba74'/></linearGradient>
+      <radialGradient id='qsun' cx='.5' cy='.5' r='.5'><stop offset='0' stop-color='#fff8e2'/><stop offset='.55' stop-color='#ffe49e'/><stop offset='1' stop-color='#ffe49e' stop-opacity='0'/></radialGradient>
+      <filter id='qsoft' x='-30%' y='-30%' width='160%' height='160%'><feGaussianBlur stdDeviation='2.2'/></filter></defs>
+      <rect width='400' height='300' fill='url(#qsky)'/>
+      <circle cx='305' cy='86' r='74' fill='url(#qsun)'/><circle cx='305' cy='86' r='30' fill='#fff3d0'/>
+      <path d='M0 208 Q120 168 240 203 T400 198 V300 H0 Z' fill='#c2d693' opacity='.92'/>
+      <path d='M0 234 Q140 206 280 231 T400 229 V300 H0 Z' fill='#a6c372'/>
+      <rect y='250' width='400' height='50' fill='#90b65d'/>
+      <rect x='86' y='150' width='16' height='92' rx='6' fill='#9d6d43'/>
+      <g filter='url(#qsoft)'><circle cx='94' cy='139' r='43' fill='#7da94f'/><circle cx='64' cy='155' r='28' fill='#8db75b'/><circle cx='122' cy='156' r='30' fill='#6f9a49'/><circle cx='98' cy='116' r='26' fill='#93bd60'/></g>
+      <g fill='#c89c6c'><rect x='250' y='205' width='12' height='48' rx='3'/><rect x='285' y='205' width='12' height='48' rx='3'/><rect x='320' y='205' width='12' height='48' rx='3'/><rect x='355' y='205' width='12' height='48' rx='3'/></g>
+      <rect x='245' y='214' width='128' height='8' rx='4' fill='#ba8c5b'/><rect x='245' y='234' width='128' height='8' rx='4' fill='#ba8c5b'/>
+      <circle cx='172' cy='270' r='15' fill='#e27c50'/><path d='M158 266 Q172 259 186 266' stroke='#fff' stroke-width='3' fill='none' opacity='.7'/></svg>`,
+      quarto: `<svg viewBox='0 0 400 300' width='100%' height='100%' preserveAspectRatio='xMidYMid slice' xmlns='http://www.w3.org/2000/svg'>
+      <defs><linearGradient id='rw' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#e8d2e6'/><stop offset='1' stop-color='#efd9c8'/></linearGradient>
+      <radialGradient id='rl' cx='.5' cy='.4' r='.6'><stop offset='0' stop-color='#ffe9b0' stop-opacity='.9'/><stop offset='1' stop-color='#ffe9b0' stop-opacity='0'/></radialGradient></defs>
+      <rect width='400' height='300' fill='url(#rw)'/>
+      <rect x='232' y='40' width='130' height='110' rx='12' fill='#3a3357'/><rect x='244' y='52' width='106' height='86' rx='7' fill='#2a2747'/>
+      <circle cx='330' cy='74' r='15' fill='#f4ecd0'/><circle cx='324' cy='70' r='13' fill='#2a2747'/>
+      <circle cx='270' cy='80' r='1.7' fill='#fff'/><circle cx='300' cy='110' r='1.5' fill='#fff'/><circle cx='258' cy='118' r='1.3' fill='#fff'/><circle cx='286' cy='66' r='1.4' fill='#fff'/>
+      <rect y='196' width='400' height='104' fill='#d9b69a'/><rect y='196' width='400' height='9' fill='#c8a589'/>
+      <rect x='34' y='150' width='150' height='62' rx='14' fill='#caa6c4'/><rect x='40' y='150' width='138' height='20' rx='10' fill='#d8bad3'/>
+      <rect x='30' y='196' width='160' height='22' rx='6' fill='#7c8bbf'/>
+      <circle cx='104' cy='150' r='18' fill='#fff6e6'/>
+      <rect x='300' y='150' width='10' height='52' fill='#b98a63'/><path d='M285 150 h40 l-8 -22 h-24 Z' fill='url(#rl)'/><path d='M285 150 h40 l-8 -22 h-24 Z' fill='#f6d98c' opacity='.85'/>
+      <ellipse cx='150' cy='250' rx='120' ry='20' fill='#c79f86' opacity='.5'/></svg>`,
+      floresta: `<svg viewBox='0 0 400 300' width='100%' height='100%' preserveAspectRatio='xMidYMid slice' xmlns='http://www.w3.org/2000/svg'>
+      <defs><linearGradient id='fs' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#dce8b8'/><stop offset='1' stop-color='#b9d391'/></linearGradient>
+      <linearGradient id='fb' x1='0' y1='0' x2='.4' y2='1'><stop offset='0' stop-color='#fff4c4' stop-opacity='.7'/><stop offset='1' stop-color='#fff4c4' stop-opacity='0'/></linearGradient></defs>
+      <rect width='400' height='300' fill='url(#fs)'/>
+      <polygon points='40,300 90,300 65,60' fill='url(#fb)'/><polygon points='150,300 240,300 200,40' fill='url(#fb)' opacity='.7'/>
+      <g fill='#5f8a44' opacity='.55'><path d='M30 300 V150 q40 -70 80 0 V300 Z'/><path d='M300 300 V160 q40 -80 80 0 V300 Z'/></g>
+      <g fill='#487038'><path d='M-10 300 V190 q60 -90 130 0 V300 Z'/><path d='M250 300 V200 q70 -100 160 0 V300 Z'/></g>
+      <rect x='120' y='150' width='20' height='150' rx='6' fill='#6e4a30'/>
+      <g fill='#3f6b33'><circle cx='130' cy='130' r='52'/><circle cx='86' cy='160' r='34'/><circle cx='176' cy='162' r='36'/><circle cx='132' cy='98' r='30'/></g>
+      <g fill='#54863f'><circle cx='118' cy='128' r='14'/><circle cx='150' cy='150' r='12'/><circle cx='100' cy='150' r='10'/></g>
+      <path d='M0 286 q60 -26 120 0 t140 0 140 0 V300 H0 Z' fill='#3c6231'/>
+      <g fill='#6fa24f'><path d='M40 290 q-10 -28 8 -40 q-2 26 14 34 Z'/><path d='M70 292 q14 -26 0 -42 q-4 24 -16 36 Z'/><path d='M330 292 q-12 -26 6 -40 q0 24 16 34 Z'/></g></svg>`,
+      espaco: `<svg viewBox='0 0 400 300' width='100%' height='100%' preserveAspectRatio='xMidYMid slice' xmlns='http://www.w3.org/2000/svg'>
+      <defs><linearGradient id='es' x1='0' y1='0' x2='.3' y2='1'><stop offset='0' stop-color='#2b2a55'/><stop offset='.6' stop-color='#3d3168'/><stop offset='1' stop-color='#5a3c6e'/></linearGradient>
+      <radialGradient id='ep' cx='.38' cy='.35' r='.7'><stop offset='0' stop-color='#f0a972'/><stop offset='1' stop-color='#c46b56'/></radialGradient></defs>
+      <rect width='400' height='300' fill='url(#es)'/>
+      <g fill='#fff'><circle cx='40' cy='40' r='1.6'/><circle cx='90' cy='80' r='1'/><circle cx='150' cy='30' r='1.3'/><circle cx='210' cy='70' r='1'/><circle cx='340' cy='40' r='1.8'/><circle cx='300' cy='110' r='1.1'/><circle cx='60' cy='150' r='1.2'/><circle cx='370' cy='180' r='1.4'/><circle cx='120' cy='200' r='1'/><circle cx='250' cy='200' r='1.5'/></g>
+      <g fill='#ffe9a8' opacity='.85'><circle cx='110' cy='95' r='2.4'/><circle cx='320' cy='70' r='2.2'/><circle cx='200' cy='150' r='2'/></g>
+      <circle cx='150' cy='175' r='66' fill='url(#ep)'/><ellipse cx='150' cy='175' rx='104' ry='26' fill='none' stroke='#e8c98a' stroke-width='7' opacity='.7' transform='rotate(-18 150 175)'/>
+      <circle cx='128' cy='158' r='12' fill='#d98a6e' opacity='.5'/><circle cx='176' cy='192' r='8' fill='#d98a6e' opacity='.4'/>
+      <circle cx='322' cy='210' r='20' fill='#cfc0d8'/><circle cx='315' cy='204' r='6' fill='#b3a2bf' opacity='.6'/></svg>`,
+      fundomar: `<svg viewBox='0 0 400 300' width='100%' height='100%' preserveAspectRatio='xMidYMid slice' xmlns='http://www.w3.org/2000/svg'>
+      <defs><linearGradient id='ms' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#6fc3c9'/><stop offset='.6' stop-color='#3f93a8'/><stop offset='1' stop-color='#2c6e87'/></linearGradient>
+      <linearGradient id='mr' x1='0' y1='0' x2='.3' y2='1'><stop offset='0' stop-color='#cdeef0' stop-opacity='.55'/><stop offset='1' stop-color='#cdeef0' stop-opacity='0'/></linearGradient></defs>
+      <rect width='400' height='300' fill='url(#ms)'/>
+      <polygon points='60,0 110,0 80,300 40,300' fill='url(#mr)'/><polygon points='200,0 270,0 240,300 180,300' fill='url(#mr)' opacity='.7'/>
+      <g fill='#2f7286'><path d='M0 300 V250 q40 -50 80 -10 q50 -60 100 -6 q40 -40 90 -2 q60 -36 130 4 V300 Z'/></g>
+      <g><path d='M70 300 q-14 -60 6 -96 q18 36 4 96 Z' fill='#3f8a72'/><path d='M88 300 q10 -50 -4 -84 q22 30 12 84 Z' fill='#4f9c80'/></g>
+      <g><path d='M320 300 q16 -64 -6 -104 q-20 40 -2 104 Z' fill='#4f9c80'/></g>
+      <g transform='translate(250 110)'><ellipse cx='0' cy='0' rx='26' ry='17' fill='#f0a85a'/><polygon points='22,0 44,-14 44,14' fill='#e8923f'/><circle cx='-10' cy='-3' r='3' fill='#2b2118'/></g>
+      <g transform='translate(120 170)'><ellipse cx='0' cy='0' rx='18' ry='12' fill='#e8d36a'/><polygon points='15,0 30,-10 30,10' fill='#d8c155'/><circle cx='-7' cy='-2' r='2.2' fill='#2b2118'/></g></svg>`
+    };
+    return S[key] ?? S["quintal"];
+  }
+  function galeriaCenas() {
+    return [
+      { key: "quintal", name: "O Quintal", desc: "Com um vaga-lume no quintal", badge: "", cenarioId: "quintal_anoitecer", disponivel: true },
+      { key: "quarto", name: "O Quarto", desc: "Histórias antes de dormir", badge: "Em breve", cenarioId: "", disponivel: false },
+      { key: "floresta", name: "A Floresta", desc: "Uma aventura entre árvores", badge: "Em breve", cenarioId: "", disponivel: false },
+      { key: "espaco", name: "O Espaço", desc: "Entre estrelas e planetas", badge: "Em breve", cenarioId: "", disponivel: false },
+      { key: "fundomar", name: "O Fundo do Mar", desc: "Com peixes e corais", badge: "Em breve", cenarioId: "", disponivel: false }
+    ];
+  }
+
   // src/core/onboarding.ts
   var BLOCO_PADRAO = 15;
   function perfilDoOnboarding(dados) {
@@ -3531,11 +3700,12 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
     return rotuloDia(indiceDia(ts));
   }
   function filtrarPorPeriodo(eventos, periodo, agora) {
+    const soLeitura = eventos.filter((e) => e.tipo !== "espelho_falhou");
     const dias = diasDoPeriodo(periodo);
     if (!Number.isFinite(dias))
-      return eventos.slice();
+      return soLeitura;
     const limite = agora - dias * MS_POR_DIA4;
-    return eventos.filter((e) => e.ts >= limite);
+    return soLeitura.filter((e) => e.ts >= limite);
   }
   function minutosClampados(e) {
     const m = e.dados.minutos;
@@ -3769,9 +3939,13 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
       dentroDaRetencaoHistoria,
       normalizarHistorias,
       tituloDaHistoria,
-      dataRelativa
+      dataRelativa,
+      apenasCompletas,
+      agruparPorDia
     },
-    perfil: { criarPerfil },
+    perfil: { criarPerfil, clampIdade, IDADE_MIN, IDADE_MAX },
+    avatares: { lista: AVATARES_DEF, padrao: AVATAR_PADRAO, normalizar: normalizarAvatar, porId: porIdAvatar },
+    cenas: { svgCena, galeriaCenas },
     onboarding: { montarEstadoOnboarding, perfilDoOnboarding, BLOCO_PADRAO },
     sessao: { iniciarSessao, tick, encerrarSessao, formatarRestante },
     a11y: { estiloLeitura, paletaContraste, transicao, animacaoCena },
@@ -3796,7 +3970,8 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
       sincronizarInicial,
       puxarFlagsGlobais,
       limitesDaFamilia,
-      excedeTetoPerfis
+      excedeTetoPerfis,
+      aoMesclarHistorias
     },
     flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos, iaEfetivamenteLigada },
     tts,

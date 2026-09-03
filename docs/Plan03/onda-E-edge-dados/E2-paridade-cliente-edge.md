@@ -1,7 +1,6 @@
 # E2 — Paridade cliente↔edge: script que falha se divergir; canônico dos guardrails; gramática
 
-> Status: pendente
-
+> Status: concluída (2026-09-03 · f53697c)
 **Unidade de deploy:** nenhuma (script + testes) — roda no CI (D8). **Depende de:** nada
 (D8 para o CI). **Desbloqueia:** E3, D4 (decisão sobre `guardrails.ts`).
 

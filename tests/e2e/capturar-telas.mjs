@@ -18,16 +18,9 @@
  *   PIN nasce "1234" no 1º uso. Depende do bundle BUILDADO. Não commitar todos os PNGs —
  *   docs/auditorias/screenshots/.gitignore whitelista os essenciais.
  */
-import { createRequire } from "node:module";
-import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync, statSync } from "node:fs";
-import net from "node:net";
 import path from "node:path";
-
-const require = createRequire(import.meta.url);
-const PW_CORE = process.env.PW_CORE || "C:/Users/mfard/AppData/Local/npm-cache/_npx/705bc6b22212b352/node_modules/playwright-core";
-const EXEC = process.env.PW_CHROME || "C:/Users/mfard/AppData/Local/ms-playwright/chromium-1223/chrome-win64/chrome.exe";
-const { chromium } = require(PW_CORE);
+import { chromium, executavelChromium, bootServer } from "./_harness.mjs";
 
 const argv = process.argv.slice(2);
 const arg = (k, d) => { const i = argv.indexOf(k); return i >= 0 && argv[i + 1] ? argv[i + 1] : d; };
@@ -39,22 +32,6 @@ const VIEWPORTS = [{ width: 1280, height: 800 }, { width: 390, height: 844 }];
 const MIN_ALVO = 48;
 
 mkdirSync(OUT, { recursive: true });
-
-function esperarPorta(port, timeoutMs = 15000) {
-  const inicio = Date.now();
-  return new Promise((resolve, reject) => {
-    const tentar = () => {
-      const s = net.connect(port, "localhost");
-      s.on("connect", () => { s.end(); resolve(); });
-      s.on("error", () => {
-        s.destroy();
-        if (Date.now() - inicio > timeoutMs) reject(new Error("timeout esperando o server"));
-        else setTimeout(tentar, 200);
-      });
-    };
-    tentar();
-  });
-}
 
 const capturas = [];
 const sondas = {};
@@ -91,11 +68,10 @@ const irTela = (page, n) => page.evaluate((tela) => {
 const esperarTela = (page, n) => page.waitForFunction((t) => window.PipocaApp.estado.tela === t, n, { timeout: 5000 }).catch(() => { console.warn(`  ! tela ${n} não confirmou em 5s (fotografa mesmo assim)`); });
 const esperarTexto = (page, re) => page.waitForFunction((src) => new RegExp(src, "i").test(document.body.innerText), re, { timeout: 5000 }).catch(() => { console.warn(`  ! texto /${re}/ não apareceu em 5s`); });
 
-const server = spawn("node", ["server.js"], { stdio: "ignore", env: { ...process.env, PORT: String(PORT) } });
+const server = await bootServer(PORT);
 let browser;
 try {
-  await esperarPorta(PORT);
-  browser = await chromium.launch({ headless: true, executablePath: EXEC });
+  browser = await chromium.launch({ headless: true, executablePath: executavelChromium() });
 
   // ── App da família (/app) ──────────────────────────────────────────────────
   console.log(`\n=== App da família (/app) → ${OUT} ===`);
@@ -192,6 +168,8 @@ try {
 
   // Telas adultas: pelo portão (PIN 1234) → T8; depois setState no modo cuidador.
   await page.evaluate(() => { window.PipocaApp.verificarPinCuidador("1234"); });
+  await esperarTela(page, 11); // C6: pós-PIN → hub
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 8 }); });
   await esperarTela(page, 8); await esperarTexto(page, "Pote de vaga-lumes|Evolução");
   await foto(page, "T08-evolucao");
   const adultas = [[11, "T11-hub-cuidador", "guardados|Cuidador"], [12, "T12-perfis", "Perfis|Ana"], [13, "T13-limites", "Limites|minutos"], [14, "T14-regras-ia", "Quem confirma a leitura"], [15, "T15-privacidade", "Privacidade"], [16, "T16-conta", "Conta & segurança|PIN do portão"]];

@@ -1,7 +1,6 @@
 # D6 — Branches mergeadas, `.gitignore`, `post-merge.sh`
 
-> Status: pendente
-
+> Status: concluída (2026-09-03 · fc66881)
 **Unidade de deploy:** nenhuma (git/config). **Depende de:** nada. **Desbloqueia:** —.
 
 ## Objetivo

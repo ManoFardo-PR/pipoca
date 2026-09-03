@@ -452,6 +452,62 @@ console.log("\n=== histórias salvas — repo local (upsert, poda, LGPD) ===");
     `intermediárias respeitam o teto próprio (${MAX_INTERMEDIARIAS_NAO_FAVORITAS})`);
   assert(MAX_NAO_FAVORITAS === 30, "teto das completas não mudou (30)");
 
+  // ─── Plan03 · C1 — helpers de EXIBIÇÃO da estante (armazenamento intocado) ───
+  console.log("\n=== C1 · estante: apenasCompletas + agruparPorDia (helpers puros) ===");
+  const { apenasCompletas, agruparPorDia } = await import("../historias.js");
+  const soCompletas = apenasCompletas(normalizadas);
+  assert(soCompletas.length === 5 && soCompletas.every((h) => h.intermediaria !== true),
+    "apenasCompletas: intermediárias somem da exibição (decisão do dono)");
+  const intFavorita = normalizarHistorias(
+    [{ ...mkH("int-fav", 0, true), intermediaria: true, rodada: 2 }, mkH("comp-x", 0)], agora);
+  assert(apenasCompletas(intFavorita).every((h) => h.id !== "int-fav"),
+    "apenasCompletas: intermediária FAVORITA também sai da exibição (mesma regra; segue armazenada)");
+  const paraAgrupar = normalizarHistorias([
+    mkH("hoje-1", 0), { ...mkH("hoje-2", 0), criadaEm: agora - 1000 },
+    mkH("ontem-1", 1), mkH("velha-1", 3),
+  ], agora);
+  const grupos = agruparPorDia(paraAgrupar, agora);
+  assert(grupos.length === 3 && grupos[0]?.rotulo === "hoje" && grupos[1]?.rotulo === "ontem" && grupos[2]?.rotulo === "há 3 dias",
+    "agruparPorDia: grupos hoje/ontem/há N dias na ordem desc");
+  assert(grupos[0]?.historias.length === 2 && grupos[0]?.historias[0]?.id === "hoje-1" && grupos[0]?.historias[1]?.id === "hoje-2",
+    "agruparPorDia: preserva a ordem desc dentro do grupo");
+  assert(grupos[1]?.historias.length === 1 && grupos[2]?.historias.length === 1,
+    "agruparPorDia: cada história cai no seu dia (estável)");
+
+  // ─── Plan03 · D1 — mesclarHistorias (união por id, desempate por carimbo) ───
+  console.log("\n=== D1 · mesclarHistorias + saneamento do atualizadoEm ===");
+  const { mesclarHistorias, validarHistoriaSalva: validarD1 } = await import("../historias.js");
+  const comCarimbo = validarD1({ ...mkH("carimbo", 0), atualizadoEm: 123 });
+  assert(comCarimbo?.atualizadoEm === 123, "validar preserva o carimbo aditivo atualizadoEm");
+  const carimboRuim = validarD1({ ...mkH("carimbo-ruim", 0), atualizadoEm: "ontem" });
+  assert(carimboRuim !== null && carimboRuim.atualizadoEm === undefined,
+    "carimbo malformado cai fora SEM derrubar o registro (aditivo)");
+  const mLocal = [
+    { ...mkH("so-local", 0), atualizadoEm: 100 },
+    { ...mkH("conflito-local-vence", 0), texto: "Local mais novo. Fim.", atualizadoEm: 200 },
+    { ...mkH("conflito-remoto-vence", 0), atualizadoEm: 100 },
+    { ...mkH("sem-carimbo-igual", 0) },
+    { ...mkH("sem-carimbo-difere", 0) },
+  ];
+  const mRemoto = [
+    { ...mkH("so-remota", 0), atualizadoEm: 100 },
+    { ...mkH("conflito-local-vence", 0), texto: "Remoto velho. Fim.", atualizadoEm: 150 },
+    { ...mkH("conflito-remoto-vence", 0, true), atualizadoEm: 300 },
+    { ...mkH("sem-carimbo-igual", 0), atualizadoEm: 300 },
+    { ...mkH("sem-carimbo-difere", 0, true), atualizadoEm: 300 },
+  ];
+  const mescla = new Map(mesclarHistorias(mLocal, mRemoto).map((h) => [h.id, h]));
+  assert(mescla.size === 6 && mescla.has("so-local") && mescla.has("so-remota"),
+    "mescla é UNIÃO por id (só-local e só-remota entram)");
+  assert(mescla.get("conflito-local-vence")?.texto === "Local mais novo. Fim.",
+    "conflito com carimbo: o MAIOR vence (local mais novo fica)");
+  assert(mescla.get("conflito-remoto-vence")?.favorita === true,
+    "conflito com carimbo: remoto mais novo vence (favorita chega)");
+  assert(mescla.get("sem-carimbo-igual")?.atualizadoEm === undefined,
+    "local sem carimbo e SEM divergência: local fica (nada regrava à toa)");
+  assert(mescla.get("sem-carimbo-difere")?.favorita === true,
+    "local sem carimbo e favorita/texto divergem: o remoto (pós-D1) vence");
+
   // localStorage cheio: poda preventiva — intermediárias primeiro (13-02).
   const memCheia = new Map<string, string>();
   let falhasRestantes = 1; // a 1ª gravação "estoura a quota"; após 1 poda, cabe

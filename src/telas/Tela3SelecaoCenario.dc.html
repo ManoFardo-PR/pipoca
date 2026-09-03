@@ -6,6 +6,17 @@
      Header: avatar + nome + vagalumes + ⚙.
 -->
 <x-dc>
+<helmet>
+  <style>
+    /* C2 (UI-C55): no celular a galeria empilha (destaque em cima, grade 2×2 embaixo)
+       em vez de espremer 5 cartões numa linha. */
+    @media (max-width: 700px) {
+      .pip-t3-galeria { flex-direction: column; height: auto !important; }
+      .pip-t3-galeria > button { min-height: 260px; }
+      .pip-t3-grade { min-height: 320px; }
+    }
+  </style>
+</helmet>
 
 <div style="position:absolute;inset:0;display:flex;flex-direction:column;background:linear-gradient(180deg,#fdf3df,#f6ead2);">
 
@@ -13,13 +24,14 @@
        (B5), saldo = pote (B5), 🎁 guardado, ⚙ Do meu jeito. -->
   <dc-import name="BarraCrianca" mostrarAvatar="{{ true }}" avatarRef="{{ childAvatarRef }}" saudacao="{{ saudacao }}" subtitulo="{{ subtitulo }}" trocarLeitor="{{ trocarLeitor }}" mostrarSaldo="{{ true }}" vagalumes="{{ vagalumes }}" verPote="{{ verPote }}" poupado="{{ poupado }}" abrirAjustes="{{ abrirAjustesA11y }}"></dc-import>
 
-  <!-- Content -->
-  <div style="flex:1;min-height:0;padding:26px 36px 34px;display:flex;flex-direction:column;">
+  <!-- Content — C2 (ML-1): a T3 ROLA verticalmente; a galeria fica acima e a ESTANTE
+       de histórias vira seção digna abaixo (não mais um rodapé de 130px). -->
+  <div style="flex:1;min-height:0;overflow-y:auto;padding:26px 36px 34px;display:flex;flex-direction:column;">
     <div>
       <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:30px;color:#3a4f63;">Onde a história acontece hoje?</div>
       <p style="font-size:var(--pip-fs-3);line-height:var(--pip-lh-texto);color:var(--pip-texto-suave);margin-top:4px;max-width:620px;">Escolha um lugar. Quanto mais você lê, mais o lugar ganha vida.</p>
     </div>
-    <div style="flex:1;min-height:0;display:flex;gap:20px;margin-top:20px;">
+    <div class="pip-t3-galeria" style="flex-shrink:0;height:clamp(320px,52vh,440px);display:flex;gap:20px;margin-top:20px;">
 
       <!-- Featured (Quintal) -->
       <button onClick="{{ featuredPick }}" style="flex:1.35;min-width:0;position:relative;border:none;cursor:pointer;border-radius:26px;overflow:hidden;padding:0;background:#e3d6bf;box-shadow:0 16px 32px -14px rgba(74,59,44,.45);text-align:left;">
@@ -36,7 +48,7 @@
       </button>
 
       <!-- Grid (outros) -->
-      <div style="flex:1;min-width:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:16px;">
+      <div class="pip-t3-grade" style="flex:1;min-width:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:16px;">
         <sc-for list="{{ gridCenas }}" as="cn" hint-placeholder-count="4">
           <button onClick="{{ cn.pick }}" style="position:relative;border:none;cursor:{{ cn.cursor }};border-radius:20px;overflow:hidden;padding:0;background:#e3d6bf;box-shadow:0 10px 22px -12px rgba(74,59,44,.4);text-align:left;opacity:{{ cn.opacidade }};">
             <div ref="{{ cn.sceneRef }}" style="position:absolute;inset:0;"></div>
@@ -51,28 +63,37 @@
       </div>
     </div>
 
-    <!-- Minhas histórias (salvas por 20 dias; 💛 = para sempre) -->
-    <div style="flex-shrink:0;margin-top:14px;">
-      <div style="display:flex;align-items:baseline;gap:10px;">
-        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:17px;color:#3a4f63;">Minhas histórias</div>
-        <div style="font-size:11.5px;color:var(--pip-texto-suave);">toque para reler · 💛 guarda para sempre</div>
+    <!-- Minhas histórias — C2 (ML-1): estante digna, agrupada por dia, sem duplicatas
+         (só completas — C1), cartões ≥120px com título inteiro; grade responsiva
+         (1 coluna no celular, sem carrossel cortado). Coração é botão IRMÃO ≥48px. -->
+    <div style="flex-shrink:0;margin-top:22px;">
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+        <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:22px;color:#3a4f63;">Minhas histórias</div>
+        <div style="font-size:13px;color:var(--pip-texto-suave);">{{ contagemHistorias }} · toque para reler · 💛 guarda para sempre</div>
       </div>
       <sc-if value="{{ temHistorias }}" hint-placeholder-val="{{ false }}">
-        <div style="display:flex;gap:12px;overflow-x:auto;padding:10px 2px 4px;">
-          <sc-for list="{{ cartoesHistorias }}" as="hh" hint-placeholder-count="3">
-            <div onClick="{{ hh.abrir }}" role="button" style="flex-shrink:0;width:200px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.8);border-radius:16px;padding:10px 12px;box-shadow:0 8px 20px -12px rgba(74,59,44,.35);cursor:pointer;">
-              <div style="font-size:26px;flex-shrink:0;">{{ hh.emoji }}</div>
-              <div style="flex:1;min-width:0;">
-                <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:13px;color:#3a2c20;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ hh.titulo }}</div>
-                <div style="font-size:11px;color:var(--pip-texto-suave);margin-top:2px;">{{ hh.quando }}</div>
-              </div>
-              <button onClick="{{ hh.coracao }}" aria-label="Guardar para sempre" title="Guardar para sempre" style="border:none;background:transparent;font-size:19px;cursor:pointer;flex-shrink:0;width:48px;height:48px;margin:-6px -8px -6px 0;display:flex;align-items:center;justify-content:center;border-radius:50%;">{{ hh.coracaoIcone }}</button>
+        <sc-for list="{{ gruposHistorias }}" as="gd" hint-placeholder-count="1">
+          <div style="margin-top:12px;">
+            <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--pip-texto-suave);">{{ gd.rotulo }}</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:8px;">
+              <sc-for list="{{ gd.cartoes }}" as="hh" hint-placeholder-count="2">
+                <div style="display:flex;align-items:stretch;min-height:120px;background:var(--pip-superficie);border-radius:18px;box-shadow:0 8px 20px -12px rgba(74,59,44,.35);overflow:hidden;">
+                  <button onClick="{{ hh.abrir }}" style="flex:1;min-width:0;display:flex;align-items:center;gap:12px;border:none;background:transparent;cursor:pointer;text-align:left;padding:14px 6px 14px 14px;">
+                    <div aria-hidden="true" style="font-size:34px;flex-shrink:0;">{{ hh.emoji }}</div>
+                    <div style="min-width:0;">
+                      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:15px;color:#3a2c20;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">{{ hh.titulo }}</div>
+                      <div style="font-size:12px;color:var(--pip-texto-suave);margin-top:4px;">{{ hh.quando }}</div>
+                    </div>
+                  </button>
+                  <button onClick="{{ hh.coracao }}" aria-label="Guardar para sempre" aria-pressed="{{ hh.favorita }}" title="Guardar para sempre" style="border:none;background:transparent;font-size:22px;cursor:pointer;flex-shrink:0;width:52px;min-height:48px;display:flex;align-items:center;justify-content:center;">{{ hh.coracaoIcone }}</button>
+                </div>
+              </sc-for>
             </div>
-          </sc-for>
-        </div>
+          </div>
+        </sc-for>
       </sc-if>
       <sc-if value="{{ semHistorias }}" hint-placeholder-val="{{ false }}">
-        <div style="margin-top:8px;font-size:13px;color:var(--pip-texto-suave);">Suas histórias terminadas vão morar aqui ✨</div>
+        <div style="margin-top:10px;background:rgba(255,255,255,.6);border:1.5px dashed var(--pip-areia-borda);border-radius:16px;padding:18px;font-size:var(--pip-fs-3);color:var(--pip-texto-suave);">Suas histórias terminadas vão morar aqui ✨ Leia uma até o fim e volte para reler quando quiser.</div>
       </sc-if>
     </div>
   </div>
@@ -98,8 +119,14 @@ class Component extends DCLogic {
       const vivas = (Canon && Canon.historias)
         ? Canon.historias.normalizarHistorias(lista || [], Date.now())
         : (lista || []);
-      const chave = JSON.stringify(vivas.map((h) => h.id + ':' + h.favorita));
-      if (chave !== this._chaveHist) { this._chaveHist = chave; this.setState({ historias: vivas }); }
+      // C2/C1: a estante exibe SÓ completas (fallback inline enquanto o bundle não
+      // expõe apenasCompletas — o rebuild é no C12).
+      const H = Canon && Canon.historias;
+      const completas = (H && H.apenasCompletas)
+        ? H.apenasCompletas(vivas)
+        : vivas.filter((h) => h.intermediaria !== true);
+      const chave = JSON.stringify(completas.map((h) => h.id + ':' + h.favorita));
+      if (chave !== this._chaveHist) { this._chaveHist = chave; this.setState({ historias: completas }); }
     } catch (_) {}
   }
 
@@ -111,6 +138,10 @@ class Component extends DCLogic {
   }
 
   _scene(key) {
+    // C5: a fonte de verdade dos SVGs é Canon.cenas (core); o bloco abaixo é o
+    // fallback para bundle antigo (mesma arte) e sai quando E5 derivar do manifesto.
+    const C5c = window.PipocaCanonico;
+    if (C5c && C5c.cenas && C5c.cenas.svgCena) return C5c.cenas.svgCena(key);
     const S = {
       quintal: "<svg viewBox='0 0 400 300' width='100%' height='100%' preserveAspectRatio='xMidYMid slice' xmlns='http://www.w3.org/2000/svg'><defs><linearGradient id='qsky' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#fce7bd'/><stop offset='.55' stop-color='#f8d291'/><stop offset='1' stop-color='#f4ba74'/></linearGradient><radialGradient id='qsun' cx='.5' cy='.5' r='.5'><stop offset='0' stop-color='#fff8e2'/><stop offset='.55' stop-color='#ffe49e'/><stop offset='1' stop-color='#ffe49e' stop-opacity='0'/></radialGradient><filter id='qsoft' x='-30%' y='-30%' width='160%' height='160%'><feGaussianBlur stdDeviation='2.2'/></filter></defs><rect width='400' height='300' fill='url(#qsky)'/><circle cx='305' cy='86' r='74' fill='url(#qsun)'/><circle cx='305' cy='86' r='30' fill='#fff3d0'/><path d='M0 208 Q120 168 240 203 T400 198 V300 H0 Z' fill='#c2d693' opacity='.92'/><path d='M0 234 Q140 206 280 231 T400 229 V300 H0 Z' fill='#a6c372'/><rect y='250' width='400' height='50' fill='#90b65d'/><rect x='86' y='150' width='16' height='92' rx='6' fill='#9d6d43'/><g filter='url(#qsoft)'><circle cx='94' cy='139' r='43' fill='#7da94f'/><circle cx='64' cy='155' r='28' fill='#8db75b'/><circle cx='122' cy='156' r='30' fill='#6f9a49'/><circle cx='98' cy='116' r='26' fill='#93bd60'/></g><g fill='#c89c6c'><rect x='250' y='205' width='12' height='48' rx='3'/><rect x='285' y='205' width='12' height='48' rx='3'/><rect x='320' y='205' width='12' height='48' rx='3'/><rect x='355' y='205' width='12' height='48' rx='3'/></g><rect x='245' y='214' width='128' height='8' rx='4' fill='#ba8c5b'/><rect x='245' y='234' width='128' height='8' rx='4' fill='#ba8c5b'/><circle cx='172' cy='270' r='15' fill='#e27c50'/></svg>",
       quarto:   "<svg viewBox='0 0 400 300' width='100%' height='100%' preserveAspectRatio='xMidYMid slice' xmlns='http://www.w3.org/2000/svg'><rect width='400' height='300' fill='#e8d2e6'/><rect x='232' y='40' width='130' height='110' rx='12' fill='#3a3357'/><rect x='244' y='52' width='106' height='86' rx='7' fill='#2a2747'/><g fill='#fff' opacity='.7'><circle cx='270' cy='80' r='1.7'/><circle cx='300' cy='110' r='1.5'/><circle cx='258' cy='118' r='1.3'/></g><rect y='196' width='400' height='104' fill='#d9b69a'/><rect x='34' y='150' width='150' height='62' rx='14' fill='#caa6c4'/><circle cx='104' cy='150' r='18' fill='#fff6e6'/></svg>",
@@ -121,32 +152,19 @@ class Component extends DCLogic {
     return S[key] || S.quintal;
   }
 
-  _avatarSVG(d) {
-    if (!d) return '';
-    const ear = {
-      pup:  "<path d='M22 30 Q14 8 34 26 Z' fill='"+d.fur+"'/><path d='M86 30 Q94 8 74 26 Z' fill='"+d.fur+"'/>",
-      fox:  "<path d='M24 26 L20 4 L42 20 Z' fill='"+d.fur+"'/><path d='M84 26 L88 4 L66 20 Z' fill='"+d.fur+"'/>",
-      bear: "<circle cx='28' cy='22' r='13' fill='"+d.fur+"'/><circle cx='80' cy='22' r='13' fill='"+d.fur+"'/>",
-      cat:  "<path d='M26 28 L20 6 L40 22 Z' fill='"+d.fur+"'/><path d='M82 28 L88 6 L68 22 Z' fill='"+d.fur+"'/>",
-      bird: "<path d='M54 6 q8 -4 6 8' stroke='"+d.fur+"' stroke-width='5' fill='none' stroke-linecap='round'/>",
-    }[d.ear] || '';
-    return "<svg viewBox='0 0 42 42' width='42' height='42' xmlns='http://www.w3.org/2000/svg'>"
-      + "<g transform='scale(0.388)'>" + ear
-      + "<circle cx='54' cy='60' r='42' fill='"+d.bg+"'/>"
-      + "<circle cx='42' cy='56' r='5.5' fill='#2b2118'/><circle cx='66' cy='56' r='5.5' fill='#2b2118'/>"
-      + "<circle cx='44' cy='54' r='1.8' fill='#fff'/><circle cx='68' cy='54' r='1.8' fill='#fff'/>"
-      + "<path d='M46 72 Q54 80 62 72' stroke='#2b2118' stroke-width='4' fill='none' stroke-linecap='round'/>"
-      + "</g></svg>";
+  // C5 (Plan03): avatar por emoji sobre disco (tabela única Canon.avatares);
+  // fallback de bundle antigo com disco neutro + inicial.
+  _defAvatar(id) {
+    const C = window.PipocaCanonico;
+    if (C && C.avatares && C.avatares.porId) return C.avatares.porId(id);
+    const nome = (id || '?').charAt(0).toUpperCase() + String(id || '').slice(1);
+    return { id, nome, cor: '#b8ab90', emoji: '' };
   }
-
-  _avatarDefs() {
-    return [
-      { id:'pingo', name:'Pingo', bg:'#3f6f9e', ear:'pup',  fur:'#5b86ad' },
-      { id:'fubá',  name:'Fubá',  bg:'#d98a4e', ear:'fox',  fur:'#e6a063' },
-      { id:'cacau', name:'Cacau', bg:'#7a9a5b', ear:'bear', fur:'#93b074' },
-      { id:'lua',   name:'Lua',   bg:'#9c7cb0', ear:'cat',  fur:'#b196c2' },
-      { id:'tuca',  name:'Tuca',  bg:'#5fa9b8', ear:'bird', fur:'#7cc0cd' },
-    ];
+  _avatarHTML(d, px) {
+    const conteudo = d.emoji || (d.nome || '?').slice(0, 1).toUpperCase();
+    const fe = Math.round(px * (d.emoji ? 0.54 : 0.4));
+    return '<div role="img" aria-label="' + d.nome + '" style="width:' + px + 'px;height:' + px + 'px;border-radius:50%;background:' + d.cor + ';display:grid;place-items:center;">'
+      + '<span aria-hidden="true" style="font-size:' + fe + 'px;line-height:1;' + (d.emoji ? '' : "font-family:'Baloo 2',cursive;font-weight:800;color:#fff;") + '">' + conteudo + '</span></div>';
   }
 
   escolherCenario(cenarioId) {
@@ -199,9 +217,7 @@ class Component extends DCLogic {
     const App = window.PipocaApp;
     const perfil = App ? App.estado.perfil : null;
     if (perfil && this._childAvatarEl) {
-      const defs = this._avatarDefs();
-      const d = defs.find(x => x.id === perfil.avatarId);
-      if (d) this._inject(this._childAvatarEl, this._avatarSVG(d));
+      this._inject(this._childAvatarEl, this._avatarHTML(this._defAvatar(perfil.avatarId), 42));
     }
     const keys = ['quarto','floresta','espaco','fundomar'];
     keys.forEach(k => {
@@ -243,8 +259,12 @@ class Component extends DCLogic {
       { key:'espaco',   name:'O Espaço',   desc:'Entre estrelas e planetas' },
       { key:'fundomar', name:'Fundo do Mar',desc:'Com peixes e corais' },
     ];
+    // C7: a lista liberada guarda IDS CANÔNICOS ('quintal_anoitecer'; os demais
+    // provisórios = a própria chave até E5 unificar chave↔id). O mapa é a costura
+    // única que E5 troca quando os ids reais nascerem.
+    const ID_POR_KEY = { quarto: 'quarto', floresta: 'floresta', espaco: 'espaco', fundomar: 'fundomar' };
     const gridCenas = gridDados.map(d => {
-      const disponivel = liberados.indexOf(d.key) >= 0;
+      const disponivel = liberados.indexOf(ID_POR_KEY[d.key] || d.key) >= 0;
       return {
         name: d.name,
         desc: d.desc,
@@ -256,16 +276,35 @@ class Component extends DCLogic {
       };
     });
 
-    // Minhas histórias: cartões de releitura (tap abre o leitor; 💛 favorita).
+    // Minhas histórias (C2): agrupadas por dia (fallback inline até o bundle do C12),
+    // cartão = botão de abrir + coração IRMÃO (nunca botão aninhado).
     const CanonH = window.PipocaCanonico && window.PipocaCanonico.historias;
-    const cartoesHistorias = (this.state.historias || []).map((h) => ({
-      emoji: h.emoji || '✨',
-      titulo: h.titulo,
-      quando: CanonH ? CanonH.dataRelativa(h.criadaEm, Date.now()) : '',
-      coracaoIcone: h.favorita ? '💛' : '🤍',
-      abrir: () => { if (App) App.setState({ leitorHistoria: h }); },
-      coracao: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this._favoritar(h); },
+    const agora = Date.now();
+    const vivas = this.state.historias || [];
+    const grupos = (CanonH && CanonH.agruparPorDia)
+      ? CanonH.agruparPorDia(vivas, agora)
+      : (() => {
+          const gs = []; const idx = {};
+          for (const h of vivas) {
+            const rotulo = CanonH ? CanonH.dataRelativa(h.criadaEm, agora) : 'hoje';
+            if (!(rotulo in idx)) { idx[rotulo] = gs.length; gs.push({ rotulo, historias: [] }); }
+            gs[idx[rotulo]].historias.push(h);
+          }
+          return gs;
+        })();
+    const gruposHistorias = grupos.map((g) => ({
+      rotulo: g.rotulo,
+      cartoes: g.historias.map((h) => ({
+        emoji: h.emoji || '✨',
+        titulo: h.titulo,
+        quando: CanonH ? CanonH.dataRelativa(h.criadaEm, agora) : '',
+        favorita: h.favorita ? 'true' : 'false',
+        coracaoIcone: h.favorita ? '💛' : '🤍',
+        abrir: () => { if (App) App.setState({ leitorHistoria: h }); },
+        coracao: () => this._favoritar(h),
+      })),
     }));
+    const total = vivas.length;
 
     return {
       childName,
@@ -274,9 +313,10 @@ class Component extends DCLogic {
       vagalumes,
       poupado,
       temPoupado: poupado > 0,
-      temHistorias: cartoesHistorias.length > 0,
-      semHistorias: cartoesHistorias.length === 0,
-      cartoesHistorias,
+      temHistorias: total > 0,
+      semHistorias: total === 0,
+      gruposHistorias,
+      contagemHistorias: total === 1 ? '1 história' : total + ' histórias',
       childAvatarRef,
       featuredSceneRef,
       featuredPick: () => this.escolherCenario('quintal_anoitecer'),

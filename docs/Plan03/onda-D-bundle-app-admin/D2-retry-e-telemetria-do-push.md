@@ -1,7 +1,6 @@
 # D2 — Retry e sinal de falha no push remoto (D-06)
 
-> Status: pendente
-
+> Status: concluída (2026-09-03 · 7d15658)
 **Unidade de deploy:** BUNDLE app + admin (`src/backend/adaptadores/repo_sincronizado.ts`).
 **Depende de:** D1. **Desbloqueia:** —.
 

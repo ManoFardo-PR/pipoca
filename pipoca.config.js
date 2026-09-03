@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Pipoca — config PÚBLICA do backend trocável (fase06-06-06).
  * ------------------------------------------------------------
  * Carregado nos dois entries (index.html / admin.html) ANTES dos bundles.
@@ -11,7 +11,7 @@
  * roda 100% offline. Sem este arquivo (404) ou com config incompleta,
  * o backend degrada para "local" (fail-safe — src/backend/config.ts).
  *
- * provedor: "supabase" | "firebase" | "local".
+ * provedor: "supabase" | "local" (D5: o ramo do BaaS alternativo foi aposentado).
  * Projeto: pipoca (sa-east-1) · ref bamlljvllcxdnsheatqv.
  */
 window.PIPOCA_CONFIG = window.PIPOCA_CONFIG || {

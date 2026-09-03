@@ -1,4 +1,4 @@
-# Varredura geral — pontas soltas, código morto, UI e melhorias (2026-08-26)
+﻿# Varredura geral — pontas soltas, código morto, UI e melhorias (2026-08-26)
 
 **Escopo:** branch `28_08_26` @ `e0bdcd2`, findings-only (nada foi corrigido).
 **Método:** evidência sempre (`arquivo:linha` ou saída de comando); typecheck/testes/e2e
@@ -99,6 +99,10 @@ onde o dc-runtime nasceu; tratar `support.js` como vendored-freeze documentado; 
 de êxodo gradual.
 
 ### 🟡 PS-05 · `pipoca.admin.bundle.js` está 12 dias atrás do código compartilhado
+
+> ✅ **Resolvido em 2026-09-03 (Plan03 · D9, commit `b267e53`):** os 2 bundles rebuildados no mesmo
+> commit da fonte da onda; o CI de D8 (`check:bundles`, commit `f9c3f2b`) rebuilda e FALHA se
+> divergirem — a classe de drift morreu por máquina.
 Bundle do admin buildado em `85595f9` (2026-08-14); desde então **3 commits tocaram
 `src/core`/`src/backend`** (que entram no bundle do admin via `bridge_admin.ts`):
 `e0bdcd2` (integridade de persistência D-09/D-10), `e2cbe4d` (auth Google), `b3a98b3`
@@ -107,6 +111,11 @@ O admin roda hoje **sem** as proteções D-09/D-10 no seu lado do espelho.
 *Sintoma da causa-raiz: build manual sem CI (PS-08).*
 
 ### 🟡 PS-06 · Follow-ups conhecidos D-06 e D-07 seguem abertos (e agora têm consequência de UX)
+
+> ✅ **Resolvido em 2026-09-03 (Plan03 · D1 `3655179` + D2 `7d15658`):** D-07 = mescla por
+> `atualizadoEm` (leitura reativa no repo + sincronizarInicial para TODOS os perfis; teste
+> "2 aparelhos"); D-06 = retry curto p/ transitórios + fila persistente `pipoca.fila-remota.v1`
+> drenada no sync + warn estruturado + rastro local `espelho_falhou` (fora do painel da T8).
 Confirmados em `docs/auditorias/frente4-mapa-envelope-coluna.md:38-46` e no código:
 - **D-06**: `repo_sincronizado.ts:130-141` — escrita remota fire-and-forget com catch
   vazio (8 pontos); uma história pode não chegar ao espelho e ninguém sabe.
@@ -117,6 +126,10 @@ Confirmados em `docs/auditorias/frente4-mapa-envelope-coluna.md:38-46` e no cód
   por trás do "minhas histórias sumiram" em troca de aparelho (ver ML-1).
 
 ### 🟡 PS-07 · D-21 — chave legada `pipoca.perfis.v1`: o perímetro é MAIOR que o documentado
+
+> ✅ **Resolvido em 2026-09-03 (Plan03 · D3, commit `2c2e9cc`):** os 3 lugares tratados — a Tela2
+> só fala com o repo; o `_fallbackRepo` grava na canônica `pipoca.perfil.v1` com envelope; a
+> migração one-shot APAGA a legada ao terminar (e2e cobre). Ciclos type-only desfeitos no mesmo passo.
 Não é só o fallback de leitura/migração (`src/app/estado.js:63,193-195,219-230`):
 (a) `estado.js:242` ainda **GRAVA** na chave legada sempre que o repo canônico falha
 (`_fallbackRepo`, ativado em 11 pontos via `_repoBase() || _fallbackRepo`); (b)
@@ -125,17 +138,30 @@ Não é só o fallback de leitura/migração (`src/app/estado.js:63,193-195,219-
 de camada. Aposentar a chave exige tocar os 3 lugares, não só a migração.
 
 ### 🟡 PS-08 · Sem CI, lint, formatter ou hooks; `.gitignore` de 3 linhas; bundles commitados à mão
+
+> ✅ **Resolvido em 2026-09-03 (Plan03 · D8 `f9c3f2b` + D6 `fc66881`):** `.github/workflows/ci.yml`
+> (tsc → unit → check:bundles → Chromium → 4 e2e → paridade continue-on-error até E2);
+> `.gitignore` ampliado; post-merge.sh com `npm ci` pelo lockfile. O RUN verde no GitHub e a
+> proteção de branch aguardam o push (F4) — itens manuais do gate D.
 `package.json:5-18` tem os scripts, mas nada os executa automaticamente; `scripts/post-merge.sh`
 existe e não é instalado como hook. O PS-05 é a consequência visível. Um workflow mínimo
 (typecheck + testes + confronto bundle×fonte) elimina a classe inteira de drift.
 
 ### 🟡 PS-09 · e2e com caminhos absolutos da máquina do autor
+
+> ✅ **Resolvido em 2026-09-03 (Plan03 · D7, commit `7eb64b5`):** `tests/e2e/_harness.mjs` resolve
+> playwright-core como devDependency (lockfile) e o Chromium por `executablePath()`;
+> PW_CORE/PW_CHROME viram só override; grep "C:/Users" em tests/ = 0.
 7 ocorrências `C:/Users/mfard/...` (`run-linha-verde-canonico.mjs:22,48,92`,
 `run-admin.mjs:44,78`, `run-geracao2-canonico.mjs:53,87`), sobrescrevíveis por
 `PW_CORE`/`PW_CHROME`. Nesta máquina funcionam (os 4 e2e passaram); em qualquer outra,
 quebram silencioso. `playwright.config.ts` na raiz sugere um segundo harness (ver DM).
 
 ### 🟢 PS-10 · Drift de documentação
+
+> ✅ **Resolvido em 2026-09-03 (Plan03 · D5, commits `ea8e8e2`/`8c93b63`):** guia sem
+> experimentos/old/playwright.config; 60-scripts reescrito; firebase com nota de aposentadoria
+> (PARIDADE.md); `.agents/memory` → `docs/notas/` com índice.
 `docs/guia-do-codigo/` (doc vivo): 18 refs a `experimentos/` (não existe mais), 2 a `old/`
 (existe **vazia**), adaptadores firebase listados como plugáveis
 (`40-backend-e-edge.md:53-54`) sem nota de aposentadoria. Outros 46 hits de
@@ -144,6 +170,10 @@ não corrigir. Detalhe: o arquivo da migração chama-se `2026-08-28_...` mas fo
 como `20260826155239` (2026-08-26) — cosmético, mas confunde arqueologia.
 
 ### 🟢 PS-11 · Higiene de branches
+
+> ✅ **Resolvido em 2026-09-03 (Plan03 · D6, commit `fc66881`):** 19 locais mergeadas apagadas
+> (`-d`); tag `arquivo/fase15-firebase` criada; dirs vazios saíram no D4. PENDENTE do dono:
+> deleção das ~25 remotas mergeadas (push) e o `-D` da fase15/26_08_2026 (lista no commit fc66881).
 21 locais / 30 remotas; **18 locais já mergeadas** em `28_08_26` (lista completa via
 `git branch --merged 28_08_26`). Não mergeadas: `26_08_2026` e
 `feat/fase15-migracao-firebase` (abandonada por decisão). `fix/geracao2-em-producao` está
@@ -412,6 +442,11 @@ decisão do dono** (morto no cliente, mas com par deployado/contrato documental)
 
 ### DM-A · Remoção segura (prova de não-uso; ~1.400 linhas + ~1.100 de teste + ~85 KB)
 
+> ✅ **Resolvido em 2026-09-03 (Plan03 · D4, commits `35b3489`/`5198d60`; exports de perfil.ts já
+> podados no C4 `845c7bf`):** Geração 1 (orquestrador/prompt/simulado/adaptadores + ia.test),
+> roteador.ts, playwright.config.ts, CartaoHistoria (C3), .thumbnail/.canvas, os 2 PNGs órfãos e
+> os dirs vazios saíram. `provedor.ts` fica (11 importadores).
+
 | Item | Prova resumida |
 |---|---|
 | `src/ia/{orquestrador,prompt,simulado}.ts` + `adaptadores/{claude,gemini,openai,deepseek,selecionar}.ts` (~800 L) | subgrafo fechado: nenhum import a partir de `bridge.ts:49-172`, `bridge_admin.ts:38-124`, `estado.js`, `estadoAdmin.js`; símbolos (`criarOrquestrador`, `criarProvedorSimulado`, `selecionarAdaptador`, `envolverComGuardrails`…) com **0 ocorrências nos 3 bundles**; `prompt.ts` tem zero importadores (nem teste). `ia.test.ts` (493 L) sai junto |
@@ -425,6 +460,12 @@ decisão do dono** (morto no cliente, mas com par deployado/contrato documental)
 | `old/` e `docs/plans02/fase15_migracao_firebase/` | vazios e untracked (git nem os vê) |
 
 ### DM-B · Morto — decisão do dono
+
+> ✅ **Decidido e executado (Plan03 · D4/D5, 2026-09-03):** ramo firebase APOSENTADO (stubs+tipo+
+> branch+testes fora; nota em PARIDADE.md — `ea8e8e2`); `proxy_ia.ts`+`Backend.proxyIA` fora
+> (decisão E3 confirmada; a EDGE proxy-ia sai em E3); `.agents/` migrado p/ `docs/notas/` e
+> apagado (`8c93b63`). Ficam para E: `guardrails.ts` (E2 move p/ core/seguranca) e
+> `Pasted-*.txt` (E6).
 
 | Item | Por quê não é remoção mecânica |
 |---|---|

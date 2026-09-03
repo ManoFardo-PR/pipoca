@@ -1,0 +1,54 @@
+Você vai executar UMA operação de deploy no Supabase e nada além dela. Não edite código, não crie/altere arquivos, não faça commit/push, não toque em secrets, não mexa em outras Edge Functions nem em configurações do projeto.
+
+CONTEXTO
+- Projeto Supabase: ref bamlljvllcxdnsheatqv (pipoca, sa-east-1).
+- Token: use o secret SUPABASE_ACCESS_TOKEN do Replit (Management API). NUNCA imprima o token no log.
+- Objetivo (Plan03 · E3): publicar a Edge Function `realizador` com o contrato novo (o prompt nasce na edge) e REMOVER a Edge Function `proxy-ia` (aposentada, sem consumidor).
+
+PASSO 0 · PRÉ-CHECAGENS (aborte e reporte se qualquer uma falhar)
+a) O secret existe: [ -n "$SUPABASE_ACCESS_TOKEN" ].
+b) O arquivo functions/realizador/index.ts DESTE workspace contém os marcadores do E3:
+   grep -c "ACEITAR_PROMPT_LEGADO" functions/realizador/index.ts   # deve ser >= 1
+   grep -c "function montarPromptRealizador" functions/realizador/index.ts   # deve ser >= 1
+   Se qualquer grep der 0, o código E3 ainda não chegou a este workspace — ABORTE com a mensagem
+   "código E3 ausente no workspace; sincronize o repo antes" e não faça mais nada.
+c) NÃO altere o arquivo. Em particular, ACEITAR_PROMPT_LEGADO deve permanecer = true (a transição
+   aceita clientes antigos; o flip para false é um deploy futuro, fora deste escopo).
+d) Estado atual das funções (guarde a saída para o relatório):
+   curl -s -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+     https://api.supabase.com/v1/projects/bamlljvllcxdnsheatqv/functions
+
+PASSO 1 · DEPLOY da `realizador` (verify_jwt LIGADO, entrypoint index.ts)
+   cd functions/realizador
+   curl -s -X POST \
+     -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+     -F 'metadata={"entrypoint_path":"index.ts","name":"realizador","verify_jwt":true}' \
+     -F file=@index.ts \
+     "https://api.supabase.com/v1/projects/bamlljvllcxdnsheatqv/functions/deploy?slug=realizador"
+   Critério: resposta 2xx e a versão da função INCREMENTADA em relação ao Passo 0d.
+
+PASSO 2 · REMOÇÃO da `proxy-ia`
+   curl -s -X DELETE \
+     -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+     https://api.supabase.com/v1/projects/bamlljvllcxdnsheatqv/functions/proxy-ia
+   Critério: resposta 2xx (ou 404 se já não existir — reporte qual foi).
+
+PASSO 3 · VERIFICAÇÃO (sem custo de LLM)
+a) Listar de novo (mesmo curl do Passo 0d): `realizador` ACTIVE com versão nova; `proxy-ia` AUSENTE.
+b) Prova de vida barata (não chama provedor pago): POST sem bearer deve dar 401:
+   curl -s -o /dev/null -w "%{http_code}\n" -X POST \
+     -H "content-type: application/json" -d '{}' \
+     https://bamlljvllcxdnsheatqv.supabase.co/functions/v1/realizador
+   Esperado: 401.
+   NÃO rode smoke com sessão real (gastaria API paga — fora deste escopo).
+
+ABRANGÊNCIA EXTRA (só se estritamente necessário)
+Nenhuma mudança de tabela é esperada — o contrato usa as tabelas existentes (config_ia, uso_ia,
+chaves_ia) sem alteração de schema. SE (e somente se) um passo acima falhar com erro que aponte
+schema/tabela faltando, PARE, reporte o erro exato e proponha o SQL mínimo ANTES de executar
+qualquer coisa — não rode SQL por conta própria.
+
+RELATÓRIO FINAL (obrigatório)
+- Versões de `realizador` antes/depois; confirmação de que `proxy-ia` sumiu da lista;
+- códigos HTTP de cada chamada; o 401 do teste de vida;
+- qualquer desvio ou erro, textualmente. Nada além disso foi tocado.

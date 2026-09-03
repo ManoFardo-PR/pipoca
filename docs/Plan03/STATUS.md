@@ -1,11 +1,11 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-03T12:57:17.599Z · branch `onda-D-bundle-app-admin` · HEAD `8c93b63`
-- Progresso: **45/59** passos concluídos
-- Próximo passo: **D6** — Branches, .gitignore, post-merge.sh ([abrir](onda-D-bundle-app-admin/D6-branches-gitignore-hooks.md))
+- Gerado em: 2026-09-03T13:01:26.314Z · branch `onda-D-bundle-app-admin` · HEAD `fc66881`
+- Progresso: **46/59** passos concluídos
+- Próximo passo: **D9** — Fechamento D: build:all → CI verde → merge ([abrir](onda-D-bundle-app-admin/D9-fechamento-onda-D.md))
 - Última verificação: ✅ verde em 2026-09-01T19:49:58.339Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ árvore suja (1 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
   - ⚠ pipoca.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/app/bridge.ts, src/dados (rebuild pendente)
   - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
@@ -66,7 +66,7 @@
 | C11 | [ARIA nas telas adultas](onda-C-bundle-app/C11-aria-telas-adultas.md) | [✓] concluída | 2026-09-01 | `8f5a3d0` |
 | C12 | [Fechamento C: build:app + build:admin → e2e → merge](onda-C-bundle-app/C12-fechamento-onda-C.md) | [✓] concluída | 2026-09-02 | `e8827f5` |
 
-## Onda D — Bundle app + admin: sync, faxina, CI · 8/10 · branch `onda-D-bundle-app-admin` · BUNDLE app + admin
+## Onda D — Bundle app + admin: sync, faxina, CI · 9/10 · branch `onda-D-bundle-app-admin` · BUNDLE app + admin
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
@@ -78,7 +78,7 @@
 | D3 | [Chave legada (D-21) e ciclos type-only](onda-D-bundle-app-admin/D3-chave-legada-e-tipos.md) | [✓] concluída | 2026-09-03 | `2c2e9cc` |
 | D4 | [Remoção segura de mortos](onda-D-bundle-app-admin/D4-remover-mortos.md) | [✓] concluída | 2026-09-03 | `5198d60` |
 | D5 | [Ramo firebase, .agents/ e guia do código](onda-D-bundle-app-admin/D5-firebase-agents-e-guia.md) | [✓] concluída | 2026-09-03 | `8c93b63` |
-| D6 | [Branches, .gitignore, post-merge.sh](onda-D-bundle-app-admin/D6-branches-gitignore-hooks.md) | [ ] pendente |  |  |
+| D6 | [Branches, .gitignore, post-merge.sh](onda-D-bundle-app-admin/D6-branches-gitignore-hooks.md) | [✓] concluída | 2026-09-03 | `fc66881` |
 | D9 | [Fechamento D: build:all → CI verde → merge](onda-D-bundle-app-admin/D9-fechamento-onda-D.md) | [ ] pendente |  |  |
 
 ## Onda E — Edge e dados · 0/8 · branch `onda-E-edge-dados` · BUNDLE app + EDGE + dados

@@ -1,3 +1,11 @@
 .env
 .env.*.local
 node_modules/
+
+# Artefatos de ferramentas/ambiente (D6 · Plan03)
+.thumbnail
+.canvas/
+.agents/
+*.log
+.DS_Store
+Thumbs.db

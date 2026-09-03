@@ -44,18 +44,10 @@
  * 'ia-desligada'. Por isso os blocos que ESPERAM o fake ligam a IA efetiva
  * (modos.iaLigada + flag global `ia`) depois de selecionar o perfil.
  *
- * Usa playwright-core em cache (registry offline). Porta dedicada 5139.
+ * Chromium via _harness.mjs (D7). Porta dedicada 5139.
  */
-import { createRequire } from "node:module";
-import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
-import net from "node:net";
-
-const require = createRequire(import.meta.url);
-const PW_CORE =
-  process.env.PW_CORE ||
-  "C:/Users/mfard/AppData/Local/npm-cache/_npx/705bc6b22212b352/node_modules/playwright-core";
-const { chromium } = require(PW_CORE);
+import { chromium, executavelChromium, bootServer } from "./_harness.mjs";
 
 const PORT = Number(process.env.E2E_PORT) || 5139;
 const BASE = `http://localhost:${PORT}`;
@@ -66,30 +58,10 @@ const assert = (cond, msg) => {
   else { console.error(`  ✗ ${msg}`); falhou++; }
 };
 
-function esperarPorta(port, timeoutMs = 15000) {
-  const inicio = Date.now();
-  return new Promise((resolve, reject) => {
-    const tentar = () => {
-      const s = net.connect(port, "localhost");
-      s.on("connect", () => { s.end(); resolve(); });
-      s.on("error", () => {
-        s.destroy();
-        if (Date.now() - inicio > timeoutMs) reject(new Error("timeout esperando o server"));
-        else setTimeout(tentar, 200);
-      });
-    };
-    tentar();
-  });
-}
-
-const server = spawn("node", ["server.js"], { stdio: "ignore", env: { ...process.env, PORT: String(PORT) } });
+const server = await bootServer(PORT);
 let browser;
 try {
-  await esperarPorta(PORT);
-  const EXEC =
-    process.env.PW_CHROME ||
-    "C:/Users/mfard/AppData/Local/ms-playwright/chromium-1223/chrome-win64/chrome.exe";
-  browser = await chromium.launch({ headless: true, executablePath: EXEC });
+  browser = await chromium.launch({ headless: true, executablePath: executavelChromium() });
   const page = await browser.newPage();
   await page.addInitScript(() => {
     window.PIPOCA_CONFIG = { provedor: "local" }; // e2e SEMPRE offline

@@ -18,9 +18,9 @@
  *   é um entrypoint (nenhum módulo o importa).
  * RODA POR: `bun run test:e2e:canonico`
  * CUIDADO: roda SEMPRE offline — PIPOCA_CONFIG local é injetado ANTES de qualquer
- *   script e vence o pipoca.config.js commitado; depende de caminhos ABSOLUTOS
- *   de máquina (PW_CORE/PW_CHROME em C:/Users/mfard/...), sobrescrevíveis por env,
- *   e do bundle BUILDADO (bun run build:app). Cliente keyless: nenhuma chave de IA.
+ *   script e vence o pipoca.config.js commitado; Chromium via _harness.mjs (D7:
+ *   devDependency playwright-core + `npm run e2e:install`; PW_CORE/PW_CHROME só
+ *   como override) e bundle BUILDADO (bun run build:app). Cliente keyless.
  *
  * — detalhe preservado —
  * Runner e2e da LINHA VERDE CANÔNICA (TRILHA Marco M-A).
@@ -37,16 +37,8 @@
  *
  * Usa playwright-core em cache (registry offline). Porta dedicada 5137.
  */
-import { createRequire } from "node:module";
-import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
-import net from "node:net";
-
-const require = createRequire(import.meta.url);
-const PW_CORE =
-  process.env.PW_CORE ||
-  "C:/Users/mfard/AppData/Local/npm-cache/_npx/705bc6b22212b352/node_modules/playwright-core";
-const { chromium } = require(PW_CORE);
+import { chromium, executavelChromium, bootServer } from "./_harness.mjs";
 
 const PORT = Number(process.env.E2E_PORT) || 5137;
 const BASE = `http://localhost:${PORT}`;
@@ -56,22 +48,6 @@ const assert = (cond, msg) => {
   if (cond) { console.log(`  ✓ ${msg}`); passou++; }
   else { console.error(`  ✗ ${msg}`); falhou++; }
 };
-
-function esperarPorta(port, timeoutMs = 15000) {
-  const inicio = Date.now();
-  return new Promise((resolve, reject) => {
-    const tentar = () => {
-      const s = net.connect(port, "localhost");
-      s.on("connect", () => { s.end(); resolve(); });
-      s.on("error", () => {
-        s.destroy();
-        if (Date.now() - inicio > timeoutMs) reject(new Error("timeout esperando o server"));
-        else setTimeout(tentar, 200);
-      });
-    };
-    tentar();
-  });
-}
 
 // Marcadores de montagem por tela (texto sempre visível quando a tela renderiza).
 const MARCADORES = {
@@ -83,14 +59,10 @@ const MARCADORES = {
   7: /agrado|dividir o que você/i,
 };
 
-const server = spawn("node", ["server.js"], { stdio: "ignore", env: { ...process.env, PORT: String(PORT) } });
+const server = await bootServer(PORT);
 let browser;
 try {
-  await esperarPorta(PORT);
-  const EXEC =
-    process.env.PW_CHROME ||
-    "C:/Users/mfard/AppData/Local/ms-playwright/chromium-1223/chrome-win64/chrome.exe";
-  browser = await chromium.launch({ headless: true, executablePath: EXEC });
+  browser = await chromium.launch({ headless: true, executablePath: executavelChromium() });
   const page = await browser.newPage();
   // fase06 · o e2e roda SEMPRE offline: força o backend "local" ANTES de
   // qualquer script da página (o pipoca.config.js commitado respeita via ||).
@@ -501,11 +473,12 @@ try {
   assert(true, "C6: pós-PIN aterrissa no HUB (T11) — a Evolução fica no menu");
   await page.evaluate(() => { window.PipocaApp.setState({ tela: 14 }); });
   await page.waitForFunction(() => /Quem confirma a leitura/i.test(document.body.innerText), { timeout: 4000 });
-  const uxChips = await page.evaluate(() => ({
-    ana: /Ana/.test(document.body.innerText),
-    bia: /Bia/.test(document.body.innerText),
-  }));
-  assert(uxChips.ana && uxChips.bia, "T14 mostra os chips das crianças (configuração independente)");
+  // Os chips carregam async (carregarPerfis no mount) — esperar por eles, não só pela tela.
+  const uxChips = await page.waitForFunction(
+    () => /Ana/.test(document.body.innerText) && /Bia/.test(document.body.innerText),
+    { timeout: 4000 }
+  ).then(() => true).catch(() => false);
+  assert(uxChips, "T14 mostra os chips das crianças (configuração independente)");
   // C8: o grupo de chips DIZ o escopo e tem semântica de seleção (radiogroup/radio).
   const c8Chips = await page.evaluate(() => {
     const rg = document.querySelector('[role="radiogroup"][aria-label="Editando para:"]');

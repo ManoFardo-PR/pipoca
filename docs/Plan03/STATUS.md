@@ -1,11 +1,13 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-03T11:43:56.703Z · branch `onda-D-bundle-app-admin` · HEAD `f9c3f2b`
-- Progresso: **40/59** passos concluídos
-- Próximo passo: **D1** — Leitura híbrida do espelho e desempate (D-07) ([abrir](onda-D-bundle-app-admin/D1-leitura-hibrida-e-desempate.md))
+- Gerado em: 2026-09-03T12:02:58.785Z · branch `onda-D-bundle-app-admin` · HEAD `3655179`
+- Progresso: **41/59** passos concluídos
+- Próximo passo: **D2** — Retry e sinal de falha no push (D-06) ([abrir](onda-D-bundle-app-admin/D2-retry-e-telemetria-do-push.md))
 - Última verificação: ✅ verde em 2026-09-01T19:49:58.339Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
   - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
+  - ⚠ pipoca.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/app/bridge.ts, src/dados (rebuild pendente)
+  - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
 ## Onda P — Preparação · 3/3 · branch `28_08_26` · —
 
@@ -64,14 +66,14 @@
 | C11 | [ARIA nas telas adultas](onda-C-bundle-app/C11-aria-telas-adultas.md) | [✓] concluída | 2026-09-01 | `8f5a3d0` |
 | C12 | [Fechamento C: build:app + build:admin → e2e → merge](onda-C-bundle-app/C12-fechamento-onda-C.md) | [✓] concluída | 2026-09-02 | `e8827f5` |
 
-## Onda D — Bundle app + admin: sync, faxina, CI · 3/10 · branch `onda-D-bundle-app-admin` · BUNDLE app + admin
+## Onda D — Bundle app + admin: sync, faxina, CI · 4/10 · branch `onda-D-bundle-app-admin` · BUNDLE app + admin
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
 | D0 | Criar branch onda-D-bundle-app-admin a partir de 28_08_26 | [✓] concluída | 2026-09-02 | `a631701` |
 | D7 | [e2e portáteis (sem caminhos da máquina)](onda-D-bundle-app-admin/D7-e2e-portateis.md) | [✓] concluída | 2026-09-03 | `7eb64b5` |
 | D8 | [CI: typecheck → testes → build → bundle-check → e2e](onda-D-bundle-app-admin/D8-ci-workflow.md) | [✓] concluída | 2026-09-03 | `f9c3f2b` |
-| D1 | [Leitura híbrida do espelho e desempate (D-07)](onda-D-bundle-app-admin/D1-leitura-hibrida-e-desempate.md) | [ ] pendente |  |  |
+| D1 | [Leitura híbrida do espelho e desempate (D-07)](onda-D-bundle-app-admin/D1-leitura-hibrida-e-desempate.md) | [✓] concluída | 2026-09-03 | `3655179` |
 | D2 | [Retry e sinal de falha no push (D-06)](onda-D-bundle-app-admin/D2-retry-e-telemetria-do-push.md) | [ ] pendente |  |  |
 | D3 | [Chave legada (D-21) e ciclos type-only](onda-D-bundle-app-admin/D3-chave-legada-e-tipos.md) | [ ] pendente |  |  |
 | D4 | [Remoção segura de mortos](onda-D-bundle-app-admin/D4-remover-mortos.md) | [ ] pendente |  |  |

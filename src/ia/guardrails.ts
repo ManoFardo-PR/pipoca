@@ -1,4 +1,4 @@
-/**
+﻿/**
  * [guardrails.ts] — filtros de segurança infantil de entrada e saída, sempre
  *   no caminho da IA, independentes de provedor.
  *
@@ -11,7 +11,7 @@
  *   embrulha um GeradorDeTrecho e lança em caso de violação.
  * CHAMA: ../core/grafo/tipos.js:Trecho (só tipos; sem rede).
  * É CHAMADO POR: ia/adaptadores/selecionar.ts (envolverComGuardrails), ia/ia.test.ts.
- * RODA POR: boot do app (via pipoca.bundle.js) e testes; `bun run src/ia/ia.test.ts`
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes; os testes das suítes que o importam
  *   (dentro de `bun run test`).
  * CUIDADO: cliente KEYLESS — nenhuma chave de provedor vive aqui (nem em src/):
  *   a credencial mora nos secrets da Edge Function proxy-ia. Violação → throw

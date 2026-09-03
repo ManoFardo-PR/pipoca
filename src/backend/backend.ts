@@ -41,7 +41,6 @@
  * FAIL-SOFT: qualquer dúvida cai no local — a criança nunca vê erro.
  */
 
-import type { Trecho } from "../core/grafo/tipos.js";
 import type { RepositorioPersistencia } from "../core/persistencia/index.js";
 import { criarRepositorio } from "../core/persistencia/index.js";
 import { entrarFamilia as entrarFamiliaStub } from "../core/contaFamilia.js";
@@ -57,22 +56,20 @@ import { RepositorioFirebase } from "./adaptadores/repo_firebase.js";
 import { criarAuthSupabase } from "./adaptadores/auth_supabase.js";
 import { RepositorioSupabase } from "./adaptadores/repo_supabase.js";
 import { criarRepositorioSincronizado } from "./adaptadores/repo_sincronizado.js";
-import { criarProxyIA } from "./proxy_ia.js";
 import { criarProxyRealizador, type RealizadorRemoto } from "./proxy_realizador.js";
 import { escopoTenant } from "./tenant.js";
 import { sincronizarInicial } from "./sync.js";
 import { transportePadrao, type Transporte } from "../ia/provedor.js";
 
-// D3 (Plan03): o contrato ProxyIA vive em ./tipos.ts (fim do ciclo type-only
-// com proxy_ia.ts); a fachada re-exporta para os consumidores existentes.
-import type { ProxyIA } from "./tipos.js";
-export type { ProxyIA } from "./tipos.js";
-
-/** Fachada única (doc 06-01, ipsis litteris) + extensão opcional de sync. */
+/**
+ * Fachada única (doc 06-01) + extensão opcional de sync.
+ * D4 (Plan03): `proxyIA` saiu — a Geração 1 (orquestrador cliente) foi
+ * removida e a edge `proxy-ia` se aposenta em E3; a geração 2 fala pelo
+ * `realizador` (keyless, cascata no edge).
+ */
 export interface Backend {
   auth: ServicoAuth;
   repo: RepositorioPersistencia;
-  proxyIA: ProxyIA;
   /** fase06 (opcional): sincronização inicial local↔remoto — a borda chama no login/boot, fire-and-forget. */
   sincronizar?: () => Promise<unknown>;
   /**
@@ -81,15 +78,6 @@ export interface Backend {
    * módulo de geração cai no fallback A+ v3 local.
    */
   realizador?: RealizadorRemoto;
-}
-
-/** Proxy indisponível: rejeita limpo — o orquestrador degrada p/ simulado → Motor A. */
-function proxyIndisponivel(motivo: string): ProxyIA {
-  return {
-    gerar(): Promise<Trecho> {
-      return Promise.reject(new Error(motivo));
-    },
-  };
 }
 
 // ─── Adaptador LOCAL (offline-first, regra 4 do 06-01) ───────────────────────
@@ -175,7 +163,6 @@ export function criarBackendLocal(): Backend {
   return {
     auth: criarAuthLocal(),
     repo: criarRepositorio(),
-    proxyIA: proxyIndisponivel("ProxyIA indisponível no backend local — degradando para o provedor simulado."),
   };
 }
 
@@ -183,7 +170,6 @@ function criarBackendFirebase(): Backend {
   return {
     auth: criarAuthFirebase(),
     repo: new RepositorioFirebase(),
-    proxyIA: proxyIndisponivel("ProxyIA Firebase não configurado neste build."),
   };
 }
 
@@ -201,19 +187,13 @@ function criarBackendSupabase(cfg: ConfigBackend): Backend {
   });
   const local = criarRepositorio();
   const repo = criarRepositorioSincronizado(local, remoto);
-  const proxyIA = criarProxyIA({
-    url: cfg.supabaseUrl as string,
-    anonKey: cfg.supabaseAnonKey as string,
-    obterToken: () => auth.obterToken(),
-    tenantId: () => escopoTenant(auth.sessaoAtual()),
-  });
   const realizador = criarProxyRealizador({
     url: cfg.supabaseUrl as string,
     anonKey: cfg.supabaseAnonKey as string,
     obterToken: () => auth.obterToken(),
     tenantId: () => escopoTenant(auth.sessaoAtual()),
   });
-  return { auth, repo, proxyIA, realizador, sincronizar: () => sincronizarInicial(local, remoto) };
+  return { auth, repo, realizador, sincronizar: () => sincronizarInicial(local, remoto) };
 }
 
 /**

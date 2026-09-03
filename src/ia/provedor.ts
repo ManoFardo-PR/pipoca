@@ -1,4 +1,4 @@
-/**
+﻿/**
  * [provedor.ts] — o contrato ÚNICO de IA (interface ProvedorIA + schema/validação
  *   do Trecho + tipo de Transporte) que todo adaptador e o Motor B compartilham.
  *
@@ -16,7 +16,7 @@
  *   backend/{proxy_ia,proxy_realizador,espelho_admin,limites_familia,backend,
  *   flags_globais}.ts, backend/adaptadores/{repo_supabase,auth_supabase}.ts,
  *   ia/ia.test.ts, backend/backend.test.ts.
- * RODA POR: boot do app (via pipoca.bundle.js) e testes; `bun run src/ia/ia.test.ts`
+ * RODA POR: boot do app (via pipoca.bundle.js) e testes; os testes das suítes que o importam
  *   (dentro de `bun run test`).
  * CUIDADO: cliente KEYLESS — nenhuma chave de provedor vive aqui (nem em src/):
  *   a credencial mora nos secrets da Edge Function proxy-ia. Módulo PURO (sem

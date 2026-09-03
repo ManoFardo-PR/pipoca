@@ -23,7 +23,6 @@ import {
 import { sincronizarInicial } from "./sync.js";
 import { lerFilaRemota } from "./adaptadores/fila_remota.js";
 import { migrar } from "./migracao.js";
-import { criarProxyIA, provedorViaProxy } from "./proxy_ia.js";
 import {
   espelharTenantRemoto,
   espelharCenarioRemoto,
@@ -45,7 +44,6 @@ import { criarRepositorioTenant, novoTenant } from "../admin/tenant/repositorioT
 import { listarCenarios, type CenarioVersionado } from "../admin/validar_grafo.js";
 import { aplicarFlagsAosModos, carregarFlags, salvarFlags } from "../admin/flags.js";
 import { modosPadrao } from "../core/modos.js";
-import { criarOrquestrador } from "../ia/orquestrador.js";
 import type { RepositorioPersistencia } from "../core/persistencia/index.js";
 import { criarPerfil, type Perfil } from "../core/perfil.js";
 import type { HistoriaSalva } from "../core/historias.js";
@@ -121,13 +119,8 @@ console.log("\n=== obterBackend (06-01) — fachada e adaptador local ===");
 {
   armazem.limpar();
   const b = obterBackend({ provedor: "local" });
-  assert(!!b.auth && !!b.repo && !!b.proxyIA, "fachada devolve { auth, repo, proxyIA }");
-
-  let proxyRejeitou = false;
-  await b.proxyIA.gerar({ prompt: "x", schema: {} }).catch(() => {
-    proxyRejeitou = true;
-  });
-  assert(proxyRejeitou, "proxyIA local rejeita limpo (orquestrador degrada p/ simulado)");
+  // D4: proxyIA saiu da fachada (Geração 1 removida; a geração 2 usa realizador)
+  assert(!!b.auth && !!b.repo && !("proxyIA" in b), "fachada devolve { auth, repo } — sem proxyIA (D4)");
 
   // config supabase → adaptadores REST reais (sem sessão em storage → null; sem rede aqui)
   const bSupa = obterBackend({ provedor: "supabase", supabaseUrl: "https://x.supabase.co", supabaseAnonKey: "k" });
@@ -1033,67 +1026,9 @@ console.log("\n=== telemetria — retenção remota (poda por filtro) e pull no 
   );
 }
 
-// ─── Etapa 5 · ProxyIA cliente (06-05, lado cliente) ─────────────────────────
-
-console.log("\n=== ProxyIA cliente (06-05) — bearer do usuário, servidor decide ===");
-{
-  armazem.limpar();
-  const trechoOk = { texto: "✨ vindo do servidor", ehFinal: false };
-  const { t, chamadas } = transporteRotas([
-    { casa: (u) => u.indexOf("/functions/v1/proxy-ia") >= 0, responder: () => ({ status: 200, json: trechoOk }) },
-  ]);
-  const proxy = criarProxyIA({
-    url: URL_SUPA,
-    anonKey: "anon-k",
-    obterToken: async () => "tok-user",
-    tenantId: () => "familia:u1",
-    transporte: t,
-  });
-  const trecho = await proxy.gerar({ prompt: "conte a abertura", schema: { type: "object" }, opts: { system: "s" } });
-  assert(trecho.texto.indexOf("servidor") >= 0 && trecho.ehFinal === false, "200 → Trecho validado");
-  const c = chamadas[0]!;
-  assert(c.headers["Authorization"] === "Bearer tok-user" && c.headers["apikey"] === "anon-k", "bearer do USUÁRIO + anon key — nenhuma chave de provedor no cliente");
-  const corpo = c.corpo as Record<string, unknown>;
-  assert(
-    corpo["prompt"] === "conte a abertura" && corpo["tenantId"] === "familia:u1" && !("provedor" in corpo) && !("modelo" in corpo),
-    "o cliente NÃO escolhe provedor/modelo (o servidor decide pela config_ia)"
-  );
-
-  const { t: t503 } = transporteRotas([{ casa: () => true, responder: () => ({ status: 503, json: { erro: "nao_configurado" } }) }]);
-  let degradou = false;
-  await criarProxyIA({ url: URL_SUPA, anonKey: "k", obterToken: async () => "tok", transporte: t503 })
-    .gerar({ prompt: "x", schema: {} })
-    .catch(() => {
-      degradou = true;
-    });
-  assert(degradou, "qualquer não-200 → throw (o orquestrador degrada p/ simulado)");
-
-  const { t: tNunca, chamadas: cNunca } = transporteRotas([{ casa: () => true, responder: () => ({ status: 200, json: trechoOk }) }]);
-  let semSessao = false;
-  await criarProxyIA({ url: URL_SUPA, anonKey: "k", obterToken: async () => null, transporte: tNunca })
-    .gerar({ prompt: "x", schema: {} })
-    .catch(() => {
-      semSessao = true;
-    });
-  assert(semSessao && cNunca.length === 0, "sem sessão → rejeita SEM ir à rede");
-
-  const proxyFalho = criarProxyIA({ url: URL_SUPA, anonKey: "k", obterToken: async () => "tok", transporte: t503 });
-  const simuladinho = {
-    async gerar() {
-      return { texto: "✨ do simulado", ehFinal: false };
-    },
-  };
-  const cadeia = criarOrquestrador([provedorViaProxy(proxyFalho), simuladinho]);
-  const viaCadeia = await cadeia.gerar("conte a abertura", {});
-  assert(viaCadeia.texto.indexOf("simulado") >= 0, "proxy falho na cadeia → simulado atende (a criança nunca fica sem história)");
-
-  const bSupa = obterBackend({ provedor: "supabase", supabaseUrl: URL_SUPA, supabaseAnonKey: "k" });
-  let proxySemSessao = false;
-  await bSupa.proxyIA.gerar({ prompt: "x", schema: {} }).catch(() => {
-    proxySemSessao = true;
-  });
-  assert(proxySemSessao, "backend supabase SEM sessão → proxy rejeita sem rede (fail-soft)");
-}
+// ─── Etapa 5 · ProxyIA cliente — REMOVIDO no D4 (Plan03) ─────────────────────
+// A Geração 1 (orquestrador + criarProxyIA/provedorViaProxy) saiu do cliente;
+// a edge proxy-ia se aposenta em E3. O caminho vivo é o ProxyRealizador (5b).
 
 // ─── Etapa 5b · ProxyRealizador cliente (fase13-13-03) ───────────────────────
 

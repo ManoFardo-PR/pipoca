@@ -1217,6 +1217,8 @@
       emoji: (ultimo && ultimo.emoji) || "✨",
       criadaEm: Date.now(),
       favorita: false,
+      // D1: carimbo da gravação — desempate da mescla entre aparelhos (D-07).
+      atualizadoEm: Date.now(),
       // Aditivos da geração 2 (13-02): origem sempre; Pacote quando houve.
       origem: resultado.origem,
       rodada: rodadaLida,
@@ -1283,6 +1285,7 @@
       var nova = {};
       for (var k in alvo) { if (Object.prototype.hasOwnProperty.call(alvo, k)) nova[k] = alvo[k]; }
       nova.favorita = favorita !== false;
+      nova.atualizadoEm = Date.now(); // D1: o (des)favoritar mais novo vence entre aparelhos
       return repo.salvarHistoria(pid, nova).then(function () {
         notify(); // T3/T6/leitor re-renderizam e releem
         return { ok: true, favorita: nova.favorita };
@@ -1334,6 +1337,14 @@
   };
 
   // ─── Inicialização (na borda) ─────────────────────────────────────────────
+  // D1: a mescla reativa de histórias (repo sincronizado) avisa por aqui —
+  // notify() re-renderiza e a T3 recarrega a estante (guarda p/ bundle antigo).
+  try {
+    var CanonD1 = window.PipocaCanonico;
+    if (CanonD1 && CanonD1.backend && CanonD1.backend.aoMesclarHistorias) {
+      CanonD1.backend.aoMesclarHistorias(function () { notify(); });
+    }
+  } catch (_) {}
   _migrarPerfisLegado().then(function () { return repo.carregarPerfis(); }); // popula cache _perfis
   _initComposicao();
   _initFichas(); // fase13 · fichas v1 ao lado do grafo (falha ⇒ caminho v3 segue)

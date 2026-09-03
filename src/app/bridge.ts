@@ -53,6 +53,7 @@ import { obterBackend } from "../backend/backend.js";
 import { configDoAmbiente, normalizarConfigBackend } from "../backend/config.js";
 import { escopoTenant } from "../backend/tenant.js";
 import { sincronizarInicial } from "../backend/sync.js";
+import { aoMesclarHistorias } from "../backend/adaptadores/repo_sincronizado.js";
 // pós-fase06: kill-switch GLOBAL — o app puxa as flags do servidor no boot/login
 import { puxarFlagsGlobais } from "../backend/flags_globais.js";
 // pós-fase06: teto de perfis no app (UX acolhedora; o trigger do servidor é o
@@ -280,6 +281,9 @@ const PipocaCanonico = {
     puxarFlagsGlobais,
     limitesDaFamilia,
     excedeTetoPerfis,
+    // D1 (Plan03): o app registra aqui o aviso da mescla reativa de histórias
+    // (repo sincronizado → notify → a T3 recarrega no App.subscribe).
+    aoMesclarHistorias,
   },
 
   // --- flags da plataforma (kill-switches do SA_SAFE, fase04→05) ---

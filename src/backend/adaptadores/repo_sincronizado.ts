@@ -39,7 +39,51 @@
 import type { Perfil } from "../../core/perfil.js";
 import type { EstadoApp, EventoTelemetria } from "../../core/estado.js";
 import type { HistoriaSalva } from "../../core/historias.js";
+import { mesclarHistorias, normalizarHistorias } from "../../core/historias.js";
 import type { RepositorioPersistencia } from "../../core/persistencia/index.js";
+
+// ─── D1 · notificação da mescla de histórias ─────────────────────────────────
+// O app (estado.js) registra aqui um callback; quando uma leitura reativa traz
+// história nova/atualizada do remoto, o repo grava no LOCAL (sem eco ao remoto)
+// e avisa — a T3 já recarrega no App.subscribe.
+let _aoMesclarHistorias: ((perfilId: string) => void) | null = null;
+export function aoMesclarHistorias(fn: ((perfilId: string) => void) | null): void {
+  _aoMesclarHistorias = fn;
+}
+
+/** Um registro diverge do outro? (carimbo, favorita ou texto — o que a mescla decide.) */
+function historiaDiverge(a: HistoriaSalva | undefined, b: HistoriaSalva): boolean {
+  if (!a) return true;
+  return (
+    (a.atualizadoEm || 0) !== (b.atualizadoEm || 0) ||
+    a.favorita !== b.favorita ||
+    a.texto !== b.texto
+  );
+}
+
+/**
+ * Aplica no LOCAL a mescla local×remoto (D1/D-07): grava só o que entrou ou
+ * mudou — SEM eco ao remoto (evita loop de upsert). Devolve quantos gravou.
+ * Usada pela leitura reativa (abaixo) e pelo sincronizarInicial (sync.ts).
+ */
+export async function aplicarMesclaHistorias(
+  local: RepositorioPersistencia,
+  perfilId: string,
+  locais: HistoriaSalva[],
+  remotas: HistoriaSalva[],
+  agora: number
+): Promise<number> {
+  if (!local.salvarHistoria || !remotas.length) return 0;
+  const mescla = normalizarHistorias(mesclarHistorias(locais, remotas), agora);
+  const antes = new Map(locais.map((h) => [h.id, h]));
+  let gravadas = 0;
+  for (const h of mescla) {
+    if (!historiaDiverge(antes.get(h.id), h)) continue;
+    await local.salvarHistoria(perfilId, h); // passa pela poda preventiva de quota
+    gravadas++;
+  }
+  return gravadas;
+}
 
 export const CHAVE_TOMBSTONES = "pipoca.sync.apagados.v1";
 
@@ -125,8 +169,21 @@ export function criarRepositorioSincronizado(
     // ─── Histórias salvas: local base + espelho fire-and-forget ─────────────
     // SEM tombstone por item: a poda remota é um DELETE por filtro idempotente
     // (re-executado a cada borda); apagar tudo já tem o tombstone de perfil.
-    carregarHistorias: (perfilId: string) =>
-      local.carregarHistorias ? local.carregarHistorias(perfilId) : Promise.resolve([]),
+    // D1 (ML-1 sync/D-07): leitura REATIVA — devolve o local JÁ (offline nunca
+    // espera a rede) e, em paralelo, busca o remoto; chegando história nova ou
+    // mais recente (desempate por atualizadoEm), grava no local sem eco e avisa.
+    carregarHistorias(perfilId: string): Promise<HistoriaSalva[]> {
+      const locais = local.carregarHistorias ? local.carregarHistorias(perfilId) : Promise.resolve([]);
+      if (remoto.carregarHistorias) {
+        Promise.all([locais, remoto.carregarHistorias(perfilId)])
+          .then(([l, r]) => aplicarMesclaHistorias(local, perfilId, l, r, Date.now()))
+          .then((gravadas) => {
+            if (gravadas > 0 && _aoMesclarHistorias) _aoMesclarHistorias(perfilId);
+          })
+          .catch(() => {}); // offline/sem sessão: o local já respondeu
+      }
+      return locais;
+    },
     async salvarHistoria(perfilId: string, historia: HistoriaSalva): Promise<void> {
       if (local.salvarHistoria) await local.salvarHistoria(perfilId, historia);
       if (remoto.salvarHistoria) remoto.salvarHistoria(perfilId, historia).catch(() => {});

@@ -15,6 +15,7 @@ import { RepositorioSupabase } from "./adaptadores/repo_supabase.js";
 import { RepositorioLocalStorage } from "./adaptadores/repo_local.js";
 import {
   adicionarTombstone,
+  aoMesclarHistorias,
   CHAVE_TOMBSTONES,
   criarRepositorioSincronizado,
   lerTombstones,
@@ -478,7 +479,7 @@ function servidorSupabaseFake() {
   const perfis = new Map<string, { id: string; tenant_id?: string; dados: unknown }>();
   const saves = new Map<string, { perfil_id: string; dados: unknown }>();
   const telemetria: Array<{ perfil_id: string; evento: unknown; criado_em: string }> = [];
-  const historias = new Map<string, { id: string; perfil_id: string; favorita: boolean; criada_em: string; dados: unknown }>();
+  const historias = new Map<string, { id: string; perfil_id: string; favorita: boolean; criada_em: string; atualizado_em?: string; dados: unknown }>();
   // pós-fase06 (iteração 2): tabelas do espelho do admin
   const tenants = new Map<string, { id: string; dados: unknown }>();
   const conteudo = new Map<string, Record<string, unknown>>(); // chave cenario_id:versao
@@ -513,7 +514,7 @@ function servidorSupabaseFake() {
           [...historias.values()]
             .filter((x) => x.perfil_id === id)
             .sort((a, b) => (a.criada_em < b.criada_em ? 1 : -1))
-            .map((x) => ({ dados: x.dados }))
+            .map((x) => ({ dados: x.dados, atualizado_em: x.atualizado_em })) // D1: coluna viaja no select
         );
       }
       if (tabela === "tenants") {
@@ -832,10 +833,76 @@ console.log("\n=== histórias salvas — espelho remoto, poda por filtro e sync 
   const srv2 = servidorSupabaseFake();
   const remoto2 = new RepositorioSupabase({ url: "https://proj.supabase.co", anonKey: "k", obterToken: async () => "tok", transporte: srv2.t });
   await remoto2.salvarPerfil(PERFIL_B);
-  await remoto2.salvarHistoria!("p-bbb", mkH("h-remota", 3));
+  // criadaEm RELATIVO ao relógio real: a mescla do D1 normaliza com Date.now()
+  // e uma história do epoch fixo (2025) cairia na retenção de 20 dias.
+  await remoto2.salvarHistoria!("p-bbb", { ...mkH("h-remota", 3), criadaEm: Date.now() - 3 * DIA });
   const localNovo = new RepositorioLocalStorage();
   await sincronizarInicial(localNovo, remoto2);
   assert((await localNovo.carregarHistorias("p-bbb")).some((h) => h.id === "h-remota"), "aparelho novo puxa as histórias junto do perfil");
+}
+
+console.log("\n=== D1 · '2 aparelhos' — leitura híbrida e desempate por atualizadoEm ===");
+{
+  armazem.limpar();
+  const DIA = 86_400_000;
+  const agora = Date.now(); // retenção conta a partir de agora — carimbos reais
+  const mkH = (id: string, diasAtras: number, extra: Partial<HistoriaSalva> = {}): HistoriaSalva => ({
+    id, cenarioId: "quintal_anoitecer", texto: "Era uma noite mansa. Fim.",
+    linha: ["vagalume"], nivel: "n2", desfecho: "convergente",
+    titulo: "A história de o vaga-lume", emoji: "🌟",
+    criadaEm: agora - diasAtras * DIA, favorita: false, ...extra,
+  });
+
+  const srv = servidorSupabaseFake();
+  const remoto = new RepositorioSupabase({
+    url: "https://proj.supabase.co", anonKey: "k", obterToken: async () => "tok", transporte: srv.t,
+  });
+
+  // Aparelho A (local): h1 sem favorito, carimbo antigo. Aparelho B (já no
+  // remoto): h1 FAVORITADA depois (carimbo maior) + h2 que A nunca viu.
+  const localA = new RepositorioLocalStorage();
+  await localA.salvarHistoria("p1", mkH("h1", 5, { atualizadoEm: agora - 60_000 }));
+  await remoto.salvarHistoria!("p1", mkH("h1", 5, { favorita: true, atualizadoEm: agora - 1_000 }));
+  await remoto.salvarHistoria!("p1", mkH("h2", 1, { atualizadoEm: agora - 1_000 }));
+
+  let avisos = 0;
+  aoMesclarHistorias(() => { avisos++; });
+  const sinc = criarRepositorioSincronizado(localA, remoto);
+  const naHora = await sinc.carregarHistorias!("p1");
+  assert(naHora.length === 1 && naHora[0]!.favorita === false, "leitura devolve o LOCAL na hora (offline-first; o remoto chega depois)");
+  await new Promise((r) => setTimeout(r, 10)); // a mescla reativa assenta
+  const depois = await localA.carregarHistorias("p1");
+  assert(depois.some((h) => h.id === "h2"), "história gravada no outro aparelho APARECE (h2 mesclada no local)");
+  assert(depois.find((h) => h.id === "h1")!.favorita === true, "conflito: o carimbo remoto MAIOR vence (h1 volta favorita)");
+  assert(avisos >= 1, "a mescla que mudou algo NOTIFICA o app (aoMesclarHistorias)");
+  const upsertsAntes = srv.chamadas.filter((c) => c.metodo === "POST" && c.url.includes("/historias")).length;
+  await sinc.carregarHistorias!("p1");
+  await new Promise((r) => setTimeout(r, 10));
+  const upsertsDepois = srv.chamadas.filter((c) => c.metodo === "POST" && c.url.includes("/historias")).length;
+  assert(upsertsDepois === upsertsAntes, "a mescla grava SÓ no local — sem eco de upsert ao remoto");
+
+  // Conflito com carimbo LOCAL mais novo → o local vence (edição daqui é a última)
+  await localA.salvarHistoria("p1", mkH("h1", 5, { texto: "Edicao local mais nova. Fim.", atualizadoEm: agora + 5_000 }));
+  await sinc.carregarHistorias!("p1");
+  await new Promise((r) => setTimeout(r, 10));
+  const local2 = await localA.carregarHistorias("p1");
+  assert(local2.find((h) => h.id === "h1")!.texto === "Edicao local mais nova. Fim.", "conflito: carimbo LOCAL mais novo vence (nada sobrescreve a edição daqui)");
+
+  // sincronizarInicial mescla histórias mesmo com o perfil JÁ presente (ML-1 sync)
+  await remoto.salvarPerfil(PERFIL_A);
+  await localA.salvarPerfil(PERFIL_A); // presente dos dois lados
+  await remoto.salvarHistoria!("p-aaa", mkH("h-so-remota", 2, { atualizadoEm: agora - 1_000 }));
+  await sincronizarInicial(localA, remoto);
+  assert((await localA.carregarHistorias("p-aaa")).some((h) => h.id === "h-so-remota"),
+    "sincronizarInicial puxa histórias TAMBÉM do perfil já presente (troca de aparelho não some com o banco)");
+
+  // Regressão: remoto morto → leitura devolve o local e nada quebra
+  const remotoMorto = new RepositorioSupabase({ url: "https://x.supabase.co", anonKey: "k", obterToken: async () => null, transporte: srv.t });
+  const sincOff = criarRepositorioSincronizado(localA, remotoMorto);
+  const offline = await sincOff.carregarHistorias!("p1");
+  await new Promise((r) => setTimeout(r, 10));
+  assert(offline.length === (await localA.carregarHistorias("p1")).length, "sem sessão/offline: comportamento idêntico ao atual (só o local)");
+  aoMesclarHistorias(null); // não vazar o callback para os próximos testes
 }
 
 console.log("\n=== telemetria — retenção remota (poda por filtro) e pull no sync ===");

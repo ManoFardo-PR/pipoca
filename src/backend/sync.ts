@@ -16,11 +16,13 @@
  * RODA POR: boot do app (bundle, fire-and-forget na borda); cliente das Edge
  *   Functions.
  * CUIDADO: ORDEM importa — tombstones PRIMEIRO (LGPD: apagar vence; senão
- *   perfis apagados offline ressuscitariam no pull). O pull só puxa ids AUSENTES
- *   localmente (nunca sobrescreve edição local); só o push usa migrar() cru
- *   (upsert, local vence no mesmo id). Limite MVP: edição concorrente do MESMO
- *   perfil em dois aparelhos na mesma janela fica com o último push.
- *   Histórias/telemetria são best-effort e não travam o sync.
+ *   perfis apagados offline ressuscitariam no pull). O pull de PERFIS/SAVES só
+ *   puxa ids AUSENTES localmente (nunca sobrescreve edição local); só o push usa
+ *   migrar() cru (upsert, local vence no mesmo id). HISTÓRIAS (D1 · D-07) são
+ *   mescladas para TODOS os perfis, com desempate por atualizadoEm — troca de
+ *   aparelho com perfil já presente não some com as histórias do banco. Limite
+ *   MVP: edição concorrente do MESMO perfil em dois aparelhos na mesma janela
+ *   fica com o último push. Histórias/telemetria não travam o sync.
  *
  * — detalhe preservado —
  * Pipoca — Sincronização inicial local↔remoto · doc fase06-06-03
@@ -39,7 +41,7 @@
 
 import type { RepositorioPersistencia } from "../core/persistencia/index.js";
 import { migrar } from "./migracao.js";
-import { lerTombstones, removerTombstone } from "./adaptadores/repo_sincronizado.js";
+import { lerTombstones, removerTombstone, aplicarMesclaHistorias } from "./adaptadores/repo_sincronizado.js";
 
 export interface ResultadoSync {
   apagadosDrenados: number;
@@ -68,30 +70,35 @@ export async function sincronizarInicial(
   const idsLocais = new Set(locais.map((p) => p.id));
   let puxados = 0;
   for (const p of remotos) {
-    if (idsLocais.has(p.id)) continue;
-    await local.salvarPerfil(p);
-    const save = await remoto.carregarSave(p.id);
-    if (save) await local.salvarSave(p.id, save);
-    // histórias salvas viajam junto do perfil novo (aparelho novo relê tudo)
+    const ausente = !idsLocais.has(p.id);
+    if (ausente) {
+      await local.salvarPerfil(p);
+      const save = await remoto.carregarSave(p.id);
+      if (save) await local.salvarSave(p.id, save);
+      // telemetria só para perfil AUSENTE (sem risco de duplicar eventos:
+      // migrar() não empurra eventos e perfis presentes ficam de fora).
+      try {
+        for (const ev of await remoto.carregarTelemetria(p.id)) {
+          await local.registrarTelemetria(ev);
+        }
+      } catch {
+        /* telemetria não trava o sync de perfis */
+      }
+      puxados++;
+    }
+    // Histórias: para TODOS os perfis remotos (D1 · ML-1 sync/D-07) — antes só
+    // os ausentes puxavam, e trocar de aparelho com o perfil já presente
+    // "sumia" com as histórias do banco. A mescla desempata por atualizadoEm
+    // e grava no LOCAL sem eco (aplicarMesclaHistorias).
     if (remoto.carregarHistorias && local.salvarHistoria) {
       try {
-        for (const h of await remoto.carregarHistorias(p.id)) {
-          await local.salvarHistoria(p.id, h);
-        }
+        const remotas = await remoto.carregarHistorias(p.id);
+        const loc = ausente || !local.carregarHistorias ? [] : await local.carregarHistorias(p.id);
+        await aplicarMesclaHistorias(local, p.id, loc, remotas, Date.now());
       } catch {
         /* histórias não podem travar o sync de perfis */
       }
     }
-    // telemetria idem (painel multi-dispositivo). Sem risco de duplicar:
-    // só roda para perfil AUSENTE localmente e migrar() não empurra eventos.
-    try {
-      for (const ev of await remoto.carregarTelemetria(p.id)) {
-        await local.registrarTelemetria(ev);
-      }
-    } catch {
-      /* telemetria não trava o sync de perfis */
-    }
-    puxados++;
   }
 
   // 3 · empurra tudo que é local (upsert no remoto — local vence no mesmo id)

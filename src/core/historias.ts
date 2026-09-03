@@ -99,6 +99,13 @@ export interface HistoriaSalva {
    * registros antigos: o leitor deriva por linha em branco do próprio texto.
    */
   paragrafos?: string[];
+  /**
+   * Carimbo da ÚLTIMA gravação (epoch ms; aditivo, Plan03 · D1). Gravado pela
+   * borda ao salvar/favoritar; o espelho remoto o preenche pela coluna
+   * `atualizado_em` quando o envelope não o traz. É o desempate da mescla
+   * entre aparelhos (D-07): registro sem carimbo = anterior ao D1.
+   */
+  atualizadoEm?: number;
 }
 
 export interface EnvelopeHistoriaV1 {
@@ -159,6 +166,10 @@ export function validarHistoriaSalva(raw: unknown): HistoriaSalva | null {
     typeof r["rodada"] === "number" && Number.isInteger(r["rodada"]) && r["rodada"] >= 1 && r["rodada"] <= 4
       ? (r["rodada"] as number)
       : undefined;
+  const atualizadoEm =
+    typeof r["atualizadoEm"] === "number" && Number.isFinite(r["atualizadoEm"])
+      ? (r["atualizadoEm"] as number)
+      : undefined;
   return {
     id: r["id"] as string,
     cenarioId: r["cenarioId"] as string,
@@ -175,6 +186,7 @@ export function validarHistoriaSalva(raw: unknown): HistoriaSalva | null {
     ...(rodada !== undefined ? { rodada } : {}),
     ...(r["intermediaria"] === true ? { intermediaria: true } : {}),
     ...(paragrafos ? { paragrafos } : {}),
+    ...(atualizadoEm !== undefined ? { atualizadoEm } : {}),
   };
 }
 
@@ -221,6 +233,36 @@ export function normalizarHistorias(lista: unknown[], agora: number): HistoriaSa
     resultado.push(h);
   }
   return resultado;
+}
+
+/**
+ * Mescla das histórias entre aparelhos (Plan03 · D1, D-07): união por id.
+ * Conflito no MESMO id:
+ *   - os dois lados com carimbo `atualizadoEm` → o MAIOR vence (empate: local);
+ *   - só o remoto com carimbo (registro local anterior ao D1) → o remoto vence
+ *     SE `favorita` ou `texto` divergirem (senão o local fica — evita regravação);
+ *   - nenhum carimbo → o local vence (política histórica "local é a base").
+ * Pura; o chamador (borda) passa o resultado por normalizarHistorias.
+ */
+export function mesclarHistorias(
+  locais: HistoriaSalva[],
+  remotas: HistoriaSalva[]
+): HistoriaSalva[] {
+  const porId = new Map<string, HistoriaSalva>();
+  for (const h of Array.isArray(locais) ? locais : []) porId.set(h.id, h);
+  for (const r of Array.isArray(remotas) ? remotas : []) {
+    const l = porId.get(r.id);
+    if (!l) { porId.set(r.id, r); continue; }
+    const cl = typeof l.atualizadoEm === "number" ? l.atualizadoEm : undefined;
+    const cr = typeof r.atualizadoEm === "number" ? r.atualizadoEm : undefined;
+    if (cl !== undefined && cr !== undefined) {
+      if (cr > cl) porId.set(r.id, r); // empate (>=): local fica
+    } else if (cr !== undefined) {
+      if (l.favorita !== r.favorita || l.texto !== r.texto) porId.set(r.id, r);
+    }
+    // nenhum carimbo → local fica
+  }
+  return [...porId.values()];
 }
 
 /**

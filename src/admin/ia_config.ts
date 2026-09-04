@@ -42,7 +42,10 @@ export const MODELOS_POR_PROVEDOR: Record<ProvedorIaId, string[]> = {
   claude: ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5"],
   // Ids REAIS das APIs públicas (conferidos 2026-07-12 na doc dos provedores;
   // "gemini-flash"/"gpt-mini" do MVP não existiam — causa de falha de provedor).
-  gemini: ["gemini-2.5-flash"],
+  // 2026-09-05 (smoke C7): gemini-2.5-flash foi DESCONTINUADO para contas novas
+  // (404 "no longer available to new users" — a API aponta gemini-3.6-flash).
+  // O antigo fica no catálogo para contas que ainda o acessam.
+  gemini: ["gemini-3.6-flash", "gemini-2.5-flash"],
   openai: ["gpt-5.4-mini"],
   // fase06: DeepSeek (API OpenAI-compatível; só JSON mode — sem json_schema).
   // O reasoner fica fora do catálogo do MVP (não aceita response_format).

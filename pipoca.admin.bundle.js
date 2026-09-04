@@ -1033,7 +1033,7 @@
   // src/admin/ia_config.ts
   var MODELOS_POR_PROVEDOR = {
     claude: ["claude-opus-4-8", "claude-sonnet-4-6", "claude-haiku-4-5"],
-    gemini: ["gemini-2.5-flash"],
+    gemini: ["gemini-3.6-flash", "gemini-2.5-flash"],
     openai: ["gpt-5.4-mini"],
     deepseek: ["deepseek-chat"]
   };

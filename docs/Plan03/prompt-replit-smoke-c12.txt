@@ -8,9 +8,14 @@ temporariamente como principal, e depois devolve o arranjo final. Execute na
 ordem.
 
 ── 1 · Deploy da realizador consertada ──────────────────────────────────────────
-1.1 `git pull origin main`; confirme no functions/realizador/index.ts a string
-    "Responda SOMENTE com um objeto JSON válido" DENTRO do bloco gemini (e que
-    NÃO existe mais "thinkingBudget"). Se divergir, PARE (falta push).
+1.1 `git pull origin main`; confirme no functions/realizador/index.ts:
+    (a) a string "Responda SOMENTE com um objeto JSON válido" DENTRO do bloco
+        gemini; e
+    (b) que "thinkingConfig" NÃO aparece em nenhuma LINHA DE CÓDIGO do
+        generationConfig (a palavra "thinkingBudget" em COMENTÁRIO — linha que
+        começa com // — é ESPERADA: é a explicação da causa; não é motivo de
+        abort).
+    Só PARE se (a) faltar ou se houver thinkingConfig em código executável.
 1.2 Deploy da realizador (verify_jwt LIGADO). Esperado: versão nova ACTIVE.
 
 ── 2 · Gemini como principal TEMPORÁRIO (SQL) ───────────────────────────────────

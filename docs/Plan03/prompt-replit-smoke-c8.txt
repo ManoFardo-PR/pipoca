@@ -1,0 +1,58 @@
+CONTINUAÇÃO (8ª e provavelmente FINAL) da etapa C do pós-plan. Decisões do dono
+aplicáveis agora: modelo principal vira gemini-3.6-flash (o 2.5 foi descontinuado
+para a conta — 404 no C7) e o fallback vira CLAUDE com claude-haiku-4-5 (o
+DeepSeek está sem saldo — 402 no C7). Não há deploy nesta rodada (a realizador
+v12 instrumentada já está ACTIVE). Execute na ordem.
+
+── 1 · Atualizar a configuração de IA (SQL) ─────────────────────────────────────
+  update config_ia
+     set dados = jsonb_set(jsonb_set(dados, '{modelo}', '"gemini-3.6-flash"'),
+                           '{fallback}', '"claude"'),
+         atualizado_em = now()
+   where tenant_id = 'plataforma';
+
+  update config_ia
+     set dados = jsonb_set(jsonb_set(dados, '{modeloPadrao,gemini}', '"gemini-3.6-flash"'),
+                           '{modeloPadrao,claude}', '"claude-haiku-4-5"'),
+         atualizado_em = now()
+   where tenant_id = 'plataforma:global';
+
+VERIFICAÇÃO:
+  select tenant_id, dados->>'provedor' as provedor, dados->>'modelo' as modelo,
+         dados->>'fallback' as fallback, dados->'modeloPadrao' as modelo_padrao
+    from config_ia where tenant_id in ('plataforma','plataforma:global');
+Esperado: plataforma = gemini / gemini-3.6-flash / claude;
+plataforma:global.modeloPadrao com gemini-3.6-flash e claude-haiku-4-5.
+
+── 2 · Usuário descartável (mesmo SQL das rodadas anteriores) ───────────────────
+Os dois INSERTs (auth.users com tokens '' + auth.identities) com
+smoke.pipoca.2026@gmail.com / Pipoca!Smoke#2026x; verifique confirmado=true e
+identities=1. (SEM a linha de operadores desta vez — não é necessária.)
+
+── 3 · Smoke (gasta no máx. 2 tentativas de geração) ────────────────────────────
+Env: ANON_KEY = <anon key pública> · SMOKE_EMAIL/SMOKE_SENHA acima.
+`node scripts/smoke-realizador.mjs run`
+Esperado: HTTP 200, texto contendo "Pietro", veredito PASS,
+origem = {fonte:"llm", provedor:"gemini", modelo:"gemini-3.6-flash"}
+(ou provedor claude/claude-haiku-4-5 se o Gemini cair — também é sucesso).
+
+── 4 · Logs (SEMPRE; aguarde ~2 minutos) ────────────────────────────────────────
+  select timestamp, event_message from function_logs
+   where event_message like '%[realizador]%'
+   order by timestamp desc limit 10;
+Relate as linhas novas (se o smoke deu 200 de primeira, pode não haver nenhuma).
+
+── 5 · Prova do flip (se o passo 3 deu 200) ─────────────────────────────────────
+Com o MESMO bearer, repita o POST na realizador ADICIONANDO "prompt":"x" ao corpo
+→ esperado 400 {"erro":"requisicao_invalida"}. Este é o teste que falta para
+fechar o flip do E3.
+
+── 6 · Limpeza (SEMPRE) ─────────────────────────────────────────────────────────
+  delete from auth.users where email = 'smoke.pipoca.2026@gmail.com';
+Confirme 0 linhas restantes.
+
+── Relatório final ──────────────────────────────────────────────────────────────
+Verificação da config; status do smoke com origem completa (fonte/provedor/
+modelo) e um trecho de ~100 caracteres do texto gerado (para o dono ver a
+qualidade); linhas de log (se houver); resultado do 400; limpeza confirmada.
+Se algo divergir num passo, PARE nele e relate.

@@ -1,11 +1,10 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-04T17:32:30.689Z · branch `28_08_26` · HEAD `e4647dc`
+- Gerado em: 2026-09-04T17:32:33.141Z · branch `28_08_26` · HEAD `f9061bc`
 - Progresso: **58/59** passos concluídos
 - Próximo passo: **F4** — Push (somente com ordem do dono)
 - Última verificação: ✅ verde em 2026-09-04T16:51:37.554Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
-- Alertas: 
-  - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
+- Alertas: nenhum
 
 ## Onda P — Preparação · 3/3 · branch `28_08_26` · —
 

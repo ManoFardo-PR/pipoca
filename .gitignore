@@ -1,7 +1,7 @@
 .env
 .env.*.local
 node_modules/
-
+attached_assets/
 # Artefatos de ferramentas/ambiente (D6 · Plan03)
 .thumbnail
 .canvas/

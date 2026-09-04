@@ -582,8 +582,11 @@ async function trechoErro(r: Response): Promise<string> {
 }
 
 function parseTextoLimpo(textoJson: string): string | null {
+  // Cercas de código (```json … ```) aparecem quando o JSON vem por instrução
+  // (gemini sem schema) — tirar antes do parse; inofensivo para os demais.
+  const limpo = textoJson.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
   try {
-    const t = JSON.parse(textoJson);
+    const t = JSON.parse(limpo);
     if (t && typeof t.texto_limpo === "string" && t.texto_limpo.trim()) return t.texto_limpo;
   } catch {
     /* fora do formato */
@@ -604,16 +607,19 @@ async function gerarCom(
 
   try {
     if (provedor === "gemini") {
+      // Gemini 3.x (medições C9/C10/C11): o structured output (responseSchema)
+      // dispara thinking dinâmico pesado (131s), e thinkingBudget é REJEITADO
+      // (400 INVALID_ARGUMENT — sintaxe da geração 2.5). O caminho rápido e
+      // aceito é o MESMO do DeepSeek: JSON por instrução + responseMimeType,
+      // sem schema e sem thinkingConfig (1,5s no teste isolado), com teto de
+      // tokens para conter latência. A qualidade do portão é papel do validador.
       const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + m + ":generateContent", {
         method: "POST",
         headers: { "content-type": "application/json", "x-goog-api-key": chave },
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: prompt.system }] },
+          systemInstruction: { parts: [{ text: prompt.system + '\nResponda SOMENTE com um objeto JSON válido: { "texto_limpo": string }.' }] },
           contents: [{ role: "user", parts: [{ text: prompt.user }] }],
-          // thinkingBudget 0 (pós-F): o gemini-3.6 "pensa" por padrão — o smoke C9
-          // mediu 131s de geração contra um teto de 8s no cliente. Sem thinking,
-          // o flash responde em segundos; qualidade do portão é papel do validador.
-          generationConfig: { responseMimeType: "application/json", responseSchema: SCHEMA_TEXTO, temperature: temperatura, thinkingConfig: { thinkingBudget: 0 } },
+          generationConfig: { responseMimeType: "application/json", temperature: temperatura, maxOutputTokens: 1200 },
         }),
       });
       if (r.status === 429 || r.status >= 500) return { ok: false, transitorio: true, status: r.status, detalhe: await trechoErro(r) };

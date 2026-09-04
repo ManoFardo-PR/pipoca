@@ -1,0 +1,63 @@
+CONTINUAÇÃO (12ª — a do conserto do Gemini) da etapa C do pós-plan. Os logs do
+C11 fecharam a causa: o structured output (responseSchema) dispara thinking
+pesado no gemini-3.6 (131s) e thinkingBudget é rejeitado (400 INVALID_ARGUMENT,
+sintaxe da geração 2.5). O bloco gemini da realizador agora usa o MESMO padrão
+do DeepSeek (JSON por instrução + responseMimeType, sem schema, teto de tokens
+— 1,5s no teste isolado). Esta rodada valida o gemini DENTRO da cascata,
+temporariamente como principal, e depois devolve o arranjo final. Execute na
+ordem.
+
+── 1 · Deploy da realizador consertada ──────────────────────────────────────────
+1.1 `git pull origin main`; confirme no functions/realizador/index.ts a string
+    "Responda SOMENTE com um objeto JSON válido" DENTRO do bloco gemini (e que
+    NÃO existe mais "thinkingBudget"). Se divergir, PARE (falta push).
+1.2 Deploy da realizador (verify_jwt LIGADO). Esperado: versão nova ACTIVE.
+
+── 2 · Gemini como principal TEMPORÁRIO (SQL) ───────────────────────────────────
+  update config_ia
+     set dados = jsonb_set(jsonb_set(jsonb_set(dados,
+                   '{provedor}', '"gemini"'),
+                   '{modelo}', '"gemini-3.6-flash"'),
+                   '{fallback}', '"deepseek"'),
+         atualizado_em = now()
+   where tenant_id = 'plataforma';
+Verifique: gemini / gemini-3.6-flash / deepseek.
+
+── 3 · Usuário descartável (SQL de sempre; sem operador) ────────────────────────
+auth.users (tokens '') + identities com smoke.pipoca.2026@gmail.com /
+Pipoca!Smoke#2026x; verifique confirmado=true e identities=1.
+
+── 4 · Smoke do GEMINI na cascata ───────────────────────────────────────────────
+Env: ANON_KEY = <anon key pública> · SMOKE_EMAIL/SMOKE_SENHA acima.
+`node scripts/smoke-realizador.mjs run`
+Esperado: HTTP 200, "Pietro", PASS, origem = {fonte:"llm", provedor:"gemini",
+modelo:"gemini-3.6-flash"}, chamadas: 1, metadados.duracaoMs < 8000 (relate).
+Relate um trecho de ~100 caracteres do texto.
+Se NÃO der 200 gemini: aguarde ~2 min e rode
+  select timestamp, event_message from function_logs
+   where event_message like '%[realizador]%' order by timestamp desc limit 6;
+relate as linhas e SIGA para o passo 5 mesmo assim (o arranjo final não depende
+do gemini).
+
+── 5 · Devolver o ARRANJO FINAL (decisão do dono): DeepSeek principal ───────────
+  update config_ia
+     set dados = jsonb_set(jsonb_set(jsonb_set(dados,
+                   '{provedor}', '"deepseek"'),
+                   '{modelo}', '"deepseek-chat"'),
+                   '{fallback}', '"gemini"'),
+         atualizado_em = now()
+   where tenant_id = 'plataforma';
+Verifique: deepseek / deepseek-chat / gemini.
+
+── 6 · Smoke de confirmação do arranjo final ────────────────────────────────────
+`node scripts/smoke-realizador.mjs run`
+Esperado: 200, origem deepseek/deepseek-chat, chamadas: 1, duracaoMs < 8000.
+
+── 7 · Limpeza (SEMPRE) ─────────────────────────────────────────────────────────
+  delete from auth.users where email = 'smoke.pipoca.2026@gmail.com';
+Confirme 0 linhas restantes.
+
+── Relatório final ──────────────────────────────────────────────────────────────
+Versão da realizador; smoke do gemini (origem, chamadas, duracaoMs, trecho — ou
+os logs da falha); config final verificada; smoke do deepseek; limpeza.
+Se algo divergir fora do previsto, PARE nele e relate.

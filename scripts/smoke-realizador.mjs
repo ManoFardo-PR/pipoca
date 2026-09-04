@@ -12,8 +12,8 @@
  *   asserções); o Pacote real Pietro/m vem embutido no script.
  * SAI: logs no console + process.exitCode (0 ok · 1 asserção falhou · 2 sem
  *   bearer). Efeito real: cria usuário no Auth de produção e chama a edge.
- * CHAMA: src/core/realizador/prompt_template.ts:montarPromptRealizador; fetch
- *   direto ao /auth/v1 e /functions/v1/realizador do Supabase.
+ * CHAMA: fetch direto ao /auth/v1 e /functions/v1/realizador do Supabase
+ *   (contrato E3: o corpo é SÓ {pacote} — o prompt nasce na edge).
  * É CHAMADO POR: ninguém — entrypoint rodado à mão (não está no package.json).
  * RODA POR: `node scripts/smoke-realizador.mjs <fase>` com env
  *   SUPA_URL/ANON_KEY/SMOKE_EMAIL (e SMOKE_SENHA).
@@ -43,8 +43,6 @@
  * A confirmação de e-mail e a limpeza do usuário são feitas via MCP/SQL fora
  * deste script (o script é keyless e não tem service role).
  */
-
-import { montarPromptRealizador } from "../src/core/realizador/prompt_template.ts";
 
 const SUPA_URL = process.env.SUPA_URL || "https://bamlljvllcxdnsheatqv.supabase.co";
 const ANON_KEY = process.env.ANON_KEY;
@@ -125,13 +123,13 @@ async function login() {
 }
 
 async function chamarEdge(token) {
-  const prompt = montarPromptRealizador(pacote);
   const r = await fetch(SUPA_URL + "/functions/v1/realizador", {
     method: "POST",
     headers: { ...H_ANON, Authorization: "Bearer " + token },
-    // tenantId OMITIDO de propósito: a edge deriva "familia:<uid>" (usuário novo,
-    // sem linha própria) → cai no fallback "plataforma" — o caminho do fix.
-    body: JSON.stringify({ pacote, prompt, temperatura: 0.4 }),
+    // Contrato E3 (pós-flip): SÓ {pacote} — o prompt nasce na edge; corpo com
+    // `prompt` é rejeitado (400). tenantId OMITIDO de propósito: a edge deriva
+    // "familia:<uid>" (usuário novo, sem linha própria) → fallback "plataforma".
+    body: JSON.stringify({ pacote }),
   });
   const texto = await r.text();
   let j;

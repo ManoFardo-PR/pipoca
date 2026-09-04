@@ -1,0 +1,26 @@
+-- Pipoca — revoke de tenant_da_sessao() para authenticated (Plan03 · ACHADOS A3, pós-F)
+-- ------------------------------------------------------------------------------------
+-- POR QUÊ: o advisor de segurança aponta tenant_da_sessao() (SECURITY DEFINER)
+-- executável por `authenticated` via /rest/v1/rpc. A função é chamada SOMENTE
+-- dentro de fixar_tenant_perfil() (trigger SECURITY DEFINER — executa como o
+-- DONO da função, não como o papel da sessão), e NÃO aparece em nenhuma
+-- política RLS. `authenticated` não precisa do grant — é superfície a mais
+-- (um cliente autenticado podia consultar o próprio tenant_id via RPC crua).
+--
+-- MESMO PADRÃO já aplicado a fixar_tenant_perfil() (migracao_2026-07-06:105) e
+-- registrar_uso_ia() (2026-08-28_pos-varredura:61): quem não é chamado pelo
+-- cliente nem por política não fica executável pelo cliente.
+--
+-- PRÉ-CHECAGEM (read-only, rodar ANTES de aplicar — deve confirmar que nenhuma
+-- política referencia a função):
+--   select polname, pg_get_expr(polqual, polrelid)
+--     from pg_policy where pg_get_expr(polqual, polrelid) ilike '%tenant_da_sessao%';
+--   -- esperado: 0 linhas
+--
+-- VERIFICAÇÃO (depois de aplicar):
+--   select proacl from pg_proc where proname = 'tenant_da_sessao';
+--   -- esperado: sem "authenticated=X"; service_role/postgres mantidos
+--   -- e um INSERT de perfil por usuário autenticado segue fixando tenant_id
+--   -- (o trigger roda como dono — nada muda para o app).
+
+revoke execute on function public.tenant_da_sessao() from authenticated;

@@ -8,8 +8,8 @@
  *   com as chaves pagas fora do cliente; o app manda SÓ o Pacote (E3) e o
  *   servidor monta o prompt, decide provedor/modelo, checa cota, chama a API
  *   paga, valida a fidelidade e responde.
- * ENTRA: POST JSON { pacote, tenantId? } (E3; `prompt`/`temperatura` legados
- *   são aceitos e IGNORADOS na transição — ver ACEITAR_PROMPT_LEGADO) +
+ * ENTRA: POST JSON { pacote, tenantId? } (E3; corpo com `prompt` legado é
+ *   REJEITADO com 400 desde o flip pós-E7 — ver ACEITAR_PROMPT_LEGADO) +
  *   header Authorization: Bearer <JWT> (verify_jwt). Secrets do ambiente:
  *   ANTHROPIC_API_KEY/OPENAI_API_KEY/GEMINI_API_KEY/DEEPSEEK_API_KEY,
  *   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY. Lê config_ia/uso_ia.
@@ -684,11 +684,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const uid = uidDoJwt(jwt);
   if (!uid) return json({ erro: "nao_autenticado" }, 401);
 
-  // E3 · TRANSIÇÃO: bundles antigos ainda mandam {prompt, temperatura} — a edge
-  // ACEITA e IGNORA (o prompt nasce AQUI, do pacote; uma fonte de verdade).
-  // Depois do flip do bundle (E7), trocar para false e redeployar: o corpo com
-  // `prompt` passa a ser rejeitado (decisão do dono: rejeitar após a transição).
-  const ACEITAR_PROMPT_LEGADO = true;
+  // E3 · transição ENCERRADA (pós-E7, 2026-09-04): o bundle ao ar não envia mais
+  // `prompt` — corpo com `prompt` agora é REJEITADO (400), decisão do dono.
+  const ACEITAR_PROMPT_LEGADO = false;
 
   const corpo = (await req.json().catch(() => null)) as {
     pacote?: unknown;

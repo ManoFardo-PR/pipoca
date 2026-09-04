@@ -1,5 +1,12 @@
 -- Pipoca — schema + RLS do Supabase · doc fase06-06-04
 -- ------------------------------------------------------
+-- ⚠ HISTÓRICO, NÃO É FONTE DE VERDADE (registrado no Plan03/ACHADOS · pós-F):
+-- este arquivo é o retrato da fase06 e está DEFASADO das migrações aplicadas
+-- desde então (índices/políticas de 2026-08-26, `registrar_uso_ia` e políticas
+-- fundidas do pós-varredura, revokes posteriores). O estado real do banco =
+-- `src/backend/migrations/` (aplicadas em ordem) + o dashboard do projeto.
+-- Não aplicar este arquivo em projeto novo sem conferir as migrações.
+--
 -- ESPELHO do apply_migration aplicado ao projeto real (fase06, etapa de
 -- infra). Princípios: `dono` tem DEFAULT auth.uid() e o cliente NUNCA o
 -- envia (RLS com with check fecha spoofing); `eh_operador()` é SECURITY

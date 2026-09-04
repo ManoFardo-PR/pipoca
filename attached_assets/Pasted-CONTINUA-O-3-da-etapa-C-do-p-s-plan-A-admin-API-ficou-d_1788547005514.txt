@@ -1,0 +1,55 @@
+CONTINUAÇÃO (3ª) da etapa C do pós-plan. A admin API ficou descartada (a service
+role não existe no workspace — só nos secrets das edges). O caminho agora é criar
+o usuário descartável DIRETO VIA SQL (você já executa SQL como postgres — foi
+assim que aplicou a migração). Execute SOMENTE os passos abaixo.
+
+── C.1 · Criar o usuário descartável via SQL ──
+Rode as duas instruções abaixo (na ordem; a 2ª cria a identity de e-mail que o
+login por senha exige nas versões novas do GoTrue):
+
+  insert into auth.users
+    (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+     raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+  values
+    ('00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated',
+     'authenticated', 'smoke.pipoca.2026@gmail.com',
+     crypt('Pipoca!Smoke#2026x', gen_salt('bf')), now(),
+     '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, now(), now());
+
+  insert into auth.identities
+    (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+  select id::text, id,
+         jsonb_build_object('sub', id::text, 'email', email, 'email_verified', true),
+         'email', now(), now(), now()
+    from auth.users where email = 'smoke.pipoca.2026@gmail.com';
+
+VERIFICAÇÃO:
+  select u.email, u.email_confirmed_at is not null as confirmado,
+         count(i.provider) as identities
+    from auth.users u left join auth.identities i on i.user_id = u.id
+   where u.email = 'smoke.pipoca.2026@gmail.com' group by 1, 2;
+Esperado: 1 linha, confirmado = true, identities = 1.
+Se algum INSERT falhar por coluna/constraint, relate o erro LITERAL e PARE.
+
+── C.2 · O smoke de verdade (gasta 1 chamada de API paga) ──
+Env: ANON_KEY = <anon key pública> · SMOKE_EMAIL = smoke.pipoca.2026@gmail.com
+     SMOKE_SENHA = Pipoca!Smoke#2026x
+`node scripts/smoke-realizador.mjs run`
+Esperado: HTTP 200, texto contendo "Pietro", veredito PASS, origem.fonte = "llm"
+(NÃO "fallback"). Anote origem.provedor e origem.modelo.
+Se o LOGIN falhar (o script imprime o corpo), relate o corpo literal e PARE —
+não tente consertar o usuário por conta própria.
+
+── C.3 · Prova do flip com Bearer ──
+Com o MESMO bearer (ou refazendo o login), repita o POST na edge realizador
+adicionando "prompt":"x" ao corpo {pacote, prompt} → esperado 400
+{"erro":"requisicao_invalida"}.
+
+── C.4 · Limpeza ──
+  delete from auth.users where email = 'smoke.pipoca.2026@gmail.com';
+(auth.identities cai junto pelo cascade; confirme com um select de 0 linhas.)
+
+── Relatório final ──
+Resultado da verificação do C.1; status/corpo do C.2 com origem.provedor/modelo;
+resultado do C.3 (400); confirmação da limpeza (0 linhas restantes).
+Se algo divergir, PARE naquele passo e relate sem improvisar.

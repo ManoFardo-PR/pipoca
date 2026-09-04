@@ -1,8 +1,8 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-04T17:32:05.976Z · branch `28_08_26` · HEAD `b200b03`
-- Progresso: **57/59** passos concluídos
-- Próximo passo: **F3** — STATUS.md a 100%
+- Gerado em: 2026-09-04T17:32:30.689Z · branch `28_08_26` · HEAD `e4647dc`
+- Progresso: **58/59** passos concluídos
+- Próximo passo: **F4** — Push (somente com ordem do dono)
 - Última verificação: ✅ verde em 2026-09-04T16:51:37.554Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
   - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
@@ -92,11 +92,11 @@
 | E6 | [Pipeline de autoria: lints no CI, guia, anexos](onda-E-edge-dados/E6-pipeline-de-autoria.md) | [✓] concluída | 2026-09-04 | `9f9f0e4` |
 | E7 | [Fechamento E: build:app → paridade → e2e → merge](onda-E-edge-dados/E7-fechamento-onda-E.md) | [✓] concluída | 2026-09-04 | `38d09f9` |
 
-## Onda F — Encerramento · 2/4 · branch `28_08_26` · —
+## Onda F — Encerramento · 3/4 · branch `28_08_26` · —
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
 | F1 | Régua final: tsc, unit, e2e, CI verde | [✓] concluída | 2026-09-04 | `9ba090d` |
 | F2 | Catálogo da varredura com todos os IDs marcados resolvidos | [✓] concluída | 2026-09-04 | `b200b03` |
-| F3 | STATUS.md a 100% | [ ] pendente |  |  |
+| F3 | STATUS.md a 100% | [✓] concluída | 2026-09-04 | `e4647dc` |
 | F4 | Push (somente com ordem do dono) | [ ] pendente |  |  |

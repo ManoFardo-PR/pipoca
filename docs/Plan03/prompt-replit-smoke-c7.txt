@@ -1,0 +1,61 @@
+CONTINUAÇÃO (7ª) da etapa C do pós-plan. Os logs da v11 mostraram que gemini e
+deepseek caem no caminho genérico (sem chave faltando, sem recusa, sem erro
+transitório) = HTTP 4xx da API ou resposta fora do formato. Esta rodada:
+(a) testa a CONEXÃO dos 4 provedores (claude, gemini, openai, deepseek) pelo
+"testar" da edge admin-chaves-ia — ping /models, sem gastar geração — a pedido
+do dono; (b) deploya a realizador com diagnóstico reforçado (status+detalhe) e
+roda 1 smoke com leitura de logs. Execute na ordem.
+
+── 1 · Tabela chaves_ia (read-only) ─────────────────────────────────────────────
+  select provedor, atualizado_em from chaves_ia order by provedor;
+(NUNCA selecione a coluna `chave`.) Relate as linhas. Motivo: o "testar" usa a
+chave do BANCO antes da do ambiente — se houver linha velha aqui, o teste e a
+geração podem divergir; precisamos saber.
+
+── 2 · Deploy da realizador com diagnóstico reforçado ───────────────────────────
+2.1 `git pull origin main`; confirme no functions/realizador/index.ts a função
+    `trechoErro` e o log com "status"/"detalhe". Se ausentes, PARE (falta push).
+2.2 Deploy da realizador (verify_jwt LIGADO). Esperado: versão nova ACTIVE.
+
+── 3 · Usuário descartável + operador temporário (SQL) ──────────────────────────
+Os mesmos dois INSERTs da rodada anterior (auth.users com tokens '' +
+auth.identities), com smoke.pipoca.2026@gmail.com / Pipoca!Smoke#2026x.
+Depois, promova-o a OPERADOR (necessário só para o teste de conexão; a limpeza
+o remove por cascade):
+  insert into operadores (uid, escopo)
+  select id, '"todos"'::jsonb from auth.users
+   where email = 'smoke.pipoca.2026@gmail.com';
+Verifique: usuário confirmado, 1 identity, 1 linha em operadores.
+
+── 4 · Teste de conexão dos 4 provedores (não gasta geração) ────────────────────
+Faça login (o run do smoke loga; ou POST /auth/v1/token) e, com o bearer, chame
+4× a edge admin-chaves-ia:
+  POST https://bamlljvllcxdnsheatqv.supabase.co/functions/v1/admin-chaves-ia
+  headers: apikey: <anon>, Authorization: Bearer <bearer do usuário>
+  body: {"acao":"testar","provedor":"claude"}   → relate o JSON {ok:...}
+  idem para "gemini", "openai", "deepseek".
+Relate os 4 resultados literais. ok:false = a chave daquele provedor não
+autentica na API (chave errada/sem permissão); ok:true = chave válida.
+
+── 5 · Smoke (gasta no máx. 2 tentativas de geração) ────────────────────────────
+Env: ANON_KEY = <anon key pública> · SMOKE_EMAIL/SMOKE_SENHA acima.
+`node scripts/smoke-realizador.mjs run`
+Esperado: HTTP 200, "Pietro", PASS, origem.fonte="llm" (anote provedor/modelo).
+
+── 6 · Logs (SEMPRE; aguarde ~2 minutos após o smoke) ───────────────────────────
+  select timestamp, event_message from function_logs
+   where event_message like '%[realizador]%'
+   order by timestamp desc limit 20;
+Relate as linhas LITERAIS (agora com status e detalhe do erro da API).
+
+── 7 · Prova do flip (se o passo 5 deu 200) ─────────────────────────────────────
+Mesmo bearer, POST na realizador com "prompt":"x" no corpo → esperado 400.
+
+── 8 · Limpeza (SEMPRE) ─────────────────────────────────────────────────────────
+  delete from auth.users where email = 'smoke.pipoca.2026@gmail.com';
+Confirme 0 linhas em auth.users E em operadores (cascade).
+
+── Relatório final ──────────────────────────────────────────────────────────────
+Linhas de chaves_ia (sem a chave); versão deployada; os 4 resultados do testar;
+status do smoke com origem; linhas de log literais; resultado do 400; limpeza
+confirmada (usuário e operador). Se algo divergir num passo, PARE nele e relate.

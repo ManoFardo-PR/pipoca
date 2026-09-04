@@ -1,0 +1,41 @@
+CONTINUAÇÃO (2ª) da etapa C do pós-plan. Diagnóstico fechado pelos corpos que você
+relatou: o Auth valida o domínio do e-mail (pipoca.dev → email_address_invalid) e o
+signup normal envia e-mail de confirmação, estourando o rate limit do plano free
+(429 over_email_send_rate_limit). Por isso o caminho agora é a ADMIN API, que cria
+o usuário JÁ CONFIRMADO sem enviar e-mail nenhum.
+Execute SOMENTE os passos abaixo. NUNCA imprima a service role key.
+
+── C.1 · Criar o usuário descartável pela admin API ─────────────────────────────
+Use a service role key dos secrets do ambiente (a mesma SUPABASE_SERVICE_ROLE_KEY
+das edges), sem imprimi-la:
+  POST https://bamlljvllcxdnsheatqv.supabase.co/auth/v1/admin/users
+  headers: apikey: <service_role> · Authorization: Bearer <service_role>
+           Content-Type: application/json
+  body: {"email":"smoke.pipoca.2026@gmail.com","password":"Pipoca!Smoke#2026x","email_confirm":true}
+Esperado: 200/201 com o usuário criado e confirmado.
+Se vier "already registered" (o 429 anterior pode ter criado o usuário), apenas
+confirme via SQL e siga:
+  update auth.users set email_confirmed_at = now()
+    where email = 'smoke.pipoca.2026@gmail.com';
+Qualquer outro erro: PARE e relate o corpo literal.
+
+── C.2 · O smoke de verdade (gasta 1 chamada de API paga) ───────────────────────
+Env: ANON_KEY = <anon key pública> · SMOKE_EMAIL = smoke.pipoca.2026@gmail.com
+     SMOKE_SENHA = Pipoca!Smoke#2026x
+`node scripts/smoke-realizador.mjs run`
+Esperado: HTTP 200, texto contendo "Pietro", veredito PASS, origem.fonte = "llm"
+(NÃO "fallback"). Anote origem.provedor e origem.modelo.
+
+── C.3 · Prova do flip com Bearer ───────────────────────────────────────────────
+Com o MESMO bearer (ou refazendo o login), repita o POST na edge realizador
+adicionando "prompt":"x" ao corpo {pacote, prompt} → esperado 400
+{"erro":"requisicao_invalida"}.
+
+── C.4 · Limpeza ────────────────────────────────────────────────────────────────
+  delete from auth.users
+    where email in ('smoke.pipoca.2026@gmail.com','smoke-flip-20260905@pipoca.dev');
+(o segundo e-mail é por garantia — não deve existir; delete de 0 linhas é ok.)
+
+── Relatório final ──────────────────────────────────────────────────────────────
+Status da criação admin; status/corpo do C.2 com origem.provedor/modelo; resultado
+do C.3 (400); linhas afetadas na limpeza. Se algo divergir, PARE e relate.

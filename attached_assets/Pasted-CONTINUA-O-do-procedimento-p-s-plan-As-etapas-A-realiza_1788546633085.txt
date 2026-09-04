@@ -1,0 +1,54 @@
+CONTINUAÇÃO do procedimento pós-plan. As etapas A (realizador v9 ACTIVE, 401 ok) e
+B (revoke aplicado, proacl verificado) já foram CONCLUÍDAS — não as repita.
+Você vai executar SOMENTE a etapa C (smoke real da edge — gasta UMA chamada de API
+paga) com o diagnóstico do signup que falhou (400 mudo). Não altere arquivos do
+repo, funções, secrets, tabelas ou configurações além do usuário descartável.
+NUNCA imprima chaves (anon pode; service_role JAMAIS).
+
+── C.0 · Preparação ─────────────────────────────────────────────────────────────
+Na branch main: `git pull origin main` (traz o smoke-realizador.mjs que agora
+imprime o CORPO do erro de signup). Confirme no arquivo a linha
+"[signup] corpo do erro". Env para os passos seguintes:
+  SUPA_URL   = https://bamlljvllcxdnsheatqv.supabase.co  (default do script)
+  ANON_KEY   = <anon key pública do projeto>
+  SMOKE_EMAIL= smoke-flip-20260905@pipoca.dev
+  SMOKE_SENHA= Pipoca!Smoke#2026x
+
+── C.1 · Signup com diagnóstico ─────────────────────────────────────────────────
+`node scripts/smoke-realizador.mjs signup`
+Se vier 200/token: siga para C.2. Se vier erro, RELATE O CORPO LITERAL e decida
+pelo conteúdo:
+  a) "Signups not allowed" / signups desabilitados →
+     crie o usuário pela ADMIN API, usando a service role key que já existe nos
+     secrets do ambiente (a mesma SUPABASE_SERVICE_ROLE_KEY das edges), SEM
+     imprimi-la:
+       POST $SUPA_URL/auth/v1/admin/users
+       headers: apikey: <service_role>, Authorization: Bearer <service_role>
+       body: {"email":"<SMOKE_EMAIL>","password":"<SMOKE_SENHA>","email_confirm":true}
+     Esperado: 200 com o usuário criado (já confirmado — pule C.2).
+  b) e-mail rejeitado (invalid email / domínio) →
+     repita o signup com SMOKE_EMAIL = smoke.pipoca.2026@gmail.com
+     (continua descartável; a confirmação via SQL do C.2 vale igual).
+  c) senha rejeitada (policy) → repita com uma senha maior que satisfaça a
+     mensagem e relate a policy.
+  d) qualquer outro corpo → PARE e relate.
+
+── C.2 · Confirmar o e-mail (se o usuário não nasceu confirmado) ────────────────
+  update auth.users set email_confirmed_at = now() where email = '<SMOKE_EMAIL usado>';
+
+── C.3 · O smoke de verdade ─────────────────────────────────────────────────────
+`node scripts/smoke-realizador.mjs run`
+Esperado: HTTP 200, texto contendo "Pietro", veredito PASS, origem.fonte = "llm"
+(NÃO "fallback"). Anote origem.provedor e origem.modelo.
+
+── C.4 · Prova do flip com Bearer ───────────────────────────────────────────────
+Com o MESMO bearer do login do C.3 (ou refazendo o login), repita o POST na edge
+adicionando "prompt":"x" ao corpo → esperado 400 {"erro":"requisicao_invalida"}.
+
+── C.5 · Limpeza ────────────────────────────────────────────────────────────────
+  delete from auth.users where email = '<SMOKE_EMAIL usado>';
+
+── Relatório final ──────────────────────────────────────────────────────────────
+Corpo literal do erro de signup (se houve) e o caminho tomado (a/b/c); status do
+C.3 com origem.provedor/modelo; resultado do C.4 (400); confirmação da limpeza.
+Se algo divergir, PARE naquele passo e relate sem improvisar.

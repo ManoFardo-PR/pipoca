@@ -49,8 +49,8 @@
         <div style="{{ formStyle }}">
           <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">
             <input class="pip-iag-campo" type="password" autocomplete="off" placeholder="colar nova chave (só gravar — não aparece depois)" value="{{ c.chave }}" onInput="{{ c.setChave }}" aria-label="Nova chave do provedor (não é exibida depois)" />
-            <button class="pip-iag-btn" onClick="{{ c.salvarChave }}" style="min-height:40px;border:none;border-radius:10px;padding:0 14px;font-family:'Baloo 2';font-weight:800;font-size:13px;color:#fff;background:linear-gradient(150deg,#4a5a3f,#39472f);">Enviar ao servidor</button>
-            <button class="pip-iag-btn" onClick="{{ c.testar }}" style="min-height:40px;border:2px solid #d8cfbd;border-radius:10px;background:#fffdf8;padding:0 14px;font-family:'Baloo 2';font-weight:800;font-size:13px;color:#2c241a;">Testar conexão</button>
+            <button class="pip-iag-btn" onClick="{{ c.salvarChave }}" style="min-height:44px;border:none;border-radius:10px;padding:0 14px;font-family:'Baloo 2';font-weight:800;font-size:13px;color:#fff;background:linear-gradient(150deg,#4a5a3f,#39472f);">Enviar ao servidor</button>
+            <button class="pip-iag-btn" onClick="{{ c.testar }}" style="min-height:44px;border:2px solid #d8cfbd;border-radius:10px;background:#fffdf8;padding:0 14px;font-family:'Baloo 2';font-weight:800;font-size:13px;color:#2c241a;">Testar conexão</button>
           </div>
 
           <div style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:#2c241a;margin-top:12px;">Modelo padrão</div>
@@ -206,7 +206,7 @@ class Component extends DCLogic {
     const C = window.PipocaAdminCanonico;
     const cfg = s.config || (C ? C.iaGlobal.CONFIG_IA_GLOBAL_PADRAO : { modeloPadrao: {}, cadeiaFallback: [] });
     const somenteLeitura = !s.remoto;
-    const optBase = 'min-height:38px;border-radius:10px;border:2px solid;font-family:Nunito;font-weight:700;font-size:12px;cursor:pointer;padding:6px 10px;';
+    const optBase = 'min-height:44px;border-radius:10px;border:2px solid;font-family:Nunito;font-weight:700;font-size:12px;cursor:pointer;padding:6px 10px;';
     const sel = 'background:#4a5a3f;border-color:#4a5a3f;color:#fff;';
     const off = 'background:#fffdf8;border-color:#d8cfbd;color:#2c241a;';
     const nomesProv = { claude: 'Claude', gemini: 'Gemini', openai: 'OpenAI', deepseek: 'DeepSeek' };

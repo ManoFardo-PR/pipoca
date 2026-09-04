@@ -29,6 +29,10 @@
     .pip-contrast [style*="color: rgb(107, 98, 85)"], .pip-contrast [style*="color: rgb(122, 106, 84)"],
     .pip-contrast [style*="color: rgb(138, 122, 100)"], .pip-contrast [style*="color: rgb(154, 138, 114)"] { color: #2c241a !important; }
     .pip-reduce-motion *, .pip-reduce-motion *::before, .pip-reduce-motion *::after { animation-iteration-count: 1 !important; }
+    /* Piso de alvo do admin (ACHADOS C12 · fechado no pós-F): 44px de altura em todo
+       controle interativo — min-height vence height inline, então cobre tabs, switches
+       e botões pequenos de B10/B11 sem tocar cada tela. Operador também erra clique. */
+    button, [role="switch"], [role="button"], input, select, textarea { min-height: 44px; }
   </style>
 </head>
 <body>

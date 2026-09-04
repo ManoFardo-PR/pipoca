@@ -19,6 +19,9 @@
   /* ── Cor — laranja / terracota ───────────────────────────────────── */
   --pip-terracota:        #e8965a;
   --pip-terracota-escuro: #d5713f;
+  /* Terracota da MARCA (wordmark da landing/painel) — uso decorativo ou texto
+   * GRANDE (≥18px bold); para texto pequeno use --pip-terracota-texto (UI-A35). */
+  --pip-terracota-marca:  #b8693c;
 
   /* ── Cor — verde-folha ───────────────────────────────────────────── */
   --pip-folha:       #6f9b4f;

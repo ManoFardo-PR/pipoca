@@ -17,6 +17,13 @@
     /* B7 (UI-C39): sacudida curta quando um toque não tem efeito — some com reduzir-movimento. */
     @keyframes pipSacode { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
     .pip-sacode { animation: pipSacode calc(.3s * var(--pip-mov)) ease; }
+    /* Retrato (UI-C58 · pós-F): o palco ROLA (cena + banco + CTA não cabem juntos
+       em 844px), respiro menor e o CTA empilha sob a dica — alvos preservados. */
+    @media (max-width: 700px) {
+      .pip-t4-corpo { padding: 14px 16px 22px; overflow-y: auto; }
+      .pip-t4-acao { flex-direction: column; align-items: stretch; gap: 10px; }
+      .pip-t4-acao button { width: 100%; }
+    }
   </style>
 </helmet>
 
@@ -32,7 +39,7 @@
 
   <!-- Palco -->
   <sc-if value="{{ pronto }}" hint-placeholder-val="{{ true }}">
-  <div style="flex:1;min-height:0;display:flex;flex-direction:column;padding:20px 34px 26px;">
+  <div class="pip-t4-corpo" style="flex:1;min-height:0;display:flex;flex-direction:column;padding:20px 34px 26px;">
 
     <!-- Instrução da rodada — copy da faixa etária + 🔊 (B7 · UI-C41/C42) -->
     <div style="flex-shrink:0;display:flex;align-items:flex-start;gap:12px;">
@@ -96,7 +103,7 @@
     </div>
 
     <!-- Ação: ler em voz alta (a dica descreve o CTA — B7) -->
-    <div style="flex-shrink:0;margin-top:18px;display:flex;align-items:center;gap:14px;">
+    <div class="pip-t4-acao" style="flex-shrink:0;margin-top:18px;display:flex;align-items:center;gap:14px;">
       <div id="pip-t4-dica" style="flex:1;font-size:var(--pip-fs-2);line-height:var(--pip-lh-texto);color:var(--pip-texto-suave);">{{ dica }}</div>
       <button onClick="{{ lerEmVozAlta }}" disabled="{{ lerDisabled }}" aria-describedby="pip-t4-dica" style="{{ lerBtnStyle }}">📖 Ler em voz alta →</button>
     </div>

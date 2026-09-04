@@ -199,7 +199,7 @@ class Component extends DCLogic {
       planos: s.planos.map((p) => ({
         nome: p.nome,
         escolher: () => this._definirPlano(t.id, p.id),
-        style: 'min-height:38px;border-radius:10px;border:2px solid;font-family:Nunito;font-weight:700;font-size:12px;cursor:pointer;'
+        style: 'min-height:44px;border-radius:10px;border:2px solid;font-family:Nunito;font-weight:700;font-size:12px;cursor:pointer;'
           + (t.planoId === p.id
             ? 'background:#4a5a3f;border-color:#4a5a3f;color:#fff;'
             : 'background:#fffdf8;border-color:#d8cfbd;color:#2c241a;'),

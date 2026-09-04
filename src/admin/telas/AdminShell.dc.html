@@ -111,7 +111,7 @@ class Component extends DCLogic {
       { nome: 'Segurança', tela: 6, area: 'seguranca' },
       { nome: 'IA global', tela: 7, area: 'iaGlobal' },
     ];
-    const tabBase = 'min-height:34px;border-radius:999px;border:1px solid;font-family:Nunito;font-weight:700;font-size:12.5px;cursor:pointer;padding:6px 14px;white-space:nowrap;';
+    const tabBase = 'min-height:44px;border-radius:999px;border:1px solid;font-family:Nunito;font-weight:700;font-size:12.5px;cursor:pointer;padding:6px 14px;white-space:nowrap;';
     const tabs = defs.map((d) => {
       const disponivel = d.area === null || !!(sess && C && C.auth.areaDisponivel(escopo, d.area));
       const atual = t === d.tela;

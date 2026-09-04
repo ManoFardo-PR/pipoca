@@ -103,6 +103,9 @@ async function signup() {
   const j = await r.json().catch(() => ({}));
   console.log("[signup] status", r.status, "| access_token?", !!j.access_token, "| user?", !!j.user?.id);
   console.log("[signup] EMAIL =", EMAIL);
+  // Diagnóstico: em falha, o CORPO diz o porquê (signups desligados, e-mail
+  // rejeitado, senha fraca…) — sem ele o 400 é mudo. Não contém segredo algum.
+  if (r.status >= 400) console.error("[signup] corpo do erro:", JSON.stringify(j));
   if (j.access_token) console.log("[signup] AUTOCONFIRM — token já disponível");
   return j.access_token || null;
 }

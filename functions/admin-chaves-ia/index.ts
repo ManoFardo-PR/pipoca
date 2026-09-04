@@ -8,8 +8,9 @@
  *   nunca expô-las — a chave entra por aqui e vive na tabela chaves_ia
  *   (deny-all p/ clientes, só service role); o painel só recebe status
  *   mascarado.
- * ENTRA: POST JSON { acao, provedor?, chave? } + header Authorization: Bearer
- *   <JWT> (verify_jwt). acao ∈ {status, salvar, testar}. Secrets do ambiente:
+ * ENTRA: POST JSON { acao, provedor?, chave?, modelo?, fonte? } + header
+ *   Authorization: Bearer <JWT> (verify_jwt). acao ∈ {status, salvar, testar,
+ *   testar_geracao}. Secrets do ambiente:
  *   ANTHROPIC_API_KEY/OPENAI_API_KEY/GEMINI_API_KEY/DEEPSEEK_API_KEY (fonte
  *   "ambiente"), SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY. Lê operadores e
  *   chaves_ia.
@@ -47,6 +48,11 @@
  *   {acao:"status"}                     → { provedores: StatusChaveIa[] }
  *   {acao:"salvar", provedor, chave}    → { provedor: StatusChaveIa }  (upsert)
  *   {acao:"testar", provedor}           → { ok: boolean }              (ping real)
+ *   {acao:"testar_geracao", provedor, modelo, fonte?} → { ok, status, motivo,
+ *     detalhe, fonte } — geração MÍNIMA real (frações de centavo); motivo ∈
+ *     {chave_invalida, sem_saldo, modelo_indisponivel, rate_limit, erro_api,
+ *     resposta_vazia, rede, sem_chave}; fonte "ambiente" (default, a mesma da
+ *     realizador) | "banco" (tabela chaves_ia).
  *
  * Erros (JSON {erro}): 401 nao_autenticado · 403 nao_autorizado ·
  * 400 requisicao_invalida · 503 nao_configurado. Self-contained (Deno),
@@ -178,6 +184,67 @@ async function testarProvedor(provedor: Provedor, chave: string): Promise<boolea
   return false;
 }
 
+/** Trecho curto do corpo de erro — só para diagnóstico; nunca contém a chave. */
+async function trechoErro(r: Response): Promise<string> {
+  try { return (await r.text()).slice(0, 200); } catch { return ""; }
+}
+
+interface ResultadoGeracao {
+  ok: boolean;
+  status: number | null;
+  /** chave_invalida | sem_saldo | modelo_indisponivel | rate_limit | erro_api | resposta_vazia | rede */
+  motivo: string | null;
+  detalhe: string | null;
+}
+
+function classificar(status: number): string {
+  if (status === 401 || status === 403) return "chave_invalida";
+  if (status === 402) return "sem_saldo";
+  if (status === 404) return "modelo_indisponivel";
+  if (status === 429) return "rate_limit";
+  return "erro_api";
+}
+
+/**
+ * Geração MÍNIMA real (custa frações de centavo): prova que provedor+modelo+
+ * chave+saldo funcionam de ponta a ponta — o que o ping /models não cobre
+ * (um 402/404 só aparece na geração). Prompt fixo e inofensivo.
+ */
+async function testarGeracao(provedor: Provedor, modelo: string, chave: string): Promise<ResultadoGeracao> {
+  const pedido = "Responda apenas: OK";
+  try {
+    let r: Response;
+    if (provedor === "gemini") {
+      r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + modelo + ":generateContent", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-goog-api-key": chave },
+        body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: pedido }] }], generationConfig: { maxOutputTokens: 200 } }),
+      });
+    } else if (provedor === "claude") {
+      r = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-api-key": chave, "anthropic-version": "2023-06-01" },
+        body: JSON.stringify({ model: modelo, max_tokens: 10, messages: [{ role: "user", content: pedido }] }),
+      });
+    } else {
+      const url = provedor === "openai" ? "https://api.openai.com/v1/chat/completions" : "https://api.deepseek.com/chat/completions";
+      r = await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json", Authorization: "Bearer " + chave },
+        body: JSON.stringify({ model: modelo, max_completion_tokens: 10, messages: [{ role: "user", content: pedido }] }),
+      });
+    }
+    if (!r.ok) return { ok: false, status: r.status, motivo: classificar(r.status), detalhe: await trechoErro(r) };
+    const j = await r.json().catch(() => null);
+    const temTexto = !!j && JSON.stringify(j).length > 2;
+    return temTexto
+      ? { ok: true, status: r.status, motivo: null, detalhe: null }
+      : { ok: false, status: r.status, motivo: "resposta_vazia", detalhe: null };
+  } catch (e) {
+    return { ok: false, status: null, motivo: "rede", detalhe: String(e).slice(0, 120) };
+  }
+}
+
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ erro: "metodo_invalido" }, 405);
@@ -230,6 +297,29 @@ Deno.serve(async (req: Request): Promise<Response> => {
     if (!chave) return json({ ok: false, motivo: "sem_chave" }, 200);
     const ok = await testarProvedor(corpo.provedor, chave);
     return json({ ok }, 200);
+  }
+
+  // Diagnóstico completo (pós-plan): geração MÍNIMA real com o provedor+modelo
+  // pedidos — revela o que o ping não vê (402 sem saldo, 404 modelo). `fonte`
+  // opcional: "ambiente" (default — a MESMA fonte da edge realizador) | "banco".
+  if (corpo.acao === "testar_geracao") {
+    const c = corpo as { provedor?: string; modelo?: string; fonte?: string };
+    if (!ehProvedor(c.provedor) || typeof c.modelo !== "string" || !c.modelo.trim()) {
+      return json({ erro: "requisicao_invalida" }, 400);
+    }
+    let chave = "";
+    let fonteUsada: "ambiente" | "banco" | null = null;
+    if (c.fonte === "banco") {
+      const banco = await lerChavesBanco(SUPABASE_URL, SERVICE_KEY);
+      chave = banco[c.provedor] || "";
+      fonteUsada = chave ? "banco" : null;
+    } else {
+      chave = Deno.env.get(SECRET_POR_PROVEDOR[c.provedor]) || "";
+      fonteUsada = chave ? "ambiente" : null;
+    }
+    if (!chave) return json({ ok: false, motivo: "sem_chave", fonte: c.fonte === "banco" ? "banco" : "ambiente" }, 200);
+    const resultado = await testarGeracao(c.provedor, c.modelo.trim(), chave);
+    return json({ provedor: c.provedor, modelo: c.modelo.trim(), fonte: fonteUsada, ...resultado }, 200);
   }
 
   return json({ erro: "requisicao_invalida" }, 400);

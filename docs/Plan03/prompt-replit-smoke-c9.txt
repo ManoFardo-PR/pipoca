@@ -1,0 +1,79 @@
+CONTINUAÇÃO (9ª — SUBSTITUI a 8ª) da etapa C do pós-plan. O dono pediu o teste
+COMPLETO dos 4 provedores até o final (conexão → chave → modelo → saldo →
+geração real). A edge admin-chaves-ia ganhou no repo a ação "testar_geracao"
+(geração mínima de ~10 tokens por provedor — frações de centavo — devolvendo
+{ok, status, motivo, detalhe}; motivo classifica: chave_invalida / sem_saldo /
+modelo_indisponivel / rate_limit / erro_api / resposta_vazia / rede / sem_chave).
+Execute na ordem.
+
+── 1 · Config de IA (decisões do dono) ──────────────────────────────────────────
+  update config_ia
+     set dados = jsonb_set(jsonb_set(dados, '{modelo}', '"gemini-3.6-flash"'),
+                           '{fallback}', '"claude"'),
+         atualizado_em = now()
+   where tenant_id = 'plataforma';
+
+  update config_ia
+     set dados = jsonb_set(jsonb_set(dados, '{modeloPadrao,gemini}', '"gemini-3.6-flash"'),
+                           '{modeloPadrao,claude}', '"claude-haiku-4-5"'),
+         atualizado_em = now()
+   where tenant_id = 'plataforma:global';
+
+VERIFICAÇÃO:
+  select tenant_id, dados->>'provedor' as provedor, dados->>'modelo' as modelo,
+         dados->>'fallback' as fallback, dados->'modeloPadrao' as modelo_padrao
+    from config_ia where tenant_id in ('plataforma','plataforma:global');
+Esperado: plataforma = gemini / gemini-3.6-flash / claude; global com
+gemini-3.6-flash e claude-haiku-4-5.
+
+── 2 · Deploy da admin-chaves-ia com a ação nova ────────────────────────────────
+2.1 `git pull origin main`; confirme no functions/admin-chaves-ia/index.ts a
+    string "testar_geracao". Se ausente, PARE (falta push).
+2.2 Deploy da admin-chaves-ia (verify_jwt LIGADO). Esperado: versão nova ACTIVE.
+
+── 3 · Usuário descartável + operador temporário (SQL) ──────────────────────────
+Os dois INSERTs de sempre (auth.users com tokens '' + auth.identities) com
+smoke.pipoca.2026@gmail.com / Pipoca!Smoke#2026x, MAIS:
+  insert into operadores (uid, escopo)
+  select id, '"todos"'::jsonb from auth.users
+   where email = 'smoke.pipoca.2026@gmail.com';
+Verifique: confirmado=true, identities=1, 1 linha em operadores.
+
+── 4 · Diagnóstico COMPLETO dos 4 provedores (6 chamadas mínimas) ───────────────
+Com o bearer do usuário (login via /auth/v1/token), chame a admin-chaves-ia:
+  POST .../functions/v1/admin-chaves-ia
+  headers: apikey: <anon>, Authorization: Bearer <bearer>
+Corpos, um por vez (relate o JSON literal de cada resposta):
+  {"acao":"testar_geracao","provedor":"claude","modelo":"claude-haiku-4-5"}
+  {"acao":"testar_geracao","provedor":"gemini","modelo":"gemini-3.6-flash"}
+  {"acao":"testar_geracao","provedor":"openai","modelo":"gpt-5.4-mini"}
+  {"acao":"testar_geracao","provedor":"deepseek","modelo":"deepseek-chat"}
+E as 2 chaves ANTIGAS da tabela (fonte banco — julho/2026), para sabermos se
+ainda valem:
+  {"acao":"testar_geracao","provedor":"claude","modelo":"claude-haiku-4-5","fonte":"banco"}
+  {"acao":"testar_geracao","provedor":"gemini","modelo":"gemini-2.5-flash","fonte":"banco"}
+
+── 5 · Smoke da cascata real (a geração completa da criança) ────────────────────
+Env: ANON_KEY = <anon key pública> · SMOKE_EMAIL/SMOKE_SENHA acima.
+`node scripts/smoke-realizador.mjs run`
+Esperado: HTTP 200, "Pietro", PASS, origem = {fonte:"llm", provedor:"gemini",
+modelo:"gemini-3.6-flash"} (claude-haiku-4-5 se o Gemini cair — também sucesso).
+Relate um trecho de ~100 caracteres do texto (para o dono ver a qualidade).
+
+── 6 · Logs (se o passo 5 NÃO deu 200; aguarde ~2 min) ──────────────────────────
+  select timestamp, event_message from function_logs
+   where event_message like '%[realizador]%' order by timestamp desc limit 10;
+
+── 7 · Prova do flip (se o passo 5 deu 200) ─────────────────────────────────────
+Mesmo bearer, POST na realizador ADICIONANDO "prompt":"x" ao corpo → esperado
+400 {"erro":"requisicao_invalida"}. Fecha o flip do E3.
+
+── 8 · Limpeza (SEMPRE) ─────────────────────────────────────────────────────────
+  delete from auth.users where email = 'smoke.pipoca.2026@gmail.com';
+Confirme 0 linhas em auth.users E em operadores.
+
+── Relatório final ──────────────────────────────────────────────────────────────
+TABELA por provedor: conexão (do C7), geração ambiente (ok/motivo/status/
+detalhe), e para claude/gemini também a geração com a chave do banco; config
+verificada; resultado do smoke com origem e trecho; resultado do 400; limpeza.
+Se algo divergir num passo, PARE nele e relate.

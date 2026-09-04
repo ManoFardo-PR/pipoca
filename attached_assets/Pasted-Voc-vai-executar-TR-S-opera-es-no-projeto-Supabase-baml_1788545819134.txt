@@ -1,0 +1,50 @@
+Você vai executar TRÊS operações no projeto Supabase bamlljvllcxdnsheatqv, e SOMENTE elas:
+(A) redeploy da edge `realizador` com o código já commitado no repo (flip que rejeita `prompt` legado),
+(B) aplicação de UMA migração SQL pequena (revoke de função), e
+(C) o smoke real da edge (cria um usuário descartável, gasta UMA chamada de API paga).
+Não altere nenhum arquivo do repo, nenhuma outra função, secret, tabela ou configuração.
+Relate cada passo com o status HTTP/resultado literal.
+
+── 0 · Preparação ──
+0.1 `git pull` na branch 28_08_26 e confirme que está no commit 71bd9eb ou mais novo.
+0.2 Confirme no arquivo functions/realizador/index.ts a linha:
+      const ACEITAR_PROMPT_LEGADO = false;
+    Se estiver `true`, PARE e relate (o pull não trouxe o flip).
+0.3 Liste as edge functions do projeto. Esperado: `realizador` ACTIVE (v7) e
+    NENHUMA `proxy-ia`. Se houver algo diferente, PARE e relate.
+
+── A · Redeploy da realizador (flip) ──
+A.1 Deploy da função `realizador` a partir de functions/realizador/index.ts
+    (verify_jwt LIGADO, como está hoje). Esperado: nova versão (v8) ACTIVE.
+A.2 Teste 1 — sem Authorization: POST .../functions/v1/realizador com body {} → esperado 401.
+A.3 Teste 2 — com Bearer válido e corpo contendo o campo legado:
+      {"pacote": <pacote válido>, "prompt": "x"} → esperado 400 {"erro":"requisicao_invalida"}.
+    (Pode executar junto da etapa C, quando já houver bearer.)
+
+── B · Migração SQL (revoke tenant_da_sessao de authenticated) ──
+Arquivo: src/backend/migrations/2026-09-04_revoke-tenant-da-sessao-authenticated.sql.
+B.1 PRÉ-CHECAGEM (read-only) — deve retornar 0 linhas:
+      select polname, pg_get_expr(polqual, polrelid)
+        from pg_policy where pg_get_expr(polqual, polrelid) ilike '%tenant_da_sessao%';
+    Se retornar QUALQUER linha, NÃO aplique e relate.
+B.2 Aplicar (apply_migration):
+      revoke execute on function public.tenant_da_sessao() from authenticated;
+B.3 VERIFICAÇÃO: select proacl from pg_proc where proname = 'tenant_da_sessao';
+    Esperado: sem "authenticated=X" (postgres/service_role permanecem).
+
+── C · Smoke real da edge (gasta 1 chamada de API paga) ──
+Use scripts/smoke-realizador.mjs (já no contrato novo: envia SÓ {pacote}).
+Env: SUPA_URL (default ok), ANON_KEY (anon key pública), SMOKE_EMAIL
+(ex.: smoke-flip-20260904@pipoca.dev), SMOKE_SENHA (qualquer forte).
+C.1 `node scripts/smoke-realizador.mjs signup` — cria o usuário descartável.
+C.2 Confirmar o e-mail via SQL:
+      update auth.users set email_confirmed_at = now() where email = '<SMOKE_EMAIL>';
+C.3 `node scripts/smoke-realizador.mjs run` — esperado: HTTP 200, texto contendo
+    "Pietro", veredito PASS, origem.fonte = "llm" (NÃO "fallback"); anote origem.provedor/modelo.
+C.4 (A.3 aqui, se não fez antes): mesmo POST adicionando "prompt":"x" → esperado 400.
+C.5 LIMPEZA: delete from auth.users where email = '<SMOKE_EMAIL>';
+
+── Relatório final ──
+Versão nova da realizador + status; resultados 401/400/200; pré-checagem, migração e
+proacl; origem (provedor/modelo) do smoke; confirmação da limpeza. Se qualquer passo
+divergir do esperado, PARE naquele passo e relate sem improvisar correções.

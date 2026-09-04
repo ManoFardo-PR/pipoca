@@ -1,0 +1,50 @@
+CONTINUAÇÃO (6ª) da etapa C do pós-plan. Duas correções sobre a rodada anterior:
+(1) os console.warn de edge function vivem no dataset **function_logs** — as
+consultas anteriores olharam edge_logs/function_edge_logs, por isso vieram
+vazias; (2) a instrumentação foi reforçada no repo: cada tentativa agora loga
+também o STATUS HTTP e um trecho do corpo de erro da API do provedor.
+Execute na ordem. O passo 1 é read-only e pode fechar o caso sozinho.
+
+── 1 · Logs da rodada anterior (read-only, sem gasto) ───────────────────────────
+Consulte o dataset function_logs (Logs & Analytics) do projeto por linhas das
+últimas 24h contendo "[realizador]":
+  select timestamp, event_message
+    from function_logs
+   where event_message like '%[realizador]%'
+   order by timestamp desc limit 20;
+Relate as linhas LITERAIS. Se aparecerem as linhas "tentativa falhou" da rodada
+v11, elas já dizem o motivo (semChave/recusa/transitorio ou veredito FAIL) —
+relate e PARE AQUI (a próxima ação depende do motivo).
+Se vier vazio de novo, siga para o passo 2 (a versão nova loga mais detalhe).
+
+── 2 · Deploy da edge com diagnóstico reforçado ─────────────────────────────────
+2.1 `git pull origin main`; confirme no functions/realizador/index.ts a função
+    `trechoErro` e o log com "status" e "detalhe". Se ausentes, PARE.
+2.2 Deploy da realizador (verify_jwt LIGADO). Esperado: versão nova ACTIVE.
+
+── 3 · Usuário descartável (mesmo SQL da rodada anterior) ───────────────────────
+Os mesmos dois INSERTs (auth.users com tokens '' + auth.identities) e a mesma
+verificação (confirmado=true, identities=1) da 5ª continuação, com
+smoke.pipoca.2026@gmail.com / Pipoca!Smoke#2026x.
+
+── 4 · Smoke (gasta no máx. 2 tentativas de API) ────────────────────────────────
+Env: ANON_KEY = <anon key pública> · SMOKE_EMAIL/SMOKE_SENHA acima.
+`node scripts/smoke-realizador.mjs run`
+Esperado: HTTP 200, "Pietro", PASS, origem.fonte="llm" (anote provedor/modelo).
+
+── 5 · Logs (SEMPRE; aguarde ~2 minutos após o smoke antes de consultar) ────────
+A MESMA query do passo 1 (dataset function_logs). Relate as linhas LITERAIS de
+"[realizador] tentativa falhou" e "[realizador] veredito FAIL" — o campo
+status/detalhe diz exatamente o que a API do provedor respondeu.
+
+── 6 · Prova do flip (se o passo 4 deu 200) ─────────────────────────────────────
+Mesmo bearer, POST com "prompt":"x" no corpo → esperado 400 {"erro":"requisicao_invalida"}.
+
+── 7 · Limpeza (SEMPRE) ─────────────────────────────────────────────────────────
+  delete from auth.users where email = 'smoke.pipoca.2026@gmail.com';
+Confirme 0 linhas restantes.
+
+── Relatório final ──────────────────────────────────────────────────────────────
+Linhas de log literais (passo 1 e/ou 5); versão deployada; status do smoke com
+origem; resultado do 400; limpeza confirmada. Se algo divergir num passo, PARE
+nele e relate.

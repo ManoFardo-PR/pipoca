@@ -742,6 +742,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
       chamadas++;
       const r = await gerarCom(provedor, modelo, prompt, temperatura);
       if (!r.ok) {
+        // Diagnóstico nos LOGS da função (sem conteúdo/PII): por que a tentativa caiu.
+        console.warn("[realizador] tentativa falhou", JSON.stringify({
+          provedor, modelo, semChave: !!r.semChave, recusa: !!r.recusa, transitorio: !!r.transitorio,
+        }));
         if (r.recusa) continue cascata; // recusa NUNCA repete no mesmo provedor
         if (r.transitorio && !jaRetentou && chamadas < TETO_GLOBAL_TENTATIVAS) {
           jaRetentou = true; // retry curto 1×, só falha técnica transitória
@@ -751,7 +755,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
       const paragrafos = segmentarParagrafos(r.texto);
       const veredito = validar(pacote, r.texto, paragrafos);
-      if (!veredito.pass) continue cascata; // FAIL de fidelidade: 1 tentativa por provedor
+      if (!veredito.pass) {
+        console.warn("[realizador] veredito FAIL", JSON.stringify({ provedor, modelo, motivos: veredito.motivos }));
+        continue cascata; // FAIL de fidelidade: 1 tentativa por provedor
+      }
       // guardrails de SAÍDA — nada inseguro chega à criança
       if (bloqueado(r.texto)) return json({ erro: "conteudo_bloqueado" }, 422);
       await registrarUso(SUPABASE_URL, SERVICE_KEY, tenant, mes, chamadas, chamadas); // deltas (A4)

@@ -11,10 +11,11 @@
     "B-M3": "concluída (2026-09-01 · 3d1c4e2)",
     "C0": "concluída (2026-09-01 · 8807e4f)",
     "D0": "concluída (2026-09-02 · a631701)",
-    "E0": "concluída (2026-09-03 · b5faaf5)"
+    "E0": "concluída (2026-09-03 · b5faaf5)",
+    "F1": "concluída (2026-09-04 · 9ba090d)"
   },
   "verificacao": {
-    "quando": "2026-09-03T13:02:56.381Z",
+    "quando": "2026-09-04T16:51:37.554Z",
     "ok": true,
     "itens": {
       "tsc": {
@@ -34,7 +35,7 @@
       },
       "e2e:linha-verde": {
         "ok": true,
-        "passou": 103,
+        "passou": 108,
         "falhou": 0
       },
       "e2e:admin": {

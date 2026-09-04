@@ -9,6 +9,16 @@ com o harness playwright dos e2e (backend local, nada tocou produção).
 **Eixos:** `PS` pontas soltas · `DM` código morto · `UI-C/UI-A` interface (criança/adulto)
 · `ML` dossiês das melhorias do dono. Severidade: 🔴 alta · 🟡 média · 🟢 baixa.
 
+> 🏁 **Fechamento do catálogo (Plan03 · F2, 2026-09-04):** todos os achados-problema estão
+> marcados ✅ resolvidos (com data e commit, junto de cada item) ou ⏸ explicitamente
+> adiados com motivo. Adiados/pendentes do dono: **PS-04** (dc-runtime — decisão estrutural),
+> **PS-14(b)** (índice mantido de propósito) e **PS-14(d)** (proteção de senha = plano pago),
+> **PS-08/PS-11** (CI verde no GitHub e deleção de branches remotas — dependem do push/gesto
+> do dono), **ML-2** (conteúdo dos 4 cenários), **ML-4** (conferir emojis no tablet real),
+> **ML-5 item 4** (tom da casa — possibilidade futura), **UI-A11-admin/UI-C58-T4/
+> UI-A12/A33/A35/A36** (polimento, registrados em `docs/Plan03/ACHADOS-NOVOS.md`).
+> IDs sem seção: PS-16 (virou PS-14(c)) e UI-C36 (nunca existiu) — anotados no local.
+
 ---
 
 ## FASE 0 — Chão factual (resultados crus)
@@ -26,7 +36,7 @@ com o harness playwright dos e2e (backend local, nada tocou produção).
 | Edges deployadas (MCP) | `proxy-ia` v4 · `realizador` v4 · `admin-chaves-ia` v2 — todas ACTIVE, `verify_jwt: true` |
 | Contagens REAIS (SELECT, não estimativa) | `perfis` 4 · `saves` 3 · **`historias` 5** (3 completas, 2 intermediárias, 1 favorita, 2 perfis; primeira 2026-07-07, **última 2026-08-26 19:07 — hoje**) · `telemetria` 131 · `uso_ia` 2 · `tenants` 7 · `config_ia` 3 · `chaves_ia` 2 · `operadores` 1 · `contas_tenant` 0 · `conteudo` 0 · `flags_admin` 0 |
 | Advisors security (MCP) | ⚠ `registrar_uso_ia` executável por `anon` e `authenticated` via `/rest/v1/rpc` (SECURITY DEFINER) — ver **PS-03**; ⚠ leaked-password protection desligada; INFO: `chaves_ia`/`uso_ia` com RLS sem policy (deny-all **intencional**, `rls_supabase.sql:95-113`) |
-| Advisors performance (MCP) | FKs sem índice cobridor em `historias.perfil_id` e `telemetria.perfil_id` (criadas pela migração de 26/08); índice `historias_dono_perfil_idx` nunca usado; políticas permissivas múltiplas (SELECT/authenticated) em `contas_tenant`, `flags_admin`, `tenants` — ver **PS-16** |
+| Advisors performance (MCP) | FKs sem índice cobridor em `historias.perfil_id` e `telemetria.perfil_id` (criadas pela migração de 26/08); índice `historias_dono_perfil_idx` nunca usado; políticas permissivas múltiplas (SELECT/authenticated) em `contas_tenant`, `flags_admin`, `tenants` — ver **PS-16** *(nota F2: não existe seção PS-16 — o achado virou o item (c) do PS-14, resolvido no A3/A5)* |
 | ACL real da RPC (SELECT em `pg_proc`) | `registrar_uso_ia`: `{postgres, anon=X, authenticated=X, service_role=X}` — o `revoke ... from public` da migração **não** removeu os grants default do Supabase a `anon`/`authenticated` |
 | Fonte deployado do `realizador` (MCP) | Compatível com `functions/realizador/index.ts` nos marcadores-chave (modelos default, âncoras, teto 4, contrato de resposta); **usa read-then-write via PostgREST — não chama a RPC** (o wire pendente vale para o deploy) |
 
@@ -88,6 +98,13 @@ espelha o deployado). *Fix conceitual: `revoke execute ... from anon, authentica
 migrar as edges para a RPC (o wire que já era o plano).*
 
 ### 🔴 PS-04 · dc-runtime sem código-fonte (o maior débito estrutural)
+
+> ⏸ **ADIADO — decisão do dono (registrado no fechamento F2, 2026-09-04):** nenhuma das 3
+> opções foi escolhida ainda; o arquivo segue estável e nenhum passo do Plan03 dependia dele.
+> Motivo do adiamento: risco (não urgência) estrutural, sem caminho barato — a decisão
+> (recuperar fonte / vendored-freeze documentado / êxodo gradual) fica para o dono, fora
+> do Plan03.
+
 `support.js` (56 KB, `index.html:11`/`admin.html:11`) declara-se gerado
 (`support.js:1`: "GENERATED from dc-runtime/src/*.ts — do not edit"), mas
 `dc-runtime/src/` **não existe**; `dc-runtime/build.js:8-13` é um stub que só valida a
@@ -213,12 +230,23 @@ duplicação src↔edge (ver DM-D). Relacionado: `.env.example:9,14` só documen
 nas 3 edges e não estão documentadas.
 
 ### 🟢 PS-13 · Assets órfãos publicamente servíveis
+
+> ✅ **Resolvido:** os 2 PNGs órfãos saíram no D4 `35b3489` (faxina DM-A) e a allowlist de
+> assets do admin foi revisada no B10 `1876668`; os `Pasted-*.txt` remanescentes foram
+> arquivados em docs no E6 `9f9f0e4`. Em `attached_assets/` restam só imagens vivas
+> (og-pipoca + anexos do Replit).
+
 A allowlist do `server.js:62` libera `attached_assets/` para qualquer imagem; os 2 PNGs
 órfãos (`image_1783432997224.png` + `image_1783433051494.png`, 81 KB, zero referências)
 ficam servíveis em produção. Inofensivo, mas é superfície desnecessária.
 (`og-pipoca.png` é VIVO — `landing.html:20-29`.)
 
 ### 🟢 PS-15 · Miudezas confirmadas
+
+> ✅ **Resolvido no que era problema:** rota amigável `/admin` criada no B10 `1876668`;
+> `post-merge.sh` atualizado no D6 (`npm ci || npm install`). O resto do bloco é
+> informativo (contas_tenant/conteudo=0 é coerente com o MVP; zero TODOs reais).
+
 Admin sem rota amigável (`/admin.html` cru; `server.js:82-85` só mapeia `/`→landing e
 `/app`→index). `contas_tenant`=0 e `conteudo`=0 em produção (vínculo conta-tenant e
 publicação de conteúdo existem no código, nunca usados — coerente com fase MVP).
@@ -236,7 +264,9 @@ Replit (`.replit:41-43`), mas o conteúdo (`npm install --legacy-peer-deps`) é 
 > ✅ **Parte UI resolvida em 2026-09-01 (Plan03 · C1/C2/C3, commits `582a06a`/`0d799da`/`9bb3d6d`; bundle no fechamento C12, `d25a10c`):**
 > estante digna na T3 (só completas, título inteiro, grupos por dia, coração-irmão ≥48px, empilhada no celular);
 > `apenasCompletas`/`agruparPorDia` no núcleo; releitura via `LeitorHistoria` como dialog acessível (Esc, foco de volta).
-> A parte de SYNC do espelho (write-only no dia a dia, D-06/D-07) fica para a Onda D (D1/D2).
+> A parte de SYNC do espelho (write-only no dia a dia, D-06/D-07) fica para a Onda D (D1/D2)
+> — ✅ e a Onda D a fez: leitura híbrida + mescla D-07 no D1 `3655179`, retry/fila no D2
+> `7d15658` (ver o ✅ do PS-06). ML-1 COMPLETO.
 
 **Intenção (reformulada):** dar às histórias terminadas um lugar visível e confiável —
 salvar de verdade, achar fácil, reler com prazer.
@@ -544,6 +574,12 @@ dos hex REAIS dos arquivos (que divergem dos tokens nominais).
 ### UI-C · Telas da criança (T1-T7 + overlays)
 
 **Estruturais (contaminam tudo):**
+
+> ✅ **UI-C01/C02/C03 resolvidos em 2026-08-29 (Plan03 · B1 `da4017c` + B2 `ff38b29`):** tokens
+> escutam as CLASSES do Shell (mecanismo único, `--pip-mov` real), `.pip-contrast` por superfície
+> (CTAs seguem brancos — a sonda a11y prova), `--pip-dur-curto` saneado. Provas: `sondar-a11y.mjs`
+> (B1: `--pip-mov`=1/0 pelo token; contraste liga sem destruir CTA) verde até hoje (47/47).
+
 - 🔴 **UI-C01 · Os tokens de acessibilidade são mecanismo morto**: `tokens.css:85,102`
   escuta `[data-reduce-motion]`/`[data-contrast]` (atributos), mas o Shell aplica
   **classes** (`Shell.dc.html:98-100`: `pip-dyslexia|pip-contrast|pip-reduce-motion`) —
@@ -562,6 +598,12 @@ dos hex REAIS dos arquivos (que divergem dos tokens nominais).
   silêncio.
 
 **Contraste (WCAG, hex reais):**
+
+> ✅ **UI-C21/C22/C25/C26/C28/C29/C30 resolvidos em 2026-08-29/30 (Plan03 · B2 `ff38b29` — paleta
+> com contraste WCAG por token; casos de tela fechados em B7 `5f77300` (ordinais/selo da T4) e
+> B9 `ea396ff` (T7)):** provas de contraste regeneradas em docs/auditorias/screenshots/ e a sonda
+> a11y verifica CTA branco/token de tinta a cada rodada.
+
 - 🔴 **UI-C21 · Todo botão primário do app falha**: branco sobre gradiente
   `#e8965a→#d5713f` = **2,35 a 3,35:1** (reprovado para os rótulos de 14-17px usados) —
   `Tela3:54`, `Tela5:81,96`, `Tela6:63`, `Tela7:245,255`, `PainelA11y:63`. Um ajuste de
@@ -575,6 +617,12 @@ dos hex REAIS dos arquivos (que divergem dos tokens nominais).
 - Passam bem: tinta/creme **11,5:1**, tinta/areia 10,6:1, branco/heeler 5,3:1.
 
 **Alvos de toque (sondados; mínimo criança ≥48px, ideal 5-8 anos ≥75px):**
+
+> ✅ **UI-C12/C13/C15/C16/C17 resolvidos em 2026-08-29/30 (Plan03 · B4 `555fd5f` toggles/✕ do
+> PainelA11y; B6 `9eea1eb` ←/⚙ dos cabeçalhos; B7 `5f77300` ◀ ✕ ▶ da T4; piso 44px das telas do
+> cuidador no C12 `d25a10c`):** sondas dos e2e conferem ≥48px nas telas da criança a cada rodada
+> (B4/B5/B7 asserts). Admin ainda <44px — registrado em ACHADOS-NOVOS.md (nota do UI-A11).
+
 | Achado | Elemento | Medido |
 |---|---|---|
 | 🔴 UI-C12 | T4 controles de reordenar ◀ ✕ ▶ (`Tela4:256`) — a mecânica-coração | **26×26** |
@@ -586,10 +634,11 @@ os de **navegação/saída/ajuste/edição** estão todos abaixo de 44px — a c
 mas não volta, não corrige, não se ajusta.
 
 **Fluxo e becos:**
-- 🔴 **UI-C34 · T3 sem volta e sem pote** (ver ML-3).
+- 🔴 **UI-C34 · T3 sem volta e sem pote** (ver ML-3). ✅ resolvido no B5 `f60d04d` (=ML-3).
 - 🔴 **UI-C35 · T6 é a única tela sem NENHUMA saída lateral nem ⚙** — no momento de
   maior carga emocional, quem precisa de ajuste de fonte/movimento não tem como
-  (`Tela6Recompensa.dc.html:22-67`; PainelA11y abre só de T3/T4/T5/T7).
+  (`Tela6Recompensa.dc.html:22-67`; PainelA11y abre só de T3/T4/T5/T7). ✅ resolvido no
+  B5 `f60d04d`: ⚙ "Do meu jeito" ≥48px na T2 e na T6 (e2e B5 confere).
 - 🔴 **UI-C04 · Cartões "Em breve" são armadilhas mudas**: `<button>` sem `disabled`,
   `pick: () => {}` (`Tela3:62,255-258`) — 4 dos 5 alvos grandes da tela principal não
   fazem nada, sem som, sem sacudida, sem mensagem. ✅ resolvido em 2026-09-04 (E5,
@@ -597,20 +646,28 @@ mas não volta, não corrige, não se ajusta.
   distinta p/ "disponível mas não liberado") com sacudida leve respeitando `--pip-mov`;
   a affordance do hero unificou na pílula-botão ≥48px (UI-C05).
 - 🟡 **UI-C39 · Cinco toques engolidos em silêncio** (`Tela3:258`, `Tela4:305,344,398`,
-  `Tela7:243`) — para a faixa etária, silêncio é o pior feedback possível.
+  `Tela7:243`) — para a faixa etária, silêncio é o pior feedback possível. ✅ resolvido:
+  T4 avisa em `role=status` com fala (B7 `5f77300`; e2e "4º toque avisa"), T7 no B9
+  `ea396ff`, T3 no E5 `04e1c34` (sacudida + aviso).
 - 🟡 **UI-C37 · Voltar da T5 descarta a composição sem aviso** (`Tela5:355-361` +
-  `Tela4:136-141`), com o ← exatamente onde a criança toca por reflexo.
+  `Tela4:136-141`), com o ← exatamente onde a criança toca por reflexo. ✅ resolvido no
+  B7 `5f77300`: voltar PRESERVA o arranjo (rascunhoT4; e2e "voltar sem perdas").
 - 🟡 **UI-C06 · T4 pode exibir instrução impossível** ("Escolha 3 coisas" com banco de
   1 chip e CTA travado, `Tela4:266,298-311`). ⚠ *Incerteza honesta: o screenshot que
   revelou isso usou estado semeado por seam; confirmar no fluxo real (a R1 real nasce
   com banco 4). O risco genuíno é o par com UI-C37 (voltar da T5 e re-entrar).* 
+  ✅ verificado e fechado no B7 `5f77300`: a instrução nunca pede mais do que há
+  (e2e: "R1 real nasce com banco 4 e pede 3") e o par C37 foi tratado.
 - 🟡 **UI-C08 · Barra "como dividir" da T7 quebrada por bug de string**:
   `Tela7:265` devolve `"67%"` e `:65` interpola `width:{{ spendPct }}%` → `width:67%%`
   (CSS inválido, largura 0) — a única lição de educação financeira aparece 100% azul,
   contradizendo os números ao lado. 🟡 **UI-C09**: "~2 / ~1" lê como **−2/−1** em Baloo
-  2 (aproximação é conceito acima da faixa).
+  2 (aproximação é conceito acima da faixa). ✅ C08/C09 resolvidos no B9 `ea396ff`
+  (barra de duas fatias; números sem "~").
 - 🟢 **UI-C40**: resgatar recompensa não celebra nada. 🟢 **UI-C10**: 4 gramáticas de
   cabeçalho em 6 telas. 🟢 **UI-C11**: 3 linguagens diferentes de "carregando".
+  ✅ C40 no B9 `ea396ff` (resgate celebrado); C10/C11 no B6 `9eea1eb` (BarraCrianca
+  única em T3-T7; "Carregando" único).
 
 **Texto e tom:**
 - ✅ A escrita é o diferencial do produto — preservar literalmente: "Essa palavra é
@@ -623,9 +680,18 @@ mas não volta, não corrige, não se ajusta.
   fixo para perfil feminino), "guardar p/ o sonho" (abreviação ilegível para leitor
   iniciante, `Tela7:70`). 🟢 **UI-C42**: a instrução mais longa/pequena/apagada do app
   está na tela que mais precisa ser entendida (T4), sem botão de áudio (o TTS existe e
-  só a T5 usa).
+  só a T5 usa). ✅ C41 resolvido no B6 `9eea1eb` (copy da faixa + concordância com
+  `perfil.genero`) e B7/B9 (copy da T4/T7); C42 no B7 `5f77300` — botão 🔊 "Ouvir a
+  instrução" ≥48px com TTS na T4 (`Tela4Heroi:43`).
 
 **Leitor de tela e teclado (narrativa real conferida):**
+
+> ✅ **UI-C43/C44/C45/C46/C47 resolvidos em 2026-08-29/30 (Plan03 · B3 `32eb50e` foco visível
+> global; B4 `555fd5f` PainelA11y como dialog com switches/trap/Esc; B8 `29d170b` T5 por teclado
+> e leitor + T6 anuncia a celebração; C2 `0d799da` leitor de história como dialog; C5 `88979ce`
+> avatares com nome/role):** a sonda a11y cobre foco (anel ≥3px), dialog (título focado, trap,
+> Esc, devolução do foco) e switches (role/aria-checked) a cada rodada — 47/47 verde.
+
 - 🔴 **UI-C43 · As duas mecânicas centrais são inacessíveis**: palavras da T5 são
   `<span onClick>` sem role/tabindex (`Tela5:59`); T4 inteira com **0 aria** — a ordem
   da cena nunca é anunciada, ◀ ✕ ▶ anunciam só "botão".
@@ -648,12 +714,16 @@ mas não volta, não corrige, não se ajusta.
 `.pip-chip:hover{transform:translateY(-3px)}` (`Tela4:16`) não é coberto pelo blanket —
 com "reduzir movimento" LIGADO o chip continua saltando, só que instantâneo (pior);
 🟢 UI-C52: `backdrop-filter: blur()` em 8 superfícies sem desligamento.
+✅ **C49/C50/C51/C52 resolvidos no B3 `32eb50e`** (movimento pelo token `--pip-mov`/
+`--pip-dur-*`; `.pip-reduce-motion * { backdrop-filter:none }` em tokens.css:184) —
+e2e B3: `getAnimations()` = 0 em T4/T5/T7 com reduzir-movimento.
 
 **Responsividade (zero media queries no repo):**
 - 🔴 **UI-C53 · T2 no celular é bloqueio duro**: título decapitado, marca sobrepondo,
   "⚙ Sou o cuidador" fora da tela — container `overflow:hidden` sem scroll
   (`Tela2:15,20` + `Shell:16`); com 3+ perfis num celular, o adulto não alcança os
-  ajustes.
+  ajustes. ✅ resolvido no B6 `9eea1eb` (T2 rola no celular; screenshots "depois"
+  do B-M1/B-M2).
 - 🔴 **UI-C54 · T3 no celular**: grade 2×2 fixa espreme cartões a ~90px, textos
   quebrados em 3-5 linhas, pílula colidindo com texto (`Tela3:43,46,60` — flex/grid sem
   wrap). ✅ resolvido em 2026-09-04 (E5, `04e1c34`): @media ≤700px empilha o hero com o
@@ -663,12 +733,17 @@ com "reduzir movimento" LIGADO o chip continua saltando, só que instantâneo (p
   2026-09-01 (C2, `0d799da`): estante agrupada por dia, empilhada no retrato (sem carrossel cortado).
   🟢 UI-C57/C58: T5 é a que melhor sobrevive (graças ao `clamp()` de `Tela5:387-389` —
   única resposta responsiva genuinamente boa); T4/T7 sem plano para retrato.
+  ✅ C58 PARCIAL: T7 empilha no retrato (`@media ≤700px` em Tela7:23-27); a T4 segue
+  sem media query própria — registrado em ACHADOS-NOVOS.md (polimento futuro).
+  C57 é elogio, não achado.
 
 **Top 8 oportunidades da criança (impacto × custo):**
 1. Corrigir contraste dos CTAs (um ajuste de cor conserta o app; UI-C21) — altíssimo/muito baixo.
 2. Desfazer `.pip-contrast *` + unificar classe↔atributo dos tokens (UI-C01/02/03/49) — altíssimo/muito baixo.
 3. Saídas: trocar-leitor e pote na T3; ⚙ na T2/T6 (UI-C34/35, =ML-3) — altíssimo/baixo.
 4. Resolver o beco da T4 + nunca travar CTA sem caminho (UI-C06/36/39) — altíssimo/baixo-médio.
+   *(Nota F2: "UI-C36" só existe nesta linha — nunca ganhou seção própria; o conteúdo é o
+   próprio C06/C39, ambos fechados no B7/B9.)*
 5. Alvos de navegação/edição ≥48px (min-height/padding, não redesenho; UI-C12-C20) — alto/baixo.
 6. Foco visível global + semântica nas 2 mecânicas + dialogs (UI-C43-C46) — alto/médio.
 7. Media queries para retrato: scroll na T2, wrap na T3 (UI-C53-C55) — alto/médio.
@@ -752,6 +827,12 @@ com "reduzir movimento" LIGADO o chip continua saltando, só que instantâneo (p
   com cuidado em `role="status"`, `autocomplete` correto, deep-link da landing.
 
 **Admin (SA):**
+
+> ✅ **UI-A13/A14/A15/A16/A17/A18/A19 resolvidos em 2026-08-30 (Plan03 · B10 `1876668` — barra
+> sem overlap, rota `/admin`, allowlist de assets; B11 `240fab7` — controles que se explicam,
+> tabs de navegação, vocabulário de produto, erros desenhados):** mergeados no B-M3 `77746aa`
+> com screenshots "depois". Alvos <44 do admin seguem registrados em ACHADOS-NOVOS (UI-A11).
+
 - 🔴 **UI-A13 · A barra fixa cobre o topo de 6 das 7 telas** (eyebrow cortado; em SA_HOME
   até o "Sair"): `AdminShell.dc.html:29` põe `padding-top:52px` mas os filhos usam
   `position:absolute;inset:0` — o padding não empurra nada. Correção de 1 linha.
@@ -766,6 +847,16 @@ com "reduzir movimento" LIGADO o chip continua saltando, só que instantâneo (p
   atenuado do CartaoArea, honestidade de SA7 ("nada aqui finge salvar").
 
 **Sistema de design e a11y adulta:**
+
+> ✅ **UI-A34/A37/A38/A39/A40/A42 resolvidos (Plan03 · B3 `32eb50e` — admin carrega tokens.css,
+> classes de a11y e foco visível; respeita prefers-*; B1/B2 — `.pip-contrast` por superfície
+> preserva selecionados adultos; C11 `8f5a3d0` — ARIA em T11/T8, radiogroup na seleção,
+> anúncio de tela; C8 `8175280` — chips com semântica).** UI-A12/A33/A35/A36 (tokenização
+> COMPLETA das telas adultas, terceira terracota e landing autocontida): parcial — os tokens
+> foram corrigidos no B2 e o admin entrou no sistema, mas hex crus remanescentes e a landing
+> por cópia manual ficam ADIADOS como polimento (sem risco funcional; registrado em
+> ACHADOS-NOVOS.md).
+
 - 🔴 **UI-A34 · O admin não carrega o sistema**: importa `tokens.css` e usa `var(--pip-`
   ZERO vezes (paleta paralela inteira não-tokenizada); `admin.html` não tem as classes
   transversais de a11y — o operador não tem alto contraste nem redução de movimento.
@@ -876,5 +967,6 @@ na T6, semântica de seleção) · PS-04 (destino do dc-runtime).
 
 ---
 
-*Gerado pela varredura de 2026-08-26 (findings-only). Nenhum código foi alterado; este
-documento não foi commitado — decisão do dono.*
+*Gerado pela varredura de 2026-08-26 (findings-only; nenhum código foi alterado na geração).
+Desde então o documento virou o CATÁLOGO do Plan03: as marcas ✅/⏸ junto de cada achado
+registram a execução das ondas A–E (fechado no F2, 2026-09-04).*

@@ -1,0 +1,64 @@
+CONTINUAÇÃO (5ª) da etapa C do pós-plan. O 502 realizacao_esgotada com chamadas:2
+tem uma hipótese principal: chave de provedor AUSENTE nos secrets conta como
+tentativa sem custo — 2 provedores sem chave = exatamente este quadro. A edge foi
+instrumentada no repo para logar o motivo de cada tentativa. Execute na ordem;
+os passos 1–2 são read-only e podem encerrar o assunto sem gastar nada.
+
+── 1 · Diagnóstico read-only: secrets e config ──────────────────────────────────
+1.1 Liste os NOMES dos secrets das edge functions (NUNCA os valores). Relate
+    quais destes existem: ANTHROPIC_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY,
+    DEEPSEEK_API_KEY.
+1.2 Leia (select) as linhas de config_ia com tenant_id in ('plataforma',
+    'plataforma:global') e relate os campos dados->>'provedor',
+    dados->>'fallback', dados->>'modelo' e dados->'modeloPadrao'.
+1.3 CRUZE: os provedores de 1.2 (provedor efetivo + fallback) têm chave em 1.1?
+    · Se ALGUM deles NÃO tem chave → hipótese confirmada. PARE AQUI e relate:
+      a decisão de adicionar a chave (ou trocar o provedor na config) é do dono.
+    · Se TODOS têm chave → a causa é outra (erro da API ou validador); siga
+      para o passo 2, que vai revelá-la nos logs.
+
+── 2 · Deploy da edge instrumentada ─────────────────────────────────────────────
+2.1 `git pull origin main`; confirme no functions/realizador/index.ts a linha
+    "[realizador] tentativa falhou". Se ausente, PARE (o pull não trouxe).
+2.2 Deploy da realizador (verify_jwt LIGADO). Esperado: versão nova ACTIVE.
+
+── 3 · Usuário descartável (SQL, já com os tokens não-nulos) ────────────────────
+  insert into auth.users
+    (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+     raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+     confirmation_token, recovery_token, email_change, email_change_token_new,
+     email_change_token_current, phone_change, phone_change_token, reauthentication_token)
+  values
+    ('00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated',
+     'authenticated', 'smoke.pipoca.2026@gmail.com',
+     crypt('Pipoca!Smoke#2026x', gen_salt('bf')), now(),
+     '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb, now(), now(),
+     '', '', '', '', '', '', '', '');
+  insert into auth.identities
+    (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+  select id::text, id,
+         jsonb_build_object('sub', id::text, 'email', email, 'email_verified', true),
+         'email', now(), now(), now()
+    from auth.users where email = 'smoke.pipoca.2026@gmail.com';
+
+── 4 · Smoke (gasta chamadas pagas SE houver chave) ─────────────────────────────
+Env: ANON_KEY = <anon key pública> · SMOKE_EMAIL = smoke.pipoca.2026@gmail.com
+     SMOKE_SENHA = Pipoca!Smoke#2026x
+`node scripts/smoke-realizador.mjs run`
+Esperado: HTTP 200, "Pietro", PASS, origem.fonte="llm" (anote provedor/modelo).
+
+── 5 · Logs da função (SEMPRE, mesmo com 200) ───────────────────────────────────
+Busque os logs recentes da realizador e relate as linhas
+"[realizador] tentativa falhou" / "[realizador] veredito FAIL" (literais).
+
+── 6 · Prova do flip (se o passo 4 deu 200) ─────────────────────────────────────
+Mesmo bearer, POST com "prompt":"x" no corpo → esperado 400 {"erro":"requisicao_invalida"}.
+
+── 7 · Limpeza (SEMPRE) ─────────────────────────────────────────────────────────
+  delete from auth.users where email = 'smoke.pipoca.2026@gmail.com';
+Confirme 0 linhas restantes.
+
+── Relatório final ──────────────────────────────────────────────────────────────
+Secrets presentes (nomes) × provedores da config; versão deployada; status do
+smoke com origem; linhas de log literais; resultado do 400; limpeza confirmada.
+Se algo divergir do previsto num passo, PARE nele e relate.

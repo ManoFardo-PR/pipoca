@@ -434,13 +434,16 @@ try {
   );
   const t3Padrao = await page.evaluate(() => (document.body.innerText.match(/Em breve/g) || []).length);
   await page.evaluate(() => { window.PipocaApp.setState({ cenariosLiberados: ["quintal_anoitecer", "quarto"] }); });
-  await page.waitForFunction(() => /Novo!/.test(document.body.innerText), { timeout: 4000 });
+  await page.waitForTimeout(250);
   const t3Liberado = await page.evaluate(() => ({
     emBreve: (document.body.innerText.match(/Em breve/g) || []).length,
+    novo: /Novo!/.test(document.body.innerText),
     quintal: /Favorito de hoje/i.test(document.body.innerText),
   }));
   assert(t3Padrao === 4, "T3 padrão: 4 cenários da grade em 'Em breve' (só o quintal liberado)");
-  assert(t3Liberado.emBreve === 3 && t3Liberado.quintal, "T3 obedece cenariosLiberados (quarto liberado vira 'Novo!'; quintal segue em destaque)");
+  // E4: jogável exige manifesto disponivel:true E liberação — liberar um lugar
+  // SEM conteúdo (quarto) segue "Em breve" honesto (o 'Novo!' do fixture prova o E).
+  assert(t3Liberado.emBreve === 4 && !t3Liberado.novo && t3Liberado.quintal, "E4: liberar lugar sem conteúdo no manifesto segue 'Em breve' (honesto); quintal em destaque");
   await page.evaluate(() => { window.PipocaApp.setState({ cenariosLiberados: null, cardapio: null }); });
 
   // ── UX por perfil (etapa 4) · prefs por chip: gravar no perfil NÃO-ativo vai
@@ -487,8 +490,7 @@ try {
   assert(c8Chips.tem && c8Chips.radios >= 2 && c8Chips.marcados === 1, "C8: chips com rótulo de escopo ('Editando para:') e radiogroup/radio (1 marcado)");
 
   // ── C7 · "Lugares das histórias": quintal sempre aberto, "em breve" travados,
-  // gesto travado inerte, e a liberação por criança reflete no switch (e na T3,
-  // já provado acima com cenariosLiberados=['quintal_anoitecer','quarto']).
+  // gesto travado inerte, e a liberação por criança reflete no switch.
   await page.waitForFunction(() => /Lugares das histórias/i.test(document.body.innerText), { timeout: 4000 });
   const c7Regras = await page.evaluate(() => {
     const sws = Array.from(document.querySelectorAll('[aria-label^="Liberar "], [aria-label="O Quintal fica sempre aberto"]'));
@@ -856,6 +858,62 @@ try {
   });
   assert(d3.migrou && d3.envelope, "D3: migração one-shot leva o perfil legado à chave canônica (com envelope)");
   assert(d3.legadaSumiu, "D3: a chave legada é APAGADA após a migração (decisão do dono)");
+
+  // ── Plan03 · E4 (ML-2) · manifesto de cenários: um cenário de FIXTURE aparece
+  // na galeria só por manifesto (disponivel:true) + liberação, e escolher carrega
+  // o grafo dele antes de compor. Página própria: a rota injeta o manifesto.
+  console.log("\n=== Plan03 · E4 · galeria pelo manifesto (fixture quintal_espelho) ===");
+  const pagE4 = await browser.newPage();
+  await pagE4.addInitScript(() => { window.PIPOCA_CONFIG = { provedor: "local" }; });
+  await pagE4.route("**/docs/cenarios.index.json", async (rota) => {
+    const real = await (await rota.fetch()).json();
+    real.cenarios.push({
+      id: "quintal_espelho", nome: "Quintal Espelho", descricao: "Fixture do E4",
+      grafo: "./docs/quintal.v3.json", relacoes: "./docs/fichas/relacoes.quintal.v1.json",
+      svg: "quintal", disponivel: true,
+    });
+    await rota.fulfill({ json: real });
+  });
+  await pagE4.goto(BASE + "/app", { waitUntil: "domcontentloaded" });
+  await pagE4.waitForFunction(
+    () => !!window.PipocaApp && !!window.PipocaApp.cenarioV2 && !!window.PipocaApp.cenariosDisponiveis,
+    { timeout: 15000 }
+  );
+  const e4Manifesto = await pagE4.evaluate(() => {
+    const lista = window.PipocaApp.cenariosDisponiveis() || [];
+    return { total: lista.length, temEspelho: lista.some((c) => c.id === "quintal_espelho") };
+  });
+  assert(e4Manifesto.temEspelho, "E4: o app descobre o cenário do fixture pelo manifesto (cenariosDisponiveis)");
+  // No manifesto mas SEM liberação → "Em breve" (o E do critério).
+  await pagE4.evaluate(() => {
+    window.PipocaApp.setState({
+      perfil: { id: "e4", nome: "Eva", idade: 7, nivel: "n3", avatarId: "pingo" },
+      tela: 3, cenariosLiberados: null,
+    });
+  });
+  await pagE4.waitForFunction(() => /Quintal Espelho/.test(document.body.innerText), { timeout: 4000 });
+  const e4SemLiberar = await pagE4.evaluate(() => /Novo!/.test(document.body.innerText));
+  assert(!e4SemLiberar, "E4: fixture no manifesto mas NÃO liberado segue 'Em breve' (manifesto E liberação)");
+  // Manifesto + liberação → "Novo!" e a escolha carrega o grafo DELE antes de compor.
+  await pagE4.evaluate(() => {
+    window.PipocaApp.setState({ cenariosLiberados: ["quintal_anoitecer", "quintal_espelho"] });
+  });
+  await pagE4.waitForFunction(() => /Novo!/.test(document.body.innerText), { timeout: 4000 });
+  assert(true, "E4: fixture com manifesto + liberação vira 'Novo!' na galeria");
+  // O 5º card estoura a grade 2×2 (clipado) — clique via DOM: mesmo handler.
+  await pagE4.evaluate(() => {
+    const btn = Array.from(document.querySelectorAll("button")).find((b) => /Quintal Espelho/.test(b.textContent));
+    if (btn) btn.click();
+  });
+  await pagE4.waitForFunction(() => window.PipocaApp.estado.tela === 4, { timeout: 4000 });
+  const e4Escolha = await pagE4.evaluate(() => ({
+    ativo: window.PipocaApp.cenarioAtivoId,
+    historia: window.PipocaApp.estado.historia && window.PipocaApp.estado.historia.cenarioId,
+    banco: window.PipocaApp.estado.comp && window.PipocaApp.estado.comp.banco.length,
+  }));
+  assert(e4Escolha.ativo === "quintal_espelho" && e4Escolha.historia === "quintal_espelho", "E4: escolher pelo id canônico carrega e ATIVA o cenário do fixture (cenarioAtivoId)");
+  assert(e4Escolha.banco === 4, "E4: a composição nasce do grafo carregado do fixture (R1 com 4 no banco)");
+  await pagE4.close();
 
   assert(erros.length === 0, `sem erros de página ao navegar (erros: ${erros.length ? erros.join(" | ") : "nenhum"})`);
 

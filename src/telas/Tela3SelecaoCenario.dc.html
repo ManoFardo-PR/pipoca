@@ -1,8 +1,9 @@
 <!-- Tela3SelecaoCenario.dc.html — Galeria de cenários (T3)
      ────────────────────────────────────────────────────────
-     Exibe o cenário em destaque (Quintal) + grade de 4 outros.
-     Escolher Quintal → HistoriaState.cenarioId = "quintal_anoitecer" → T4.
-     Outros cenários marcados "Em breve", pick desabilitado.
+     Exibe o cenário em destaque (Quintal) + grade dos demais, alimentada pelo
+     MANIFESTO docs/cenarios.index.json (E4) — id canônico único em galeria,
+     liberação e motor. Escolher → App.carregarCenario(id) → composição → T4.
+     Sem conteúdo (disponivel:false) ou sem liberação → "Em breve", pick inerte.
      Header: avatar + nome + vagalumes + ⚙.
 -->
 <x-dc>
@@ -170,15 +171,21 @@ class Component extends DCLogic {
   escolherCenario(cenarioId) {
     const App = window.PipocaApp;
     if (!cenarioId || !App) return;
-    // v2 · inicia a composição autoral no Quintal (rodada 1).
-    App.iniciarComposicao();
-    App.setState({
-      historia: { cenarioId, objetos: [], aberta: true },
-      rascunhoT4: null, // B7: história nova = rascunho da T4 zerado
-      tela: 4,
-    });
-    const R = window.PipocaRoteador;
-    if (R) R.irParaTela(4);
+    // E4: garante o cenário CARREGADO (grafo + fichas, com cache) antes de
+    // compor — o id canônico é o mesmo da galeria/liberação/motor.
+    const prosseguir = () => {
+      App.iniciarComposicao();
+      App.setState({
+        historia: { cenarioId, objetos: [], aberta: true },
+        rascunhoT4: null, // B7: história nova = rascunho da T4 zerado
+        tela: 4,
+      });
+      const R = window.PipocaRoteador;
+      if (R) R.irParaTela(4);
+    };
+    if (App.carregarCenario) {
+      App.carregarCenario(cenarioId).then((ok) => { if (ok) prosseguir(); }).catch(() => {});
+    } else prosseguir(); // guarda p/ estado.js antigo
   }
 
   abrirAjustesA11y() {
@@ -219,7 +226,7 @@ class Component extends DCLogic {
     if (perfil && this._childAvatarEl) {
       this._inject(this._childAvatarEl, this._avatarHTML(this._defAvatar(perfil.avatarId), 42));
     }
-    const keys = ['quarto','floresta','espaco','fundomar'];
+    const keys = this._gridSvgKeys || ['quarto','floresta','espaco','fundomar'];
     keys.forEach(k => {
       const el = this['_scene_' + k];
       if (el) this._inject(el, this._scene(k));
@@ -253,26 +260,31 @@ class Component extends DCLogic {
     const liberados = (Canon && Canon.cardapio)
       ? Canon.cardapio.normalizarCenariosLiberados(estado.cenariosLiberados)
       : ['quintal_anoitecer'];
-    const gridDados = [
-      { key:'quarto',   name:'O Quarto',   desc:'Histórias antes de dormir' },
-      { key:'floresta', name:'A Floresta',  desc:'Aventura entre árvores' },
-      { key:'espaco',   name:'O Espaço',   desc:'Entre estrelas e planetas' },
-      { key:'fundomar', name:'Fundo do Mar',desc:'Com peixes e corais' },
-    ];
-    // C7: a lista liberada guarda IDS CANÔNICOS ('quintal_anoitecer'; os demais
-    // provisórios = a própria chave até E5 unificar chave↔id). O mapa é a costura
-    // única que E5 troca quando os ids reais nascerem.
-    const ID_POR_KEY = { quarto: 'quarto', floresta: 'floresta', espaco: 'espaco', fundomar: 'fundomar' };
+    // E4 (ML-2): a grade nasce do MANIFESTO (docs/cenarios.index.json) — o id
+    // CANÔNICO é o vocabulário único de galeria, liberação e motor (o mapa
+    // provisório do C7 saiu). Jogável = tem conteúdo no manifesto (disponivel)
+    // E o cuidador liberou; senão "Em breve" honesto. Sem manifesto ainda
+    // (boot/estado antigo), a lista conhecida de sempre.
+    const manifesto = (App && App.cenariosDisponiveis && App.cenariosDisponiveis()) || null;
+    const gridDados = manifesto
+      ? manifesto.filter((c) => c && c.id !== 'quintal_anoitecer')
+      : [
+          { id:'quarto',   svg:'quarto',   nome:'O Quarto',     descricao:'Histórias antes de dormir', disponivel:false },
+          { id:'floresta', svg:'floresta', nome:'A Floresta',   descricao:'Aventura entre árvores', disponivel:false },
+          { id:'espaco',   svg:'espaco',   nome:'O Espaço',     descricao:'Entre estrelas e planetas', disponivel:false },
+          { id:'fundomar', svg:'fundomar', nome:'Fundo do Mar', descricao:'Com peixes e corais', disponivel:false },
+        ];
+    this._gridSvgKeys = gridDados.map((d) => d.svg);
     const gridCenas = gridDados.map(d => {
-      const disponivel = liberados.indexOf(ID_POR_KEY[d.key] || d.key) >= 0;
+      const jogavel = d.disponivel === true && liberados.indexOf(d.id) >= 0;
       return {
-        name: d.name,
-        desc: d.desc,
-        badge: disponivel ? 'Novo!' : 'Em breve',
-        cursor: disponivel ? 'pointer' : 'not-allowed',
-        opacidade: disponivel ? '1' : '.72',
-        sceneRef: (el) => { this['_scene_' + d.key] = el; this._inject(el, this._scene(d.key)); },
-        pick: disponivel ? (() => this.escolherCenario(d.key)) : (() => {}),
+        name: d.nome,
+        desc: d.descricao,
+        badge: jogavel ? 'Novo!' : 'Em breve',
+        cursor: jogavel ? 'pointer' : 'not-allowed',
+        opacidade: jogavel ? '1' : '.72',
+        sceneRef: (el) => { this['_scene_' + d.svg] = el; this._inject(el, this._scene(d.svg)); },
+        pick: jogavel ? (() => this.escolherCenario(d.id)) : (() => {}),
       };
     });
 

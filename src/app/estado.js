@@ -9,7 +9,7 @@
  *   window.PipocaCanonico), sem reimplementar regra de narrativa/acesso.
  * ENTRA: interações das telas (setState/patch, selecionarPerfil, PIN, login);
  *   leituras de window.PipocaCanonico e window.PipocaRoteador; fetch de
- *   docs/quintal.v3.json (grafo v3) e docs/fichas/*.v1.json (fichas); localStorage
+ *   docs/cenarios.index.json (manifesto E4) → grafo v3 + fichas do cenário; localStorage
  *   (perfis da chave legada pipoca.perfis.v1).
  * SAI: window.PipocaApp (getters estado/cenarioV2/fichasProntas; setState,
  *   subscribe, repo, selecionarPerfil, verificarPinCuidador, abrirPortao,
@@ -789,17 +789,103 @@
   // ─── Motor/validador CANÔNICOS (src/) via window.PipocaCanonico ────────────
 
   // ─── COMPOSIÇÃO AUTORAL A+ (linha verde) via PipocaCanonico.composicao ──────
-  // O grafo ativo é o v3 (docs/quintal.v3.json, esquema pipoca.grafo-autoral.v3).
-  function _initComposicao() {
-    fetch("./docs/quintal.v3.json")
-      .then(function (resp) { return resp.json(); })
-      .then(function (j) {
-        _grafoV2 = j || null;
-        _cenarioV2 = j && j.cenario ? j.cenario : null;
+  // E4 (ML-2): os cenários vêm do MANIFESTO (docs/cenarios.index.json) — um id
+  // canônico único para galeria, liberação e motor; os fetches de grafo e
+  // relações são DERIVADOS da entrada do manifesto (nada hard-coded aqui).
+  var CENARIO_PADRAO_ID = "quintal_anoitecer";
+  var _manifestoCenarios = null; // EntradaCenarioIndex[] ou null (fallback)
+  var _cenarioAtivoId = null;
+  var _cacheGrafos = {};   // id → grafo v3 (json)
+  var _cacheRelacoes = {}; // id → relacoes v1 (json)
+  var _fichasGlobaisPromise = null; // {objetos, cenarios} — catálogos globais
+
+  // Fallback SEM manifesto: caminho derivado por CONVENÇÃO do próprio id
+  // (prefixo antes do "_" + ".v3.json" em ./docs/) — comportamento antigo.
+  function _entradaFallback(id) {
+    var curto = String(id).split("_")[0];
+    return {
+      id: id, nome: id, descricao: "", svg: curto, disponivel: true,
+      grafo: "./docs/" + curto + ".v3.json",
+      relacoes: "./docs/fichas/relacoes." + curto + ".v1.json",
+    };
+  }
+
+  function _entradaCenario(id) {
+    if (_manifestoCenarios) {
+      for (var i = 0; i < _manifestoCenarios.length; i++) {
+        if (_manifestoCenarios[i] && _manifestoCenarios[i].id === id) return _manifestoCenarios[i];
+      }
+      return null;
+    }
+    return _entradaFallback(id);
+  }
+
+  function _fichasGlobais() {
+    if (!_fichasGlobaisPromise) {
+      _fichasGlobaisPromise = Promise.all([
+        fetch("./docs/fichas/objetos.v1.json").then(function (r) { return r.json(); }),
+        fetch("./docs/fichas/cenarios.v1.json").then(function (r) { return r.json(); }),
+      ]).then(function (arr) { return { objetos: arr[0], cenarios: arr[1] }; });
+    }
+    return _fichasGlobaisPromise;
+  }
+
+  function _buscarJson(url, cache, id) {
+    if (cache[id]) return Promise.resolve(cache[id]);
+    return fetch(url).then(function (r) { return r.json(); }).then(function (j) {
+      cache[id] = j;
+      return j;
+    });
+  }
+
+  // Carrega (ou pega do cache) o grafo + as fichas do cenário e o torna ATIVO.
+  // Devolve Promise<boolean>. O grafo é o gate: sem ele, nada muda (fail-soft).
+  function _carregarCenario(id) {
+    var entrada = _entradaCenario(id);
+    if (!entrada || !entrada.disponivel || !entrada.grafo) return Promise.resolve(false);
+    return _buscarJson(entrada.grafo, _cacheGrafos, id).then(function (grafo) {
+      if (!grafo || !grafo.cenario) return false;
+      _grafoV2 = grafo;
+      _cenarioV2 = grafo.cenario;
+      _cenarioAtivoId = id;
+      // Fichas: globais + relações DESTE cenário (falha ⇒ caminho v3 segue).
+      var pRel = entrada.relacoes
+        ? _buscarJson(entrada.relacoes, _cacheRelacoes, id)
+        : Promise.resolve(null);
+      return Promise.all([_fichasGlobais(), pRel]).then(function (par) {
+        _fichasV1 = par[1]
+          ? { objetos: par[0].objetos, relacoes: par[1], cenarios: par[0].cenarios }
+          : null;
         notify();
+        return true;
+      }).catch(function (e) {
+        console.warn("[PipocaApp] Fichas v1 do cenário falharam (caminho v3 segue):", e);
+        _fichasV1 = null;
+        notify();
+        return true; // o grafo carregou — a composição funciona
+      });
+    }).catch(function (e) {
+      console.warn("[PipocaApp] Falha ao carregar o cenário \"" + id + "\":", e);
+      return false;
+    });
+  }
+
+  // Boot: busca o manifesto e carrega o cenário padrão; manifesto ausente ⇒
+  // fallback por convenção (mesmo comportamento de antes do E4).
+  function _initCenarios() {
+    fetch("./docs/cenarios.index.json")
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        _manifestoCenarios = (j && j.esquema === "pipoca.cenarios-index.v1" && Array.isArray(j.cenarios))
+          ? j.cenarios
+          : null;
+        if (!_manifestoCenarios) console.warn("[PipocaApp] manifesto de cenários inválido — usando convenção");
+        return _carregarCenario(CENARIO_PADRAO_ID);
       })
       .catch(function (e) {
-        console.warn("[PipocaApp] Falha ao carregar quintal.v3.json:", e);
+        console.warn("[PipocaApp] manifesto de cenários indisponível — usando convenção:", e);
+        _manifestoCenarios = null;
+        return _carregarCenario(CENARIO_PADRAO_ID);
       });
   }
 
@@ -817,22 +903,8 @@
   var _realizacaoPendente = null; // { chave, promise } — geração do último commit
   var TETO_ESPERA_REALIZACAO_MS = 8000;
 
-  // Carrega os 3 catálogos no boot, ao lado do grafo (padrão de _initComposicao).
-  // Falha ⇒ _fichasV1 = null e o módulo de geração cai no caminho v3 (13-00).
-  function _initFichas() {
-    Promise.all([
-      fetch("./docs/fichas/objetos.v1.json").then(function (r) { return r.json(); }),
-      fetch("./docs/fichas/relacoes.quintal.v1.json").then(function (r) { return r.json(); }),
-      fetch("./docs/fichas/cenarios.v1.json").then(function (r) { return r.json(); }),
-    ])
-      .then(function (arr) {
-        _fichasV1 = { objetos: arr[0], relacoes: arr[1], cenarios: arr[2] };
-      })
-      .catch(function (e) {
-        console.warn("[PipocaApp] Falha ao carregar fichas v1 (caminho v3 segue):", e);
-        _fichasV1 = null;
-      });
-  }
+  // E4: as fichas do cenário carregam junto do grafo em _carregarCenario —
+  // os catálogos globais (objetos/cenários) são memoizados em _fichasGlobais.
 
   function _geracao() {
     var Canon = window.PipocaCanonico;
@@ -1329,6 +1401,11 @@
     setState: setState,
     subscribe: subscribe,
     get cenarioV2() { return _cenarioV2; },
+    // E4 · manifesto de cenários: lista para a galeria (null enquanto carrega/
+    // fallback), id ativo e a troca de cenário (carrega grafo+fichas, com cache).
+    get cenarioAtivoId() { return _cenarioAtivoId; },
+    cenariosDisponiveis: function () { return _manifestoCenarios ? _manifestoCenarios.slice() : null; },
+    carregarCenario: _carregarCenario,
     // fase13 · prontidão das fichas v1 (e2e/diagnóstico; o app não espera por elas)
     get fichasProntas() { return !!_fichasV1; },
     repo: repo,
@@ -1376,8 +1453,7 @@
     }
   } catch (_) {}
   _migrarPerfisLegado().then(function () { return repo.carregarPerfis(); }); // popula cache _perfis
-  _initComposicao();
-  _initFichas(); // fase13 · fichas v1 ao lado do grafo (falha ⇒ caminho v3 segue)
+  _initCenarios(); // E4 · manifesto → grafo v3 + fichas do cenário padrão
   // Rota inicial: sem sessão de conta válida → login da família (T9, HH_LOGIN);
   // com sessão → modo criança (T2). O boot navega por _irPara (anterior à guarda).
   // O check continua SÍNCRONO no espelho local — o adaptador remoto (fase06)

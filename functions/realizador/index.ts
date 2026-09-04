@@ -572,7 +572,14 @@ const SCHEMA_TEXTO = {
 
 type Gerado =
   | { ok: true; texto: string }
-  | { ok: false; semChave?: boolean; recusa?: boolean; transitorio?: boolean };
+  | { ok: false; semChave?: boolean; recusa?: boolean; transitorio?: boolean;
+      /** diagnóstico p/ os logs (sem PII): status HTTP e trecho do erro da API */
+      status?: number; detalhe?: string };
+
+/** Trecho curto do corpo de erro da API do provedor — só para os logs. */
+async function trechoErro(r: Response): Promise<string> {
+  try { return (await r.text()).slice(0, 200); } catch { return ""; }
+}
 
 function parseTextoLimpo(textoJson: string): string | null {
   try {
@@ -606,15 +613,15 @@ async function gerarCom(
           generationConfig: { responseMimeType: "application/json", responseSchema: SCHEMA_TEXTO, temperature: temperatura },
         }),
       });
-      if (r.status === 429 || r.status >= 500) return { ok: false, transitorio: true };
-      if (!r.ok) return { ok: false };
+      if (r.status === 429 || r.status >= 500) return { ok: false, transitorio: true, status: r.status, detalhe: await trechoErro(r) };
+      if (!r.ok) return { ok: false, status: r.status, detalhe: await trechoErro(r) };
       const j = await r.json();
-      if (j.promptFeedback && j.promptFeedback.blockReason) return { ok: false, recusa: true };
+      if (j.promptFeedback && j.promptFeedback.blockReason) return { ok: false, recusa: true, detalhe: String(j.promptFeedback.blockReason) };
       const cand = j.candidates && j.candidates[0];
-      if (cand && cand.finishReason === "SAFETY") return { ok: false, recusa: true };
+      if (cand && cand.finishReason === "SAFETY") return { ok: false, recusa: true, detalhe: "finishReason=SAFETY" };
       const parte = cand && cand.content && cand.content.parts && cand.content.parts[0];
       const t = parte && typeof parte.text === "string" ? parseTextoLimpo(parte.text) : null;
-      return t ? { ok: true, texto: t } : { ok: false };
+      return t ? { ok: true, texto: t } : { ok: false, detalhe: "resposta fora do formato texto_limpo" };
     }
 
     if (provedor === "claude") {
@@ -630,13 +637,13 @@ async function gerarCom(
           messages: [{ role: "user", content: prompt.user }],
         }),
       });
-      if (r.status === 429 || r.status >= 500) return { ok: false, transitorio: true };
-      if (!r.ok) return { ok: false };
+      if (r.status === 429 || r.status >= 500) return { ok: false, transitorio: true, status: r.status, detalhe: await trechoErro(r) };
+      if (!r.ok) return { ok: false, status: r.status, detalhe: await trechoErro(r) };
       const j = await r.json();
-      if (j.stop_reason === "refusal") return { ok: false, recusa: true };
+      if (j.stop_reason === "refusal") return { ok: false, recusa: true, detalhe: "stop_reason=refusal" };
       const bloco = Array.isArray(j.content) ? j.content.find((c: { type?: string }) => c && c.type === "text") : null;
       const t = bloco && typeof bloco.text === "string" ? parseTextoLimpo(bloco.text) : null;
-      return t ? { ok: true, texto: t } : { ok: false };
+      return t ? { ok: true, texto: t } : { ok: false, detalhe: "resposta fora do formato texto_limpo" };
     }
 
     if (provedor === "openai" || provedor === "deepseek") {
@@ -660,16 +667,16 @@ async function gerarCom(
           response_format: formato,
         }),
       });
-      if (r.status === 429 || r.status >= 500) return { ok: false, transitorio: true };
-      if (!r.ok) return { ok: false };
+      if (r.status === 429 || r.status >= 500) return { ok: false, transitorio: true, status: r.status, detalhe: await trechoErro(r) };
+      if (!r.ok) return { ok: false, status: r.status, detalhe: await trechoErro(r) };
       const j = await r.json();
       const msg = j.choices && j.choices[0] ? j.choices[0].message : null;
-      if (msg && typeof msg.refusal === "string" && msg.refusal) return { ok: false, recusa: true };
+      if (msg && typeof msg.refusal === "string" && msg.refusal) return { ok: false, recusa: true, detalhe: "refusal" };
       const t = msg && typeof msg.content === "string" ? parseTextoLimpo(msg.content) : null;
-      return t ? { ok: true, texto: t } : { ok: false };
+      return t ? { ok: true, texto: t } : { ok: false, detalhe: "resposta fora do formato texto_limpo" };
     }
-  } catch {
-    return { ok: false, transitorio: true }; // rede caiu = transitório
+  } catch (e) {
+    return { ok: false, transitorio: true, detalhe: String(e).slice(0, 120) }; // rede caiu = transitório
   }
   return { ok: false, semChave: true }; // provedor desconhecido = não configurado
 }
@@ -745,6 +752,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         // Diagnóstico nos LOGS da função (sem conteúdo/PII): por que a tentativa caiu.
         console.warn("[realizador] tentativa falhou", JSON.stringify({
           provedor, modelo, semChave: !!r.semChave, recusa: !!r.recusa, transitorio: !!r.transitorio,
+          status: r.status ?? null, detalhe: r.detalhe ?? null,
         }));
         if (r.recusa) continue cascata; // recusa NUNCA repete no mesmo provedor
         if (r.transitorio && !jaRetentou && chamadas < TETO_GLOBAL_TENTATIVAS) {

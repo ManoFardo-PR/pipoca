@@ -1,0 +1,44 @@
+CONTINUAÇÃO (11ª) da etapa C do pós-plan — decisão do dono aplicada com os
+números do C10: DeepSeek é o mais barato E o mais rápido (513ms) → vira o
+PRINCIPAL; Gemini (grátis no tier do dono) vira o fallback. Também queremos os
+logs da rodada anterior para saber por que o Gemini caiu na cascata (isolado
+ele passa). Execute na ordem. NÃO há deploy nesta rodada.
+
+── 1 · Logs da rodada v13 (read-only) ───────────────────────────────────────────
+  select timestamp, event_message from function_logs
+   where event_message like '%[realizador]%' order by timestamp desc limit 10;
+Relate as linhas LITERAIS — interessa a linha "tentativa falhou" do gemini
+(status + detalhe) da execução do smoke C10.
+
+── 2 · DeepSeek vira o principal; Gemini vira o fallback (SQL) ──────────────────
+  update config_ia
+     set dados = jsonb_set(jsonb_set(jsonb_set(dados,
+                   '{provedor}', '"deepseek"'),
+                   '{modelo}', '"deepseek-chat"'),
+                   '{fallback}', '"gemini"'),
+         atualizado_em = now()
+   where tenant_id = 'plataforma';
+VERIFICAÇÃO:
+  select dados->>'provedor' as provedor, dados->>'modelo' as modelo,
+         dados->>'fallback' as fallback from config_ia where tenant_id = 'plataforma';
+Esperado: deepseek / deepseek-chat / gemini.
+(modeloPadrao global já tem gemini-3.6-flash e deepseek-chat — nada a mudar lá.)
+
+── 3 · Usuário descartável (SQL de sempre; SEM operador desta vez) ──────────────
+auth.users (tokens '') + identities com smoke.pipoca.2026@gmail.com /
+Pipoca!Smoke#2026x; verifique confirmado=true e identities=1.
+
+── 4 · Smoke de confirmação do arranjo final ────────────────────────────────────
+Env: ANON_KEY = <anon key pública> · SMOKE_EMAIL/SMOKE_SENHA acima.
+`node scripts/smoke-realizador.mjs run`
+Esperado: HTTP 200, "Pietro", PASS, origem = {fonte:"llm", provedor:"deepseek",
+modelo:"deepseek-chat"}, chamadas: 1, metadados.duracaoMs < 8000 (relate o
+valor). Relate também um trecho de ~100 caracteres do texto.
+
+── 5 · Limpeza (SEMPRE) ─────────────────────────────────────────────────────────
+  delete from auth.users where email = 'smoke.pipoca.2026@gmail.com';
+Confirme 0 linhas restantes.
+
+── Relatório final ──────────────────────────────────────────────────────────────
+Linhas de log do passo 1 (literais); config verificada; smoke com origem,
+chamadas, duracaoMs e trecho; limpeza. Se algo divergir num passo, PARE e relate.

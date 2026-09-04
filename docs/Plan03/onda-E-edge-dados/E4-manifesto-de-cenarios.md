@@ -1,7 +1,6 @@
 # E4 — Manifesto de cenários: um id, fetches derivados, galeria alimentada por dado (ML-2)
 
-> Status: pendente
-
+> Status: concluída (2026-09-04 · 6371183)
 **Unidade de deploy:** CRU (`docs/*.json`, `estado.js`, `Tela3`) + BUNDLE (`src/core/cardapio.ts`
 se `CENARIOS_PADRAO` mudar). **Depende de:** nada. **Desbloqueia:** E5, E6.
 

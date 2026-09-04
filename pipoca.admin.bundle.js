@@ -2652,152 +2652,15 @@
     };
   }
 
-  // src/core/realizador/prompt_template.ts
-  var DESCRICAO_NIVEL = {
-    n1: "Primeiras palavras — sílabas e palavras soltas",
-    n2: "Frases curtas — uma linha",
-    n3: "Pequenos textos — frases ligadas",
-    n4: "Parágrafos — histórias mais longas"
-  };
-  var MAXIMO_PALAVRAS = {
-    n1: [31, 44, 58, 71],
-    n2: [55, 77, 100, 122],
-    n3: [91, 125, 159, 193],
-    n4: [200, 268, 335, 403]
-  };
-  function rodadaDoPacote(pacote) {
-    const r = pacote.beats.length - 2;
-    return r < 1 ? 1 : r > 4 ? 4 : r;
-  }
-  function maximoPalavrasDoPacote(pacote) {
-    return MAXIMO_PALAVRAS[pacote.nivel][rodadaDoPacote(pacote) - 1];
-  }
-  var FEWSHOT_POR_NIVEL = {
-    n1: [
-      {
-        entrada: "ELEMENTOS: vagalume → folha → vento · PERSONAGEM: Joana (menina)",
-        saida: "O quintal sussurra segredos, Joana quer ver tudo. A grama fria toca seu pé. Uma luz pisca no fundo, os olhos de Joana seguem. Uma folha desce rodando, o dedo de Joana segue. O vento pula o muro, a pele de Joana sente o fresco. O quintal conta tudo, Joana sente os segredos."
-      }
-    ],
-    n2: [
-      {
-        entrada: "ELEMENTOS: vagalume → vento → frasco · PERSONAGEM: Joana (menina)",
-        saida: "O quintal sussurra segredos. Joana sente a grama fria, quer ver tudo. Seus olhos seguem o vaga-lume piscando no fundo. Ela chega perto na ponta dos pés, e a faísca entra no pote, vira sua lanterninha. O vento pula o muro e corre, fresco, mexendo em tudo. A pele de Joana arrepia, o cabelo mexe. Ela segura o pote de vidro frio e liso com as duas mãos, espiando o mundo lá dentro."
-      },
-      {
-        entrada: "ELEMENTOS: folha → frasco → gato → vento · PERSONAGEM: Pietro (menino)",
-        saida: "O quintal sussurra segredos. A grama fria no pé de Pietro faz a vontade de ver tudo. Uma folha solta do galho, desce rodando. O dedo de Pietro acompanha, os olhos dançam. Um pote frio e liso espera na grama. Pietro o segura, espia o mundo. Um gato quieto aparece na cerca, olhos verdes. Pietro silencia, prende a respiração. O gato vê a folha, pula, brincando. O vento pula o muro, corre, fresco. A pele de Pietro arrepia, o cabelo mexe. O quintal continua a sussurrar segredos."
-      }
-    ],
-    n3: [
-      {
-        entrada: "ELEMENTOS: vento → vagalume → gato → frasco · PERSONAGEM: Pietro (menino)",
-        saida: `O quintal sussurra segredos; a grama fria nos pés de Pietro traz vontade de descobrir. O vento rola pelo muro, corre no quintal, fresco de longe, mexe de leve. Os braços de Pietro arrepiam, o cabelo mexe. No canto escuro, luzinha acende e apaga; vaga-lume pisca devagar como estrela. Os olhos de Pietro seguem a pisca, querendo perto.
-
-Na cerca, gato aparece sem barulho, quieto feito sombra, olhos verdes acesos feito lanternas. Pietro fica em silêncio, prende a respiração, troca olhar com o gato, que espia a luzinha. Então, Pietro vê pote de vidro escondido na grama, frio e liso feito pedra de rio, que entorta o mundo. Ele o segura com as duas mãos, fecha um olho para espiar. A faísca do vaga-lume entra no pote, piscando lá dentro — uma lanterninha viva pra carregar. Pietro agora tem um segredo do quintal, guardado bem perto.`
-      },
-      {
-        entrada: "ELEMENTOS: vagalume → folha → gato → frasco · PERSONAGEM: Pietro (menino)",
-        saida: "O quintal sussurra segredos, um por um. A grama fria nos pés de Pietro traz a vontade de descobrir. No canto escuro, um vaga-lume acende e apaga, estrelinha pra brincar. Os olhos de Pietro seguem a pisca, e ele na ponta dos pés quer chegar perto. A faísca entra no pote de vidro, virando lanterninha viva. Uma folha se solta do galho alto, descendo rodando no ar. O dedo de Pietro acompanha cada volta, sua mão aberta, esperando. Na cerca, um gato aparece sem barulho, quieto feito sombra, olhos verdes acesos. Pietro fica em silêncio, prende a respiração, e troca um olhar demorado. O gato espia a luzinha piscando, movendo a cabeça. Um pote de vidro, frio e liso feito pedra de rio, está na grama, entortando o mundo. Pietro o segura com as duas mãos, fecha um olho e espia, colhendo os segredos do quintal."
-      }
-    ],
-    n4: [
-      {
-        entrada: "ELEMENTOS: folha → vagalume → frasco · PERSONAGEM: Pietro (menino)",
-        saida: "O quintal sussurra segredos, e a grama fria nos pés de Pietro faz seu coração bater forte de vontade de saber. Do galho alto, uma folha se despede e desce no ar escuro, rodando leve. O dedo de Pietro acompanha as voltas, e sua mão se abre feito ninho, esperando a folha pousar. No canto escuro perto da cerca, uma luzinha acende e apaga, um vaga-lume. Os olhos de Pietro seguem a pisca, e a vontade o move na ponta dos pés, prendendo a respiração, até um pote de vidro na grama. A faísca entra no pote frio e liso, piscando lá dentro, presa e livre, uma lanterninha viva. Pietro o segura com as duas mãos, ergue contra a luz, fecha um olho e espia o mundo que entorta e brilha, pequeno e curvo, e a vontade de saber se colhe no brilho da lanterninha viva."
-      },
-      {
-        entrada: "ELEMENTOS: frasco → vento → gato → vagalume · PERSONAGEM: Pietro (menino)",
-        saida: `O quintal sussurra segredos para quem vem ver, e a grama fria nos pés descalços de Pietro faz seu coração bater forte de vontade de saber. Ele segura um pote de vidro com as duas mãos, erguendo-o contra a luz, e fecha um olho para espiar o mundo que entorta lá dentro, virando devagar. O pote vazio parece à espera, e Pietro sente a certeza boa de que a noite ainda vai mandar uma coisinha brilhante para morar ali.
-
-O vento chega rolando por cima do muro, balançando a grama e cheirando a terra molhada. A pele dos braços de Pietro arrepia, ele fecha os olhos e respira fundo, deixando o vento passar como se fosse noite. Em cima da cerca, um gato já está sentado, e Pietro fica em silêncio, prendendo a respiração, trocando um olhar demorado e piscando devagar de volta. No canto do quintal, uma luzinha acende e apaga, flutuando. Os olhos de Pietro seguem a pisca, e a vontade de chegar perto o guia, então a faísca roda no ar, encontra o pote e entra devagarinho, piscando quentinha, como quem chega em casa.`
-      }
-    ]
-  };
-  function rotuloGenero(genero) {
-    return genero === "f" ? "menina" : "menino";
-  }
-  function personalizarExemplo(ex, nomeAlvo, generoAlvo) {
-    const m = ex.entrada.match(/PERSONAGEM:\s*([^()]+?)\s*\((menina|menino)\)/);
-    if (!m)
-      return ex;
-    const nomeFonte = m[1].trim();
-    const generoFonte = m[2] === "menina" ? "f" : "m";
-    const trocar = (s) => {
-      let out = s.replace(new RegExp("\\b" + nomeFonte.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g"), nomeAlvo);
-      if (generoFonte !== generoAlvo) {
-        const pares = generoAlvo === "m" ? [["menina", "menino"], ["Ela", "Ele"], ["ela", "ele"], ["Dela", "Dele"], ["dela", "dele"]] : [["menino", "menina"], ["Ele", "Ela"], ["ele", "ela"], ["Dele", "Dela"], ["dele", "dela"]];
-        for (const [de, para] of pares)
-          out = out.replace(new RegExp("\\b" + de + "\\b", "g"), para);
-      }
-      return out;
-    };
-    return { entrada: trocar(ex.entrada), saida: trocar(ex.saida) };
-  }
-  function montarPromptRealizador(pacote) {
-    const nivel = pacote.nivel;
-    const nome = pacote.personagem.nome;
-    const genero = rotuloGenero(pacote.personagem.genero);
-    const maximo = maximoPalavrasDoPacote(pacote);
-    const linhasUser = [];
-    linhasUser.push(`LUGAR: ${pacote.cenario.descricao}`);
-    linhasUser.push(`VOZ DO LUGAR: ${pacote.cenario.voz_do_contador}`);
-    linhasUser.push(`O QUE O LUGAR FAZ SENTIR: ${pacote.cenario.sensacao_no_personagem}`);
-    linhasUser.push(`PERSONAGEM: ${nome} (${genero})`);
-    linhasUser.push("", "ELEMENTOS, NA ORDEM:");
-    pacote.beats.forEach((beat, i) => {
-      linhasUser.push(`${i + 1}. ${beat.objeto} (${beat.papel})`);
-      linhasUser.push(`   O QUE É: ${beat.descricao}`);
-      linhasUser.push(`   CORPO: ${beat.corpo}`);
-      for (const relacao of beat.relacoes) {
-        linhasUser.push(`   INTERAÇÃO (com ${relacao.alvo}): ${relacao.interacao}`);
-      }
-    });
-    const linhasSystem = [
-      "Escreva uma história infantil curta a partir do MATERIAL abaixo.",
-      `O corpo de ${nome} guia cada cena: use os gestos dados em CORPO, não invente emoções abstratas.`,
-      "O lugar é o contador: a voz do lugar abre e costura a história.",
-      "Plante a vontade na abertura; feche colhendo essa vontade no corpo.",
-      "NÃO invente acontecimentos, objetos, personagens ou falas.",
-      "NÃO remova nenhum elemento. NÃO mude a ordem dos elementos.",
-      `NÃO troque o nome (${nome}), o gênero (${genero}) ou a idade.`,
-      "Escreva no tempo PRESENTE (a história acontece agora), como nos exemplos abaixo.",
-      `Não use "ele" ou "ela" para objetos — repita o nome do objeto.`,
-      `Mantenha o vocabulário do nível ${nivel} (${DESCRICAO_NIVEL[nivel]}) — nem mais simples, nem mais difícil.`
-    ];
-    if (nivel === "n1") {
-      linhasSystem.push("Nível n1: frases bem curtas, UMA sensação de corpo por elemento.", 'Integre a sensação de corpo na frase do evento com "e" — no máximo 2 frases por elemento.', "Repetir o nome do objeto ou da personagem é bem-vindo (repetição coesiva).", "No máximo 1 fragmento exclamativo em todo o texto.");
-    } else {
-      linhasSystem.push('Uma frase pode unir-se à outra com "e", "mas", "então", "depois". Menos pontos finais, sem frases picadas.');
-    }
-    const exemplos = FEWSHOT_POR_NIVEL[nivel];
-    if (exemplos.length > 0) {
-      linhasSystem.push("", `EXEMPLOS do nível ${nivel} (siga o tom, o ritmo e o comprimento):`);
-      exemplos.forEach((exemploBruto, i) => {
-        const exemplo = personalizarExemplo(exemploBruto, nome, pacote.personagem.genero);
-        linhasSystem.push(`EXEMPLO ${i + 1} — ${exemplo.entrada}`, exemplo.saida, "");
-      });
-    }
-    if (pacote.eco !== null) {
-      linhasSystem.push(`Termine ecoando ${pacote.eco.abre_com} com as próprias palavras.`);
-    }
-    const paragrafosTxt = pacote.restricoes.paragrafos === 1 ? "1 parágrafo" : `${pacote.restricoes.paragrafos} parágrafos`;
-    linhasSystem.push(`Escreva em ${paragrafosTxt} (separados por uma linha em branco). Máximo ${maximo} palavras no total.`, "Devolva só o texto final.");
-    return { system: linhasSystem.join(`
-`), user: linhasUser.join(`
-`) };
-  }
-
   // src/backend/proxy_realizador.ts
   function criarProxyRealizador(op) {
     const transporte = op.transporte || transportePadrao();
     const base = op.url.replace(/\/+$/, "");
-    return async (pacote, opcoes = {}) => {
+    return async (pacote, _opcoes = {}) => {
       const token = await op.obterToken();
       if (!token)
         throw new Error("ProxyRealizador: sem sessão para realizar.");
       const tenant = op.tenantId ? op.tenantId() : null;
-      const prompt = montarPromptRealizador(pacote);
       const resp = await transporte(base + "/functions/v1/realizador", {
         method: "POST",
         headers: {
@@ -2807,8 +2670,6 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
         },
         body: JSON.stringify({
           pacote,
-          prompt,
-          ...opcoes.temperatura !== undefined ? { temperatura: opcoes.temperatura } : {},
           ...tenant ? { tenantId: tenant } : {}
         })
       });

@@ -284,6 +284,14 @@ linha-verde já cobre captura/releitura; adicionar caso de merge de dois aparelh
 
 ### ML-2 · "Organizar as tabelas de frases/sentimentos/relacionamentos para ampliar cenários"
 
+> ✅ **Resolvido em 2026-09-04 (Plan03 · E4 `6371183` + E5 `04e1c34` + E6 `9f9f0e4`; bundle no
+> fechamento E7):** manifesto `docs/cenarios.index.json` (id canônico ÚNICO em galeria, liberação
+> e motor); `estado.js` deriva grafo+relações da entrada (zero fetch hard-coded, cache por id,
+> fallback por convenção); T3 alimentada pelo manifesto (jogável = disponivel E liberado);
+> pipeline de autoria verificado por máquina (`npm run lint:conteudo` no CI — manifesto + lint
+> do grafo + lint das fichas + âncoras) + guia `docs/guia-do-codigo/70-como-adicionar-um-cenario.md`.
+> O custo de CONTEÚDO dos 4 cenários segue com o dono (ordem/autoria — decisão registrada no E6).
+
 **Intenção:** transformar os dados autorais do Quintal num formato replicável para os 4
 cenários "Em breve" (Quarto, Floresta, Espaço, Fundo do Mar).
 
@@ -389,6 +397,14 @@ com screenshot no aparelho real; alvo de toque atual (140×180) é ótimo, mante
 
 ### ML-5 · "O envio para a IA e o retorno devem ser um pacote com tudo para um texto encantador"
 
+> ✅ **Resolvido em 2026-09-04 (Plan03 · E1 `c394af8` + E3 `1d21bce`; edge realizador v7 deployada
+> em 2026-09-03 via Replit):** pacote v1.1 aditivo — `beats[].sentimento` (=sensacao.registro) e
+> `beats[].sentido` (=dominante) viajam no pacote e viram linhas SENTIMENTO/SENTIDO no prompt
+> (lei condicional; goldens regenerados). O prompt agora NASCE NA EDGE (bloco PROMPT-TEMPLATE
+> espelhado, verificado por `check:paridade`); o cliente envia só `{pacote, tenantId?}`.
+> `ACEITAR_PROMPT_LEGADO=true` até o flip pós-E7 (2º deploy, já autorizado). Temperatura segue
+> fixa 0.4 (campo de "tom da casa" em config_ia fica como possibilidade futura, item 4).
+
 **Intenção:** consolidar ida e volta da IA num contrato único, rico o bastante para
 textos bonitos — sem vazar responsabilidade para o cliente.
 
@@ -466,6 +482,11 @@ decisão do dono** (morto no cliente, mas com par deployado/contrato documental)
 > (decisão E3 confirmada; a EDGE proxy-ia sai em E3); `.agents/` migrado p/ `docs/notas/` e
 > apagado (`8c93b63`). Ficam para E: `guardrails.ts` (E2 move p/ core/seguranca) e
 > `Pasted-*.txt` (E6).
+>
+> ✅ **Onda E fechou os dois restos (2026-09-04):** `guardrails.ts` movido para
+> `src/core/seguranca/` como CANÔNICO verificado pela paridade (E2 `f53697c`); a edge
+> `proxy-ia` foi REMOVIDA do repo e do Supabase (E3 `1d21bce`; DELETE HTTP 200 no deploy
+> Replit de 2026-09-03); `Pasted-*.txt` arquivados em docs (E6 `9f9f0e4`, registro no 14-01).
 
 | Item | Por quê não é remoção mecânica |
 |---|---|
@@ -486,6 +507,14 @@ fichas→Pacote, chamado por `geracao.ts:196`) — homonímia documentada em
 `scripts/post-merge.sh` (hook `.replit:41-43`) · `attached_assets/og-pipoca.png`.
 
 ### DM-D · Duplicações vivas (o risco é deriva, não lixo)
+
+> ✅ **Resolvido em 2026-09-04 (Plan03 · E2 `f53697c`, obrigatório no CI desde então):**
+> `scripts/paridade-edge.mjs` compara ~26 espelhos cliente↔edge (guardrails — canônico agora em
+> `src/core/seguranca/guardrails.ts` —, tabelas do validador, `SECRET_POR_PROVEDOR`, `PROVEDORES`,
+> gramática `avaliarCondicao`, e desde E3 o template do prompt) e o CI FALHA se divergirem.
+> As cópias da proxy-ia sumiram com a edge (E3). Deriva agora é detectada por máquina;
+> recalibrar = editar canônico + espelhar + redeploy, com o esquecimento travado.
+> Ciclos type-only desfeitos no D3 (`core/persistencia/tipos.ts`).
 
 **10 tabelas duplicadas entre `src/` e `functions/`, 4 triplicadas** — mapa completo:
 guardrails (`RE_TERMOS` + `RE_URL/EMAIL/TELEFONE`: `src/ia/guardrails.ts:53,60+` ×
@@ -563,7 +592,10 @@ mas não volta, não corrige, não se ajusta.
   (`Tela6Recompensa.dc.html:22-67`; PainelA11y abre só de T3/T4/T5/T7).
 - 🔴 **UI-C04 · Cartões "Em breve" são armadilhas mudas**: `<button>` sem `disabled`,
   `pick: () => {}` (`Tela3:62,255-258`) — 4 dos 5 alvos grandes da tela principal não
-  fazem nada, sem som, sem sacudida, sem mensagem.
+  fazem nada, sem som, sem sacudida, sem mensagem. ✅ resolvido em 2026-09-04 (E5,
+  `04e1c34`): `disabled` real + aria-disabled, toque avisa em `role=status` (mensagem
+  distinta p/ "disponível mas não liberado") com sacudida leve respeitando `--pip-mov`;
+  a affordance do hero unificou na pílula-botão ≥48px (UI-C05).
 - 🟡 **UI-C39 · Cinco toques engolidos em silêncio** (`Tela3:258`, `Tela4:305,344,398`,
   `Tela7:243`) — para a faixa etária, silêncio é o pior feedback possível.
 - 🟡 **UI-C37 · Voltar da T5 descarta a composição sem aviso** (`Tela5:355-361` +
@@ -624,7 +656,10 @@ com "reduzir movimento" LIGADO o chip continua saltando, só que instantâneo (p
   ajustes.
 - 🔴 **UI-C54 · T3 no celular**: grade 2×2 fixa espreme cartões a ~90px, textos
   quebrados em 3-5 linhas, pílula colidindo com texto (`Tela3:43,46,60` — flex/grid sem
-  wrap). 🟡 **UI-C55**: carrossel de histórias corta o 2º cartão sem pista de scroll — ✅ resolvido em
+  wrap). ✅ resolvido em 2026-09-04 (E5, `04e1c34`): @media ≤700px empilha o hero com o
+  texto FORA da ilustração, grade em 2 colunas com linhas ≥150px — nomes inteiros, selo
+  12px, sem colisão (sonda + screenshots em docs/auditorias/screenshots/E5/).
+  🟡 **UI-C55**: carrossel de histórias corta o 2º cartão sem pista de scroll — ✅ resolvido em
   2026-09-01 (C2, `0d799da`): estante agrupada por dia, empilhada no retrato (sem carrossel cortado).
   🟢 UI-C57/C58: T5 é a que melhor sobrevive (graças ao `clamp()` de `Tela5:387-389` —
   única resposta responsiva genuinamente boa); T4/T7 sem plano para retrato.

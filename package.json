@@ -18,7 +18,8 @@
     "e2e:install": "playwright-core install chromium",
     "build:all": "bun run build:app && bun run build:admin",
     "check:bundles": "bun run build:all && git diff --exit-code -- pipoca.bundle.js pipoca.admin.bundle.js",
-    "check:paridade": "node scripts/paridade-edge.mjs"
+    "check:paridade": "node scripts/paridade-edge.mjs",
+    "lint:conteudo": "bun run scripts/lint-manifesto.mjs"
   },
   "engines": {
     "node": ">=18"

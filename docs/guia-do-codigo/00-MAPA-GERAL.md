@@ -129,4 +129,5 @@ Leituras da imagem:
 - [40 · backend e edge](40-backend-e-edge.md) — clientes keyless + as 3 edges + a fronteira da chave
 - [50 · testes](50-testes.md) — unit, e2e e fumaça
 - [60 · scripts](60-scripts.md) — o que gasta API paga e o que é offline
+- [70 · como adicionar um cenário](70-como-adicionar-um-cenario.md) — pipeline de autoria (JSON + SVG → lints → galeria)
 - [90 · glossário](90-GLOSSARIO.md) — os termos canônicos numa linha cada

@@ -36,6 +36,13 @@ Todo o runtime do v3: `docs/quintal.v3.json` (alimenta fallback e prévia; amarr
 |---|---|
 | A versão-beats do experimento (`experimentos/beats-para-paragrafos/` como está) | DEPOIS que a versão-fichas ([[fase10-10-04]]) assumir a validação em escala; o histórico de resultados (grade, relatórios) arquiva JUNTO como evidência |
 | Oficinas/prompts da era A2 (`attached_assets/` — prompts colados de lapidação/revisão) | quando o conteúdo correspondente estiver destilado em fichas e os prompts não orientarem mais trabalho vivo |
+
+> **Executado (Plan03 · E6, 2026-09-04):** o prompt de lapidação do realizador v3
+> (`attached_assets/Pasted--Prompt-Lapida-o-…_1783436281561.txt`) foi ARQUIVADO em
+> [anexos/prompt-lapidacao-realizador-v3.txt](anexos/prompt-lapidacao-realizador-v3.txt) —
+> o conteúdo está destilado nas fichas (fase 10) e no prompt do realizador (fase 12/13);
+> zero referências de código. O outro colado (`Pasted-Voc-vai-executar-UMA-opera-o…`) era o
+> prompt do deploy E3 via Replit e mudou para `docs/Plan03/onda-E-edge-dados/E3-prompt-replit-deploy.txt`.
 | Artefatos de trabalho editorial da era frase (planilhas/inventários intermediários da migração, quando existirem) | ao fim da validação humana da destilação — o inventário final fica; os rascunhos arquivam |
 
 Docs de revisão (`revisao-quintal-v3*.md`) são REGISTRO EDITORIAL — ficam onde estão (linhagem, [[fase14-14-02]]); não são candidatos.

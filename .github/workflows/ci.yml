@@ -37,6 +37,11 @@ jobs:
       - name: Testes unitários
         run: npm test
 
+      # Lint de conteúdo (E6): manifesto de cenários + grafo v3 + fichas +
+      # âncoras do validador — autoria quebrada falha ANTES do merge.
+      - name: Lint de conteúdo
+        run: npm run lint:conteudo
+
       # Rebuilda os DOIS bundles e falha se divergirem do commitado (PS-05).
       - name: Bundles em dia com a fonte
         run: npm run check:bundles

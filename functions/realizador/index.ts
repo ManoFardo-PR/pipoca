@@ -610,7 +610,10 @@ async function gerarCom(
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: prompt.system }] },
           contents: [{ role: "user", parts: [{ text: prompt.user }] }],
-          generationConfig: { responseMimeType: "application/json", responseSchema: SCHEMA_TEXTO, temperature: temperatura },
+          // thinkingBudget 0 (pós-F): o gemini-3.6 "pensa" por padrão — o smoke C9
+          // mediu 131s de geração contra um teto de 8s no cliente. Sem thinking,
+          // o flash responde em segundos; qualidade do portão é papel do validador.
+          generationConfig: { responseMimeType: "application/json", responseSchema: SCHEMA_TEXTO, temperature: temperatura, thinkingConfig: { thinkingBudget: 0 } },
         }),
       });
       if (r.status === 429 || r.status >= 500) return { ok: false, transitorio: true, status: r.status, detalhe: await trechoErro(r) };

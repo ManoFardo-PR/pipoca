@@ -1,0 +1,57 @@
+CONTINUAÇÃO (10ª) da etapa C do pós-plan — pedido do dono: RETESTAR os 4
+provedores até o fim, MEDIR o tempo de resposta de cada um e validar a correção
+de latência do Gemini (thinking desligado na realizador; o smoke C9 mediu 131,9s
+contra um teto de 8s no app). O testar_geracao agora devolve também duracaoMs.
+Execute na ordem.
+
+── 0 · Contexto de créditos (informativo) ───────────────────────────────────────
+No C9: claude = sem créditos (402) e openai = sem créditos (429). Se o dono
+adicionou créditos nessas contas, os testes abaixo devem passar; se não, o
+resultado esperado é o mesmo do C9 — relate como estiver, sem parar por isso.
+
+── 1 · Segurança operacional: fallback volta a deepseek (funciona hoje) ─────────
+  update config_ia
+     set dados = jsonb_set(dados, '{fallback}', '"deepseek"'), atualizado_em = now()
+   where tenant_id = 'plataforma';
+(Reversível quando o Claude tiver créditos; o dono decidirá o arranjo final com
+os números desta rodada.) Verifique com um select do campo fallback.
+
+── 2 · Deploy das DUAS edges atualizadas ────────────────────────────────────────
+2.1 `git pull origin main`; confirme: functions/realizador/index.ts contém
+    "thinkingBudget" E functions/admin-chaves-ia/index.ts contém "duracaoMs".
+    Se faltar, PARE (falta push).
+2.2 Deploy da realizador (verify_jwt LIGADO) → versão nova ACTIVE.
+2.3 Deploy da admin-chaves-ia (verify_jwt LIGADO) → versão nova ACTIVE.
+
+── 3 · Usuário descartável + operador temporário ────────────────────────────────
+Os mesmos INSERTs de sempre (auth.users tokens '' + identities + operadores)
+com smoke.pipoca.2026@gmail.com / Pipoca!Smoke#2026x. Verifique os 3 vínculos.
+
+── 4 · Reteste COMPLETO dos 4 (com tempos) ──────────────────────────────────────
+Com o bearer, chame a admin-chaves-ia, um por vez, e relate o JSON literal
+(inclui duracaoMs agora):
+  {"acao":"testar_geracao","provedor":"gemini","modelo":"gemini-3.6-flash"}
+  {"acao":"testar_geracao","provedor":"deepseek","modelo":"deepseek-chat"}
+  {"acao":"testar_geracao","provedor":"claude","modelo":"claude-haiku-4-5"}
+  {"acao":"testar_geracao","provedor":"openai","modelo":"gpt-5.4-mini"}
+
+── 5 · Smoke da cascata (mede a latência REAL da história) ──────────────────────
+Env: ANON_KEY = <anon key pública> · SMOKE_EMAIL/SMOKE_SENHA acima.
+`node scripts/smoke-realizador.mjs run`
+Esperado: HTTP 200, "Pietro", PASS, origem gemini/gemini-3.6-flash — e o ponto
+CENTRAL desta rodada: metadados.duracaoMs. Relate-o com destaque.
+(Meta: < 8000ms. Se vier acima, relate mesmo assim — a decisão é do dono.)
+
+── 6 · Logs (se o passo 5 NÃO deu 200; aguarde ~2 min) ──────────────────────────
+  select timestamp, event_message from function_logs
+   where event_message like '%[realizador]%' order by timestamp desc limit 10;
+
+── 7 · Limpeza (SEMPRE) ─────────────────────────────────────────────────────────
+  delete from auth.users where email = 'smoke.pipoca.2026@gmail.com';
+Confirme 0 linhas em auth.users E em operadores.
+
+── Relatório final ──────────────────────────────────────────────────────────────
+TABELA: provedor · modelo · ok/motivo · status · duracaoMs. Fallback verificado.
+Versões das 2 edges. Smoke: status, origem, metadados.duracaoMs e trecho de
+~100 caracteres do texto. Limpeza confirmada. Se algo divergir num passo, PARE
+nele e relate.

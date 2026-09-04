@@ -210,7 +210,13 @@ function classificar(status: number): string {
  * chave+saldo funcionam de ponta a ponta — o que o ping /models não cobre
  * (um 402/404 só aparece na geração). Prompt fixo e inofensivo.
  */
-async function testarGeracao(provedor: Provedor, modelo: string, chave: string): Promise<ResultadoGeracao> {
+async function testarGeracao(provedor: Provedor, modelo: string, chave: string): Promise<ResultadoGeracao & { duracaoMs: number }> {
+  const inicio = Date.now();
+  const r = await testarGeracaoInterno(provedor, modelo, chave);
+  return { ...r, duracaoMs: Date.now() - inicio };
+}
+
+async function testarGeracaoInterno(provedor: Provedor, modelo: string, chave: string): Promise<ResultadoGeracao> {
   const pedido = "Responda apenas: OK";
   try {
     let r: Response;

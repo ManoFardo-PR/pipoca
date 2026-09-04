@@ -1,0 +1,41 @@
+CONTINUAÇÃO (4ª) da etapa C do pós-plan. O "Database error querying schema" no
+login é um defeito CONHECIDO de usuário criado via SQL: as colunas de token de
+auth.users ficam NULL e o GoTrue quebra ao lê-las — o conserto é padronizá-las
+como string vazia. Execute SOMENTE os passos abaixo, no usuário descartável que
+já existe.
+
+── C.2a · Consertar os NULLs do usuário descartável ──
+  update auth.users set
+    confirmation_token         = coalesce(confirmation_token, ''),
+    recovery_token             = coalesce(recovery_token, ''),
+    email_change               = coalesce(email_change, ''),
+    email_change_token_new     = coalesce(email_change_token_new, ''),
+    email_change_token_current = coalesce(email_change_token_current, ''),
+    phone_change               = coalesce(phone_change, ''),
+    phone_change_token         = coalesce(phone_change_token, ''),
+    reauthentication_token     = coalesce(reauthentication_token, '')
+  where email = 'smoke.pipoca.2026@gmail.com';
+Esperado: 1 linha afetada. Se alguma coluna não existir nesta versão do schema,
+remova SÓ essa coluna do update, relate qual foi, e rode de novo.
+
+── C.2b · O smoke de verdade (gasta 1 chamada de API paga) ──
+Env: ANON_KEY = <anon key pública> · SMOKE_EMAIL = smoke.pipoca.2026@gmail.com
+     SMOKE_SENHA = Pipoca!Smoke#2026x
+`node scripts/smoke-realizador.mjs run`
+Esperado: HTTP 200, texto contendo "Pietro", veredito PASS, origem.fonte = "llm"
+(NÃO "fallback"). Anote origem.provedor e origem.modelo.
+Se o login falhar DE NOVO: relate o corpo literal, execute a LIMPEZA do C.4
+mesmo assim (o usuário não fica órfão no banco) e PARE.
+
+── C.3 · Prova do flip com Bearer ──
+Com o MESMO bearer (ou refazendo o login), repita o POST na edge realizador
+adicionando "prompt":"x" ao corpo {pacote, prompt} → esperado 400
+{"erro":"requisicao_invalida"}.
+
+── C.4 · Limpeza (SEMPRE executar, mesmo em falha do C.2b) ──
+  delete from auth.users where email = 'smoke.pipoca.2026@gmail.com';
+Confirme com um select que restaram 0 linhas (identities caem por cascade).
+
+── Relatório final ──
+Linhas afetadas no C.2a; status/corpo do C.2b com origem.provedor/modelo;
+resultado do C.3 (400); confirmação da limpeza (0 linhas).

@@ -1,7 +1,6 @@
 # E7 — Fechamento da Onda E: build, paridade, e2e, prova das edges, catálogo
 
-> Status: pendente
-
+> Status: concluída (2026-09-04 · 38d09f9)
 **Unidade de deploy:** BUNDLE app (+ EDGE já redeployada em E3). **Depende de:** E1–E6
 mergeadas na branch da onda.
 

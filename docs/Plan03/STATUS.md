@@ -1,14 +1,11 @@
 # STATUS — Plan03 (gerado por `scripts/plan03.mjs`; não editar à mão)
 
-- Gerado em: 2026-09-04T16:41:32.567Z · branch `28_08_26` · HEAD `9f9f0e4`
-- Progresso: **54/59** passos concluídos
-- Próximo passo: **E7** — Fechamento E: build:app → paridade → e2e → merge ([abrir](onda-E-edge-dados/E7-fechamento-onda-E.md))
+- Gerado em: 2026-09-04T16:46:46.906Z · branch `28_08_26` · HEAD `38d09f9`
+- Progresso: **55/59** passos concluídos
+- Próximo passo: **F1** — Régua final: tsc, unit, e2e, CI verde
 - Última verificação: ✅ verde em 2026-09-03T13:02:56.381Z (tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓)
 - Alertas: 
-  - ⚠ branch atual "28_08_26" ≠ esperada para E7 ("onda-E-edge-dados")
   - ⚠ árvore suja (2 arquivo(s)) — commite antes de concluir um passo
-  - ⚠ pipoca.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/app/bridge.ts, src/dados (rebuild pendente)
-  - ⚠ pipoca.admin.bundle.js é mais antigo que src/core, src/backend, src/servicos, src/admin, src/dados (rebuild pendente)
 
 ## Onda P — Preparação · 3/3 · branch `28_08_26` · —
 
@@ -82,7 +79,7 @@
 | D6 | [Branches, .gitignore, post-merge.sh](onda-D-bundle-app-admin/D6-branches-gitignore-hooks.md) | [✓] concluída | 2026-09-03 | `fc66881` |
 | D9 | [Fechamento D: build:all → CI verde → merge](onda-D-bundle-app-admin/D9-fechamento-onda-D.md) | [✓] concluída | 2026-09-03 | `61af9da` |
 
-## Onda E — Edge e dados · 7/8 · branch `onda-E-edge-dados` · BUNDLE app + EDGE + dados
+## Onda E — Edge e dados · 8/8 · branch `onda-E-edge-dados` · BUNDLE app + EDGE + dados
 
 | Passo | Título | Status | Data | Commit |
 |---|---|---|---|---|
@@ -93,7 +90,7 @@
 | E4 | [Manifesto de cenários; id único; fetches derivados](onda-E-edge-dados/E4-manifesto-de-cenarios.md) | [✓] concluída | 2026-09-04 | `6371183` |
 | E5 | [Galeria da T3 honesta; retrato; SVG sem cópia](onda-E-edge-dados/E5-galeria-t3-honesta.md) | [✓] concluída | 2026-09-04 | `04e1c34` |
 | E6 | [Pipeline de autoria: lints no CI, guia, anexos](onda-E-edge-dados/E6-pipeline-de-autoria.md) | [✓] concluída | 2026-09-04 | `9f9f0e4` |
-| E7 | [Fechamento E: build:app → paridade → e2e → merge](onda-E-edge-dados/E7-fechamento-onda-E.md) | [ ] pendente |  |  |
+| E7 | [Fechamento E: build:app → paridade → e2e → merge](onda-E-edge-dados/E7-fechamento-onda-E.md) | [✓] concluída | 2026-09-04 | `38d09f9` |
 
 ## Onda F — Encerramento · 0/4 · branch `28_08_26` · —
 

@@ -72,6 +72,17 @@ export function aplicarFlagsAosModos(modos: Modos, flags: FeatureFlags): Modos {
   return efetivos;
 }
 
+/**
+ * A IA está EFETIVAMENTE ligada? — o gate único de consentimento (Plan03 · A1):
+ * autorização do cuidador (`modos.iaLigada`) E plataforma sem kill-switch
+ * (`flags.ia`). É a única pergunta que o app faz antes de chamar o realizador
+ * remoto (edge → LLM, que recebe nome/gênero/nível da criança) — ver
+ * `_dispararRealizacao` em src/app/estado.js. Fail-closed por construção.
+ */
+export function iaEfetivamenteLigada(modos: Modos, flags: FeatureFlags): boolean {
+  return aplicarFlagsAosModos(modos, flags).iaLigada === true;
+}
+
 // ─── Persistência local (MVP) ────────────────────────────────────────────────
 
 const CHAVE_FLAGS = "pipoca.admin.flags.v1";

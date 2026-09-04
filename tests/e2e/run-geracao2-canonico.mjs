@@ -38,20 +38,16 @@
  * o texto LIDO, origem, pacoteOrigem e rodada (13-02) — salvo === lido; (5) o
  * leitor EXIBE o texto realizado; (6) caminho infeliz: realizador fora do ar ⇒
  * o portão CAI NO CRU (A+ v3 visível), origem sinalizada; (7) teto: fake que
- * estoura o teto (override e2e) ⇒ cru por 'teto' — a criança nunca vê erro.
+ * estoura o teto (override e2e) ⇒ cru por 'teto' — a criança nunca vê erro;
+ * (8) Plan03 · A1 — gate de consentimento: com IA desligada (cuidador não
+ * autorizou OU kill-switch) o realizador NÃO é chamado e a origem diz
+ * 'ia-desligada'. Por isso os blocos que ESPERAM o fake ligam a IA efetiva
+ * (modos.iaLigada + flag global `ia`) depois de selecionar o perfil.
  *
- * Usa playwright-core em cache (registry offline). Porta dedicada 5139.
+ * Chromium via _harness.mjs (D7). Porta dedicada 5139.
  */
-import { createRequire } from "node:module";
-import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
-import net from "node:net";
-
-const require = createRequire(import.meta.url);
-const PW_CORE =
-  process.env.PW_CORE ||
-  "C:/Users/mfard/AppData/Local/npm-cache/_npx/705bc6b22212b352/node_modules/playwright-core";
-const { chromium } = require(PW_CORE);
+import { chromium, executavelChromium, bootServer } from "./_harness.mjs";
 
 const PORT = Number(process.env.E2E_PORT) || 5139;
 const BASE = `http://localhost:${PORT}`;
@@ -62,30 +58,10 @@ const assert = (cond, msg) => {
   else { console.error(`  ✗ ${msg}`); falhou++; }
 };
 
-function esperarPorta(port, timeoutMs = 15000) {
-  const inicio = Date.now();
-  return new Promise((resolve, reject) => {
-    const tentar = () => {
-      const s = net.connect(port, "localhost");
-      s.on("connect", () => { s.end(); resolve(); });
-      s.on("error", () => {
-        s.destroy();
-        if (Date.now() - inicio > timeoutMs) reject(new Error("timeout esperando o server"));
-        else setTimeout(tentar, 200);
-      });
-    };
-    tentar();
-  });
-}
-
-const server = spawn("node", ["server.js"], { stdio: "ignore", env: { ...process.env, PORT: String(PORT) } });
+const server = await bootServer(PORT);
 let browser;
 try {
-  await esperarPorta(PORT);
-  const EXEC =
-    process.env.PW_CHROME ||
-    "C:/Users/mfard/AppData/Local/ms-playwright/chromium-1223/chrome-win64/chrome.exe";
-  browser = await chromium.launch({ headless: true, executablePath: EXEC });
+  browser = await chromium.launch({ headless: true, executablePath: executavelChromium() });
   const page = await browser.newPage();
   await page.addInitScript(() => {
     window.PIPOCA_CONFIG = { provedor: "local" }; // e2e SEMPRE offline
@@ -135,6 +111,9 @@ try {
     await App.repo.salvarPerfil(perfil);
     App.selecionarPerfil(perfil);
     await espera(30);
+    // A1 · o gate de consentimento exige IA EFETIVA (cuidador + plataforma).
+    localStorage.setItem("pipoca.admin.flags.v1", JSON.stringify({ ia: true, fala: false, conteudoCustomizado: true, telemetria: true }));
+    App.setState({ modos: Object.assign({}, App.estado.modos, { iaLigada: true }) });
 
     // Provedor FAKE no seam: registra o Pacote recebido e devolve texto realizado
     // em 3 PARÁGRAFOS (linha em branco), como o realizador real (fim do paredão).
@@ -256,7 +235,8 @@ try {
     feliz.titulo,
     { timeout: 4000 }
   );
-  await page.locator("div[role='button']", { hasText: feliz.titulo }).first().click();
+  // C2: o cartão da estante virou <button> (coração é irmão).
+  await page.locator("button", { hasText: feliz.titulo }).first().click();
   await page.waitForFunction(() => /faz-de-conta/i.test(document.body.innerText), { timeout: 4000 });
   assert(true, "o leitor EXIBE o texto realizado pela geração 2 (compor→realizar→validar→exibir→salvar)");
 
@@ -309,6 +289,7 @@ try {
     await App.repo.salvarPerfil(perfil);
     App.selecionarPerfil(perfil);
     await espera(30);
+    App.setState({ modos: Object.assign({}, App.estado.modos, { iaLigada: true }) }); // A1: IA efetiva
 
     // Edge "fora do ar": o remoto lança — o fallback NÃO depende do edge (13-03).
     Canon.geracao.realizadorRemoto = () => async () => { throw new Error("edge fora do ar (e2e)"); };
@@ -378,6 +359,7 @@ try {
     await App.repo.salvarPerfil(perfil);
     App.selecionarPerfil(perfil);
     await espera(30);
+    App.setState({ modos: Object.assign({}, App.estado.modos, { iaLigada: true }) }); // A1: IA efetiva
     // Realizador que NUNCA resolve → só o teto encerra a espera.
     Canon.geracao.realizadorRemoto = () => () => new Promise(() => {});
     App.iniciarComposicao();
@@ -429,6 +411,9 @@ try {
       };
     };
     window.__jogarRodada = async () => {
+      // A1: selecionar perfil hidrata os modos do save (iaLigada volta a false) —
+      // liga a IA efetiva antes de cada rodada que ESPERA o fake.
+      App.setState({ modos: Object.assign({}, App.estado.modos, { iaLigada: true }) });
       App.iniciarComposicao();
       const banco = App.estado.comp.banco.slice(0, 3);
       const pendente = { tipo: "r1", ordem: banco };
@@ -450,7 +435,8 @@ try {
     // (b)/(c) perfil LEGADO sem gênero (o perfil do incidente) — ativação pede
     const pietro = Canon.perfil.criarPerfil("id-pietro", { nome: "Pietro", idade: 8, nivel: "n2", avatarId: "pingo" });
     await App.repo.salvarPerfil(pietro);
-    App.selecionarPerfil(pietro);
+    // B5 (Plan03): o pedir-uma-vez abre na CHEGADA à T3 (destino 3), nunca sobre T4–T7.
+    App.selecionarPerfil(pietro, 3);
     await espera(30);
     return {
       overlayComGenero,
@@ -482,13 +468,18 @@ try {
   );
 
   // (b) pedir-uma-vez de verdade: nova ativação pergunta de novo; a escolha PERSISTE.
-  await page.evaluate(async () => {
+  // B5: a rodada deixou a criança na T5 — o overlay NÃO pode aparecer ali; só ao chegar à T3.
+  const semOverlayForaDaT3 = await page.evaluate(async () => {
     const App = window.PipocaApp;
     const perfis = await App.repo.carregarPerfis();
-    App.selecionarPerfil(perfis.find((p) => p.id === "id-pietro"));
+    App.selecionarPerfil(perfis.find((p) => p.id === "id-pietro")); // sem destino: fica onde está
+    await new Promise((r) => setTimeout(r, 60));
+    return { tela: App.estado.tela, overlay: App.estado.pedirGenero === true };
   });
+  assert(semOverlayForaDaT3.overlay === false, `B5: reativar fora da T3 (tela ${semOverlayForaDaT3.tela}) NÃO abre o pedir-uma-vez`);
+  await page.evaluate(() => { window.PipocaApp.setState({ tela: 3 }); });
   await page.waitForFunction(() => window.PipocaApp.estado.pedirGenero === true, { timeout: 4000 });
-  assert(true, "sem escolha persistida, a próxima ativação pergunta de novo");
+  assert(true, "sem escolha persistida, a próxima ativação pergunta de novo — na chegada à T3 (B5)");
   await page.locator("button", { hasText: "Um menino" }).first().click();
   const escolha = await page.evaluate(async () => {
     const App = window.PipocaApp;
@@ -498,7 +489,7 @@ try {
     const env = envs.find((e) => e.perfil && e.perfil.id === "id-pietro");
     await window.__jogarRodada();
     const perfis = await App.repo.carregarPerfis();
-    App.selecionarPerfil(perfis.find((p) => p.id === "id-pietro"));
+    App.selecionarPerfil(perfis.find((p) => p.id === "id-pietro"), 3); // B5: chega à T3
     await espera(30);
     return {
       estadoVivo: App.estado.perfil && App.estado.perfil.genero,
@@ -514,6 +505,72 @@ try {
   );
   const naoPerguntaMais = await page.evaluate(() => window.PipocaApp.estado.pedirGenero !== true);
   assert(naoPerguntaMais, "com o gênero persistido, a ativação seguinte NÃO pergunta mais (pediu UMA vez)");
+
+  console.log("\n=== Plan03 · A1 · Gate de consentimento: IA desligada ⇒ realizador NÃO é chamado ===");
+  const reqsRealizador = [];
+  page.on("request", (r) => { if (/functions\/v1\/realizador/.test(r.url())) reqsRealizador.push(r.url()); });
+  const gate = await page.evaluate(async () => {
+    const App = window.PipocaApp;
+    const Canon = window.PipocaCanonico;
+    const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+    const perfil = Canon.perfil.criarPerfil("g2-gate", {
+      nome: "Nina", idade: 7, nivel: "n2", avatarId: "lua", genero: "f",
+    });
+    await App.repo.salvarPerfil(perfil);
+    App.selecionarPerfil(perfil);
+    await espera(30);
+    const TEXTO_CONSENTIDO = "Texto realizado com consentimento.";
+    const registro = { chamadas: 0 };
+    Canon.geracao.realizadorRemoto = () => async () => {
+      registro.chamadas++;
+      return {
+        texto: TEXTO_CONSENTIDO, paragrafos: [TEXTO_CONSENTIDO],
+        veredito: { pass: true, motivos: [], avisos: [], presencaPorBeat: {} },
+        origem: { fonte: "llm", provedor: "fake-e2e", modelo: "fake-1" },
+        metadados: { chamadas: 1, duracaoMs: 1 },
+      };
+    };
+    const flags = (ia) => localStorage.setItem("pipoca.admin.flags.v1",
+      JSON.stringify({ ia, fala: false, conteudoCustomizado: true, telemetria: true }));
+    const cuidador = (on) => App.setState({ modos: Object.assign({}, App.estado.modos, { iaLigada: on }) });
+    const rodada = async () => {
+      App.iniciarComposicao();
+      const banco = App.estado.comp.banco.slice(0, 3);
+      const pendente = { tipo: "r1", ordem: banco };
+      const previa = App.preverComposicao(pendente, "n2");
+      const antes = registro.chamadas;
+      App.prepararLeituraPortao(pendente, banco[banco.length - 1]);
+      let g = 0;
+      while (App.estado.gateStage !== "reading" && g++ < 400) await espera(5);
+      const gateTrecho = App.estado.gateTrecho;
+      App.aplicarComposicao(pendente);
+      App.abrirProximaRodadaComposicao();
+      await espera(80);
+      const envs = JSON.parse(localStorage.getItem("pipoca.historias.v1:g2-gate") || "[]").map((e) => e.historia);
+      const ultimo = envs[envs.length - 1];
+      return { chamadas: registro.chamadas - antes, leuCru: gateTrecho === previa && previa.length > 0, gateTrecho, origem: ultimo ? ultimo.origem : null };
+    };
+    // (a) cuidador NÃO autorizou (default iaLigada:false), plataforma liberada.
+    flags(true); cuidador(false);
+    const semCuidador = await rodada();
+    // (b) cuidador autorizou, mas o kill-switch da plataforma está ativo.
+    cuidador(true); flags(false);
+    const comKill = await rodada();
+    // (c) os dois ligados ⇒ o realizador volta a ser chamado (comportamento anterior).
+    flags(true); cuidador(true);
+    const ligada = await rodada();
+    localStorage.removeItem("pipoca.admin.flags.v1");
+    return { semCuidador, comKill, ligada, textoConsentido: TEXTO_CONSENTIDO };
+  });
+  assert(gate.semCuidador.chamadas === 0 && gate.semCuidador.leuCru,
+    "cuidador NÃO autorizou ⇒ ZERO chamadas ao realizador; a T5 lê o A+ cru (nada da criança sai do aparelho)");
+  assert(!!gate.semCuidador.origem && gate.semCuidador.origem.fonte === "fallback-a-mais" && gate.semCuidador.origem.motivo === "ia-desligada",
+    "origem salva = fallback-a-mais com motivo 'ia-desligada' (consentimento ≠ falha)");
+  assert(gate.comKill.chamadas === 0 && gate.comKill.leuCru && !!gate.comKill.origem && gate.comKill.origem.motivo === "ia-desligada",
+    "kill-switch da plataforma ⇒ ZERO chamadas mesmo com o cuidador autorizando (fail-closed)");
+  assert(gate.ligada.chamadas === 1 && gate.ligada.gateTrecho === gate.textoConsentido,
+    "cuidador + plataforma ligados ⇒ o realizador é chamado 1× e a T5 lê o realizado (comportamento preservado)");
+  assert(reqsRealizador.length === 0, "nenhuma requisição a /functions/v1/realizador saiu do navegador (page.on('request'))");
 
   assert(erros.length === 0, "sem erros de página no fluxo da geração 2 (erros: " + (erros.join(" | ") || "nenhum") + ")");
 } finally {

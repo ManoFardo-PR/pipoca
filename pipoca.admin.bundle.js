@@ -3,27 +3,37 @@
   var __getOwnPropNames = Object.getOwnPropertyNames;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
-  var __moduleCache = /* @__PURE__ */ new WeakMap;
+  function __accessProp(key) {
+    return this[key];
+  }
   var __toCommonJS = (from) => {
-    var entry = __moduleCache.get(from), desc;
+    var entry = (__moduleCache ??= new WeakMap).get(from), desc;
     if (entry)
       return entry;
     entry = __defProp({}, "__esModule", { value: true });
-    if (from && typeof from === "object" || typeof from === "function")
-      __getOwnPropNames(from).map((key) => !__hasOwnProp.call(entry, key) && __defProp(entry, key, {
-        get: () => from[key],
-        enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-      }));
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (var key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(entry, key))
+          __defProp(entry, key, {
+            get: __accessProp.bind(from, key),
+            enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
+          });
+    }
     __moduleCache.set(from, entry);
     return entry;
   };
+  var __moduleCache;
+  var __returnValue = (v) => v;
+  function __exportSetter(name, newValue) {
+    this[name] = __returnValue.bind(null, newValue);
+  }
   var __export = (target, all) => {
     for (var name in all)
       __defProp(target, name, {
         get: all[name],
         enumerable: true,
         configurable: true,
-        set: (newValue) => all[name] = () => newValue
+        set: __exportSetter.bind(all, name)
       });
   };
 
@@ -1117,7 +1127,7 @@
 
   // src/admin/ia_global.ts
   var CONFIG_IA_GLOBAL_PADRAO = {
-    modeloPadrao: { claude: null, gemini: "gemini-2.5-flash", openai: null, deepseek: null },
+    modeloPadrao: { claude: null, gemini: null, openai: null, deepseek: null },
     cadeiaFallback: []
   };
   var PROVEDORES2 = ["claude", "gemini", "openai", "deepseek"];
@@ -1284,27 +1294,6 @@
       erros.push("avatarId deve ser string");
     }
     return erros;
-  }
-
-  class RepositorioPerfil {
-    _perfis = new Map;
-    listar() {
-      return [...this._perfis.values()];
-    }
-    buscar(id) {
-      return this._perfis.get(id) ?? null;
-    }
-    salvar(p) {
-      this._perfis.set(p.id, { ...p });
-    }
-    remover(id) {
-      return this._perfis.delete(id);
-    }
-    carregar(perfis) {
-      this._perfis.clear();
-      for (const p of perfis)
-        this._perfis.set(p.id, { ...p });
-    }
   }
 
   // src/core/economia.ts
@@ -1496,8 +1485,15 @@
     "sessao_iniciada",
     "sessao_encerrada",
     "historia_concluida",
-    "objeto_destravado"
+    "objeto_destravado",
+    "espelho_falhou"
   ];
+  function criarEvento(tipo, perfilId, dados, agora) {
+    if (typeof agora !== "number" || !Number.isFinite(agora)) {
+      throw new Error("criarEvento: `agora` (ts) deve ser número finito injetado pela borda");
+    }
+    return { esquema: ESQUEMA_TELEMETRIA, tipo, perfilId, ts: agora, dados };
+  }
   function validarEvento(e) {
     if (typeof e !== "object" || e === null)
       return false;
@@ -1586,6 +1582,7 @@
     const pacoteOrigem = sanearPacoteOrigem(r["pacoteOrigem"]);
     const paragrafos = sanearParagrafos(r["paragrafos"]);
     const rodada = typeof r["rodada"] === "number" && Number.isInteger(r["rodada"]) && r["rodada"] >= 1 && r["rodada"] <= 4 ? r["rodada"] : undefined;
+    const atualizadoEm = typeof r["atualizadoEm"] === "number" && Number.isFinite(r["atualizadoEm"]) ? r["atualizadoEm"] : undefined;
     return {
       id: r["id"],
       cenarioId: r["cenarioId"],
@@ -1601,7 +1598,8 @@
       ...pacoteOrigem ? { pacoteOrigem } : {},
       ...rodada !== undefined ? { rodada } : {},
       ...r["intermediaria"] === true ? { intermediaria: true } : {},
-      ...paragrafos ? { paragrafos } : {}
+      ...paragrafos ? { paragrafos } : {},
+      ...atualizadoEm !== undefined ? { atualizadoEm } : {}
     };
   }
   function dentroDaRetencaoHistoria(h, agora, retencaoDias = RETENCAO_HISTORIAS_DIAS) {
@@ -1635,6 +1633,28 @@
       resultado.push(h);
     }
     return resultado;
+  }
+  function mesclarHistorias(locais, remotas) {
+    const porId = new Map;
+    for (const h of Array.isArray(locais) ? locais : [])
+      porId.set(h.id, h);
+    for (const r of Array.isArray(remotas) ? remotas : []) {
+      const l = porId.get(r.id);
+      if (!l) {
+        porId.set(r.id, r);
+        continue;
+      }
+      const cl = typeof l.atualizadoEm === "number" ? l.atualizadoEm : undefined;
+      const cr = typeof r.atualizadoEm === "number" ? r.atualizadoEm : undefined;
+      if (cl !== undefined && cr !== undefined) {
+        if (cr > cl)
+          porId.set(r.id, r);
+      } else if (cr !== undefined) {
+        if (l.favorita !== r.favorita || l.texto !== r.texto)
+          porId.set(r.id, r);
+      }
+    }
+    return [...porId.values()];
   }
   function criarEnvelopeHistoria(historia) {
     return { esquema: ESQUEMA_HISTORIAS, historia };
@@ -1672,6 +1692,29 @@
       return false;
     }
   }
+  function lerArrayBruto(chave) {
+    try {
+      const raw = localStorage.getItem(chave);
+      if (raw === null)
+        return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  function particionarPorEsquema(itens, esquemaEsperado) {
+    const conhecidos = [];
+    const resto = [];
+    for (const item of itens) {
+      if (typeof item === "object" && item !== null && item["esquema"] === esquemaEsperado) {
+        conhecidos.push(item);
+      } else {
+        resto.push(item);
+      }
+    }
+    return { conhecidos, resto };
+  }
 
   // src/core/persistencia/RepositorioLocalStorage.ts
   class RepositorioLocalStorage {
@@ -1686,13 +1729,13 @@
       return validos;
     }
     async salvarPerfil(p) {
-      const raw = lerArrayEnvelopes(CHAVE_PERFIS, "pipoca.perfil.v1");
-      const semEste = raw.filter((e) => e.perfil?.id !== p.id);
+      const { conhecidos, resto } = particionarPorEsquema(lerArrayBruto(CHAVE_PERFIS), "pipoca.perfil.v1");
+      const semEste = conhecidos.filter((e) => e.perfil?.id !== p.id);
       const novoEnvelope = {
         esquema: "pipoca.perfil.v1",
         perfil: { ...p }
       };
-      gravarItem(CHAVE_PERFIS, [...semEste, novoEnvelope]);
+      gravarItem(CHAVE_PERFIS, [...resto, ...semEste, novoEnvelope]);
     }
     async carregarSave(perfilId) {
       try {
@@ -1711,7 +1754,19 @@
         perfilId,
         estado
       };
-      gravarItem(chaveSave(perfilId), envelope);
+      if (gravarItem(chaveSave(perfilId), envelope))
+        return;
+      try {
+        const chaveTel = chaveTelemetria(perfilId);
+        const bruto = lerArrayBruto(chaveTel);
+        if (bruto.length > 0) {
+          gravarItem(chaveTel, bruto.slice(Math.floor(bruto.length / 2)));
+          if (gravarItem(chaveSave(perfilId), envelope))
+            return;
+          gravarItem(chaveTel, []);
+          gravarItem(chaveSave(perfilId), envelope);
+        }
+      } catch {}
     }
     async registrarTelemetria(evento) {
       const chave = chaveTelemetria(evento.perfilId);
@@ -1753,33 +1808,37 @@
     }
     async salvarHistoria(perfilId, historia) {
       const chave = chaveHistorias(perfilId);
-      const envelopes = lerArrayEnvelopes(chave, ESQUEMA_HISTORIAS);
+      const { conhecidos, resto } = particionarPorEsquema(lerArrayBruto(chave), ESQUEMA_HISTORIAS);
+      const envelopes = conhecidos;
       const semEsta = envelopes.filter((e) => e.historia?.id !== historia.id);
       let lista = [...semEsta, criarEnvelopeHistoria({ ...historia })];
-      if (gravarItem(chave, lista))
+      if (gravarItem(chave, [...resto, ...lista]))
         return;
       const podavel = (e, intermediaria) => !!e.historia && e.historia.favorita !== true && e.historia.id !== historia.id && e.historia.intermediaria === true === intermediaria;
       for (const faseIntermediarias of [true, false]) {
         const candidatas = lista.filter((e) => podavel(e, faseIntermediarias)).sort((a, b) => (a.historia?.criadaEm ?? 0) - (b.historia?.criadaEm ?? 0));
         for (const vitima of candidatas) {
           lista = lista.filter((e) => e !== vitima);
-          if (gravarItem(chave, lista))
+          if (gravarItem(chave, [...resto, ...lista]))
             return;
         }
       }
     }
     async apagarHistoria(perfilId, historiaId) {
-      const envelopes = lerArrayEnvelopes(chaveHistorias(perfilId), ESQUEMA_HISTORIAS);
+      const chave = chaveHistorias(perfilId);
+      const { conhecidos, resto } = particionarPorEsquema(lerArrayBruto(chave), ESQUEMA_HISTORIAS);
+      const envelopes = conhecidos;
       const restantes = envelopes.filter((e) => e.historia?.id !== historiaId);
       if (restantes.length !== envelopes.length)
-        gravarItem(chaveHistorias(perfilId), restantes);
+        gravarItem(chave, [...resto, ...restantes]);
     }
     async podarHistorias(perfilId, agora) {
       const antes = await this.carregarHistorias(perfilId);
       const mantidas = normalizarHistorias(antes, agora);
       const removidas = antes.length - mantidas.length;
       if (removidas > 0) {
-        gravarItem(chaveHistorias(perfilId), mantidas.map(criarEnvelopeHistoria));
+        const resto = particionarPorEsquema(lerArrayBruto(chaveHistorias(perfilId)), ESQUEMA_HISTORIAS).resto;
+        gravarItem(chaveHistorias(perfilId), [...resto, ...mantidas.map(criarEnvelopeHistoria)]);
       }
       return removidas;
     }
@@ -1793,9 +1852,9 @@
       try {
         localStorage.removeItem(chaveHistorias(perfilId));
       } catch {}
-      const envelopes = lerArrayEnvelopes(CHAVE_PERFIS, "pipoca.perfil.v1");
-      const filtrado = envelopes.filter((e) => e.perfil?.id !== perfilId);
-      gravarItem(CHAVE_PERFIS, filtrado);
+      const { conhecidos, resto } = particionarPorEsquema(lerArrayBruto(CHAVE_PERFIS), "pipoca.perfil.v1");
+      const filtrado = conhecidos.filter((e) => e.perfil?.id !== perfilId);
+      gravarItem(CHAVE_PERFIS, [...resto, ...filtrado]);
     }
   }
 
@@ -1898,10 +1957,6 @@
       }
       return { ...CONFIG_LOCAL };
     }
-    if (provedor === "firebase") {
-      const opcoes = r["opcoes"];
-      return { provedor: "firebase", opcoes: opcoes && typeof opcoes === "object" ? opcoes : {} };
-    }
     return { ...CONFIG_LOCAL };
   }
   function configDoAmbiente() {
@@ -1913,68 +1968,7 @@
     }
   }
 
-  // src/backend/adaptadores/auth_firebase.ts
-  var NAO_CONFIGURADO = "Backend Firebase não configurado neste build (paridade documentada — fase06).";
-  function criarAuthFirebase() {
-    return {
-      entrarFamilia(_cred) {
-        return Promise.reject(new Error(NAO_CONFIGURADO));
-      },
-      entrarSuperAdmin(_cred) {
-        return Promise.reject(new Error(NAO_CONFIGURADO));
-      },
-      sair() {
-        return Promise.resolve();
-      },
-      sessaoAtual() {
-        return null;
-      }
-    };
-  }
-
-  // src/backend/adaptadores/repo_firebase.ts
-  var NAO_CONFIGURADO2 = "RepositorioFirebase não configurado neste build (paridade documentada — fase06).";
-
-  class RepositorioFirebase {
-    carregarPerfis() {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    salvarPerfil(_p) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    carregarSave(_perfilId) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    salvarSave(_perfilId, _estado) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    registrarTelemetria(_evento) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    carregarTelemetria(_perfilId) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-    apagarPerfil(_perfilId) {
-      return Promise.reject(new Error(NAO_CONFIGURADO2));
-    }
-  }
-
   // src/ia/provedor.ts
-  function validarTrechoGerado(bruto) {
-    if (!bruto || typeof bruto !== "object") {
-      throw new Error("Saída do provedor não é um objeto Trecho.");
-    }
-    const r = bruto;
-    const texto = r["texto"];
-    const ehFinal = r["ehFinal"];
-    if (typeof texto !== "string" || texto.trim() === "") {
-      throw new Error("Trecho gerado sem texto.");
-    }
-    if (typeof ehFinal !== "boolean") {
-      throw new Error("Trecho gerado sem ehFinal booleano.");
-    }
-    return { texto, ehFinal };
-  }
   function transportePadrao() {
     return (url, init) => fetch(url, init);
   }
@@ -2207,6 +2201,52 @@
         if (resp.status !== 200)
           throw new Error("Não deu para trocar o e-mail agora. Tente de novo.");
       },
+      entrarComGoogle(redirecionarPara) {
+        const g = globalThis;
+        const origin = g.location && g.location.origin || "";
+        const destino = redirecionarPara || (origin ? origin + "/app" : "");
+        const url = base + "/auth/v1/authorize?provider=google" + (destino ? "&redirect_to=" + encodeURIComponent(destino) : "");
+        if (g.location) {
+          if (typeof g.location.assign === "function")
+            g.location.assign(url);
+          else
+            g.location.href = url;
+        }
+      },
+      async capturarRetornoOAuth() {
+        const g = globalThis;
+        const hash = g.location && g.location.hash || "";
+        if (hash.length < 2)
+          return null;
+        const frag = new URLSearchParams(hash.charAt(0) === "#" ? hash.slice(1) : hash);
+        const access = frag.get("access_token");
+        const refresh = frag.get("refresh_token");
+        const limparFragmento = () => {
+          try {
+            if (g.history && g.history.replaceState && g.location) {
+              g.history.replaceState(null, "", (g.location.pathname || "/") + (g.location.search || ""));
+            }
+          } catch {}
+        };
+        if (!access || !refresh)
+          return null;
+        let user = null;
+        try {
+          const resp = await transporte(base + "/auth/v1/user", { method: "GET", headers: cabecalhos(access) });
+          if (resp.status === 200)
+            user = await resp.json();
+        } catch {}
+        limparFragmento();
+        if (!user || !user.id)
+          return null;
+        const r = {
+          access_token: access,
+          refresh_token: refresh,
+          expires_in: Number(frag.get("expires_in")) || 3600,
+          user
+        };
+        return assentarSessao(r, "familia", await tenantVinculado(access));
+      },
       async sair() {
         const s = lerSessaoBackend();
         gravarSessaoBackend(null);
@@ -2314,21 +2354,29 @@
       return 0;
     }
     async carregarHistorias(perfilId) {
-      const linhas = await this.req("/historias?select=dados&perfil_id=eq." + encodeURIComponent(perfilId) + "&order=criada_em.desc", "GET");
+      const linhas = await this.req("/historias?select=dados,atualizado_em&perfil_id=eq." + encodeURIComponent(perfilId) + "&order=criada_em.desc", "GET");
       const out = [];
       for (const l of Array.isArray(linhas) ? linhas : []) {
         const h = validarHistoriaSalva(l && l.dados ? l.dados.historia : null);
-        if (h !== null)
-          out.push(h);
+        if (h === null)
+          continue;
+        if (h.atualizadoEm === undefined && typeof l.atualizado_em === "string") {
+          const t = Date.parse(l.atualizado_em);
+          if (Number.isFinite(t))
+            h.atualizadoEm = t;
+        }
+        out.push(h);
       }
       return out;
     }
     async salvarHistoria(perfilId, historia) {
+      const carimbo = typeof historia.atualizadoEm === "number" ? historia.atualizadoEm : Date.now();
       await this.req("/historias?on_conflict=id", "POST", [{
         id: historia.id,
         perfil_id: perfilId,
         favorita: historia.favorita === true,
         criada_em: new Date(historia.criadaEm).toISOString(),
+        atualizado_em: new Date(carimbo).toISOString(),
         dados: { esquema: ESQUEMA_HISTORIAS, historia: { ...historia } }
       }], "resolution=merge-duplicates,return=minimal");
     }
@@ -2349,8 +2397,11 @@
     }
   }
 
-  // src/backend/adaptadores/repo_sincronizado.ts
-  var CHAVE_TOMBSTONES = "pipoca.sync.apagados.v1";
+  // src/backend/adaptadores/fila_remota.ts
+  var CHAVE_FILA_REMOTA = "pipoca.fila-remota.v1";
+  var TETO_FILA_REMOTA = 50;
+  var MAX_TENTATIVAS_ITEM = 10;
+  var OPS = ["salvarPerfil", "salvarSave", "registrarTelemetria", "salvarHistoria", "apagarHistoria"];
   function storage2() {
     try {
       const g = globalThis;
@@ -2359,8 +2410,109 @@
       return null;
     }
   }
-  function lerTombstones() {
+  function lerFilaRemota() {
     const st = storage2();
+    if (!st)
+      return [];
+    try {
+      const raw = st.getItem(CHAVE_FILA_REMOTA);
+      const arr = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(arr))
+        return [];
+      return arr.filter((x) => {
+        const r = x;
+        return typeof x === "object" && x !== null && OPS.includes(r["op"]) && typeof r["perfilId"] === "string" && typeof r["id"] === "string" && typeof r["tentativas"] === "number";
+      });
+    } catch {
+      return [];
+    }
+  }
+  function gravarFila(itens) {
+    if (!gravarItem(CHAVE_FILA_REMOTA, itens) && itens.length > 1) {
+      gravarItem(CHAVE_FILA_REMOTA, itens.slice(1));
+    }
+  }
+  function enfileirarRemoto(item) {
+    const chave = item.op + "|" + item.perfilId + "|" + item.id;
+    const fila = lerFilaRemota().filter((x) => x.op + "|" + x.perfilId + "|" + x.id !== chave);
+    fila.push({ ...item, tentativas: 0, quando: item.quando ?? Date.now() });
+    gravarFila(fila.slice(-TETO_FILA_REMOTA));
+  }
+  function executar(remoto, item) {
+    switch (item.op) {
+      case "salvarPerfil":
+        return remoto.salvarPerfil(item.payload);
+      case "salvarSave":
+        return remoto.salvarSave(item.perfilId, item.payload);
+      case "registrarTelemetria":
+        return remoto.registrarTelemetria(item.payload);
+      case "salvarHistoria":
+        return remoto.salvarHistoria ? remoto.salvarHistoria(item.perfilId, item.payload) : Promise.resolve();
+      case "apagarHistoria":
+        return remoto.apagarHistoria ? remoto.apagarHistoria(item.perfilId, item.id) : Promise.resolve();
+    }
+  }
+  async function drenarFilaRemota(remoto) {
+    const fila = lerFilaRemota();
+    if (!fila.length)
+      return { drenados: 0, restantes: 0 };
+    const sobras = [];
+    let drenados = 0;
+    for (const item of fila) {
+      try {
+        await executar(remoto, item);
+        drenados++;
+      } catch (e) {
+        const ultimoErro = String(e?.message || e);
+        const tentativas = item.tentativas + 1;
+        if (tentativas >= MAX_TENTATIVAS_ITEM) {
+          console.warn("[pipoca.sync] item da fila remota DESCARTADO após " + tentativas + " tentativas", {
+            op: item.op,
+            perfilId: item.perfilId,
+            id: item.id,
+            ultimoErro
+          });
+        } else {
+          sobras.push({ ...item, tentativas, ultimoErro });
+        }
+      }
+    }
+    gravarFila(sobras);
+    return { drenados, restantes: sobras.length };
+  }
+
+  // src/backend/adaptadores/repo_sincronizado.ts
+  var _aoMesclarHistorias = null;
+  function historiaDiverge(a, b) {
+    if (!a)
+      return true;
+    return (a.atualizadoEm || 0) !== (b.atualizadoEm || 0) || a.favorita !== b.favorita || a.texto !== b.texto;
+  }
+  async function aplicarMesclaHistorias(local, perfilId, locais, remotas, agora) {
+    if (!local.salvarHistoria || !remotas.length)
+      return 0;
+    const mescla = normalizarHistorias(mesclarHistorias(locais, remotas), agora);
+    const antes = new Map(locais.map((h) => [h.id, h]));
+    let gravadas = 0;
+    for (const h of mescla) {
+      if (!historiaDiverge(antes.get(h.id), h))
+        continue;
+      await local.salvarHistoria(perfilId, h);
+      gravadas++;
+    }
+    return gravadas;
+  }
+  var CHAVE_TOMBSTONES = "pipoca.sync.apagados.v1";
+  function storage3() {
+    try {
+      const g = globalThis;
+      return g.localStorage || null;
+    } catch {
+      return null;
+    }
+  }
+  function lerTombstones() {
+    const st = storage3();
     if (!st)
       return [];
     try {
@@ -2372,7 +2524,7 @@
     }
   }
   function gravarTombstones(ids) {
-    const st = storage2();
+    const st = storage3();
     if (!st)
       return;
     try {
@@ -2390,229 +2542,125 @@
   function removerTombstone(id) {
     gravarTombstones(lerTombstones().filter((x) => x !== id));
   }
-  function criarRepositorioSincronizado(local, remoto) {
+  function ehTransitorio(e) {
+    const m = String(e?.message ?? e ?? "");
+    const http = /HTTP (\d{3})/.exec(m);
+    if (http) {
+      const s = Number(http[1]);
+      return s >= 500 || s === 429 || s === 408;
+    }
+    if (/sem sessão/i.test(m))
+      return false;
+    return true;
+  }
+  var _avisouLeituraRemota = false;
+  function _avisarLeituraUmaVez(e) {
+    if (_avisouLeituraRemota)
+      return;
+    _avisouLeituraRemota = true;
+    console.info("[pipoca.sync] leitura remota de histórias indisponível (offline/sem sessão) — seguimos no local", String(e?.message ?? e ?? ""));
+  }
+  function criarRepositorioSincronizado(local, remoto, opcoes) {
+    const atrasos = opcoes && opcoes.atrasosRetryMs || [1000, 4000];
+    const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
+    async function tentarRemoto(exec) {
+      let ultimo;
+      for (let i = 0;i <= atrasos.length; i++) {
+        try {
+          await exec();
+          return;
+        } catch (e) {
+          ultimo = e;
+          if (!ehTransitorio(e) || i === atrasos.length)
+            break;
+          await dormir(atrasos[i]);
+        }
+      }
+      throw ultimo;
+    }
+    function espelhar(op, perfilId, id, payload, exec) {
+      tentarRemoto(exec).catch((e) => {
+        const erro = String(e?.message ?? e ?? "");
+        console.warn("[pipoca.sync] espelho remoto falhou — item na fila", { op, perfilId, id, erro });
+        try {
+          enfileirarRemoto({ op, perfilId, id, payload, ultimoErro: erro });
+        } catch {}
+        try {
+          local.registrarTelemetria(criarEvento("espelho_falhou", perfilId, { op, erro }, Date.now())).catch((e2) => console.warn("[pipoca.sync] rastro local da falha não gravou (o warn acima fica)", String(e2?.message ?? e2 ?? "")));
+        } catch {}
+      });
+    }
     return {
       carregarPerfis: () => local.carregarPerfis(),
       carregarSave: (perfilId) => local.carregarSave(perfilId),
       carregarTelemetria: (perfilId) => local.carregarTelemetria(perfilId),
       async salvarPerfil(p) {
         await local.salvarPerfil(p);
-        remoto.salvarPerfil(p).catch(() => {});
+        espelhar("salvarPerfil", p.id, p.id, p, () => remoto.salvarPerfil(p));
       },
       async salvarSave(perfilId, estado) {
         await local.salvarSave(perfilId, estado);
-        remoto.salvarSave(perfilId, estado).catch(() => {});
+        espelhar("salvarSave", perfilId, perfilId, estado, () => remoto.salvarSave(perfilId, estado));
       },
       async registrarTelemetria(evento) {
         await local.registrarTelemetria(evento);
-        remoto.registrarTelemetria(evento).catch(() => {});
+        espelhar("registrarTelemetria", evento.perfilId, evento.tipo + ":" + evento.ts, evento, () => remoto.registrarTelemetria(evento));
       },
       async podarTelemetria(perfilId, agora, retencaoDias) {
         const removidos = local.podarTelemetria ? await local.podarTelemetria(perfilId, agora, retencaoDias) : 0;
-        if (remoto.podarTelemetria)
-          remoto.podarTelemetria(perfilId, agora, retencaoDias).catch(() => {});
+        if (remoto.podarTelemetria) {
+          remoto.podarTelemetria(perfilId, agora, retencaoDias).catch((e) => console.warn("[pipoca.sync] poda remota de telemetria falhou (refeita na próxima borda)", { perfilId, erro: String(e?.message ?? e ?? "") }));
+        }
         return removidos;
       },
       async apagarPerfil(perfilId) {
         await local.apagarPerfil(perfilId);
         adicionarTombstone(perfilId);
-        remoto.apagarPerfil(perfilId).then(() => removerTombstone(perfilId)).catch(() => {});
+        remoto.apagarPerfil(perfilId).then(() => removerTombstone(perfilId)).catch((e) => console.warn("[pipoca.sync] apagar remoto falhou — tombstone fica na fila", { perfilId, erro: String(e?.message ?? e ?? "") }));
       },
-      carregarHistorias: (perfilId) => local.carregarHistorias ? local.carregarHistorias(perfilId) : Promise.resolve([]),
+      carregarHistorias(perfilId) {
+        const locais = local.carregarHistorias ? local.carregarHistorias(perfilId) : Promise.resolve([]);
+        if (remoto.carregarHistorias) {
+          Promise.all([locais, remoto.carregarHistorias(perfilId)]).then(([l, r]) => aplicarMesclaHistorias(local, perfilId, l, r, Date.now())).then((gravadas) => {
+            if (gravadas > 0 && _aoMesclarHistorias)
+              _aoMesclarHistorias(perfilId);
+          }).catch(_avisarLeituraUmaVez);
+        }
+        return locais;
+      },
       async salvarHistoria(perfilId, historia) {
         if (local.salvarHistoria)
           await local.salvarHistoria(perfilId, historia);
-        if (remoto.salvarHistoria)
-          remoto.salvarHistoria(perfilId, historia).catch(() => {});
+        if (remoto.salvarHistoria) {
+          espelhar("salvarHistoria", perfilId, historia.id, historia, () => remoto.salvarHistoria(perfilId, historia));
+        }
       },
       async apagarHistoria(perfilId, historiaId) {
         if (local.apagarHistoria)
           await local.apagarHistoria(perfilId, historiaId);
-        if (remoto.apagarHistoria)
-          remoto.apagarHistoria(perfilId, historiaId).catch(() => {});
+        if (remoto.apagarHistoria) {
+          espelhar("apagarHistoria", perfilId, historiaId, null, () => remoto.apagarHistoria(perfilId, historiaId));
+        }
       },
       async podarHistorias(perfilId, agora) {
         const removidas = local.podarHistorias ? await local.podarHistorias(perfilId, agora) : 0;
-        if (remoto.podarHistorias)
-          remoto.podarHistorias(perfilId, agora).catch(() => {});
+        if (remoto.podarHistorias) {
+          remoto.podarHistorias(perfilId, agora).catch((e) => console.warn("[pipoca.sync] poda remota de histórias falhou (refeita na próxima borda)", { perfilId, erro: String(e?.message ?? e ?? "") }));
+        }
         return removidas;
       }
     };
-  }
-
-  // src/backend/proxy_ia.ts
-  function criarProxyIA(op) {
-    const transporte = op.transporte || transportePadrao();
-    const base = op.url.replace(/\/+$/, "");
-    return {
-      async gerar(req) {
-        const token = await op.obterToken();
-        if (!token)
-          throw new Error("ProxyIA: sem sessão para gerar.");
-        const tenant = op.tenantId ? op.tenantId() : null;
-        const resp = await transporte(base + "/functions/v1/proxy-ia", {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-            apikey: op.anonKey,
-            Authorization: "Bearer " + token
-          },
-          body: JSON.stringify({ ...req, ...tenant ? { tenantId: tenant } : {} })
-        });
-        if (resp.status !== 200) {
-          throw new Error("ProxyIA: HTTP " + resp.status + " — degradando para o provedor local.");
-        }
-        return validarTrechoGerado(await resp.json());
-      }
-    };
-  }
-
-  // src/core/realizador/prompt_template.ts
-  var DESCRICAO_NIVEL = {
-    n1: "Primeiras palavras — sílabas e palavras soltas",
-    n2: "Frases curtas — uma linha",
-    n3: "Pequenos textos — frases ligadas",
-    n4: "Parágrafos — histórias mais longas"
-  };
-  var MAXIMO_PALAVRAS = {
-    n1: [31, 44, 58, 71],
-    n2: [55, 77, 100, 122],
-    n3: [91, 125, 159, 193],
-    n4: [200, 268, 335, 403]
-  };
-  function rodadaDoPacote(pacote) {
-    const r = pacote.beats.length - 2;
-    return r < 1 ? 1 : r > 4 ? 4 : r;
-  }
-  function maximoPalavrasDoPacote(pacote) {
-    return MAXIMO_PALAVRAS[pacote.nivel][rodadaDoPacote(pacote) - 1];
-  }
-  var FEWSHOT_POR_NIVEL = {
-    n1: [
-      {
-        entrada: "ELEMENTOS: vagalume → folha → vento · PERSONAGEM: Joana (menina)",
-        saida: "O quintal sussurra segredos, Joana quer ver tudo. A grama fria toca seu pé. Uma luz pisca no fundo, os olhos de Joana seguem. Uma folha desce rodando, o dedo de Joana segue. O vento pula o muro, a pele de Joana sente o fresco. O quintal conta tudo, Joana sente os segredos."
-      }
-    ],
-    n2: [
-      {
-        entrada: "ELEMENTOS: vagalume → vento → frasco · PERSONAGEM: Joana (menina)",
-        saida: "O quintal sussurra segredos. Joana sente a grama fria, quer ver tudo. Seus olhos seguem o vaga-lume piscando no fundo. Ela chega perto na ponta dos pés, e a faísca entra no pote, vira sua lanterninha. O vento pula o muro e corre, fresco, mexendo em tudo. A pele de Joana arrepia, o cabelo mexe. Ela segura o pote de vidro frio e liso com as duas mãos, espiando o mundo lá dentro."
-      },
-      {
-        entrada: "ELEMENTOS: folha → frasco → gato → vento · PERSONAGEM: Pietro (menino)",
-        saida: "O quintal sussurra segredos. A grama fria no pé de Pietro faz a vontade de ver tudo. Uma folha solta do galho, desce rodando. O dedo de Pietro acompanha, os olhos dançam. Um pote frio e liso espera na grama. Pietro o segura, espia o mundo. Um gato quieto aparece na cerca, olhos verdes. Pietro silencia, prende a respiração. O gato vê a folha, pula, brincando. O vento pula o muro, corre, fresco. A pele de Pietro arrepia, o cabelo mexe. O quintal continua a sussurrar segredos."
-      }
-    ],
-    n3: [
-      {
-        entrada: "ELEMENTOS: vento → vagalume → gato → frasco · PERSONAGEM: Pietro (menino)",
-        saida: `O quintal sussurra segredos; a grama fria nos pés de Pietro traz vontade de descobrir. O vento rola pelo muro, corre no quintal, fresco de longe, mexe de leve. Os braços de Pietro arrepiam, o cabelo mexe. No canto escuro, luzinha acende e apaga; vaga-lume pisca devagar como estrela. Os olhos de Pietro seguem a pisca, querendo perto.
-
-Na cerca, gato aparece sem barulho, quieto feito sombra, olhos verdes acesos feito lanternas. Pietro fica em silêncio, prende a respiração, troca olhar com o gato, que espia a luzinha. Então, Pietro vê pote de vidro escondido na grama, frio e liso feito pedra de rio, que entorta o mundo. Ele o segura com as duas mãos, fecha um olho para espiar. A faísca do vaga-lume entra no pote, piscando lá dentro — uma lanterninha viva pra carregar. Pietro agora tem um segredo do quintal, guardado bem perto.`
-      },
-      {
-        entrada: "ELEMENTOS: vagalume → folha → gato → frasco · PERSONAGEM: Pietro (menino)",
-        saida: "O quintal sussurra segredos, um por um. A grama fria nos pés de Pietro traz a vontade de descobrir. No canto escuro, um vaga-lume acende e apaga, estrelinha pra brincar. Os olhos de Pietro seguem a pisca, e ele na ponta dos pés quer chegar perto. A faísca entra no pote de vidro, virando lanterninha viva. Uma folha se solta do galho alto, descendo rodando no ar. O dedo de Pietro acompanha cada volta, sua mão aberta, esperando. Na cerca, um gato aparece sem barulho, quieto feito sombra, olhos verdes acesos. Pietro fica em silêncio, prende a respiração, e troca um olhar demorado. O gato espia a luzinha piscando, movendo a cabeça. Um pote de vidro, frio e liso feito pedra de rio, está na grama, entortando o mundo. Pietro o segura com as duas mãos, fecha um olho e espia, colhendo os segredos do quintal."
-      }
-    ],
-    n4: [
-      {
-        entrada: "ELEMENTOS: folha → vagalume → frasco · PERSONAGEM: Pietro (menino)",
-        saida: "O quintal sussurra segredos, e a grama fria nos pés de Pietro faz seu coração bater forte de vontade de saber. Do galho alto, uma folha se despede e desce no ar escuro, rodando leve. O dedo de Pietro acompanha as voltas, e sua mão se abre feito ninho, esperando a folha pousar. No canto escuro perto da cerca, uma luzinha acende e apaga, um vaga-lume. Os olhos de Pietro seguem a pisca, e a vontade o move na ponta dos pés, prendendo a respiração, até um pote de vidro na grama. A faísca entra no pote frio e liso, piscando lá dentro, presa e livre, uma lanterninha viva. Pietro o segura com as duas mãos, ergue contra a luz, fecha um olho e espia o mundo que entorta e brilha, pequeno e curvo, e a vontade de saber se colhe no brilho da lanterninha viva."
-      },
-      {
-        entrada: "ELEMENTOS: frasco → vento → gato → vagalume · PERSONAGEM: Pietro (menino)",
-        saida: `O quintal sussurra segredos para quem vem ver, e a grama fria nos pés descalços de Pietro faz seu coração bater forte de vontade de saber. Ele segura um pote de vidro com as duas mãos, erguendo-o contra a luz, e fecha um olho para espiar o mundo que entorta lá dentro, virando devagar. O pote vazio parece à espera, e Pietro sente a certeza boa de que a noite ainda vai mandar uma coisinha brilhante para morar ali.
-
-O vento chega rolando por cima do muro, balançando a grama e cheirando a terra molhada. A pele dos braços de Pietro arrepia, ele fecha os olhos e respira fundo, deixando o vento passar como se fosse noite. Em cima da cerca, um gato já está sentado, e Pietro fica em silêncio, prendendo a respiração, trocando um olhar demorado e piscando devagar de volta. No canto do quintal, uma luzinha acende e apaga, flutuando. Os olhos de Pietro seguem a pisca, e a vontade de chegar perto o guia, então a faísca roda no ar, encontra o pote e entra devagarinho, piscando quentinha, como quem chega em casa.`
-      }
-    ]
-  };
-  function rotuloGenero(genero) {
-    return genero === "f" ? "menina" : "menino";
-  }
-  function personalizarExemplo(ex, nomeAlvo, generoAlvo) {
-    const m = ex.entrada.match(/PERSONAGEM:\s*([^()]+?)\s*\((menina|menino)\)/);
-    if (!m)
-      return ex;
-    const nomeFonte = m[1].trim();
-    const generoFonte = m[2] === "menina" ? "f" : "m";
-    const trocar = (s) => {
-      let out = s.replace(new RegExp("\\b" + nomeFonte.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "g"), nomeAlvo);
-      if (generoFonte !== generoAlvo) {
-        const pares = generoAlvo === "m" ? [["menina", "menino"], ["Ela", "Ele"], ["ela", "ele"], ["Dela", "Dele"], ["dela", "dele"]] : [["menino", "menina"], ["Ele", "Ela"], ["ele", "ela"], ["Dele", "Dela"], ["dele", "dela"]];
-        for (const [de, para] of pares)
-          out = out.replace(new RegExp("\\b" + de + "\\b", "g"), para);
-      }
-      return out;
-    };
-    return { entrada: trocar(ex.entrada), saida: trocar(ex.saida) };
-  }
-  function montarPromptRealizador(pacote) {
-    const nivel = pacote.nivel;
-    const nome = pacote.personagem.nome;
-    const genero = rotuloGenero(pacote.personagem.genero);
-    const maximo = maximoPalavrasDoPacote(pacote);
-    const linhasUser = [];
-    linhasUser.push(`LUGAR: ${pacote.cenario.descricao}`);
-    linhasUser.push(`VOZ DO LUGAR: ${pacote.cenario.voz_do_contador}`);
-    linhasUser.push(`O QUE O LUGAR FAZ SENTIR: ${pacote.cenario.sensacao_no_personagem}`);
-    linhasUser.push(`PERSONAGEM: ${nome} (${genero})`);
-    linhasUser.push("", "ELEMENTOS, NA ORDEM:");
-    pacote.beats.forEach((beat, i) => {
-      linhasUser.push(`${i + 1}. ${beat.objeto} (${beat.papel})`);
-      linhasUser.push(`   O QUE É: ${beat.descricao}`);
-      linhasUser.push(`   CORPO: ${beat.corpo}`);
-      for (const relacao of beat.relacoes) {
-        linhasUser.push(`   INTERAÇÃO (com ${relacao.alvo}): ${relacao.interacao}`);
-      }
-    });
-    const linhasSystem = [
-      "Escreva uma história infantil curta a partir do MATERIAL abaixo.",
-      `O corpo de ${nome} guia cada cena: use os gestos dados em CORPO, não invente emoções abstratas.`,
-      "O lugar é o contador: a voz do lugar abre e costura a história.",
-      "Plante a vontade na abertura; feche colhendo essa vontade no corpo.",
-      "NÃO invente acontecimentos, objetos, personagens ou falas.",
-      "NÃO remova nenhum elemento. NÃO mude a ordem dos elementos.",
-      `NÃO troque o nome (${nome}), o gênero (${genero}) ou a idade.`,
-      "Escreva no tempo PRESENTE (a história acontece agora), como nos exemplos abaixo.",
-      `Não use "ele" ou "ela" para objetos — repita o nome do objeto.`,
-      `Mantenha o vocabulário do nível ${nivel} (${DESCRICAO_NIVEL[nivel]}) — nem mais simples, nem mais difícil.`
-    ];
-    if (nivel === "n1") {
-      linhasSystem.push("Nível n1: frases bem curtas, UMA sensação de corpo por elemento.", 'Integre a sensação de corpo na frase do evento com "e" — no máximo 2 frases por elemento.', "Repetir o nome do objeto ou da personagem é bem-vindo (repetição coesiva).", "No máximo 1 fragmento exclamativo em todo o texto.");
-    } else {
-      linhasSystem.push('Uma frase pode unir-se à outra com "e", "mas", "então", "depois". Menos pontos finais, sem frases picadas.');
-    }
-    const exemplos = FEWSHOT_POR_NIVEL[nivel];
-    if (exemplos.length > 0) {
-      linhasSystem.push("", `EXEMPLOS do nível ${nivel} (siga o tom, o ritmo e o comprimento):`);
-      exemplos.forEach((exemploBruto, i) => {
-        const exemplo = personalizarExemplo(exemploBruto, nome, pacote.personagem.genero);
-        linhasSystem.push(`EXEMPLO ${i + 1} — ${exemplo.entrada}`, exemplo.saida, "");
-      });
-    }
-    if (pacote.eco !== null) {
-      linhasSystem.push(`Termine ecoando ${pacote.eco.abre_com} com as próprias palavras.`);
-    }
-    const paragrafosTxt = pacote.restricoes.paragrafos === 1 ? "1 parágrafo" : `${pacote.restricoes.paragrafos} parágrafos`;
-    linhasSystem.push(`Escreva em ${paragrafosTxt} (separados por uma linha em branco). Máximo ${maximo} palavras no total.`, "Devolva só o texto final.");
-    return { system: linhasSystem.join(`
-`), user: linhasUser.join(`
-`) };
   }
 
   // src/backend/proxy_realizador.ts
   function criarProxyRealizador(op) {
     const transporte = op.transporte || transportePadrao();
     const base = op.url.replace(/\/+$/, "");
-    return async (pacote, opcoes = {}) => {
+    return async (pacote, _opcoes = {}) => {
       const token = await op.obterToken();
       if (!token)
         throw new Error("ProxyRealizador: sem sessão para realizar.");
       const tenant = op.tenantId ? op.tenantId() : null;
-      const prompt = montarPromptRealizador(pacote);
       const resp = await transporte(base + "/functions/v1/realizador", {
         method: "POST",
         headers: {
@@ -2622,8 +2670,6 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
         },
         body: JSON.stringify({
           pacote,
-          prompt,
-          ...opcoes.temperatura !== undefined ? { temperatura: opcoes.temperatura } : {},
           ...tenant ? { tenantId: tenant } : {}
         })
       });
@@ -2681,42 +2727,37 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
         apagadosDrenados++;
       } catch {}
     }
+    const fila = await drenarFilaRemota(remoto);
     const [locais, remotos] = await Promise.all([local.carregarPerfis(), remoto.carregarPerfis()]);
     const idsLocais = new Set(locais.map((p) => p.id));
     let puxados = 0;
     for (const p of remotos) {
-      if (idsLocais.has(p.id))
-        continue;
-      await local.salvarPerfil(p);
-      const save = await remoto.carregarSave(p.id);
-      if (save)
-        await local.salvarSave(p.id, save);
-      if (remoto.carregarHistorias && local.salvarHistoria) {
+      const ausente = !idsLocais.has(p.id);
+      if (ausente) {
+        await local.salvarPerfil(p);
+        const save = await remoto.carregarSave(p.id);
+        if (save)
+          await local.salvarSave(p.id, save);
         try {
-          for (const h of await remoto.carregarHistorias(p.id)) {
-            await local.salvarHistoria(p.id, h);
+          for (const ev of await remoto.carregarTelemetria(p.id)) {
+            await local.registrarTelemetria(ev);
           }
         } catch {}
+        puxados++;
       }
-      try {
-        for (const ev of await remoto.carregarTelemetria(p.id)) {
-          await local.registrarTelemetria(ev);
-        }
-      } catch {}
-      puxados++;
+      if (remoto.carregarHistorias && local.salvarHistoria) {
+        try {
+          const remotas = await remoto.carregarHistorias(p.id);
+          const loc = ausente || !local.carregarHistorias ? [] : await local.carregarHistorias(p.id);
+          await aplicarMesclaHistorias(local, p.id, loc, remotas, Date.now());
+        } catch {}
+      }
     }
     const res = await migrar(local, remoto);
-    return { apagadosDrenados, puxados, empurrados: res.perfis };
+    return { apagadosDrenados, puxados, empurrados: res.perfis, filaDrenada: fila.drenados };
   }
 
   // src/backend/backend.ts
-  function proxyIndisponivel(motivo) {
-    return {
-      gerar() {
-        return Promise.reject(new Error(motivo));
-      }
-    };
-  }
   function sessaoAdminLocal() {
     try {
       const raw = localStorage.getItem("pipoca.admin.sessao.v1");
@@ -2788,15 +2829,7 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
   function criarBackendLocal() {
     return {
       auth: criarAuthLocal(),
-      repo: criarRepositorio(),
-      proxyIA: proxyIndisponivel("ProxyIA indisponível no backend local — degradando para o provedor simulado.")
-    };
-  }
-  function criarBackendFirebase() {
-    return {
-      auth: criarAuthFirebase(),
-      repo: new RepositorioFirebase,
-      proxyIA: proxyIndisponivel("ProxyIA Firebase não configurado neste build.")
+      repo: criarRepositorio()
     };
   }
   function criarBackendSupabase(cfg) {
@@ -2809,19 +2842,13 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
     });
     const local = criarRepositorio();
     const repo = criarRepositorioSincronizado(local, remoto);
-    const proxyIA = criarProxyIA({
-      url: cfg.supabaseUrl,
-      anonKey: cfg.supabaseAnonKey,
-      obterToken: () => auth.obterToken(),
-      tenantId: () => escopoTenant(auth.sessaoAtual())
-    });
     const realizador = criarProxyRealizador({
       url: cfg.supabaseUrl,
       anonKey: cfg.supabaseAnonKey,
       obterToken: () => auth.obterToken(),
       tenantId: () => escopoTenant(auth.sessaoAtual())
     });
-    return { auth, repo, proxyIA, realizador, sincronizar: () => sincronizarInicial(local, remoto) };
+    return { auth, repo, realizador, sincronizar: () => sincronizarInicial(local, remoto) };
   }
   async function espelharConfigIA(tenantId, dados, config, transporte) {
     const cfg = config || configDoAmbiente();
@@ -2860,8 +2887,6 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
     if (cfg.provedor === "supabase" && cfg.supabaseUrl && cfg.supabaseAnonKey) {
       return criarBackendSupabase(cfg);
     }
-    if (cfg.provedor === "firebase")
-      return criarBackendFirebase();
     return criarBackendLocal();
   }
 

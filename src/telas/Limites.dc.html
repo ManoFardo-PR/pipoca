@@ -1,4 +1,4 @@
-<!-- Limites.dc.html — Bloco de foco e tempo de tela (PC_LIM) · doc fase02-02-06
+﻿<!-- Limites.dc.html — Bloco de foco e tempo de tela (PC_LIM) · doc fase02-02-06
      ─────────────────────────────────────────────────────────────
      Atrás do PINGATE. Bloco Pomodoro (10|15|20|25 min) + tempo de tela diário
      opcional. Sem castigo: mudar o bloco reinicia o timer com calma; a história
@@ -8,9 +8,9 @@
 <x-dc>
 <helmet>
   <style>
-    .pip-lm-campo { width:100%;padding:12px 14px;border-radius:14px;border:2px solid #e3d4ba;background:#fffdf7;font-family:'Nunito';font-size:15px;color:#3a2c20;outline:none; }
+    .pip-lm-campo { width:100%;padding:12px 14px;border-radius:14px;border:2px solid #e3d4ba;background:#fffdf7;font-family:'Nunito';font-size:15px;color:#3a2c20; }
     .pip-lm-campo:focus { border-color:#c9a86f; }
-    .pip-lm-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-lm-btn { cursor:pointer;transition:transform calc(.12s * var(--pip-mov)) ease; }
     .pip-lm-btn:active { transform:scale(.97); }
   </style>
 </helmet>
@@ -24,26 +24,21 @@
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Limites</div>
       </div>
-      <button class="pip-lm-btn" onClick="{{ voltar }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
+      <button class="pip-lm-btn" onClick="{{ voltar }}" style="min-height:44px;border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
     </div>
     <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 14px;">Blocos curtos e visíveis. O fim do bloco é um encerramento calmo — a história em curso nunca é cortada.</p>
 
-    <!-- Chips por criança (configuração independente · UX por perfil) -->
-    <sc-if value="{{ temVariosPerfis }}" hint-placeholder-val="{{ false }}">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;">
-        <sc-for list="{{ chipsPerfis }}" as="cp" hint-placeholder-count="2">
-          <button class="pip-lm-btn" onClick="{{ cp.onTap }}" style="{{ cp.style }}">{{ cp.nome }}</button>
-        </sc-for>
-      </div>
-    </sc-if>
+    <!-- Chips por criança (configuração independente · UX por perfil) — C8 -->
+    <dc-import name="ChipsPerfil" rotulo="Editando para:" perfis="{{ perfisChips }}" selecionadoId="{{ chipSelId }}" aoEscolher="{{ escolherChip }}"></dc-import>
 
     <!-- Bloco de foco -->
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
       <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">Bloco de foco</div>
       <p style="color:#7a6a54;font-family:'Nunito';font-size:13px;margin:6px 0 12px;">Quanto tempo dura cada momento de leitura.</p>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+      <!-- C11 (UI-A39): seleção com semântica (radiogroup/radio), não só cor -->
+      <div role="radiogroup" aria-label="Duração do bloco de foco" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
         <sc-for list="{{ blocos }}" as="b" hint-placeholder-count="4">
-          <button class="pip-lm-btn" onClick="{{ b.onTap }}" style="{{ b.style }}">{{ b.label }}</button>
+          <button class="pip-lm-btn" role="radio" aria-checked="{{ b.sel }}" onClick="{{ b.onTap }}" style="{{ b.style }}">{{ b.label }}</button>
         </sc-for>
       </div>
       <sc-if value="{{ avisoSessao }}" hint-placeholder-val="{{ false }}">
@@ -55,11 +50,15 @@
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;margin-top:16px;">
       <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">Tempo de tela por dia</div>
       <p style="color:#7a6a54;font-family:'Nunito';font-size:13px;margin:6px 0 12px;">Opcional. Deixe em branco para não ter limite diário.</p>
+      <!-- C9: <form> (Enter aplica); "Sem limite" é type=button para não submeter -->
+      <form onSubmit="{{ aoSubmeterTempo }}">
+      <label for="pip-lm-tempo" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#3a2c20;margin-bottom:6px;">Minutos por dia</label>
       <div style="display:flex;gap:10px;align-items:center;">
-        <input class="pip-lm-campo" style="max-width:140px;" value="{{ tempoTela }}" onInput="{{ setTempoTela }}" type="number" min="5" step="5" placeholder="minutos" aria-label="Tempo de tela diário em minutos" />
-        <button class="pip-lm-btn" onClick="{{ aplicarTempo }}" style="min-height:44px;border:none;border-radius:14px;background:#3f6f9e;color:#fff;padding:0 18px;font-family:'Nunito';font-weight:700;font-size:14px;cursor:pointer;">Aplicar</button>
-        <button class="pip-lm-btn" onClick="{{ semLimite }}" style="min-height:44px;border:2px solid #e3d4ba;border-radius:14px;background:transparent;padding:0 14px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6a54;cursor:pointer;">Sem limite</button>
+        <input id="pip-lm-tempo" class="pip-lm-campo" style="max-width:140px;" value="{{ tempoTela }}" onInput="{{ setTempoTela }}" type="number" min="5" step="5" placeholder="minutos" aria-label="Tempo de tela diário em minutos" />
+        <button type="submit" class="pip-lm-btn" style="min-height:44px;border:none;border-radius:14px;background:#3f6f9e;color:#fff;padding:0 18px;font-family:'Nunito';font-weight:700;font-size:14px;cursor:pointer;">Aplicar</button>
+        <button type="button" class="pip-lm-btn" onClick="{{ semLimite }}" style="min-height:44px;border:2px solid #e3d4ba;border-radius:14px;background:transparent;padding:0 14px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6a54;cursor:pointer;">Sem limite</button>
       </div>
+      </form>
       <div role="status" aria-live="polite" style="margin-top:12px;font-family:'Nunito';font-size:13px;color:#7a6a54;">{{ tempoAtualTexto }}</div>
     </div>
 
@@ -142,11 +141,9 @@ class Component extends DCLogic {
     const s = this.state;
     const App = window.PipocaApp;
     const lim = s.limites || { blocoMin: 15, tempoDeTelaMin: null };
-    const chipBase = 'min-height:38px;border-radius:999px;border:2px solid;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;padding:6px 16px;';
-    const chipSel = 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;';
-    const chipOff = 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;';
     const blocos = [10, 15, 20, 25].map((b) => ({
       label: b + ' min',
+      sel: lim.blocoMin === b, // C11
       onTap: () => this._definirBloco(b),
       style: 'min-height:48px;border-radius:14px;border:2px solid;font-family:Baloo 2;font-weight:800;font-size:15px;cursor:pointer;'
         + (lim.blocoMin === b
@@ -154,17 +151,15 @@ class Component extends DCLogic {
           : 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;'),
     }));
     return {
-      temVariosPerfis: s.perfis.length > 1,
-      chipsPerfis: s.perfis.map((p) => ({
-        nome: p.nome,
-        onTap: () => this._carregarChip(p.id),
-        style: chipBase + (p.id === s.chipId ? chipSel : chipOff),
-      })),
+      // C8: chips componentizados (ChipsPerfil) com rótulo de escopo.
+      perfisChips: s.perfis,
+      chipSelId: s.chipId || '',
+      escolherChip: (id) => this._carregarChip(id),
       blocos,
       avisoSessao: s.avisoSessao,
       tempoTela: s.tempoTela,
       setTempoTela: (e) => this.setState({ tempoTela: e.target.value, avisoSessao: false }),
-      aplicarTempo: () => this._aplicarTempo(this.state.tempoTela),
+      aoSubmeterTempo: (e) => { if (e && e.preventDefault) e.preventDefault(); this._aplicarTempo(this.state.tempoTela); },
       semLimite: () => this._aplicarTempo(''),
       tempoAtualTexto: lim.tempoDeTelaMin != null
         ? 'Hoje: até ' + lim.tempoDeTelaMin + ' minutos por dia.'

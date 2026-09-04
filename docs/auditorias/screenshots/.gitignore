@@ -1,0 +1,19 @@
+# Screenshots antes/depois (Plan03 · P2): só os 6 essenciais vão pro git
+# (T2, T3, T4, T5, T7, adm2 — nos 2 viewports). O resto é regenerável com
+# `node tests/e2e/capturar-telas.mjs --rotulo <antes|depois>`; INDEX.md e sondas.json
+# registram a lista completa.
+*/*.png
+!*/T02-entrada-*.png
+!*/T03-cenarios-*.png
+!*/T04-palco-*.png
+!*/T05-portao-leitura-*.png
+!*/T07-pote-*.png
+!*/adm2-home-*.png
+# Provas visuais por subtarefa (pequenas, commitadas): A2 = IaToggle nos 3 estados.
+!A2-regras/*.png
+# B1 = T3/T5/T7 com alto contraste ligado (CTAs brancos, texto escuro).
+!B1-contraste/*.png
+# B4 = overlay "Do meu jeito" acessível (1280 e 390).
+!B4-painel/*.png
+# B9 = T7 com a barra de duas fatias, botões 48px e retrato empilhado (1280 e 390).
+!B9-pote/*.png

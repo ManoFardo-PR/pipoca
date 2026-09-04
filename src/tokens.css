@@ -1,7 +1,10 @@
 /* Pipoca — design tokens
  * Fonte da verdade de cor, tipografia, espaço, raio, sombra e movimento.
  * Toda tela e componente usa estas variáveis; nunca escreva hex/px crus
- * para valores cobertos aqui. */
+ * para valores cobertos aqui. (B2 · Plan03: verdadeiro para T3–T7 e PainelA11y —
+ * CTA, microcópia, contador e confirmação vêm daqui e passam em WCAG ≥4,5:1;
+ * as demais telas migram em B4/C2/C8.) A11y: as classes .pip-contrast /
+ * .pip-reduce-motion (aplicadas pelo Shell) trocam os tokens no fim do arquivo. */
 
 :root {
   /* ── Cor — creme / areia ─────────────────────────────────────────── */
@@ -30,19 +33,56 @@
 
   /* ── Cor — tinta de texto ────────────────────────────────────────── */
   --pip-tinta: #3a2c20;
+  /* Microcópia/subtítulos sobre creme (B2 · UI-C25/C26): ≥5,5:1 sobre #f6ecd7,
+   * 6,4:1 sobre a superfície. Substitui os antigos #9a8a72 (3,3:1) e #8a7a64 (3,6:1). */
+  --pip-texto-suave: #6b5b44;
+  /* Terracota como TEXTO (contador de vaga-lumes, "~N", selo das pontas): 5,4:1 sobre o
+   * âmbar #fff3da — o #b8693c antigo dava 3,7:1 (UI-C28). */
+  --pip-terracota-texto: #9a4f1c;
+  /* Mel para o "travou" da T5 (UI-C29): 4,9:1 sobre #fffbf0. */
+  --pip-mel-texto: #8a6a1e;
+
+  /* ── CTA primário (B2 · UI-C21): gradiente terracota ESCURECIDO para o texto branco
+   * passar em todo o comprimento — 4,85:1 no início, 5,8:1 no fim (era 2,35–3,35:1).
+   * Decisão do dono: gradiente escurecido, não texto escuro sobre laranja. */
+  --pip-cta-ini: #b85424;
+  --pip-cta-fim: #a8481c;
+  --pip-cta: linear-gradient(150deg, var(--pip-cta-ini), var(--pip-cta-fim));
+  /* Confirmação verde ("Leu sozinho", "Eu li!"): 4,7:1 → 6:1 com branco (era 2,7:1). */
+  --pip-folha-cta-ini: #567f33;
+  --pip-folha-cta-fim: #3f6b28;
+  --pip-folha-cta: linear-gradient(150deg, var(--pip-folha-cta-ini), var(--pip-folha-cta-fim));
+
+  /* ── Superfície de cartão (o desenho praticado nas telas — B2) ───── */
+  --pip-superficie: #fffaf0;
 
   /* ── Branco ──────────────────────────────────────────────────────── */
   --pip-branco: #fff;
 
-  /* ── Contraste (substituídos pelo bloco [data-contrast] abaixo) ──── */
+  /* ── Contraste (a classe .pip-contrast, abaixo, troca --pip-tinta/--pip-vagalume) ── */
   --pip-tinta-contraste:    #1a1008;
   --pip-vagalume-contraste: #d49020;
+
+  /* ── Texto sobre superfícies ESCURAS (CTAs, chips selecionados) ──────
+   * Não muda no alto contraste: o que escurece é a tinta sobre fundo claro,
+   * nunca o texto branco de um botão laranja/azul/verde (B1 · UI-C02). */
+  --pip-cta-texto: #fff;
 
   /* ── Tipografia ──────────────────────────────────────────────────── */
   --pip-fonte-titulo:  'Baloo 2', cursive, system-ui, sans-serif;
   --pip-fonte-texto:   'Nunito', system-ui, sans-serif;
   --pip-fonte-dislexia:'Atkinson Hyperlegible', system-ui, sans-serif;
   --pip-fonte-leitura: 'Lexend', system-ui, sans-serif;
+
+  /* ── Escala tipográfica (B2) — tamanhos praticados nas telas ─────── */
+  --pip-fs-1: 12px;    /* legendas, selos */
+  --pip-fs-2: 13.5px;  /* microcópia, ajuda */
+  --pip-fs-3: 15px;    /* texto corrido, botões secundários */
+  --pip-fs-4: 17px;    /* CTAs, subtítulos */
+  --pip-fs-5: 22px;    /* títulos de seção */
+  --pip-fs-6: 26px;    /* títulos de tela */
+  --pip-lh-titulo: 1.1;
+  --pip-lh-texto:  1.5;
 
   /* ── Espaçamento ─────────────────────────────────────────────────── */
   --pip-esp-1: 4px;
@@ -55,6 +95,7 @@
   --pip-raio-1:    12px;
   --pip-raio-2:    16px;
   --pip-raio-3:    18px;
+  --pip-raio-cartao: 22px; /* o raio que todo cartão real pratica (B2) */
   --pip-raio-pill: 999px;
 
   /* ── Sombra ──────────────────────────────────────────────────────── */
@@ -81,8 +122,10 @@
 }
 
 /* ── Reduzir movimento ────────────────────────────────────────────────── */
-/* Ativado ao adicionar data-reduce-motion no <html> ou <body> */
-[data-reduce-motion] {
+/* Mecanismo ÚNICO (B1, decisão do dono): CLASSE aplicada pelo Shell na raiz do app
+ * (src/telas/Shell.dc.html:_aplicarA11y, a partir de PipocaApp.estado.a11y).
+ * Os componentes leem calc(var(--pip-dur-*) * var(--pip-mov)) — zera tudo. */
+.pip-reduce-motion {
   --pip-mov:        0;
   --pip-dur-rapido: 0s;
   --pip-dur-medio:  0s;
@@ -98,8 +141,44 @@
 }
 
 /* ── Alto contraste ───────────────────────────────────────────────────── */
-/* Ativado ao adicionar data-contrast no <html> ou <body> */
-[data-contrast] {
+/* Mesma classe que o Shell aplica (B1). Escurece a TINTA (texto sobre fundo claro)
+ * e o âmbar do vaga-lume; --pip-cta-texto fica branco de propósito. As telas ainda
+ * com hex inline recebem o equivalente por superfície em index.html até B2 tokenizar. */
+.pip-contrast {
   --pip-tinta:    var(--pip-tinta-contraste);
   --pip-vagalume: var(--pip-vagalume-contraste);
+  /* B2: a microcópia e os textos coloridos também escurecem pelo token. */
+  --pip-texto-suave:     #3a2c20;
+  --pip-terracota-texto: #7a3f1e;
+  --pip-mel-texto:       #5a4210;
+  --pip-foco:            var(--pip-tinta-contraste);
 }
+
+/* ── Foco visível (B3 · WCAG 2.4.7) ───────────────────────────────────── */
+/* Um anel ÚNICO para todo controle, em qualquer tela (app e admin importam este
+ * arquivo). :focus-visible só aparece na navegação por teclado — o toque não
+ * ganha anel. Componentes NÃO devem escrever outline:none. */
+:root { --pip-foco: var(--pip-heeler); }
+:where(a, button, [role="button"], [role="switch"], [role="checkbox"], [role="tab"],
+       input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--pip-foco);
+  outline-offset: 3px;
+  border-radius: inherit;
+}
+:where(a, button, [role="button"], [role="switch"], [role="checkbox"], [role="tab"],
+       input, select, textarea, [tabindex]):focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── Só para leitor de tela (B8): texto anunciado, invisível na tela ─────── */
+.pip-sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ── Reduzir movimento: hover e vidro também param (B3 · UI-C51/C52) ──── */
+.pip-reduce-motion :where(button, [role="button"], .pip-chip, .pip-chip-disponivel):hover {
+  transform: none;
+}
+.pip-reduce-motion * { backdrop-filter: none; }

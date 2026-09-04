@@ -97,3 +97,29 @@ export interface ArquivoCenariosV1 {
   esquema: typeof ESQUEMA_FICHAS_V1;
   cenarios: Record<string, FichaCenario>;
 }
+
+// ─── Manifesto de cenários (Plan03 · E4, ML-2) ───────────────────────────────
+
+export const ESQUEMA_CENARIOS_INDEX_V1 = "pipoca.cenarios-index.v1";
+
+/**
+ * Uma entrada do manifesto (docs/cenarios.index.json): o ID CANÔNICO é o
+ * vocabulário único de galeria, liberação (cenariosLiberados) e motor.
+ * `grafo`/`relacoes` são caminhos servíveis (null enquanto "em breve");
+ * `svg` é a chave do desenho na galeria (Canon.cenas).
+ */
+export interface EntradaCenarioIndex {
+  id: string;
+  nome: string;
+  descricao: string;
+  grafo: string | null;
+  relacoes: string | null;
+  svg: string;
+  disponivel: boolean;
+}
+
+/** docs/cenarios.index.json — adicionar cenário = registrar aqui + escrever grafo/fichas/SVG. */
+export interface ArquivoCenariosIndexV1 {
+  esquema: typeof ESQUEMA_CENARIOS_INDEX_V1;
+  cenarios: EntradaCenarioIndex[];
+}

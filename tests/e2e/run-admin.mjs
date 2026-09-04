@@ -17,9 +17,9 @@
  *   (nenhum módulo o importa).
  * RODA POR: `bun run test:e2e:admin`
  * CUIDADO: roda SEMPRE offline (PIPOCA_CONFIG local injetado antes de tudo);
- *   caminhos ABSOLUTOS de máquina em PW_CORE/PW_CHROME (sobrescrevíveis por env);
- *   porta 5138 dedicada (5137 é do e2e canônico, 5000 é outro dev server). SA_AI
- *   é keyless por construção — nenhuma chave de IA no cliente.
+ *   Chromium via _harness.mjs (D7: devDependency + `npm run e2e:install`;
+ *   PW_CORE/PW_CHROME só como override); porta 5138 dedicada (5137 é do e2e
+ *   canônico, 5000 é outro dev server). SA_AI é keyless — nenhuma chave de IA.
  *
  * — detalhe preservado —
  * Runner e2e da PLATAFORMA DO OPERADOR (fase04 · admin.html).
@@ -34,15 +34,7 @@
  * Usa playwright-core em cache (registry offline). Porta dedicada 5138
  * (5137 é do e2e canônico; 5000 é outro dev server).
  */
-import { createRequire } from "node:module";
-import { spawn } from "node:child_process";
-import net from "node:net";
-
-const require = createRequire(import.meta.url);
-const PW_CORE =
-  process.env.PW_CORE ||
-  "C:/Users/mfard/AppData/Local/npm-cache/_npx/705bc6b22212b352/node_modules/playwright-core";
-const { chromium } = require(PW_CORE);
+import { chromium, executavelChromium, bootServer } from "./_harness.mjs";
 
 const PORT = Number(process.env.E2E_ADMIN_PORT) || 5138;
 const BASE = `http://localhost:${PORT}`;
@@ -53,30 +45,10 @@ const assert = (cond, msg) => {
   else { console.error(`  ✗ ${msg}`); falhou++; }
 };
 
-function esperarPorta(port, timeoutMs = 15000) {
-  const inicio = Date.now();
-  return new Promise((resolve, reject) => {
-    const tentar = () => {
-      const s = net.connect(port, "localhost");
-      s.on("connect", () => { s.end(); resolve(); });
-      s.on("error", () => {
-        s.destroy();
-        if (Date.now() - inicio > timeoutMs) reject(new Error("timeout esperando o server"));
-        else setTimeout(tentar, 200);
-      });
-    };
-    tentar();
-  });
-}
-
-const server = spawn("node", ["server.js"], { stdio: "ignore", env: { ...process.env, PORT: String(PORT) } });
+const server = await bootServer(PORT);
 let browser;
 try {
-  await esperarPorta(PORT);
-  const EXEC =
-    process.env.PW_CHROME ||
-    "C:/Users/mfard/AppData/Local/ms-playwright/chromium-1223/chrome-win64/chrome.exe";
-  browser = await chromium.launch({ headless: true, executablePath: EXEC });
+  browser = await chromium.launch({ headless: true, executablePath: executavelChromium() });
   const page = await browser.newPage();
   // fase06 · o e2e roda SEMPRE offline: força o backend "local" ANTES de
   // qualquer script (sobrevive ao reload; o pipoca.config.js respeita via ||).
@@ -131,15 +103,16 @@ try {
 
   console.log("\n=== SA_HOME · hub com 4 áreas ===");
   await page.waitForFunction(() => /Painel da plataforma/i.test(document.body.innerText), { timeout: 8000 });
+  // B11: glossário de produto — "Contas e planos" (sem "tenant" no texto visível).
   const cartoes = await page.evaluate(() =>
-    ["tenants e planos", "Biblioteca de conteúdo", "Configuração de IA", "Segurança e feature flags"]
+    ["Contas e planos", "Biblioteca de conteúdo", "Configuração de IA", "Segurança e feature flags"]
       .every((t) => new RegExp(t, "i").test(document.body.innerText)));
   assert(cartoes, "os 4 cartões de área montam no hub");
 
-  console.log("\n=== SA_TENANT · criar tenant nasce no Freemium (60 dias de Família) ===");
+  console.log("\n=== SA_TENANT · criar conta nasce no Freemium (60 dias de Família) ===");
   await page.evaluate(() => window.PipocaAdmin.irParaTela(3));
-  await page.waitForFunction(() => /Tenants e planos/i.test(document.body.innerText), { timeout: 8000 });
-  await page.fill('[aria-label="Nome do tenant"]', "Escola Modelo");
+  await page.waitForFunction(() => /Contas e planos/i.test(document.body.innerText), { timeout: 8000 });
+  await page.fill('[aria-label="Nome da conta"]', "Escola Modelo");
   await page.locator("button", { hasText: "Criar" }).first().click();
   await page.waitForFunction(() => /Escola Modelo/.test(document.body.innerText), { timeout: 5000 });
   const tenant = await page.evaluate(() => {
@@ -163,7 +136,7 @@ try {
   await page.locator("button", { hasText: "Carregar exemplo do Quintal" }).click();
   await page.waitForTimeout(300);
   await page.locator("button", { hasText: "Validar agora" }).click();
-  await page.waitForFunction(() => /Grafo válido/i.test(document.body.innerText), { timeout: 5000 });
+  await page.waitForFunction(() => /Cenário válido/i.test(document.body.innerText), { timeout: 5000 });
   assert(true, "exemplo do Quintal passa a validação dupla na tela");
 
   console.log("\n=== SA_AI · sem chaves no cliente + gate do plano ===");

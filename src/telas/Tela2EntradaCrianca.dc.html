@@ -12,32 +12,35 @@
   </style>
 </helmet>
 
-<div style="position:absolute;inset:0;overflow:hidden;background:linear-gradient(180deg,#fbe8c8 0%,#f7dca6 42%,#f3c98a 100%);">
-  <div style="position:absolute;left:0;right:0;bottom:0;height:300px;background:linear-gradient(180deg,#bcd99a,#9cc47e);border-radius:50% 50% 0 0 / 80px 80px 0 0;"></div>
-  <div style="position:absolute;left:0;right:0;bottom:0;height:190px;background:linear-gradient(180deg,#a7cd84,#86b46a);border-radius:50% 50% 0 0 / 60px 60px 0 0;"></div>
-  <div style="position:absolute;top:84px;left:50%;transform:translateX(-50%);width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 50% 45%,#fff6da,#fcd784 55%,rgba(252,215,132,0) 72%);"></div>
+<!-- B6 (UI-C53): a T2 ROLA no celular — overflow no contêiner da tela (não no Shell), espaço
+     reservado para a marca do Shell (top 18px + 30px), avatares em grade fluida e o rodapé
+     de ações fixo embaixo (sticky), para "Sou o cuidador" nunca sumir. -->
+<div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;background:linear-gradient(180deg,#fbe8c8 0%,#f7dca6 42%,#f3c98a 100%);">
+  <div style="position:fixed;left:0;right:0;bottom:0;height:300px;pointer-events:none;background:linear-gradient(180deg,#bcd99a,#9cc47e);border-radius:50% 50% 0 0 / 80px 80px 0 0;"></div>
+  <div style="position:fixed;left:0;right:0;bottom:0;height:190px;pointer-events:none;background:linear-gradient(180deg,#a7cd84,#86b46a);border-radius:50% 50% 0 0 / 60px 60px 0 0;"></div>
+  <div style="position:absolute;top:84px;left:50%;transform:translateX(-50%);width:150px;height:150px;pointer-events:none;border-radius:50%;background:radial-gradient(circle at 50% 45%,#fff6da,#fcd784 55%,rgba(252,215,132,0) 72%);"></div>
 
-  <div style="position:relative;z-index:2;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;">
+  <div style="position:relative;z-index:2;min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:72px 20px 24px;">
 
     <sc-if value="{{ carregando }}" hint-placeholder-val="{{ false }}">
-      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:26px;color:#3a4f63;opacity:.6;">Carregando…</div>
+      <dc-import name="Carregando" frase="Chamando os leitores…"></dc-import>
     </sc-if>
 
     <sc-if value="{{ semPerfis }}" hint-placeholder-val="{{ false }}">
       <div style="text-align:center;">
         <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:36px;color:#3a4f63;">Oi! 👋</div>
         <p style="font-size:17px;color:#6a7a55;margin-top:12px;max-width:380px;line-height:1.5;">Peça pra um cuidador criar o seu perfil — é bem rapidinho!</p>
-        <button onClick="{{ abrirPortaoParental }}" style="margin-top:28px;background:linear-gradient(150deg,#e8965a,#d5713f);border:none;border-radius:999px;padding:14px 30px;font-family:'Baloo 2';font-weight:700;font-size:16px;color:#fff;cursor:pointer;box-shadow:0 8px 20px -6px rgba(181,86,40,.5);">⚙ Configurar com o cuidador</button>
+        <button onClick="{{ abrirPortaoParental }}" style="margin-top:28px;background:var(--pip-cta);border:none;border-radius:999px;padding:14px 30px;font-family:'Baloo 2';font-weight:700;font-size:16px;color:#fff;cursor:pointer;box-shadow:0 8px 20px -6px rgba(181,86,40,.5);">⚙ Configurar com o cuidador</button>
       </div>
     </sc-if>
 
     <sc-if value="{{ mostrarAvatares }}" hint-placeholder-val="{{ true }}">
-      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:40px;color:#3a4f63;text-shadow:0 1px 0 rgba(255,255,255,.4);">Quem vai ler hoje?</div>
-      <p style="font-size:17px;color:#6a6a55;margin-top:8px;">Toque no seu rostinho para começar.</p>
+      <div style="font-family:'Baloo 2',cursive;font-weight:700;font-size:clamp(28px,8vw,40px);line-height:1.1;text-align:center;color:#3a4f63;text-shadow:0 1px 0 rgba(255,255,255,.4);">Quem vai ler hoje?</div>
+      <p style="font-size:17px;color:#6a6a55;margin-top:8px;text-align:center;">Toque no seu rostinho para começar.</p>
 
-      <div style="display:flex;gap:34px;margin-top:48px;flex-wrap:wrap;justify-content:center;max-width:840px;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,max-content));justify-content:center;gap:24px 34px;margin-top:36px;width:100%;max-width:840px;">
         <sc-for list="{{ avatars }}" as="av" hint-placeholder-count="5">
-          <button onClick="{{ av.pick }}" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:12px;padding:0;">
+          <button onClick="{{ av.pick }}" style="background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:12px;padding:0;justify-self:center;">
             <div style="{{ av.ring }}">
               <div ref="{{ av.svgRef }}" style="width:140px;height:140px;display:flex;align-items:center;justify-content:center;" class="{{ animClass }}"></div>
             </div>
@@ -46,7 +49,12 @@
         </sc-for>
       </div>
 
-      <button onClick="{{ abrirPortaoParental }}" style="margin-top:46px;background:rgba(255,255,255,.6);border:none;border-radius:999px;padding:11px 22px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;backdrop-filter:blur(4px);">⚙ Sou o cuidador</button>
+      <!-- B5: a T2 também tem "Do meu jeito" (ajustes sem portão); "Sou o cuidador" leva ao PIN.
+           B6: rodapé sticky — visível sem rolar mesmo com 3+ perfis no celular. -->
+      <div style="position:sticky;bottom:0;z-index:3;display:flex;gap:12px;margin-top:36px;padding:12px 0 4px;flex-wrap:wrap;justify-content:center;width:100%;">
+        <button onClick="{{ abrirAjustesA11y }}" aria-label="Do meu jeito" style="min-height:48px;background:rgba(255,255,255,.6);border:none;border-radius:999px;padding:11px 22px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;backdrop-filter:blur(4px);">✨ Do meu jeito</button>
+        <button onClick="{{ abrirPortaoParental }}" style="min-height:48px;background:rgba(255,255,255,.6);border:none;border-radius:999px;padding:11px 22px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;backdrop-filter:blur(4px);">🔒 Sou o cuidador</button>
+      </div>
     </sc-if>
 
   </div>
@@ -62,47 +70,31 @@ class Component extends DCLogic {
 
   _inject(el, html) { if (el && el._k !== html) { el.innerHTML = html; el._k = html; } }
 
-  _avatarDefs() {
-    return [
-      { id:'pingo', name:'Pingo', bg:'#3f6f9e', ear:'pup',  fur:'#5b86ad' },
-      { id:'fubá',  name:'Fubá',  bg:'#d98a4e', ear:'fox',  fur:'#e6a063' },
-      { id:'cacau', name:'Cacau', bg:'#7a9a5b', ear:'bear', fur:'#93b074' },
-      { id:'lua',   name:'Lua',   bg:'#9c7cb0', ear:'cat',  fur:'#b196c2' },
-      { id:'tuca',  name:'Tuca',  bg:'#5fa9b8', ear:'bird', fur:'#7cc0cd' },
-    ];
+  // C5 (Plan03 · ML-4): a definição visual vem da tabela ÚNICA (Canon.avatares, C4) —
+  // emoji sobre disco colorido (as orelhas-SVG liam como chifres). Fallback para
+  // bundle antigo: só os IDS (identidade estável), disco neutro + inicial.
+  _defsAvatares() {
+    const C = window.PipocaCanonico;
+    if (C && C.avatares && C.avatares.lista) return C.avatares.lista;
+    return ['pingo', 'fubá', 'cacau', 'lua', 'tuca'].map((id) => ({
+      id, nome: id.charAt(0).toUpperCase() + id.slice(1), cor: '#b8ab90', emoji: '',
+    }));
   }
-
-  _avatarSVG(d) {
-    const ear = {
-      pup:  "<path d='M22 30 Q14 8 34 26 Z' fill='"+d.fur+"'/><path d='M86 30 Q94 8 74 26 Z' fill='"+d.fur+"'/>",
-      fox:  "<path d='M24 26 L20 4 L42 20 Z' fill='"+d.fur+"'/><path d='M84 26 L88 4 L66 20 Z' fill='"+d.fur+"'/>",
-      bear: "<circle cx='28' cy='22' r='13' fill='"+d.fur+"'/><circle cx='80' cy='22' r='13' fill='"+d.fur+"'/>",
-      cat:  "<path d='M26 28 L20 6 L40 22 Z' fill='"+d.fur+"'/><path d='M82 28 L88 6 L68 22 Z' fill='"+d.fur+"'/>",
-      bird: "<path d='M54 6 q8 -4 6 8' stroke='"+d.fur+"' stroke-width='5' fill='none' stroke-linecap='round'/>",
-    }[d.ear] || '';
-    return "<svg viewBox='0 0 108 108' width='108' height='108' xmlns='http://www.w3.org/2000/svg'>"
-      + ear
-      + "<circle cx='54' cy='60' r='42' fill='"+d.bg+"'/>"
-      + "<circle cx='54' cy='66' r='30' fill='rgba(255,255,255,.16)'/>"
-      + "<circle cx='42' cy='56' r='5.5' fill='#2b2118'/><circle cx='66' cy='56' r='5.5' fill='#2b2118'/>"
-      + "<circle cx='44' cy='54' r='1.8' fill='#fff'/><circle cx='68' cy='54' r='1.8' fill='#fff'/>"
-      + "<path d='M46 72 Q54 80 62 72' stroke='#2b2118' stroke-width='4' fill='none' stroke-linecap='round'/>"
-      + "<circle cx='36' cy='66' r='5' fill='rgba(255,140,90,.35)'/><circle cx='72' cy='66' r='5' fill='rgba(255,140,90,.35)'/>"
-      + "</svg>";
+  _avatarHTML(d, px) {
+    const conteudo = d.emoji || (d.nome || '?').slice(0, 1).toUpperCase();
+    const fe = Math.round(px * (d.emoji ? 0.54 : 0.4));
+    return '<div role="img" aria-label="' + d.nome + '" style="width:' + px + 'px;height:' + px + 'px;border-radius:50%;background:' + d.cor + ';display:grid;place-items:center;box-shadow:inset 0 -8px 18px rgba(0,0,0,.14);">'
+      + '<span aria-hidden="true" style="font-size:' + fe + 'px;line-height:1;' + (d.emoji ? '' : "font-family:'Baloo 2',cursive;font-weight:800;color:#fff;") + '">' + conteudo + '</span></div>';
   }
 
   async componentDidMount() {
     this.setState({ carregando: true });
     try {
+      // D3 (lei do seam): a tela SÓ fala com o repo — o ramo que lia o
+      // storage direto (chave legada) era para bundle antigo e saiu.
       const App = window.PipocaApp;
-      if (App && App.repo) {
-        const perfis = await App.repo.carregarPerfis();
-        this.setState({ perfis, carregando: false });
-      } else {
-        const savedRaw = localStorage.getItem('pipoca.perfis.v1');
-        const perfis = savedRaw ? JSON.parse(savedRaw) : [];
-        this.setState({ perfis, carregando: false });
-      }
+      const perfis = App && App.repo ? await App.repo.carregarPerfis() : [];
+      this.setState({ perfis, carregando: false });
     } catch(e) {
       this.setState({ perfis: [], carregando: false });
     }
@@ -135,6 +127,11 @@ class Component extends DCLogic {
     this.irParaTela(1);
   }
 
+  abrirAjustesA11y() {
+    const App = window.PipocaApp;
+    if (App) App.setState({ showA11y: true });
+  }
+
   renderVals() {
     const { perfis, carregando } = this.state;
     const App = window.PipocaApp;
@@ -144,22 +141,15 @@ class Component extends DCLogic {
     const semPerfis = !carregando && perfis.length === 0;
     const mostrarAvatares = !carregando && perfis.length > 0;
 
+    // C5: só avatares COM perfil aparecem (login visual — lógica preservada).
     const avatarMap = new Map(perfis.map(p => [p.avatarId, p]));
-    const avatars = this._avatarDefs().map(d => {
-      const temPerfil = avatarMap.has(d.id);
-      return {
-        name: d.name,
-        svgRef: (el) => this._inject(el, this._avatarSVG(d)),
-        pick: () => temPerfil ? this.selecionarAvatar(d.id) : undefined,
-        ring: 'width:140px;height:140px;border-radius:50%;display:flex;align-items:center;justify-content:center;'
-          + (temPerfil
-            ? 'box-shadow:0 8px 28px rgba(63,111,158,.32);background:rgba(255,255,255,.7);'
-            : 'opacity:.35;background:rgba(200,190,175,.3);'),
-      };
-    }).filter((_, i) => {
-      const d = this._avatarDefs()[i];
-      return avatarMap.has(d.id);
-    });
+    const avatars = this._defsAvatares().filter((d) => avatarMap.has(d.id)).map((d) => ({
+      name: d.nome,
+      svgRef: (el) => this._inject(el, this._avatarHTML(d, 124)),
+      pick: () => this.selecionarAvatar(d.id),
+      ring: 'width:140px;height:140px;border-radius:50%;display:flex;align-items:center;justify-content:center;'
+        + 'box-shadow:0 8px 28px rgba(63,111,158,.32);background:rgba(255,255,255,.7);',
+    }));
 
     return {
       carregando: carregandoState,
@@ -168,6 +158,7 @@ class Component extends DCLogic {
       avatars,
       animClass,
       abrirPortaoParental: () => this.abrirPortaoParental(),
+      abrirAjustesA11y: () => this.abrirAjustesA11y(),
     };
   }
 }

@@ -7,7 +7,8 @@ A interface da criança e do cuidador. Mora em [`src/app/`](../../src/app/),
 
 ## Como o app sobe (boot)
 
-[`index.html`](../../index.html) é servido em `/app` por [`server.js`](../../server.js).
+[`index.html`](../../index.html) é servido em `/app` por [`server.js`](../../server.js)
+(o PORQUÊ da raiz servir a landing está em [docs/notas/roteamento-landing.md](../notas/roteamento-landing.md)).
 A cadeia de boot:
 
 ```
@@ -56,7 +57,7 @@ Ativos não-tela (recebem cabeçalho):
 
 ## Componentes de UI (`src/componentes/*.dc.html`)
 
-`Botao` · `CartaoHistoria` · `ChipObjeto` · `BarraLeitura` · `Vagalume`
+`Botao` · `ChipObjeto` · `BarraLeitura` · `Vagalume` · `BarraCrianca` · `Carregando`
 (o vaga-lume da economia) · `EsqueletoRef` · `ModalCuidador`. Todos `.dc.html`
 (dados/DOM, sem cabeçalho).
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Pipoca — Testes dos núcleos do super admin (fase04)
  * ----------------------------------------------------
  * Auth/sessão/escopo/guard (04-01/02) · tenants (04-03) · conteúdo (04-04) ·
@@ -75,6 +75,7 @@ import {
   killSwitch,
   killSwitchAtivo,
   aplicarFlagsAosModos,
+  iaEfetivamenteLigada,
   carregarFlags,
   salvarFlags,
   normalizarFlags,
@@ -398,6 +399,12 @@ console.log("\n=== SA_SAFE · flags, kill-switch e efeito nos Modos ===");
   const aplicado = aplicarFlagsAosModos(modosComIa, ligada);
   assert(aplicado.iaLigada === true && aplicado.desfecho === modosPadrao.desfecho, "IA global ligada respeita o cuidador (demais campos intactos)");
 
+  // Plan03 · A1 — gate único de consentimento: cuidador E plataforma, fail-closed.
+  assert(iaEfetivamenteLigada(modosComIa, ligada) === true, "A1 iaEfetivamenteLigada: cuidador autorizou + plataforma liberada ⇒ ligada");
+  assert(iaEfetivamenteLigada(modosComIa, FLAGS_PADRAO) === false, "A1 iaEfetivamenteLigada: kill-switch global vence a autorização do cuidador");
+  assert(iaEfetivamenteLigada(modosPadrao, ligada) === false, "A1 iaEfetivamenteLigada: sem autorização do cuidador ⇒ desligada mesmo com a plataforma liberada");
+  assert(iaEfetivamenteLigada(modosPadrao, {}) === false, "A1 iaEfetivamenteLigada: flags ausentes ⇒ desligada (fail-closed)");
+
   // fase05 · kill-switch de FALA degrada a verificação (o portão nunca fica sem caminho)
   const modosComFala = { ...modosPadrao, verificacao: "fala" as const, iaLigada: true };
   const falaMorta = aplicarFlagsAosModos(modosComFala, ligada); // `ligada` tem ia:true, fala ainda false
@@ -451,7 +458,7 @@ console.log("\n=== SA_IA_GLOBAL (tarefa #31) · núcleo global, herança e statu
 {
   // padrão fail-closed: sem modelos padrão e sem cadeia — ninguém herda IA de graça
   assert(CONFIG_IA_GLOBAL_PADRAO.cadeiaFallback.length === 0, "padrão nasce sem cadeia de fallback");
-  assert(CONFIG_IA_GLOBAL_PADRAO.modeloPadrao.gemini === "gemini-2.5-flash", "padrão do Gemini é gemini-2.5-flash");
+  assert(CONFIG_IA_GLOBAL_PADRAO.modeloPadrao.gemini === null, "A4: nem o Gemini nasce com modelo padrão (fail-closed alinhado às edges)");
   assert(CONFIG_IA_GLOBAL_PADRAO.modeloPadrao.claude === null && CONFIG_IA_GLOBAL_PADRAO.modeloPadrao.openai === null && CONFIG_IA_GLOBAL_PADRAO.modeloPadrao.deepseek === null, "outros provedores nascem sem modelo padrão");
 
   // validação: catálogo, provedores conhecidos, sem repetição, sem 'chave'
@@ -480,7 +487,7 @@ console.log("\n=== SA_IA_GLOBAL (tarefa #31) · núcleo global, herança e statu
   assert(carregarConfigIaGlobal(st).cadeiaFallback.length === 0, "storage corrompido → padrão fail-closed");
   assert(carregarConfigIaGlobal(new ArmazemMem()).cadeiaFallback.length === 0, "storage vazio → padrão fail-closed");
 
-  // herança (a MESMA regra que o ProxyIA espelha no servidor)
+  // herança (a MESMA regra que a edge realizador espelha no servidor)
   const tenantCom: ConfigIaTenant = { provedor: "gemini", modelo: "gemini-2.5-flash", cotaMensal: 100, custoMaxMensal: 10, fallback: null };
   const tenantSem: ConfigIaTenant = { provedor: null, modelo: null, cotaMensal: 100, custoMaxMensal: 10, fallback: null };
   assert(provedorEfetivoGlobal(tenantCom, boa) === "gemini", "tenant com provedor próprio VENCE o global");

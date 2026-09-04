@@ -7,20 +7,23 @@
 -->
 <x-dc>
 
-<div style="position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;">
-  <div onClick="{{ fechar }}" style="position:absolute;inset:0;background:rgba(40,28,16,.4);backdrop-filter:blur(2px);"></div>
-  <div style="position:relative;width:560px;max-width:94%;max-height:92%;display:flex;flex-direction:column;background:#fffdf7;border-radius:26px;box-shadow:0 30px 70px -20px rgba(40,30,18,.55);overflow:hidden;">
+<div ref="{{ refDialog }}" role="dialog" aria-modal="true" aria-labelledby="pip-leitor-titulo" style="position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;">
+  <div onClick="{{ fechar }}" aria-hidden="true" style="position:absolute;inset:0;background:rgba(40,28,16,.4);backdrop-filter:blur(2px);"></div>
+  <div style="position:relative;width:560px;max-width:94%;max-height:92%;display:flex;flex-direction:column;background:var(--pip-superficie);border-radius:var(--pip-raio-cartao);box-shadow:0 30px 70px -20px rgba(40,30,18,.55);overflow:hidden;">
 
-    <!-- Cabeçalho -->
+    <!-- Cabeçalho (C2: dialog acessível — título focável, ✕ 48px, 🔊 pelo Canon.tts) -->
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:24px 26px 14px;">
       <div style="display:flex;align-items:center;gap:12px;min-width:0;">
-        <div style="width:52px;height:52px;flex-shrink:0;border-radius:16px;background:#fbe9c4;display:flex;align-items:center;justify-content:center;font-size:28px;">{{ emoji }}</div>
+        <div aria-hidden="true" style="width:52px;height:52px;flex-shrink:0;border-radius:16px;background:#fbe9c4;display:flex;align-items:center;justify-content:center;font-size:28px;">{{ emoji }}</div>
         <div style="min-width:0;">
-          <div style="font-family:'Baloo 2',cursive;font-weight:800;font-size:20px;color:#3a4f63;line-height:1.15;">{{ titulo }}</div>
-          <div style="font-size:12.5px;color:#9a8a72;margin-top:2px;">{{ quando }}{{ seloFavorita }}</div>
+          <h2 id="pip-leitor-titulo" tabindex="-1" style="margin:0;font-family:'Baloo 2',cursive;font-weight:800;font-size:20px;color:#3a4f63;line-height:1.15;outline:none;">{{ titulo }}</h2>
+          <div style="font-size:12.5px;color:var(--pip-texto-suave);margin-top:2px;">{{ quando }}{{ seloFavorita }}</div>
         </div>
       </div>
-      <button onClick="{{ fechar }}" aria-label="Fechar" style="width:38px;height:38px;flex-shrink:0;border-radius:50%;border:none;background:#f1e7d4;cursor:pointer;font-size:16px;color:#7a6a54;">✕</button>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button onClick="{{ ouvirHistoria }}" aria-label="{{ ouvirAria }}" title="Ouvir" style="min-width:48px;height:48px;border-radius:50%;border:1.5px solid var(--pip-areia-borda);background:transparent;cursor:pointer;font-size:17px;color:var(--pip-tinta);">{{ ouvirIcone }}</button>
+        <button onClick="{{ fechar }}" aria-label="Fechar" style="width:48px;height:48px;border-radius:50%;border:none;background:var(--pip-areia-clara);cursor:pointer;font-size:16px;color:var(--pip-tinta);">✕</button>
+      </div>
     </div>
 
     <!-- Texto da história (scroll próprio; fonte respeita a11y.textScale).
@@ -42,14 +45,50 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 class Component extends DCLogic {
-  state = { ocupado: false };
+  state = { ocupado: false, lendo: false };
+
+  // C2 · dialog acessível: foco inicial no título, Esc fecha, foco volta ao cartão
+  // que abriu. (Ref devolvido pelo renderVals — lição do B1.)
+  refDialog = (el) => { this._rootEl = el; };
+
+  componentDidMount() {
+    if (typeof document === 'undefined') return;
+    this._anterior = document.activeElement;
+    this._onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); this.fechar(); } };
+    document.addEventListener('keydown', this._onKey, true);
+    setTimeout(() => {
+      const t = this._rootEl && this._rootEl.querySelector('#pip-leitor-titulo');
+      if (t && typeof t.focus === 'function') t.focus();
+    }, 0);
+  }
+  componentWillUnmount() {
+    this._pararLeitura();
+    if (this._onKey && typeof document !== 'undefined') document.removeEventListener('keydown', this._onKey, true);
+    const a = this._anterior;
+    if (a && typeof a.focus === 'function' && typeof document !== 'undefined' && document.contains(a)) setTimeout(() => a.focus(), 0);
+  }
 
   _h() {
     const App = window.PipocaApp;
     return (App && App.estado && App.estado.leitorHistoria) || null;
   }
 
+  _pararLeitura() {
+    try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (_) {}
+    if (this.state.lendo) this.setState({ lendo: false });
+  }
+  _ouvir() {
+    if (this.state.lendo) { this._pararLeitura(); return; }
+    const h = this._h();
+    const C = window.PipocaCanonico;
+    if (!h || !h.texto) return;
+    try {
+      if (C && C.tts && typeof C.tts.falar === 'function') { C.tts.falar(h.texto, { lang: 'pt-BR', rate: 0.85 }); this.setState({ lendo: true }); }
+    } catch (_) {}
+  }
+
   fechar() {
+    this._pararLeitura();
     const App = window.PipocaApp;
     if (App) App.setState({ leitorHistoria: null });
   }
@@ -82,14 +121,20 @@ class Component extends DCLogic {
       : String(h.texto || '').split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
     const paragrafos = brutos.length ? brutos : [String(h.texto || '')];
     return {
+      refDialog: this.refDialog,
       titulo: h.titulo,
       emoji: h.emoji || '✨',
       paragrafos,
       quando,
       seloFavorita: h.favorita ? ' · guardada para sempre 💛' : '',
-      textoStyle: 'margin:0 0 .8em;font-family:var(--pip-fonte-texto,Nunito);color:#3a2c20;'
+      // C2/B2: corpo na fonte de LEITURA (a mesma do portão), respeitando a escala.
+      textoStyle: 'margin:0 0 .8em;color:var(--pip-tinta);'
+        + 'font-family:' + (a11y.dyslexia ? "'Atkinson Hyperlegible', sans-serif" : 'var(--pip-fonte-leitura, Nunito)') + ';'
         + 'font-size:' + Math.round(19 * escala) + 'px;line-height:1.8;'
         + (a11y.dyslexia ? 'letter-spacing:.04em;word-spacing:.12em;' : ''),
+      ouvirHistoria: () => this._ouvir(),
+      ouvirIcone: this.state.lendo ? '⏸' : '🔊',
+      ouvirAria: this.state.lendo ? 'Pausar a leitura' : 'Ouvir a história',
       fechar: () => this.fechar(),
       alternarFavorita: () => this._alternar(),
       favLabel: this.state.ocupado

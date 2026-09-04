@@ -13,7 +13,12 @@
   </style>
 </helmet>
 
-<div ref="{{ refRoot }}" style="position:fixed;inset:0;overflow:hidden;font-family:var(--pip-fonte-texto);color:var(--pip-tinta);background:radial-gradient(120% 120% at 50% 0%, var(--pip-areia) 0%, #ded2be 70%, #d3c5ad 100%);">
+<div ref="{{ refRoot }}" tabindex="-1" style="position:fixed;inset:0;overflow:hidden;outline:none;font-family:var(--pip-fonte-texto);color:var(--pip-tinta);background:radial-gradient(120% 120% at 50% 0%, var(--pip-areia) 0%, #ded2be 70%, #d3c5ad 100%);">
+
+  <!-- C11 (UI-A41): trocar de tela ANUNCIA o contexto novo ao leitor de tela.
+       Live region SEM role=status de propósito: os role=status das telas são
+       consultados por testes/leitores como "o aviso da tela" — este é só o título. -->
+  <div aria-live="polite" class="pip-sr-only">{{ anuncioTela }}</div>
 
   <!-- Cabeçalho de marca — só nas telas sem barra própria (T2), para não
        sobrepor a app bar das demais telas em tela cheia. -->
@@ -85,7 +90,31 @@
 class Component extends DCLogic {
   // O fluxo da criança começa em T2; estado.js já posiciona o roteador em 2
   // antes do boot do React. Lê o valor atual para evitar flash da T1.
-  state = { tela: (window.PipocaRoteador && window.PipocaRoteador.telaAtual && window.PipocaRoteador.telaAtual()) || 1 };
+  state = { tela: (window.PipocaRoteador && window.PipocaRoteador.telaAtual && window.PipocaRoteador.telaAtual()) || 1, anuncio: '' };
+
+  // C11: nome curto de cada tela — vira o anúncio da troca (live region).
+  _tituloDe(n) {
+    const t = { 1: 'Portão do cuidador', 2: 'Quem vai ler', 3: 'Escolher a história', 4: 'Montar a cena',
+      5: 'Hora de ler', 6: 'Comemoração', 7: 'Pote de vaga-lumes', 8: 'Evolução da leitura',
+      9: 'Entrar da família', 10: 'Configurar a leitura', 11: 'Painel da casa', 12: 'Perfis',
+      13: 'Limites', 14: 'Regras e IA', 15: 'Privacidade', 16: 'Conta e segurança' };
+    return t[n] || '';
+  }
+
+  // C11 (UI-A41): na troca REAL de tela, anuncia o título e leva o foco à raiz —
+  // a leitura recomeça do topo. Se a tela nova já focou um campo (C9), não rouba.
+  _aoTrocarTela(n) {
+    const mudou = n !== this.state.tela;
+    this.setState(mudou ? { tela: n, anuncio: this._tituloDe(n) } : { tela: n });
+    if (!mudou) return;
+    clearTimeout(this._focoTimer);
+    this._focoTimer = setTimeout(() => {
+      const el = this._rootEl; if (!el) return;
+      const ativo = document.activeElement;
+      if (ativo && ativo !== document.body && ativo !== document.documentElement && ativo !== el) return;
+      try { el.focus({ preventScroll: true }); } catch (_) {}
+    }, 180);
+  }
 
   // refRoot recebe a raiz do Shell — onde aplicamos as classes A11y transversais
   // (pip-dyslexia / pip-contrast / pip-reduce-motion) lidas de PipocaApp.estado.a11y.
@@ -106,7 +135,7 @@ class Component extends DCLogic {
     const R = window.PipocaRoteador;
     if (R) {
       this.setState({ tela: R.telaAtual() });
-      this._unsubRoteador = R.onTelaChange((n) => this.setState({ tela: n }));
+      this._unsubRoteador = R.onTelaChange((n) => this._aoTrocarTela(n)); // C11
     }
 
     // Assina o estado do app (window.PipocaApp) — re-renderiza overlays
@@ -156,6 +185,11 @@ class Component extends DCLogic {
     return {
       tela,
       devMode: dev,
+      // B1 (Plan03): o template só resolve {{ refRoot }} a partir do renderVals — como
+      // campo de classe nunca era ligado, _rootEl ficava undefined e as classes de
+      // a11y (pip-contrast/pip-reduce-motion/pip-dyslexia) NUNCA eram aplicadas.
+      refRoot: this.refRoot,
+      anuncioTela: this.state.anuncio || '',
       showA11y,
       showLeitor,
       showPedirGenero,

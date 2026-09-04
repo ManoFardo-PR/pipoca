@@ -1,4 +1,4 @@
-<!-- Regras.dc.html — Regras da leitura e IA (PC_RULES + PC_AI) · doc fase02-02-07/02-08
+﻿<!-- Regras.dc.html — Regras da leitura e IA (PC_RULES + PC_AI) · doc fase02-02-07/02-08
      ─────────────────────────────────────────────────────────────
      Atrás do PINGATE. Verificação da leitura (cuidador | auto | fala*), desfecho
      (convergente | aberto), palco (Palco | Ateliê), cardápio de recompensas
@@ -9,7 +9,7 @@
 <x-dc>
 <helmet>
   <style>
-    .pip-rg-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-rg-btn { cursor:pointer;transition:transform calc(.12s * var(--pip-mov)) ease; }
     .pip-rg-btn:active { transform:scale(.97); }
   </style>
 </helmet>
@@ -23,25 +23,20 @@
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Regras &amp; IA</div>
       </div>
-      <button class="pip-rg-btn" onClick="{{ voltar }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
+      <button class="pip-rg-btn" onClick="{{ voltar }}" style="min-height:44px;border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Painel</button>
     </div>
     <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 14px;">Como a leitura é confirmada e como a história termina. Tudo aqui vale já na próxima leitura.</p>
 
-    <!-- Chips por criança (configuração independente · UX por perfil) -->
-    <sc-if value="{{ temVariosPerfis }}" hint-placeholder-val="{{ false }}">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px;">
-        <sc-for list="{{ chipsPerfis }}" as="cp" hint-placeholder-count="2">
-          <button class="pip-rg-btn" onClick="{{ cp.onTap }}" style="{{ cp.style }}">{{ cp.nome }}</button>
-        </sc-for>
-      </div>
-    </sc-if>
+    <!-- Chips por criança (configuração independente · UX por perfil) — C8 -->
+    <dc-import name="ChipsPerfil" rotulo="Editando para:" perfis="{{ perfisChips }}" selecionadoId="{{ chipSelId }}" aoEscolher="{{ escolherChip }}"></dc-import>
 
     <!-- Verificação -->
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;">
       <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">Quem confirma a leitura</div>
-      <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
+      <!-- C11 (UI-A39): seleção com semântica (radiogroup/radio), não só cor -->
+      <div role="radiogroup" aria-label="Quem confirma a leitura" style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
         <sc-for list="{{ verificacoes }}" as="v" hint-placeholder-count="3">
-          <button class="pip-rg-btn" onClick="{{ v.onTap }}" style="{{ v.style }}">
+          <button class="pip-rg-btn" role="radio" aria-checked="{{ v.sel }}" aria-disabled="{{ v.inerte }}" onClick="{{ v.onTap }}" style="{{ v.style }}">
             <span style="font-family:'Baloo 2';font-weight:800;font-size:15px;">{{ v.label }}</span>
             <span style="font-family:'Nunito';font-size:13px;opacity:.85;">{{ v.desc }}</span>
           </button>
@@ -52,9 +47,9 @@
     <!-- Desfecho + Palco -->
     <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;margin-top:16px;">
       <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">Como a história termina</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
+      <div role="radiogroup" aria-label="Como a história termina" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">
         <sc-for list="{{ desfechos }}" as="d" hint-placeholder-count="2">
-          <button class="pip-rg-btn" onClick="{{ d.onTap }}" style="{{ d.style }}">
+          <button class="pip-rg-btn" role="radio" aria-checked="{{ d.sel }}" onClick="{{ d.onTap }}" style="{{ d.style }}">
             <span style="font-family:'Baloo 2';font-weight:800;font-size:15px;">{{ d.label }}</span>
             <span style="font-family:'Nunito';font-size:13px;opacity:.85;">{{ d.desc }}</span>
           </button>
@@ -65,7 +60,7 @@
           <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3a2c20;">Modo do quadro</div>
           <div style="font-family:'Nunito';font-size:13px;color:#7a6a54;">{{ palcoDesc }}</div>
         </div>
-        <button class="pip-rg-btn" onClick="{{ alternarPalco }}" style="min-height:44px;border:2px solid #3f6f9e;border-radius:14px;background:#fffdf7;color:#3f6f9e;padding:0 16px;font-family:'Baloo 2';font-weight:800;font-size:14px;cursor:pointer;">{{ palcoLabel }}</button>
+        <button class="pip-rg-btn" onClick="{{ alternarPalco }}" aria-label="{{ palcoAria }}" style="min-height:44px;border:2px solid #3f6f9e;border-radius:14px;background:#fffdf7;color:#3f6f9e;padding:0 16px;font-family:'Baloo 2';font-weight:800;font-size:14px;cursor:pointer;">{{ palcoLabel }}</button>
       </div>
     </div>
 
@@ -78,9 +73,30 @@
           <div style="display:flex;align-items:center;gap:12px;background:#fffdf7;border:2px solid #efe4cd;border-radius:14px;padding:10px 14px;">
             <span style="font-size:20px;">{{ it.icon }}</span>
             <span style="font-family:'Nunito';font-weight:700;font-size:14px;color:#3a2c20;flex:1;min-width:0;">{{ it.label }}</span>
-            <button class="pip-rg-btn" onClick="{{ it.menos }}" aria-label="Diminuir custo de {{ it.label }}" style="width:34px;height:34px;border:2px solid #e3d4ba;border-radius:10px;background:transparent;font-family:'Baloo 2';font-weight:800;font-size:16px;color:#7a6a54;cursor:pointer;">−</button>
+            <button class="pip-rg-btn" onClick="{{ it.menos }}" aria-label="Diminuir custo de {{ it.label }}" style="width:44px;height:44px;border:2px solid #e3d4ba;border-radius:10px;background:transparent;font-family:'Baloo 2';font-weight:800;font-size:16px;color:#7a6a54;cursor:pointer;">−</button>
             <span aria-live="polite" style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#3a2c20;min-width:44px;text-align:center;">{{ it.custo }} ✨</span>
-            <button class="pip-rg-btn" onClick="{{ it.mais }}" aria-label="Aumentar custo de {{ it.label }}" style="width:34px;height:34px;border:2px solid #e3d4ba;border-radius:10px;background:transparent;font-family:'Baloo 2';font-weight:800;font-size:16px;color:#7a6a54;cursor:pointer;">＋</button>
+            <button class="pip-rg-btn" onClick="{{ it.mais }}" aria-label="Aumentar custo de {{ it.label }}" style="width:44px;height:44px;border:2px solid #e3d4ba;border-radius:10px;background:transparent;font-family:'Baloo 2';font-weight:800;font-size:16px;color:#7a6a54;cursor:pointer;">＋</button>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- Lugares das histórias (C7) — cenários liberados POR CRIANÇA -->
+    <div style="background:var(--pip-creme,#fffaf0);border-radius:22px;box-shadow:0 18px 50px -24px rgba(60,40,20,.35);padding:24px;margin-top:16px;">
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:18px;color:#3a2c20;">Lugares das histórias</div>
+      <p style="color:#7a6a54;font-family:'Nunito';font-size:13px;margin:6px 0 12px;">{{ lugaresPergunta }}</p>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <sc-for list="{{ lugares }}" as="lg" hint-placeholder-count="5">
+          <div style="{{ lg.linhaStyle }}">
+            <span aria-hidden="true" style="font-size:20px;">{{ lg.icone }}</span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column;">
+              <span style="font-family:'Nunito';font-weight:700;font-size:14px;color:#3a2c20;">{{ lg.nome }}</span>
+              <span style="font-family:'Nunito';font-size:12px;color:#7a6a54;">{{ lg.desc }}</span>
+            </span>
+            <!-- C12: alvo do switch ≥44px (a pista visual segue 54×30) -->
+            <button class="pip-rg-btn" onClick="{{ lg.onTap }}" role="switch" aria-checked="{{ lg.ligado }}" aria-disabled="{{ lg.travado }}" aria-label="{{ lg.aria }}" style="{{ lg.trilho }}">
+              <span aria-hidden="true" style="{{ lg.pista }}"><span style="width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.25);display:block;"></span></span>
+            </button>
           </div>
         </sc-for>
       </div>
@@ -88,7 +104,7 @@
 
     <!-- IA (PC_AI) — componente pronto, ação injetada -->
     <div style="margin-top:16px;">
-      <dc-import name="IaToggle" perfilId="{{ iaPerfilId }}" ligada="{{ iaLigada }}" provedorPronto="{{ provedorPronto }}" autorizarIA="{{ autorizarIA }}"></dc-import>
+      <dc-import name="IaToggle" perfilId="{{ iaPerfilId }}" ligada="{{ iaLigada }}" provedorPronto="{{ provedorPronto }}" motivoIndisponivel="{{ motivoIndisponivel }}" autorizarIA="{{ autorizarIA }}"></dc-import>
     </div>
 
     <div style="height:24px;"></div>
@@ -100,7 +116,7 @@ class Component extends DCLogic {
   // UX por perfil: modos/cardápio são da criança do CHIP (lerPrefsPerfil);
   // gravar vai por gravarPrefsPerfil — no chip da criança ativa muda o vivo
   // (e o motor remonta na borda), nos demais só o save (o vivo não muda).
-  state = { perfis: [], chipId: null, modos: null, cardapio: null };
+  state = { perfis: [], chipId: null, modos: null, cardapio: null, cenarios: null };
 
   async componentDidMount() {
     const App = window.PipocaApp;
@@ -114,7 +130,7 @@ class Component extends DCLogic {
     // Mudanças globais (ex.: kill-switch) re-renderizam; o chip ATIVO re-sincroniza.
     if (App && App.subscribe) {
       this._unsub = App.subscribe(() => {
-        if (this._ehAtivo()) this.setState({ modos: App.estado.modos, cardapio: App.estado.cardapio });
+        if (this._ehAtivo()) this.setState({ modos: App.estado.modos, cardapio: App.estado.cardapio, cenarios: App.estado.cenariosLiberados });
         else this.setState({});
       });
     }
@@ -127,11 +143,11 @@ class Component extends DCLogic {
     try {
       if (App && App.lerPrefsPerfil) {
         const prefs = await App.lerPrefsPerfil(chipId);
-        this.setState({ chipId, modos: prefs.modos, cardapio: prefs.cardapio });
+        this.setState({ chipId, modos: prefs.modos, cardapio: prefs.cardapio, cenarios: prefs.cenariosLiberados });
         return;
       }
     } catch (_) {}
-    this.setState({ chipId, modos: (App && App.estado.modos) || null, cardapio: App ? App.estado.cardapio : null });
+    this.setState({ chipId, modos: (App && App.estado.modos) || null, cardapio: App ? App.estado.cardapio : null, cenarios: App ? App.estado.cenariosLiberados : null });
   }
 
   _ehAtivo() {
@@ -152,6 +168,28 @@ class Component extends DCLogic {
     if (App.gravarPrefsPerfil && this.state.chipId) App.gravarPrefsPerfil(this.state.chipId, { modos: novos });
     else App.setState({ modos: novos });
     this.setState({ modos: novos });
+  }
+  _cenarios() {
+    const C = window.PipocaCanonico;
+    return (C && C.cardapio && C.cardapio.normalizarCenariosLiberados)
+      ? C.cardapio.normalizarCenariosLiberados(this.state.cenarios)
+      : ['quintal_anoitecer'];
+  }
+  // C7: liga/desliga um lugar na lista da criança do CHIP. O quintal nunca sai
+  // (sem ele a criança ficaria sem lugar de partida) e a lista nunca esvazia
+  // (normalizar volta ao padrão). Grava id CANÔNICO no save.
+  _alternarCenario(id) {
+    const App = window.PipocaApp;
+    const C = window.PipocaCanonico;
+    const atual = this._cenarios();
+    const lista = atual.indexOf(id) >= 0 ? atual.filter((x) => x !== id) : atual.concat([id]);
+    const padrao = (C && C.cardapio && C.cardapio.CENARIOS_PADRAO) || ['quintal_anoitecer'];
+    for (const p of padrao) if (lista.indexOf(p) < 0) lista.unshift(p);
+    const novo = (C && C.cardapio && C.cardapio.normalizarCenariosLiberados)
+      ? C.cardapio.normalizarCenariosLiberados(lista) : lista;
+    if (App && App.gravarPrefsPerfil && this.state.chipId) App.gravarPrefsPerfil(this.state.chipId, { cenariosLiberados: novo });
+    else if (App) App.setState({ cenariosLiberados: novo });
+    this.setState({ cenarios: novo });
   }
   _mudarCusto(id, delta) {
     const App = window.PipocaApp;
@@ -189,6 +227,8 @@ class Component extends DCLogic {
     ].map((v) => ({
       label: v.label,
       desc: v.desc,
+      sel: m.verificacao === v.id, // C11: seleção com semântica
+      inerte: v.id === 'fala' && !falaDisponivel,
       onTap: () => {
         if (v.id === 'fala' && !falaDisponivel) return;
         if (C && C.modos) this._setModos(C.modos.definirVerificacao(m, v.id));
@@ -203,24 +243,65 @@ class Component extends DCLogic {
     ].map((d) => ({
       label: d.label,
       desc: d.desc,
+      sel: m.desfecho === d.id, // C11
       onTap: () => { if (C && C.modos) this._setModos(C.modos.definirDesfecho(m, d.id)); },
       style: cardBase + (m.desfecho === d.id ? sel : off),
     }));
 
-    const chipBase = 'min-height:38px;border-radius:999px;border:2px solid;font-family:Nunito;font-weight:700;font-size:13px;cursor:pointer;padding:6px 16px;';
-    const chipSel = 'background:#3f6f9e;border-color:#3f6f9e;color:#fff;';
-    const chipOff = 'background:#fffdf7;border-color:#e3d4ba;color:#3a2c20;';
+    // Plan03 · A2 — "pronto" HONESTO, antes do gesto: existe realizador remoto (o
+    // backend expõe a edge; em `local` não existe) E a plataforma não derrubou a IA
+    // (kill-switch SA_SAFE). É o mesmo conceito de IA efetiva que o gate A1 aplica
+    // na chamada (src/app/estado.js:_dispararRealizacao).
+    const killIa = !!(C && C.flags && C.flags.killSwitchAtivo(C.flags.carregarFlags(), 'ia'));
+    let remotoIa = null;
+    try { remotoIa = (C && C.geracao && C.geracao.realizadorRemoto) ? C.geracao.realizadorRemoto() : null; } catch (_) { remotoIa = null; }
+    const provedorPronto = !!remotoIa && !killIa;
+    // Sem edge, o motivo é estrutural (a plataforma "voltar" não resolveria); as flags
+    // padrão também contam como kill-switch (fail-closed), por isso a ordem importa.
+    const motivoIndisponivel = !remotoIa
+      ? 'A IA ainda não está disponível nesta casa. A criança segue lendo as histórias do livro.'
+      : 'Desligada pela plataforma por enquanto. Quando voltar, o botão abre sozinho.';
+
+    // Plan03 · C7 — lugares (cenários liberados) POR CRIANÇA. O save guarda ids
+    // canônicos: 'quintal_anoitecer' já é; os 4 "em breve" ficam com a própria
+    // chave como id provisório até E5 unificar chave↔id. Travados = honestos:
+    // ainda não têm história pronta, mas a promessa fica visível.
+    const liberados = this._cenarios();
+    const chipAtual = this.state.perfis.filter((p) => p.id === this.state.chipId)[0];
+    const chipNome = (chipAtual && chipAtual.nome) || 'a criança';
+    const lugares = [
+      { id: 'quintal_anoitecer', icone: '🌳', nome: 'O Quintal', desc: 'por onde toda história começa — fica sempre aberto', pronto: true, fixo: true },
+      { id: 'quarto',   icone: '🛏️', nome: 'O Quarto',     desc: 'ainda não tem história pronta', pronto: false },
+      { id: 'floresta', icone: '🌲', nome: 'A Floresta',   desc: 'ainda não tem história pronta', pronto: false },
+      { id: 'espaco',   icone: '🚀', nome: 'O Espaço',     desc: 'ainda não tem história pronta', pronto: false },
+      { id: 'fundomar', icone: '🐠', nome: 'Fundo do Mar', desc: 'ainda não tem história pronta', pronto: false },
+    ].map((lg) => {
+      const ligado = !!lg.fixo || liberados.indexOf(lg.id) >= 0;
+      const travado = !!lg.fixo || !lg.pronto;
+      return {
+        icone: lg.icone, nome: lg.nome, desc: lg.desc,
+        ligado, travado,
+        aria: lg.fixo ? lg.nome + ' fica sempre aberto' : 'Liberar ' + lg.nome + ' para ' + chipNome,
+        linhaStyle: 'display:flex;align-items:center;gap:12px;background:#fffdf7;border:2px solid #efe4cd;border-radius:14px;padding:10px 14px;'
+          + (travado && !ligado ? 'opacity:.72;' : ''),
+        // C12: o BOTÃO tem ≥44px de alvo; a pista visual segue 54×30.
+        trilho: 'width:64px;min-height:44px;border:none;background:transparent;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;'
+          + (travado ? 'cursor:not-allowed;' : 'cursor:pointer;'),
+        pista: 'width:54px;height:30px;border-radius:999px;padding:3px;display:flex;align-items:center;'
+          + (ligado ? 'background:#7a9a5b;justify-content:flex-end;' : 'background:#cbb692;justify-content:flex-start;'),
+        onTap: travado ? (() => {}) : (() => this._alternarCenario(lg.id)),
+      };
+    });
 
     return {
-      temVariosPerfis: this.state.perfis.length > 1,
-      chipsPerfis: this.state.perfis.map((p) => ({
-        nome: p.nome,
-        onTap: () => this._carregarChip(p.id),
-        style: chipBase + (p.id === this.state.chipId ? chipSel : chipOff),
-      })),
+      // C8: chips componentizados (ChipsPerfil) com rótulo de escopo.
+      perfisChips: this.state.perfis,
+      chipSelId: this.state.chipId || '',
+      escolherChip: (id) => this._carregarChip(id),
       verificacoes,
       desfechos,
       palcoLabel: m.palco === 'Palco' ? 'Palco' : 'Ateliê',
+      palcoAria: 'Alternar o modo do quadro — agora: ' + (m.palco === 'Palco' ? 'Palco' : 'Ateliê'),
       palcoDesc: m.palco === 'Palco' ? 'Palco: a cena pronta ganha vida.' : 'Ateliê: a criança monta a cena.',
       alternarPalco: () => { if (C && C.modos) this._setModos(C.modos.alternarPalco(m)); },
       itensCardapio: this._cardapio().map((it) => ({
@@ -230,13 +311,14 @@ class Component extends DCLogic {
         menos: () => this._mudarCusto(it.id, -1),
         mais: () => this._mudarCusto(it.id, +1),
       })),
+      lugares,
+      lugaresPergunta: 'Quais lugares ' + chipNome + ' pode escolher? Os "em breve" abrem quando a história ficar pronta.',
       // UX por perfil: o toggle é keyado de VERDADE pelo chip — autorizar IA
       // para a criança A não liga para a B.
       iaPerfilId: this.state.chipId || '',
       iaLigada: !!m.iaLigada,
-      // fase05 · provedor do MVP (simulado local): pronto quando o bundle expõe
-      // ia/flags e o kill-switch da plataforma (SA_SAFE) não derrubou a IA.
-      provedorPronto: !!(C && C.ia && C.flags && !C.flags.killSwitchAtivo(C.flags.carregarFlags(), 'ia')),
+      provedorPronto,
+      motivoIndisponivel,
       autorizarIA: (_perfilId, on) => { if (C && C.modos) this._setModos(C.modos.autorizarIA(this._modos(), on)); },
       voltar: () => { if (App) App.setState({ tela: 11 }); },
     };

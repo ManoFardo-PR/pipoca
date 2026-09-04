@@ -8,9 +8,9 @@
 <x-dc>
 <helmet>
   <style>
-    .pip-st-campo { width:100%;padding:11px 13px;border-radius:12px;border:2px solid #d8cfbd;background:#fffdf8;font-family:'Nunito';font-size:14px;color:#2c241a;outline:none; }
+    .pip-st-campo { width:100%;padding:11px 13px;border-radius:12px;border:2px solid #d8cfbd;background:#fffdf8;font-family:'Nunito';font-size:14px;color:#2c241a; }
     .pip-st-campo:focus { border-color:#b09a72; }
-    .pip-st-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-st-btn { cursor:pointer;transition:transform calc(.12s * var(--pip-mov)) ease; }
     .pip-st-btn:active { transform:scale(.98); }
   </style>
 </helmet>
@@ -20,12 +20,17 @@
 
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
       <div>
-        <div style="font-family:'Baloo 2';font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#8a7a62;">Tenants e planos</div>
+        <div style="font-family:'Baloo 2';font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#8a7a62;">Contas e planos</div>
         <div style="font-family:'Baloo 2';font-weight:800;font-size:24px;color:#2c241a;line-height:1.1;margin-top:2px;">Quem usa a plataforma</div>
       </div>
       <button class="pip-st-btn" onClick="{{ voltar }}" style="border:1px solid #d8cfbd;border-radius:999px;background:transparent;padding:9px 16px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6c56;cursor:pointer;">↩ Painel</button>
     </div>
-    <p style="color:#7a6c56;font-family:'Nunito';font-size:14px;line-height:1.5;margin:0 0 18px;">Metadados e limites — nunca dados das crianças. Suspender preserva tudo; rebaixar plano só bloqueia criação acima do teto.</p>
+    <p style="color:#7a6c56;font-family:'Nunito';font-size:14px;line-height:1.5;margin:0 0 12px;">Cada conta é uma escola ou uma família. Metadados e limites — nunca dados das crianças. Suspender preserva tudo; rebaixar plano só bloqueia criação acima do teto.</p>
+
+    <!-- B11: resumo no topo — a tela não nasce muda. -->
+    <sc-if value="{{ temResumo }}" hint-placeholder-val="{{ false }}">
+      <div style="font-family:'Nunito';font-weight:700;font-size:13px;color:#5a4c3a;margin:0 0 12px;">{{ resumo }}</div>
+    </sc-if>
 
     <!-- Lista -->
     <div style="display:flex;flex-direction:column;gap:10px;">
@@ -56,15 +61,15 @@
     </div>
 
     <sc-if value="{{ vazio }}" hint-placeholder-val="{{ false }}">
-      <div style="background:#fffdf8;border:1px dashed #d8cfbd;border-radius:14px;padding:18px;font-family:'Nunito';font-size:14px;color:#7a6c56;">Nenhum tenant no seu escopo ainda. Crie o primeiro abaixo.</div>
+      <div style="background:#fffdf8;border:1px dashed #d8cfbd;border-radius:14px;padding:18px;font-family:'Nunito';font-size:14px;color:#7a6c56;">Nenhuma conta no seu escopo ainda. Crie a primeira abaixo.</div>
     </sc-if>
 
-    <!-- Criar tenant (exige escopo de plataforma inteira) -->
+    <!-- Criar conta (exige escopo de plataforma inteira) -->
     <div style="background:#fffdf8;border:1px solid #e4dcc9;border-radius:14px;padding:18px;margin-top:16px;box-shadow:0 10px 28px -18px rgba(44,36,26,.35);">
-      <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#2c241a;">Criar tenant</div>
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#2c241a;">Criar conta</div>
       <p style="color:#7a6c56;font-family:'Nunito';font-size:12px;margin:4px 0 10px;">Nasce no Freemium: 60 dias com os limites do Família, grátis; depois, os do Grátis (nada é apagado).</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <input class="pip-st-campo" style="flex:2;min-width:160px;" value="{{ nomeNovo }}" onInput="{{ setNomeNovo }}" placeholder="Nome (escola/família)" aria-label="Nome do tenant" />
+        <input class="pip-st-campo" style="flex:2;min-width:160px;" value="{{ nomeNovo }}" onInput="{{ setNomeNovo }}" placeholder="Nome da conta (escola ou família)" aria-label="Nome da conta" />
         <input class="pip-st-campo" style="flex:2;min-width:160px;" value="{{ emailNovo }}" onInput="{{ setEmailNovo }}" type="email" placeholder="E-mail de contato (opcional)" aria-label="E-mail de contato" />
         <button class="pip-st-btn" onClick="{{ criarTenant }}" style="{{ criarStyle }}">Criar</button>
       </div>
@@ -116,7 +121,7 @@ class Component extends DCLogic {
     const C = window.PipocaAdminCanonico;
     const repo = A ? A.repoTenant : null;
     const nome = (this.state.nomeNovo || '').trim();
-    if (!nome) { this.setState({ erro: 'Dê um nome ao tenant para criar.' }); return; }
+    if (!nome) { this.setState({ erro: 'Dê um nome à conta para criar.' }); return; }
     if (!repo || !C) { this.setState({ erro: 'Plataforma indisponível. Recarregue a página.' }); return; }
     try {
       const t = C.tenants.novoTenant(nome, Date.now());
@@ -201,8 +206,16 @@ class Component extends DCLogic {
       })),
     }));
     const podeCriar = !!(s.nomeNovo || '').trim();
+    // B11: resumo no topo.
+    const nFree = s.tenants.filter((t) => t.planoId === 'freemium').length;
+    const nSusp = s.tenants.filter((t) => !t.ativo).length;
+    const resumo = s.tenants.length
+      ? s.tenants.length + ' conta(s) · ' + nFree + ' no Freemium' + (nSusp ? ' · ' + nSusp + ' suspensa(s)' : '')
+      : '';
     return {
       tenants,
+      temResumo: !!resumo,
+      resumo,
       vazio: !s.tenants.length,
       nomeNovo: s.nomeNovo,
       emailNovo: s.emailNovo,

@@ -9,7 +9,7 @@
  *   window.PipocaCanonico), sem reimplementar regra de narrativa/acesso.
  * ENTRA: interações das telas (setState/patch, selecionarPerfil, PIN, login);
  *   leituras de window.PipocaCanonico e window.PipocaRoteador; fetch de
- *   docs/quintal.v3.json (grafo v3) e docs/fichas/*.v1.json (fichas); localStorage
+ *   docs/cenarios.index.json (manifesto E4) → grafo v3 + fichas do cenário; localStorage
  *   (perfis da chave legada pipoca.perfis.v1).
  * SAI: window.PipocaApp (getters estado/cenarioV2/fichasProntas; setState,
  *   subscribe, repo, selecionarPerfil, verificarPinCuidador, abrirPortao,
@@ -60,7 +60,10 @@
 (function () {
   "use strict";
 
-  var PERFIS_KEY_LEGADO = "pipoca.perfis.v1"; // chave antiga (array plano); o repo canônico usa envelopes
+  // D3 (D-21): a chave legada (array plano) só existe para a MIGRAÇÃO one-shot,
+  // que agora a APAGA ao terminar; o fallback grava na chave canônica (envelopes).
+  var PERFIS_KEY_LEGADO = "pipoca.perfis.v1"; // remover na próxima versão, junto com a migração
+  var PERFIS_KEY = "pipoca.perfil.v1"; // canônica (persistencia/chaves.ts:CHAVE_PERFIS)
 
   // Superfícies adultas (KIDMODE · modoApp.ts): Onboarding (10), hub e telas do
   // cuidador (11–15), painel de evolução (8) e Conta & segurança (16).
@@ -139,6 +142,12 @@
         }
         var R = window.PipocaRoteador;
         if (R) R.irParaTela(state.tela);
+        // B5 (UI-C38): o pedir-uma-vez do gênero só aparece na CHEGADA à T3 (a casinha),
+        // nunca sobre T4–T7 nem sobre telas adultas — a ativação deixa a pergunta pendente.
+        if (state.tela === 3 && _pedirGeneroPendente && state.perfil && !state.perfil.genero) {
+          _pedirGeneroPendente = false;
+          state.pedirGenero = true;
+        }
       }
       // UX por perfil · perfil trocado por fora do fluxo (e2e, remoção em T12):
       // invalida a gravação pendente do perfil anterior (nunca contamina o novo)
@@ -177,22 +186,31 @@
     state.modoApp = M ? M.aoPassarPortao() : "cuidador";
   }
 
-  // Após PIN aceito: sem perfis → onboarding (T10); com perfis → a EVOLUÇÃO
-  // DA LEITURA (T8) é a aterrissagem do cuidador — o hub (T11) fica a um
-  // toque no "↩ Painel".
+  // Após PIN aceito: sem perfis → onboarding (T10); com perfis → o HUB (T11),
+  // decisão do dono (C6 · UI-A20): o gesto deliberado do PIN desemboca numa
+  // ferramenta, não num relatório de zeros — a Evolução (T8) fica no menu.
   function _irParaPosPin() {
     _entrarCuidador();
     if ((_perfis || []).length === 0) _irPara(10);
-    else _irPara(8);
+    else _irPara(11);
   }
 
   // ─── Persistência (seam RepositorioPersistencia via bundle) ───────────────
   // O repo canônico (persistencia/index.ts) valida envelopes e cobre perfis,
-  // save e telemetria. Sem bundle, cai num fallback mínimo só de perfis
-  // (chave legada), para o app não morrer.
+  // save e telemetria. Sem bundle, cai num fallback mínimo só de perfis —
+  // na CHAVE CANÔNICA, com envelopes (D3: a legada não recebe mais escrita).
   function _lerPerfisLegado() {
     try {
       var raw = localStorage.getItem(PERFIS_KEY_LEGADO);
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (_) { return []; }
+  }
+
+  // Envelopes crus da chave canônica (o fallback preserva versões desconhecidas — D-09).
+  function _lerEnvelopesPerfil() {
+    try {
+      var raw = localStorage.getItem(PERFIS_KEY);
       var arr = raw ? JSON.parse(raw) : [];
       return Array.isArray(arr) ? arr : [];
     } catch (_) { return []; }
@@ -214,32 +232,50 @@
     return _repoCanonico;
   }
 
-  // Migração única: perfis da chave legada (array plano) entram no repo canônico
-  // quando ele ainda está vazio. A chave antiga NÃO é apagada (fallback de leitura).
+  // Migração única (D3/D-21): perfis da chave legada entram no repo canônico
+  // quando ele ainda está vazio e a legada é APAGADA ao final (só com todas as
+  // gravações ok). Canônica já povoada → a legada é resíduo e sai também.
+  // Manter por mais UMA versão; depois remover junto com PERFIS_KEY_LEGADO.
   function _migrarPerfisLegado() {
     var base = _repoBase();
     if (!base) return Promise.resolve();
     return base.carregarPerfis().then(function (arr) {
-      if ((arr || []).length > 0) return;
       var legados = _lerPerfisLegado();
       if (!legados.length) return;
+      if ((arr || []).length > 0) {
+        try { localStorage.removeItem(PERFIS_KEY_LEGADO); } catch (_) {}
+        return;
+      }
+      var falhas = 0;
       return Promise.all(legados.map(function (p) {
-        return base.salvarPerfil(p).catch(function () {});
-      })).then(function () {});
+        return base.salvarPerfil(p).catch(function () { falhas++; });
+      })).then(function () {
+        if (falhas === 0) { try { localStorage.removeItem(PERFIS_KEY_LEGADO); } catch (_) {} }
+      });
     }).catch(function () {});
   }
 
   var _fallbackRepo = {
-    carregarPerfis: function () { return Promise.resolve(_lerPerfisLegado()); },
-    salvarPerfil: function (perfil) {
-      var arr = _lerPerfisLegado();
-      var i = -1;
-      for (var j = 0; j < arr.length; j++) {
-        var p = arr[j];
-        if (p && perfil && perfil.id != null && p.id === perfil.id) { i = j; break; }
+    carregarPerfis: function () {
+      var arr = _lerEnvelopesPerfil();
+      var out = [];
+      for (var i = 0; i < arr.length; i++) {
+        var e = arr[i];
+        if (e && e.esquema === PERFIS_KEY && e.perfil) out.push(e.perfil);
       }
-      if (i >= 0) arr[i] = perfil; else arr.push(perfil);
-      try { localStorage.setItem(PERFIS_KEY_LEGADO, JSON.stringify(arr)); } catch (_) {}
+      return Promise.resolve(out);
+    },
+    salvarPerfil: function (perfil) {
+      // Mesmo envelope do repo canônico; envelopes de versão desconhecida ficam (D-09).
+      var arr = _lerEnvelopesPerfil();
+      var out = [];
+      for (var j = 0; j < arr.length; j++) {
+        var e = arr[j];
+        if (e && e.esquema === PERFIS_KEY && e.perfil && perfil && e.perfil.id === perfil.id) continue;
+        out.push(e);
+      }
+      out.push({ esquema: PERFIS_KEY, perfil: perfil });
+      try { localStorage.setItem(PERFIS_KEY, JSON.stringify(out)); } catch (_) {}
       return Promise.resolve();
     },
     apagarPerfil: function () { return Promise.resolve(); },
@@ -449,6 +485,9 @@
   // criança A não vaza pra B) e hidrata em paralelo (repo local resolve em
   // microtask). Mesmo id: passthrough — preserva a composição em curso.
   // `telaDestino` opcional (T2 passa 3; T12 não navega).
+  // B5: a pergunta do gênero fica PENDENTE na ativação e abre na chegada à T3 (setState).
+  var _pedirGeneroPendente = false;
+
   function selecionarPerfil(p, telaDestino) {
     if (!p || !p.id) return;
     flushSavePendente();
@@ -456,8 +495,9 @@
     if (state.perfil && state.perfil.id === p.id) {
       nav.perfil = p;
       // fase13 pós-incidente · perfil legado sem gênero: pergunta na ativação
-      // ("Depois" fecha; volta a perguntar na próxima ativação).
-      nav.pedirGenero = !p.genero;
+      // ("Depois" fecha; volta a perguntar na próxima ativação). B5: só na T3.
+      _pedirGeneroPendente = !p.genero;
+      nav.pedirGenero = false;
       setState(nav);
       return;
     }
@@ -468,7 +508,8 @@
     patch.gatePendente = null;
     patch.leitorHistoria = null; // a releitura da criança A não vaza pra B
     patch.ultimaHistoriaSalvaId = null;
-    patch.pedirGenero = !p.genero; // pedir-uma-vez (fase13 pós-incidente)
+    _pedirGeneroPendente = !p.genero; // pedir-uma-vez (fase13 pós-incidente) — abre na T3 (B5)
+    patch.pedirGenero = false;
     for (var k in nav) { if (Object.prototype.hasOwnProperty.call(nav, k)) patch[k] = nav[k]; }
     setState(patch);
     _hidratarPerfil(p);
@@ -607,6 +648,21 @@
     return Promise.resolve({ ok: true });
   }
 
+  // Login com Google pelo seam: só redireciona ao consentimento do provedor; o
+  // retorno (tokens no fragmento) é assentado no boot por capturarRetornoOAuth.
+  // Devolve false quando o backend não suporta (bundle/adaptador sem OAuth).
+  function entrarComGoogle() {
+    try {
+      var Canon = window.PipocaCanonico;
+      var b = Canon && Canon.backend ? Canon.backend.obterBackend() : null;
+      if (b && b.auth && typeof b.auth.entrarComGoogle === "function") {
+        b.auth.entrarComGoogle();
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
   function _backend() {
     var Canon = window.PipocaCanonico;
     try { if (Canon && Canon.backend) return Canon.backend.obterBackend(); } catch (_) {}
@@ -733,17 +789,103 @@
   // ─── Motor/validador CANÔNICOS (src/) via window.PipocaCanonico ────────────
 
   // ─── COMPOSIÇÃO AUTORAL A+ (linha verde) via PipocaCanonico.composicao ──────
-  // O grafo ativo é o v3 (docs/quintal.v3.json, esquema pipoca.grafo-autoral.v3).
-  function _initComposicao() {
-    fetch("./docs/quintal.v3.json")
-      .then(function (resp) { return resp.json(); })
-      .then(function (j) {
-        _grafoV2 = j || null;
-        _cenarioV2 = j && j.cenario ? j.cenario : null;
+  // E4 (ML-2): os cenários vêm do MANIFESTO (docs/cenarios.index.json) — um id
+  // canônico único para galeria, liberação e motor; os fetches de grafo e
+  // relações são DERIVADOS da entrada do manifesto (nada hard-coded aqui).
+  var CENARIO_PADRAO_ID = "quintal_anoitecer";
+  var _manifestoCenarios = null; // EntradaCenarioIndex[] ou null (fallback)
+  var _cenarioAtivoId = null;
+  var _cacheGrafos = {};   // id → grafo v3 (json)
+  var _cacheRelacoes = {}; // id → relacoes v1 (json)
+  var _fichasGlobaisPromise = null; // {objetos, cenarios} — catálogos globais
+
+  // Fallback SEM manifesto: caminho derivado por CONVENÇÃO do próprio id
+  // (prefixo antes do "_" + ".v3.json" em ./docs/) — comportamento antigo.
+  function _entradaFallback(id) {
+    var curto = String(id).split("_")[0];
+    return {
+      id: id, nome: id, descricao: "", svg: curto, disponivel: true,
+      grafo: "./docs/" + curto + ".v3.json",
+      relacoes: "./docs/fichas/relacoes." + curto + ".v1.json",
+    };
+  }
+
+  function _entradaCenario(id) {
+    if (_manifestoCenarios) {
+      for (var i = 0; i < _manifestoCenarios.length; i++) {
+        if (_manifestoCenarios[i] && _manifestoCenarios[i].id === id) return _manifestoCenarios[i];
+      }
+      return null;
+    }
+    return _entradaFallback(id);
+  }
+
+  function _fichasGlobais() {
+    if (!_fichasGlobaisPromise) {
+      _fichasGlobaisPromise = Promise.all([
+        fetch("./docs/fichas/objetos.v1.json").then(function (r) { return r.json(); }),
+        fetch("./docs/fichas/cenarios.v1.json").then(function (r) { return r.json(); }),
+      ]).then(function (arr) { return { objetos: arr[0], cenarios: arr[1] }; });
+    }
+    return _fichasGlobaisPromise;
+  }
+
+  function _buscarJson(url, cache, id) {
+    if (cache[id]) return Promise.resolve(cache[id]);
+    return fetch(url).then(function (r) { return r.json(); }).then(function (j) {
+      cache[id] = j;
+      return j;
+    });
+  }
+
+  // Carrega (ou pega do cache) o grafo + as fichas do cenário e o torna ATIVO.
+  // Devolve Promise<boolean>. O grafo é o gate: sem ele, nada muda (fail-soft).
+  function _carregarCenario(id) {
+    var entrada = _entradaCenario(id);
+    if (!entrada || !entrada.disponivel || !entrada.grafo) return Promise.resolve(false);
+    return _buscarJson(entrada.grafo, _cacheGrafos, id).then(function (grafo) {
+      if (!grafo || !grafo.cenario) return false;
+      _grafoV2 = grafo;
+      _cenarioV2 = grafo.cenario;
+      _cenarioAtivoId = id;
+      // Fichas: globais + relações DESTE cenário (falha ⇒ caminho v3 segue).
+      var pRel = entrada.relacoes
+        ? _buscarJson(entrada.relacoes, _cacheRelacoes, id)
+        : Promise.resolve(null);
+      return Promise.all([_fichasGlobais(), pRel]).then(function (par) {
+        _fichasV1 = par[1]
+          ? { objetos: par[0].objetos, relacoes: par[1], cenarios: par[0].cenarios }
+          : null;
         notify();
+        return true;
+      }).catch(function (e) {
+        console.warn("[PipocaApp] Fichas v1 do cenário falharam (caminho v3 segue):", e);
+        _fichasV1 = null;
+        notify();
+        return true; // o grafo carregou — a composição funciona
+      });
+    }).catch(function (e) {
+      console.warn("[PipocaApp] Falha ao carregar o cenário \"" + id + "\":", e);
+      return false;
+    });
+  }
+
+  // Boot: busca o manifesto e carrega o cenário padrão; manifesto ausente ⇒
+  // fallback por convenção (mesmo comportamento de antes do E4).
+  function _initCenarios() {
+    fetch("./docs/cenarios.index.json")
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        _manifestoCenarios = (j && j.esquema === "pipoca.cenarios-index.v1" && Array.isArray(j.cenarios))
+          ? j.cenarios
+          : null;
+        if (!_manifestoCenarios) console.warn("[PipocaApp] manifesto de cenários inválido — usando convenção");
+        return _carregarCenario(CENARIO_PADRAO_ID);
       })
       .catch(function (e) {
-        console.warn("[PipocaApp] Falha ao carregar quintal.v3.json:", e);
+        console.warn("[PipocaApp] manifesto de cenários indisponível — usando convenção:", e);
+        _manifestoCenarios = null;
+        return _carregarCenario(CENARIO_PADRAO_ID);
       });
   }
 
@@ -761,26 +903,30 @@
   var _realizacaoPendente = null; // { chave, promise } — geração do último commit
   var TETO_ESPERA_REALIZACAO_MS = 8000;
 
-  // Carrega os 3 catálogos no boot, ao lado do grafo (padrão de _initComposicao).
-  // Falha ⇒ _fichasV1 = null e o módulo de geração cai no caminho v3 (13-00).
-  function _initFichas() {
-    Promise.all([
-      fetch("./docs/fichas/objetos.v1.json").then(function (r) { return r.json(); }),
-      fetch("./docs/fichas/relacoes.quintal.v1.json").then(function (r) { return r.json(); }),
-      fetch("./docs/fichas/cenarios.v1.json").then(function (r) { return r.json(); }),
-    ])
-      .then(function (arr) {
-        _fichasV1 = { objetos: arr[0], relacoes: arr[1], cenarios: arr[2] };
-      })
-      .catch(function (e) {
-        console.warn("[PipocaApp] Falha ao carregar fichas v1 (caminho v3 segue):", e);
-        _fichasV1 = null;
-      });
-  }
+  // E4: as fichas do cenário carregam junto do grafo em _carregarCenario —
+  // os catálogos globais (objetos/cenários) são memoizados em _fichasGlobais.
 
   function _geracao() {
     var Canon = window.PipocaCanonico;
     return Canon && Canon.geracao ? Canon.geracao : null;
+  }
+
+  // Plan03 · A1 — gate ÚNICO de consentimento. O realizador remoto (edge → LLM)
+  // recebe nome, gênero e nível da criança; só pode ser chamado com a IA
+  // EFETIVAMENTE ligada: autorização do cuidador (modos.iaLigada) E plataforma
+  // sem kill-switch (flag global `ia`). Lê as flags na borda, a cada disparo
+  // (sem reload). Fail-closed: sem Canon.flags (ou erro) ⇒ desligada.
+  var MOTIVO_IA_DESLIGADA = "ia-desligada";
+  var ROTA_TODA_AP_CRU = { n1: "ap_cru", n2: "ap_cru", n3: "ap_cru", n4: "ap_cru" };
+  function _iaEfetivamenteLigada() {
+    var Canon = window.PipocaCanonico;
+    var F = Canon && Canon.flags;
+    if (!F || typeof F.aplicarFlagsAosModos !== "function" || typeof F.carregarFlags !== "function") return false;
+    try {
+      return F.aplicarFlagsAosModos(state.modos || {}, F.carregarFlags()).iaLigada === true;
+    } catch (_) {
+      return false;
+    }
   }
 
   // Dispara a realização em BACKGROUND na ENTRADA do portão (13-01:50, reconciliado
@@ -806,8 +952,14 @@
       estadoFallback: { estado: comp, nivel: nivel },
     };
     var opcoes = {};
-    // Produção: realizador remoto (edge, cascata no servidor) quando disponível.
-    if (G.realizadorRemoto) {
+    var iaLigada = _iaEfetivamenteLigada();
+    if (!iaLigada) {
+      // A1: IA desligada (cuidador não autorizou OU kill-switch) ⇒ rota A+ cru no
+      // próprio `gerar` — zero LLM por construção (nem o realizador local entra;
+      // nada da criança sai do aparelho). A prévia e a captura seguem iguais.
+      opcoes.rota = ROTA_TODA_AP_CRU;
+    } else if (G.realizadorRemoto) {
+      // Produção: realizador remoto (edge, cascata no servidor) quando disponível.
       var remoto = null;
       try { remoto = G.realizadorRemoto(); } catch (_) { remoto = null; }
       if (remoto) opcoes.realizador = remoto;
@@ -816,7 +968,12 @@
     _realizacaoPendente = {
       chave: chave,
       resultado: null, // P2: memoizado pela corrida do portão; o commit reusa (salvo === lido)
-      promise: G.gerar(entrada, opcoes).catch(function (e) {
+      promise: G.gerar(entrada, opcoes).then(function (r) {
+        // A1: o motivo distingue "desligada" (consentimento) de "falhou" (edge/teto)
+        // no registro salvo e no log da sessão (_contarOrigem).
+        if (!iaLigada && r && r.origem) r.origem.motivo = MOTIVO_IA_DESLIGADA;
+        return r;
+      }).catch(function (e) {
         // P1 (observabilidade 13-02 aditivo): preservar o MOTIVO real (ex.: 503
         // da edge, "sem sessão") em vez de engolir em null — flui p/ origem.motivo.
         var motivo = (e && e.message) || String(e);
@@ -914,11 +1071,15 @@
   var _historiaEmitida = false; // historia_concluida 1x por história
   // P1 (observabilidade): taxa realizador vs fallback da SESSÃO (em memória);
   // logada ao fim da sessão — o autor VÊ a taxa sem painel novo.
-  var _origemSessao = { llm: 0, fallback: 0 };
+  var _origemSessao = { llm: 0, fallback: 0, desligada: 0 };
   function _contarOrigem(r) {
     var fonte = r && r.origem && r.origem.fonte;
     if (fonte === "llm") _origemSessao.llm += 1;
-    else if (fonte === "fallback-a-mais") _origemSessao.fallback += 1;
+    else if (fonte === "fallback-a-mais") {
+      // A1: "desligada" (consentimento/kill-switch) NÃO é "falhou" (edge/teto).
+      if (r.origem.motivo === MOTIVO_IA_DESLIGADA) _origemSessao.desligada += 1;
+      else _origemSessao.fallback += 1;
+    }
   }
 
   function _tele() {
@@ -968,7 +1129,7 @@
     _acum = { palavras: 0, historias: 0 };
     _jaEmitidos = new Set();
     _historiaEmitida = false;
-    _origemSessao = { llm: 0, fallback: 0 };
+    _origemSessao = { llm: 0, fallback: 0, desligada: 0 };
     var Canon = window.PipocaCanonico;
     if (!state.sessao && state.perfil && Canon && Canon.sessao) {
       var bloco = (state.limites && state.limites.blocoMin) || 15;
@@ -1158,6 +1319,8 @@
       emoji: (ultimo && ultimo.emoji) || "✨",
       criadaEm: Date.now(),
       favorita: false,
+      // D1: carimbo da gravação — desempate da mescla entre aparelhos (D-07).
+      atualizadoEm: Date.now(),
       // Aditivos da geração 2 (13-02): origem sempre; Pacote quando houve.
       origem: resultado.origem,
       rodada: rodadaLida,
@@ -1193,7 +1356,8 @@
       // P1: fim da história completa (convergência) — loga a taxa da sessão.
       _contarOrigem(r);
       console.info("[PipocaApp] realizações da sessão — realizador(llm): " +
-        _origemSessao.llm + " · fallback(cru): " + _origemSessao.fallback);
+        _origemSessao.llm + " · fallback(cru): " + _origemSessao.fallback +
+        " · ia desligada(cru): " + _origemSessao.desligada);
     });
   }
 
@@ -1223,6 +1387,7 @@
       var nova = {};
       for (var k in alvo) { if (Object.prototype.hasOwnProperty.call(alvo, k)) nova[k] = alvo[k]; }
       nova.favorita = favorita !== false;
+      nova.atualizadoEm = Date.now(); // D1: o (des)favoritar mais novo vence entre aparelhos
       return repo.salvarHistoria(pid, nova).then(function () {
         notify(); // T3/T6/leitor re-renderizam e releem
         return { ok: true, favorita: nova.favorita };
@@ -1236,6 +1401,11 @@
     setState: setState,
     subscribe: subscribe,
     get cenarioV2() { return _cenarioV2; },
+    // E4 · manifesto de cenários: lista para a galeria (null enquanto carrega/
+    // fallback), id ativo e a troca de cenário (carrega grafo+fichas, com cache).
+    get cenarioAtivoId() { return _cenarioAtivoId; },
+    cenariosDisponiveis: function () { return _manifestoCenarios ? _manifestoCenarios.slice() : null; },
+    carregarCenario: _carregarCenario,
     // fase13 · prontidão das fichas v1 (e2e/diagnóstico; o app não espera por elas)
     get fichasProntas() { return !!_fichasV1; },
     repo: repo,
@@ -1247,6 +1417,7 @@
     abrirPortao: abrirPortao,
     aoVoltarParaCrianca: aoVoltarParaCrianca,
     entrarNaConta: entrarNaConta,
+    entrarComGoogle: entrarComGoogle,
     criarConta: criarConta,
     recuperarSenha: recuperarSenha,
     redefinirSenha: redefinirSenha,
@@ -1273,35 +1444,70 @@
   };
 
   // ─── Inicialização (na borda) ─────────────────────────────────────────────
+  // D1: a mescla reativa de histórias (repo sincronizado) avisa por aqui —
+  // notify() re-renderiza e a T3 recarrega a estante (guarda p/ bundle antigo).
+  try {
+    var CanonD1 = window.PipocaCanonico;
+    if (CanonD1 && CanonD1.backend && CanonD1.backend.aoMesclarHistorias) {
+      CanonD1.backend.aoMesclarHistorias(function () { notify(); });
+    }
+  } catch (_) {}
   _migrarPerfisLegado().then(function () { return repo.carregarPerfis(); }); // popula cache _perfis
-  _initComposicao();
-  _initFichas(); // fase13 · fichas v1 ao lado do grafo (falha ⇒ caminho v3 segue)
+  _initCenarios(); // E4 · manifesto → grafo v3 + fichas do cenário padrão
   // Rota inicial: sem sessão de conta válida → login da família (T9, HH_LOGIN);
   // com sessão → modo criança (T2). O boot navega por _irPara (anterior à guarda).
   // O check continua SÍNCRONO no espelho local — o adaptador remoto (fase06)
   // grava os mesmos espelhos, então nada muda aqui.
-  var _telaInicial = 2;
-  try {
-    var C0 = window.PipocaCanonico && window.PipocaCanonico.conta;
-    if (C0 && !C0.sessaoValida(C0.carregarSessaoConta(), Date.now())) _telaInicial = 9;
-  } catch (_) {}
-  _irPara(_telaInicial);
-  // fase06 · com sessão de família e backend remoto: renova o token e roda a
-  // sincronização inicial na largada (fire-and-forget; sem rede, nada muda).
-  try {
-    var _CanonB = window.PipocaCanonico && window.PipocaCanonico.backend;
-    if (_CanonB && _telaInicial === 2) {
-      var _b0 = _CanonB.obterBackend();
-      var _s0 = _b0.auth.sessaoAtual();
-      if (_s0 && _s0.tipo === "familia") {
-        _puxarFlagsGlobais(); // kill-switch global alcança a casa no boot
-        if (typeof _b0.sincronizar === "function") {
-          _b0.sincronizar()
-            .then(function () { return repo.carregarPerfis(); })
-            .then(function () { notify(); })
-            .catch(function () {});
+  // Decide a tela inicial pela sessão e, com família + backend remoto, dispara a
+  // sincronização inicial (fire-and-forget; sem rede, nada muda). Extraída para
+  // poder rodar DEPOIS de assentar o retorno do OAuth do Google.
+  function _decidirTelaEEntrar() {
+    var _telaInicial = 2;
+    try {
+      var C0 = window.PipocaCanonico && window.PipocaCanonico.conta;
+      if (C0 && !C0.sessaoValida(C0.carregarSessaoConta(), Date.now())) _telaInicial = 9;
+    } catch (_) {}
+    _irPara(_telaInicial);
+    try {
+      var _CanonB = window.PipocaCanonico && window.PipocaCanonico.backend;
+      if (_CanonB && _telaInicial === 2) {
+        var _b0 = _CanonB.obterBackend();
+        var _s0 = _b0.auth.sessaoAtual();
+        if (_s0 && _s0.tipo === "familia") {
+          _puxarFlagsGlobais(); // kill-switch global alcança a casa no boot
+          if (typeof _b0.sincronizar === "function") {
+            _b0.sincronizar()
+              .then(function () { return repo.carregarPerfis(); })
+              .then(function () { notify(); })
+              .catch(function () {});
+          }
         }
       }
-    }
+    } catch (_) {}
+  }
+
+  // Retorno do login com Google: se a URL traz o fragmento do OAuth, assenta a
+  // sessão ANTES de decidir a tela (senão o boot iria para o login e perderia o
+  // token). Caso contrário, boot normal.
+  var _temRetornoOAuth = false;
+  try {
+    _temRetornoOAuth =
+      typeof window.location.hash === "string" && window.location.hash.indexOf("access_token=") >= 0;
   } catch (_) {}
+  var _authOAuth = null;
+  if (_temRetornoOAuth) {
+    try {
+      var _bkOA = window.PipocaCanonico && window.PipocaCanonico.backend;
+      var _bOA = _bkOA ? _bkOA.obterBackend() : null;
+      _authOAuth = _bOA && _bOA.auth && typeof _bOA.auth.capturarRetornoOAuth === "function" ? _bOA.auth : null;
+    } catch (_) { _authOAuth = null; }
+  }
+  if (_authOAuth) {
+    _irPara(9); // breve, enquanto troca o token pela sessão
+    _authOAuth.capturarRetornoOAuth()
+      .then(function () { _decidirTelaEEntrar(); })
+      .catch(function () { _decidirTelaEEntrar(); });
+  } else {
+    _decidirTelaEEntrar();
+  }
 })();

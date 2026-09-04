@@ -8,9 +8,9 @@
 <x-dc>
 <helmet>
   <style>
-    .pip-ct-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-ct-btn { cursor:pointer;transition:transform calc(.12s * var(--pip-mov)) ease; }
     .pip-ct-btn:active { transform:scale(.98); }
-    .pip-ct-ta { width:100%;min-height:170px;border-radius:12px;border:2px solid #d8cfbd;background:#fffdf8;font-family:monospace;font-size:12px;color:#2c241a;padding:10px 12px;outline:none;resize:vertical; }
+    .pip-ct-ta { width:100%;min-height:170px;border-radius:12px;border:2px solid #d8cfbd;background:#fffdf8;font-family:monospace;font-size:12px;color:#2c241a;padding:10px 12px;resize:vertical; }
     .pip-ct-ta:focus { border-color:#b09a72; }
   </style>
 </helmet>
@@ -30,7 +30,7 @@
     <!-- Editor / validação -->
     <div style="background:#fffdf8;border:1px solid #e4dcc9;border-radius:14px;padding:18px;box-shadow:0 10px 28px -18px rgba(44,36,26,.35);">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#2c241a;flex:1;">Cenário (JSON)</div>
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#2c241a;flex:1;">Cenário (formato JSON)</div>
         <button class="pip-ct-btn" onClick="{{ carregarExemplo }}" style="border:1px solid #d8cfbd;border-radius:10px;background:transparent;padding:8px 12px;font-family:'Nunito';font-weight:700;font-size:12px;color:#7a6c56;cursor:pointer;">Carregar exemplo do Quintal</button>
       </div>
       <textarea class="pip-ct-ta" style="margin-top:10px;" value="{{ grafoTexto }}" onInput="{{ setGrafoTexto }}" aria-label="JSON do grafo autoral" placeholder="Cole aqui o JSON do grafo autoral…"></textarea>
@@ -39,8 +39,10 @@
         <button class="pip-ct-btn" onClick="{{ salvarRascunho }}" style="min-height:42px;border:1px solid #d8cfbd;border-radius:12px;background:transparent;padding:0 16px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6c56;cursor:pointer;">Salvar rascunho</button>
       </div>
 
+      <!-- B11 (UI-A19): o fracasso é desenhado onde acontece — cartão de erro com as
+           mensagens do lint e a ação óbvia (corrigir e validar de novo). -->
       <sc-if value="{{ temResultado }}" hint-placeholder-val="{{ false }}">
-        <div role="status" aria-live="polite" style="margin-top:12px;font-family:'Nunito';font-size:13px;line-height:1.6;">
+        <div role="status" aria-live="polite" style="margin-top:12px;border-radius:12px;padding:12px 14px;font-family:'Nunito';font-size:13px;line-height:1.6;{{ cartaoResultadoStyle }}">
           <div style="font-weight:800;color:{{ corResultado }};">{{ tituloResultado }}</div>
           <sc-for list="{{ erros }}" as="e" hint-placeholder-count="0">
             <div style="color:#8a4a3a;">— {{ e }}</div>
@@ -48,6 +50,9 @@
           <sc-for list="{{ avisos }}" as="a" hint-placeholder-count="0">
             <div style="color:#8a7a3a;">aviso: {{ a }}</div>
           </sc-for>
+          <sc-if value="{{ resultadoFalhou }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:6px;color:#5a4c3a;">Corrija o formato acima e toque em "Validar agora" de novo.</div>
+          </sc-if>
         </div>
       </sc-if>
     </div>
@@ -182,8 +187,10 @@ class Component extends DCLogic {
       validarAgora: () => this._validar(),
       salvarRascunho: () => this._salvar(),
       temResultado: !!r,
-      tituloResultado: r ? (r.ok ? 'Grafo válido ✓' : 'Grafo inválido') : '',
+      tituloResultado: r ? (r.ok ? 'Cenário válido ✓' : 'Cenário inválido') : '',
       corResultado: r && r.ok ? '#4a5a3f' : '#8a4a3a',
+      resultadoFalhou: !!(r && !r.ok),
+      cartaoResultadoStyle: r && !r.ok ? 'background:#fdf0ea;border:1px solid #d9a58e;' : 'background:#eef3e8;border:1px solid #b9cba3;',
       erros: (r && r.erros) || [],
       avisos: (r && r.avisos) || [],
       cenarios: s.cenarios
@@ -196,7 +203,7 @@ class Component extends DCLogic {
           rotuloVersao: 'v' + c.versao,
           rotuloStatus: c.publicadoEm ? 'Publicado' : 'Rascunho',
           ehRascunho: !c.publicadoEm,
-          destino: c.tenantId ? 'tenant ' + c.tenantId : 'catálogo da plataforma',
+          destino: c.tenantId ? 'conta ' + c.tenantId : 'catálogo da plataforma',
           versionar: () => this._versionar(c.cenarioId),
           publicar: () => this._publicar(c),
         })),

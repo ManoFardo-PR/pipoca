@@ -46,13 +46,14 @@
 
 // fase05: consumo das flags da plataforma pelo runtime da criança (previsto na
 // TRILHA). Módulo puro + storage versionado — NADA do runtime admin vem junto.
-import { aplicarFlagsAosModos, carregarFlags, killSwitchAtivo } from "../admin/flags.js";
+import { aplicarFlagsAosModos, carregarFlags, killSwitchAtivo, iaEfetivamenteLigada } from "../admin/flags.js";
 // fase06: backend trocável (config pública + fachada + sync). O runtime fala
 // SÓ com a fachada — lei do backend.
 import { obterBackend } from "../backend/backend.js";
 import { configDoAmbiente, normalizarConfigBackend } from "../backend/config.js";
 import { escopoTenant } from "../backend/tenant.js";
 import { sincronizarInicial } from "../backend/sync.js";
+import { aoMesclarHistorias } from "../backend/adaptadores/repo_sincronizado.js";
 // pós-fase06: kill-switch GLOBAL — o app puxa as flags do servidor no boot/login
 import { puxarFlagsGlobais } from "../backend/flags_globais.js";
 // pós-fase06: teto de perfis no app (UX acolhedora; o trigger do servidor é o
@@ -117,6 +118,8 @@ import {
   normalizarHistorias,
   tituloDaHistoria,
   dataRelativa,
+  apenasCompletas,
+  agruparPorDia,
 } from "../core/historias.js";
 import { LIMITES_PADRAO, definirBlocoFoco, normalizarTempoDeTela, normalizarLimites } from "../core/limites.js";
 import {
@@ -135,7 +138,8 @@ import {
   aoPassarPortao,
   aoVoltarParaCrianca,
 } from "../core/modoApp.js";
-import { criarPerfil } from "../core/perfil.js";
+import { criarPerfil, clampIdade, IDADE_MIN, IDADE_MAX, AVATARES_DEF, AVATAR_PADRAO, normalizarAvatar, porIdAvatar } from "../core/perfil.js";
+import { svgCena, galeriaCenas } from "../core/cenas.js";
 import { montarEstadoOnboarding, perfilDoOnboarding, BLOCO_PADRAO } from "../core/onboarding.js";
 import { iniciarSessao, tick, encerrarSessao, formatarRestante } from "../core/sessao.js";
 import { estiloLeitura, paletaContraste, transicao, animacaoCena } from "../core/a11y.js";
@@ -238,8 +242,18 @@ const PipocaCanonico = {
     normalizarHistorias,
     tituloDaHistoria,
     dataRelativa,
+    // C1 (Plan03): a estante exibe só completas, agrupadas por dia.
+    apenasCompletas,
+    agruparPorDia,
   },
-  perfil: { criarPerfil },
+  // C9 (Plan03): limites de idade para os formulários validarem no campo.
+  perfil: { criarPerfil, clampIdade, IDADE_MIN, IDADE_MAX },
+  // C4 (Plan03): a tabela ÚNICA dos avatars — as telas leem daqui (C5) em vez de
+  // duplicar a definição visual em 6 lugares.
+  avatares: { lista: AVATARES_DEF, padrao: AVATAR_PADRAO, normalizar: normalizarAvatar, porId: porIdAvatar },
+  // C5 (Plan03): SVGs e metadados da galeria de cenários — fonte única (a Tela3
+  // mantém fallback inline até o bundle do C12; E5 deriva do manifesto).
+  cenas: { svgCena, galeriaCenas },
   onboarding: { montarEstadoOnboarding, perfilDoOnboarding, BLOCO_PADRAO },
   sessao: { iniciarSessao, tick, encerrarSessao, formatarRestante },
   a11y: { estiloLeitura, paletaContraste, transicao, animacaoCena },
@@ -267,10 +281,15 @@ const PipocaCanonico = {
     puxarFlagsGlobais,
     limitesDaFamilia,
     excedeTetoPerfis,
+    // D1 (Plan03): o app registra aqui o aviso da mescla reativa de histórias
+    // (repo sincronizado → notify → a T3 recarrega no App.subscribe).
+    aoMesclarHistorias,
   },
 
   // --- flags da plataforma (kill-switches do SA_SAFE, fase04→05) ---
-  flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos },
+  // A1 (Plan03): iaEfetivamenteLigada = cuidador autorizou E sem kill-switch — o gate
+  // de consentimento que estado.js consulta antes de chamar o realizador remoto.
+  flags: { carregarFlags, killSwitchAtivo, aplicarFlagsAosModos, iaEfetivamenteLigada },
 
   // --- serviços / seams ---
   tts,

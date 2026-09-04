@@ -1,15 +1,24 @@
-<!-- IaToggle.dc.html — IA ligada/desligada para a criança (PC_AI) · doc fase02-02-08
+<!-- IaToggle.dc.html — IA ligada/desligada para a criança (PC_AI) · doc fase02-02-08 · Plan03 A2
      ─────────────────────────────────────────────────────────────
      Toggle por perfil que escreve Modos.iaLigada. Default seguro = desligado.
 
      Seam (lei do contrato): a tela chama a ação `autorizarIA(perfilId, on)` injetada
-     pelo app (que usa src/core/modos.ts:autorizarIA). A fábrica ([[fase00-00-19]]) lê a flag.
+     pelo app (que usa src/core/modos.ts:autorizarIA). Quem LÊ a flag é o gate único de
+     consentimento (A1: `_dispararRealizacao` em src/app/estado.js) — só chama o realizador
+     remoto com a autorização do cuidador E sem kill-switch da plataforma.
+
+     Três estados HONESTOS (A2): o cuidador vê ANTES do gesto se a IA existe para a casa.
+       Indisponível — sem realizador remoto (backend local) ou kill-switch: atenuado, não
+                      interativo, com o motivo (mesmo padrão de "Pela voz · Indisponível").
+       Desligada    — toggle ativo (default).
+       Ligada       — toggle ativo.
 
      Props:
-       perfilId       string  — perfil-alvo
-       ligada         boolean — estado atual de Modos.iaLigada
-       provedorPronto boolean — há provedor de IA configurado? (fase04-04-05)
-       autorizarIA    fn(perfilId, on) — escreve a flag
+       perfilId           string  — perfil-alvo
+       ligada             boolean — estado atual de Modos.iaLigada
+       provedorPronto     boolean — há realizador remoto E a plataforma não derrubou a IA?
+       motivoIndisponivel string  — por que não está pronto (mostrado quando !provedorPronto)
+       autorizarIA        fn(perfilId, on) — escreve a flag
 -->
 <x-dc>
 <helmet>
@@ -23,23 +32,27 @@
   </style>
 </helmet>
 
-<div style="background:var(--pip-creme);border-radius:var(--pip-raio-2);padding:var(--pip-esp-5);max-width:520px;">
+<div style="background:var(--pip-creme);border-radius:var(--pip-raio-cartao);padding:var(--pip-esp-5);box-shadow:0 18px 50px -24px rgba(60,40,20,.35);">
   <div style="font-family:var(--pip-fonte-titulo);font-weight:700;font-size:18px;color:var(--pip-tinta);">Histórias com IA</div>
-  <div style="font-family:var(--pip-fonte-texto);font-size:14px;color:var(--pip-tinta);opacity:.8;margin-top:6px;">
-    Quando ligado, a criança pode receber histórias geradas por IA (Motor B). Padrão: desligado.
+  <div style="font-family:var(--pip-fonte-texto);font-size:14px;line-height:1.5;color:var(--pip-tinta);opacity:.8;margin-top:6px;">
+    Desligada, a criança lê as histórias do livro da casa. Ligada, algumas histórias são escritas na hora por uma IA, a partir da cena que a criança montou.
+  </div>
+  <div style="font-family:var(--pip-fonte-texto);font-size:13px;line-height:1.5;color:var(--pip-tinta);opacity:.75;margin-top:6px;">
+    O que a IA recebe: o nome, o gênero e o nível de leitura da criança, mais as coisas que ela colocou na cena. Nenhum outro dado sobre a criança é enviado.
   </div>
 
   <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--pip-esp-4);margin-top:var(--pip-esp-4);">
     <div style="font-family:var(--pip-fonte-texto);font-weight:600;font-size:15px;color:var(--pip-tinta);">{{ rotuloEstado }}</div>
-    <button onClick="{{ aoAlternar }}" role="switch" aria-checked="{{ ligada }}" aria-label="Autorizar IA para a criança"
-            class="pip-switch" style="{{ trilhoStyle }}">
-      <div class="pip-switch-bolinha" style="{{ bolinhaStyle }}"></div>
+    <!-- C12: alvo do switch ≥44px (a pista visual segue 54×30) -->
+    <button onClick="{{ aoAlternar }}" role="switch" aria-checked="{{ ligada }}" aria-disabled="{{ indisponivel }}" aria-label="Autorizar IA para a criança"
+            style="{{ trilhoStyle }}">
+      <span aria-hidden="true" class="pip-switch" style="{{ pistaStyle }}"><span class="pip-switch-bolinha" style="{{ bolinhaStyle }}"></span></span>
     </button>
   </div>
 
-  <sc-if value="{{ avisoSemProvedor }}" hint-placeholder-val="{{ true }}">
-    <div role="status" style="margin-top:var(--pip-esp-3);font-family:var(--pip-fonte-texto);font-size:13px;color:var(--pip-tinta);opacity:.75;">
-      Sem provedor de IA configurado — na prática a criança continua no Motor A.
+  <sc-if value="{{ indisponivel }}" hint-placeholder-val="{{ true }}">
+    <div role="status" style="margin-top:var(--pip-esp-3);font-family:var(--pip-fonte-texto);font-size:13px;line-height:1.5;color:var(--pip-tinta);opacity:.75;">
+      {{ motivo }}
     </div>
   </sc-if>
 </div>
@@ -49,6 +62,7 @@
     &quot;perfilId&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;IaToggle&quot;, &quot;label&quot;: &quot;Perfil&quot; },
     &quot;ligada&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;IaToggle&quot;, &quot;label&quot;: &quot;Ligada&quot; },
     &quot;provedorPronto&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;IaToggle&quot;, &quot;label&quot;: &quot;Provedor pronto&quot; },
+    &quot;motivoIndisponivel&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;IaToggle&quot;, &quot;label&quot;: &quot;Motivo (indisponível)&quot; },
     &quot;autorizarIA&quot;: { &quot;editor&quot;: &quot;fn&quot;, &quot;default&quot;: null, &quot;tsType&quot;: &quot;((perfilId: string, on: boolean) => void) | null&quot;, &quot;section&quot;: &quot;IaToggle&quot;, &quot;label&quot;: &quot;Autorizar IA&quot; }
   }">
 
@@ -57,6 +71,8 @@ class Component extends DCLogic {
   state = {};
 
   _alternar() {
+    // Indisponível = decisão inexistente: o gesto não faz nada (nem grava intenção).
+    if (!(this.props && this.props.provedorPronto)) return;
     const fn = this.props && this.props.autorizarIA;
     const perfilId = (this.props && this.props.perfilId) || '';
     const ligada = !!(this.props && this.props.ligada);
@@ -66,17 +82,26 @@ class Component extends DCLogic {
   renderVals() {
     const ligada = !!(this.props && this.props.ligada);
     const provedorPronto = !!(this.props && this.props.provedorPronto);
+    const indisponivel = !provedorPronto;
+    const motivo = (this.props && this.props.motivoIndisponivel) || 'A IA ainda não está disponível nesta casa.';
 
-    const trilhoStyle = 'width:54px;height:30px;border-radius:999px;border:none;cursor:pointer;padding:3px;display:flex;align-items:center;'
-      + (ligada ? 'background:var(--pip-folha);justify-content:flex-end;' : 'background:var(--pip-heeler-borda);justify-content:flex-start;');
-    const bolinhaStyle = 'width:24px;height:24px;border-radius:50%;background:var(--pip-branco);box-shadow:var(--pip-sombra-botao);';
+    // C12: o BOTÃO tem ≥44px de alvo; a pista visual segue 54×30.
+    const trilhoStyle = 'width:64px;min-height:44px;border:none;background:transparent;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;'
+      + (indisponivel ? 'cursor:not-allowed;' : 'cursor:pointer;');
+    const pistaStyle = 'width:54px;height:30px;border-radius:999px;padding:3px;display:flex;align-items:center;'
+      + (indisponivel
+        ? 'background:var(--pip-heeler-borda);justify-content:flex-start;opacity:.55;'
+        : (ligada ? 'background:var(--pip-folha);justify-content:flex-end;' : 'background:var(--pip-heeler-borda);justify-content:flex-start;'));
+    const bolinhaStyle = 'width:24px;height:24px;border-radius:50%;background:var(--pip-branco);box-shadow:var(--pip-sombra-botao);display:block;';
 
     return {
-      ligada,
-      rotuloEstado: ligada ? 'Ligado' : 'Desligado',
+      ligada: !indisponivel && ligada,
+      indisponivel,
+      motivo,
+      rotuloEstado: indisponivel ? 'Indisponível' : (ligada ? 'Ligada' : 'Desligada'),
       trilhoStyle,
+      pistaStyle,
       bolinhaStyle,
-      avisoSemProvedor: ligada && !provedorPronto,
       aoAlternar: () => this._alternar(),
     };
   }

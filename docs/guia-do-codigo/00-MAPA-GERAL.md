@@ -1,4 +1,4 @@
-# Mapa geral do código do Pipoca
+﻿# Mapa geral do código do Pipoca
 
 > Porta de entrada para ler o Pipoca **sem internet e sem lembrar dos detalhes**.
 > Aqui você acha qualquer script, sabe o que ele faz e como rodá-lo. Cada família
@@ -20,18 +20,18 @@ um LLM (a "geração 2"), sempre com uma rede de segurança que garante texto fi
 | **core-lógica** | [`src/core/`](../../src/core/) (+ [`src/dados/`](../../src/dados/), [`src/ia/`](../../src/ia/), [`src/servicos/`](../../src/servicos/)) | O cérebro puro: compositor, realizador, validador, fallback, modelo de estado, economia de vaga-lumes, portão, perfis. Testável sem rede. |
 | **app / telas** | [`src/app/`](../../src/app/), [`src/telas/`](../../src/telas/), [`src/componentes/`](../../src/componentes/) | A interface da criança/cuidador: a ponte que expõe o core ao navegador e as telas `.dc.html`. |
 | **admin** | [`src/admin/`](../../src/admin/) | A plataforma do operador (super-admin): rotas SA_*, login, _tenants_, config de IA, flags globais. |
-| **backend / edge** | [`src/backend/`](../../src/backend/) + [`functions/`](../../functions/) | Os clientes **keyless** das Edge Functions e as **3 edges** (Supabase/Deno) onde a chave paga vive. |
+| **backend / edge** | [`src/backend/`](../../src/backend/) + [`functions/`](../../functions/) | Os clientes **keyless** das Edge Functions e as **2 edges** (Supabase/Deno) onde a chave paga vive. |
 | **testes (e2e + fumaça)** | [`tests/`](../../tests/) + `*.test.ts` espalhados | Testes unitários (offline), runners e2e (Playwright, offline) e a fumaça de presença. |
-| **scripts / experimentos** | [`scripts/`](../../scripts/), [`experimentos/`](../../experimentos/) | O smoke de produção (gasta API paga) e os dois experimentos de calibração (beats→prosa e fichas→histórias). |
+| **scripts** | [`scripts/`](../../scripts/) | O smoke de produção (gasta API paga), o monitor do Plan03 e o hook de merge. |
 
 Fora dessas famílias, na raiz: [`server.js`](../../server.js) (servidor
 estático que serve `/app` e `/admin` e resolve os `.dc.html`),
 [`support.js`](../../support.js) (runtime do dc-runtime),
 [`pipoca.config.js`](../../pipoca.config.js) (config pública do backend — **sem
 segredo**), e os bundles gerados [`pipoca.bundle.js`](../../pipoca.bundle.js) /
-[`pipoca.admin.bundle.js`](../../pipoca.admin.bundle.js). A pasta
-[`old/`](../../old/) é história selada (não editar); [`docs/plans/`](../plans/) e
-[`docs/plans02/`](../plans02/) são as trilhas de planejamento com os "selos" de status.
+[`pipoca.admin.bundle.js`](../../pipoca.admin.bundle.js). [`docs/plans/`](../plans/) e
+[`docs/plans02/`](../plans02/) são as trilhas de planejamento com os "selos" de status;
+[`docs/notas/`](../notas/) guarda as notas de arquitetura (ex-`.agents/memory`, D5).
 
 ---
 
@@ -46,8 +46,8 @@ segredo**), e os bundles gerados [`pipoca.bundle.js`](../../pipoca.bundle.js) /
   mundo, mas **keyless**: mandam só o bearer do usuário + a anon key pública.
 - [`functions/`](../../functions/) — as edges. **Só aqui vive a chave paga**
   (secrets do ambiente Deno). "Zero chave em `src/`".
-- [`experimentos/`](../../experimentos/) — fora do runtime do app; alguns
-  **gastam API paga** de verdade (ver o guia da família).
+- [`scripts/`](../../scripts/) — fora do runtime do app; o smoke de produção
+  **gasta API paga** de verdade (ver [60 · scripts](60-scripts.md)).
 - `.dc.html` (telas/componentes) — o DOM. Descritos nos guias, sem cabeçalho.
 
 ---
@@ -56,7 +56,7 @@ segredo**), e os bundles gerados [`pipoca.bundle.js`](../../pipoca.bundle.js) /
 
 | Quero… | Rodo | Observação |
 |---|---|---|
-| Rodar **todos os testes** (unit + fumaça) | `bun run test` | 12 suítes encadeadas, tudo offline |
+| Rodar **todos os testes** (unit + fumaça) | `bun run test` | 10 suítes encadeadas, tudo offline |
 | Testar **sem rede** (só presença) | `bun run test:presenca` | fumaça determinística, sem custo |
 | Conferir os **tipos** | `bun run typecheck` | = `bun x tsc --noEmit` |
 | Rodar o **fluxo e2e** canônico | `bun run test:e2e:canonico` | Playwright, backend `local` |
@@ -64,8 +64,6 @@ segredo**), e os bundles gerados [`pipoca.bundle.js`](../../pipoca.bundle.js) /
 | e2e da **geração 2** (realizador) | `bun run test:e2e:geracao2` | realizador FAKE, offline |
 | e2e de **reordenar o miolo** | `bun run test:e2e:reordenar` | offline |
 | **Gerar história real / smoke** (edge de produção) | `node scripts/smoke-realizador.mjs` (env `SUPA_URL`/`ANON_KEY`/`SMOKE_EMAIL`) | ⚠️ **GASTA API paga** — bate na edge real |
-| **Calibrar offline** (gate factual) | `bun run experimentos/beats-para-paragrafos/avaliar/camada1-fidelidade.ts` | offline, determinístico |
-| **Gerar histórias do experimento** | `bun run experimentos/fichas-para-historias/gerar.ts` | ⚠️ **GASTA API paga** (Gemini) |
 | **Buildar** o bundle da criança | `bun run build:app` | → `pipoca.bundle.js` |
 | **Buildar** o bundle do admin | `bun run build:admin` | → `pipoca.admin.bundle.js` |
 | **Buildar** o dc-runtime | `bun run build` | `cd dc-runtime && bun run build` |
@@ -130,5 +128,6 @@ Leituras da imagem:
 - [30 · admin](30-admin.md) — a plataforma do operador
 - [40 · backend e edge](40-backend-e-edge.md) — clientes keyless + as 3 edges + a fronteira da chave
 - [50 · testes](50-testes.md) — unit, e2e e fumaça
-- [60 · scripts e experimentos](60-scripts-e-experimentos.md) — o que gasta API paga e o que é offline
+- [60 · scripts](60-scripts.md) — o que gasta API paga e o que é offline
+- [70 · como adicionar um cenário](70-como-adicionar-um-cenario.md) — pipeline de autoria (JSON + SVG → lints → galeria)
 - [90 · glossário](90-GLOSSARIO.md) — os termos canônicos numa linha cada

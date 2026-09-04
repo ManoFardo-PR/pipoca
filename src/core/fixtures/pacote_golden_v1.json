@@ -17,6 +17,8 @@
       "papel": "abertura",
       "descricao": "um vaga-lume que acende e apaga",
       "corpo": "os olhos seguem a pisca; chegar perto na ponta dos pés",
+      "sentimento": "encanto silencioso",
+      "sentido": "visão",
       "relacoes": [
         {
           "alvo": "frasco",
@@ -29,6 +31,8 @@
       "papel": "miolo",
       "descricao": "um pote de vidro limpinho, que deixa ver o que mora dentro",
       "corpo": "segurar o pote com as duas mãos; espiar através do vidro",
+      "sentimento": "cuidado curioso",
+      "sentido": "tato",
       "relacoes": []
     },
     {
@@ -36,6 +40,8 @@
       "papel": "fecho",
       "descricao": "um vento fresco que passa e mexe em tudo de leve",
       "corpo": "a pele dos braços arrepia; o cabelo mexe",
+      "sentimento": "frescor",
+      "sentido": "tato",
       "relacoes": []
     }
   ],

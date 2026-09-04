@@ -1,4 +1,4 @@
-<!-- ConfigIA.dc.html — Configuração de IA por tenant (SA_AI) · doc fase04-04-05
+﻿<!-- ConfigIA.dc.html — Configuração de IA por tenant (SA_AI) · doc fase04-04-05
      ─────────────────────────────────────────────────────────────
      Provedor/modelo/cotas/fallback POR TENANT, com gate do plano
      (iaPermitida) e da flag global (SA_SAFE). CHAVES NUNCA AQUI: o bloco
@@ -9,9 +9,9 @@
 <x-dc>
 <helmet>
   <style>
-    .pip-ia-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-ia-btn { cursor:pointer;transition:transform calc(.12s * var(--pip-mov)) ease; }
     .pip-ia-btn:active { transform:scale(.98); }
-    .pip-ia-campo { width:120px;padding:10px 12px;border-radius:12px;border:2px solid #d8cfbd;background:#fffdf8;font-family:'Nunito';font-size:14px;color:#2c241a;outline:none; }
+    .pip-ia-campo { width:120px;padding:10px 12px;border-radius:12px;border:2px solid #d8cfbd;background:#fffdf8;font-family:'Nunito';font-size:14px;color:#2c241a; }
     .pip-ia-campo:focus { border-color:#b09a72; }
   </style>
 </helmet>
@@ -22,11 +22,11 @@
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
       <div>
         <div style="font-family:'Baloo 2';font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#8a7a62;">Configuração de IA</div>
-        <div style="font-family:'Baloo 2';font-weight:800;font-size:24px;color:#2c241a;line-height:1.1;margin-top:2px;">Provedores por tenant</div>
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:24px;color:#2c241a;line-height:1.1;margin-top:2px;">Provedores por conta</div>
       </div>
       <button class="pip-ia-btn" onClick="{{ voltar }}" style="border:1px solid #d8cfbd;border-radius:999px;background:transparent;padding:9px 16px;font-family:'Nunito';font-weight:700;font-size:13px;color:#7a6c56;cursor:pointer;">↩ Painel</button>
     </div>
-    <p style="color:#7a6c56;font-family:'Nunito';font-size:14px;line-height:1.5;margin:0 0 18px;">Sem configuração válida, o tenant fica SEM IA (default seguro). A criança só encontra IA se o plano permite, a config vale e a flag global está ligada.</p>
+    <p style="color:#7a6c56;font-family:'Nunito';font-size:14px;line-height:1.5;margin:0 0 18px;">Sem configuração válida, a conta fica SEM IA até alguém configurar — nasce assim, por segurança. A criança só encontra IA se o plano permite, a configuração vale e a chave global está ligada.</p>
 
     <!-- Seletor de tenant -->
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
@@ -36,14 +36,17 @@
     </div>
 
     <sc-if value="{{ semTenants }}" hint-placeholder-val="{{ false }}">
-      <div style="background:#fffdf8;border:1px dashed #d8cfbd;border-radius:14px;padding:16px;font-family:'Nunito';font-size:13px;color:#7a6c56;">Nenhum tenant no escopo — crie um em "Contas, tenants e planos".</div>
+      <div style="background:#fffdf8;border:1px dashed #d8cfbd;border-radius:14px;padding:16px;font-family:'Nunito';font-size:13px;color:#7a6c56;">Nenhuma conta no escopo — crie uma em "Contas e planos".</div>
     </sc-if>
 
     <sc-if value="{{ temTenant }}" hint-placeholder-val="{{ false }}">
       <div style="background:#fffdf8;border:1px solid #e4dcc9;border-radius:14px;padding:18px;box-shadow:0 10px 28px -18px rgba(44,36,26,.35);">
 
+        <!-- B11: resumo do que vale AGORA para a conta — a tela não nasce vazia. -->
+        <div style="font-family:'Nunito';font-weight:700;font-size:13px;color:#5a4c3a;margin-bottom:12px;">{{ resumoConfig }}</div>
+
         <sc-if value="{{ bloqueadoPeloPlano }}" hint-placeholder-val="{{ false }}">
-          <div role="status" style="font-family:'Nunito';font-size:13px;color:#8a4a3a;margin-bottom:12px;">O plano deste tenant não permite IA — ajuste o plano em "Contas, tenants e planos" antes de configurar.</div>
+          <div role="status" style="font-family:'Nunito';font-size:13px;color:#8a4a3a;margin-bottom:12px;">O plano desta conta não permite IA — ajuste o plano em "Contas e planos" antes de configurar.</div>
         </sc-if>
 
         <div style="{{ formStyle }}">
@@ -54,7 +57,7 @@
             </sc-for>
           </div>
           <sc-if value="{{ temHerancaProvedor }}" hint-placeholder-val="{{ false }}">
-            <div style="margin-top:8px;font-family:'Nunito';font-size:12px;color:#8a7a62;">🌐 padrão global: <b>{{ herancaProvedor }}</b> (herdado enquanto o tenant não define)</div>
+            <div style="margin-top:8px;font-family:'Nunito';font-size:12px;color:#8a7a62;">🌐 padrão global: <b>{{ herancaProvedor }}</b> (herdado enquanto a conta não define)</div>
           </sc-if>
 
           <sc-if value="{{ temModelos }}" hint-placeholder-val="{{ false }}">
@@ -75,23 +78,25 @@
             </label>
           </div>
 
-          <div style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#2c241a;margin-top:14px;">Fallback (se o provedor falhar)</div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#2c241a;margin-top:14px;">Reserva (se o provedor falhar)</div>
           <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px;">
             <sc-for list="{{ fallbacks }}" as="f" hint-placeholder-count="5">
               <button class="pip-ia-btn" onClick="{{ f.escolher }}" style="{{ f.style }}">{{ f.nome }}</button>
             </sc-for>
           </div>
           <sc-if value="{{ temHerancaFallback }}" hint-placeholder-val="{{ false }}">
-            <div style="margin-top:8px;font-family:'Nunito';font-size:12px;color:#8a7a62;">🌐 cadeia global herdada: <b>{{ herancaFallback }}</b> (usada enquanto o tenant não define a própria)</div>
+            <div style="margin-top:8px;font-family:'Nunito';font-size:12px;color:#8a7a62;">🌐 ordem global herdada: <b>{{ herancaFallback }}</b> (usada enquanto a conta não define a própria)</div>
           </sc-if>
 
           <!-- Chaves: server-side por decisão de arquitetura (nunca input aqui) -->
           <div style="margin-top:16px;border-top:1px dashed #e4dcc9;padding-top:12px;font-family:'Nunito';font-size:12px;line-height:1.6;color:#8a7a62;">
-            🔑 Chave do provedor: fica no servidor, nunca neste painel (fase 06). O teste de conexão também acontece lá.
+            🔑 Chave do provedor: fica no servidor, nunca neste painel. O teste de conexão também acontece lá (em "IA · Provedores &amp; Chaves").
           </div>
 
+          <!-- B11 (UI-A19): erro tem cartão próprio, onde ele acontece. -->
           <sc-if value="{{ temErros }}" hint-placeholder-val="{{ false }}">
-            <div role="status" aria-live="polite" style="margin-top:12px;font-family:'Nunito';font-size:13px;color:#8a4a3a;">
+            <div role="status" aria-live="polite" style="margin-top:12px;background:#fdf0ea;border:1px solid #d9a58e;border-radius:12px;padding:12px 14px;font-family:'Nunito';font-size:13px;line-height:1.6;color:#8a4a3a;">
+              <div style="font-weight:800;">Não deu para salvar assim:</div>
               <sc-for list="{{ erros }}" as="e" hint-placeholder-count="0"><div>— {{ e }}</div></sc-for>
             </div>
           </sc-if>
@@ -155,14 +160,14 @@ class Component extends DCLogic {
     const erros = C.ia.validarConfigIA(this.state.config);
     if (erros.length) { this.setState({ erros }); return; }
     C.ia.salvarConfigIA(this.state.tenantId, this.state.config);
-    // fase06 · espelho remoto fire-and-forget: o ProxyIA lê config_ia no
+    // fase06 · espelho remoto fire-and-forget: a edge realizador lê config_ia no
     // servidor (cota/config de verdade). Sem backend remoto → no-op (false).
     try {
       if (C.backend && C.backend.espelharConfigIA) {
         C.backend.espelharConfigIA(this.state.tenantId, this.state.config).catch(() => {});
       }
     } catch (_) {}
-    this.setState({ aviso: 'Configuração salva para este tenant.', erros: [] });
+    this.setState({ aviso: 'Configuração salva para esta conta.', erros: [] });
   }
 
   renderVals() {
@@ -195,13 +200,20 @@ class Component extends DCLogic {
     }));
 
     // tarefa #31 · herança do global (só EXIBIÇÃO — o formato salvo por
-    // tenant não muda; a resolução de verdade acontece no ProxyIA).
+    // tenant não muda; a resolução de verdade acontece na edge realizador).
     const globalCfg = C && C.iaGlobal ? C.iaGlobal.carregarConfigIaGlobal() : { modeloPadrao: {}, cadeiaFallback: [] };
     const herdaProvedor = cfg.provedor === null && globalCfg.cadeiaFallback.length > 0;
     const provedorHerdado = herdaProvedor && C ? C.iaGlobal.provedorEfetivoGlobal(cfg, globalCfg) : null;
     const cadeiaHerdada = cfg.fallback === null && C && C.iaGlobal ? C.iaGlobal.fallbacksEfetivosGlobal(cfg, globalCfg) : [];
 
+    // B11: resumo do estado atual da conta selecionada.
+    const resumoConfig = cfg.provedor
+      ? ('Agora: ' + (nomesProv[cfg.provedor] || cfg.provedor) + (cfg.modelo ? ' · ' + cfg.modelo : ' · sem modelo')
+        + ' · cota ' + (cfg.cotaMensal || 0) + '/mês · custo máx. ' + (cfg.custoMaxMensal || 0)
+        + (cfg.fallback ? ' · reserva ' + nomesProv[cfg.fallback] : ''))
+      : 'Ainda sem configuração própria — herda o padrão global (ou fica sem IA).';
     return {
+      resumoConfig,
       temHerancaProvedor: !!provedorHerdado,
       herancaProvedor: provedorHerdado
         ? nomesProv[provedorHerdado] + (C.iaGlobal.modeloEfetivoGlobal(provedorHerdado, cfg, globalCfg) ? ' · ' + C.iaGlobal.modeloEfetivoGlobal(provedorHerdado, cfg, globalCfg) : '')

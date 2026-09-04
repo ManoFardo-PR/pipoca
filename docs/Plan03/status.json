@@ -1,0 +1,56 @@
+{
+  "esquema": "pipoca.plan03-status.v1",
+  "passos": {
+    "P1": "concluída (2026-08-28 · f84ea58)",
+    "P2": "concluída (2026-08-28 · 888858d)",
+    "P3": "concluída (2026-08-28 · f9898f6)",
+    "A0": "concluída (2026-08-28 · b65645e)",
+    "B0": "concluída (2026-08-28 · 9de2035)",
+    "B-M1": "concluída (2026-08-28 · 66fcbd8)",
+    "B-M2": "concluída (2026-09-01 · c2e6444)",
+    "B-M3": "concluída (2026-09-01 · 3d1c4e2)",
+    "C0": "concluída (2026-09-01 · 8807e4f)",
+    "D0": "concluída (2026-09-02 · a631701)",
+    "E0": "concluída (2026-09-03 · b5faaf5)",
+    "F1": "concluída (2026-09-04 · 9ba090d)",
+    "F2": "concluída (2026-09-04 · b200b03)",
+    "F3": "concluída (2026-09-04 · e4647dc)"
+  },
+  "verificacao": {
+    "quando": "2026-09-04T16:51:37.554Z",
+    "ok": true,
+    "itens": {
+      "tsc": {
+        "ok": true,
+        "passou": null,
+        "falhou": null
+      },
+      "unit": {
+        "ok": true,
+        "passou": 147,
+        "falhou": 0
+      },
+      "e2e:reordenar": {
+        "ok": true,
+        "passou": 32,
+        "falhou": 0
+      },
+      "e2e:linha-verde": {
+        "ok": true,
+        "passou": 108,
+        "falhou": 0
+      },
+      "e2e:admin": {
+        "ok": true,
+        "passou": 25,
+        "falhou": 0
+      },
+      "e2e:geracao2": {
+        "ok": true,
+        "passou": 48,
+        "falhou": 0
+      }
+    },
+    "resumo": "tsc:✓ unit:✓ e2e:reordenar:✓ e2e:linha-verde:✓ e2e:admin:✓ e2e:geracao2:✓"
+  }
+}

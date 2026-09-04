@@ -1,7 +1,7 @@
 /**
  * [proxy_realizador.ts] — Cliente KEYLESS da Edge Function realizador (geração
- *   2): monta o prompt determinístico, manda {pacote, prompt} + o bearer; o
- *   servidor roda a CASCATA inteira e valida a fidelidade.
+ *   2): manda {pacote, tenantId?} + o bearer; o SERVIDOR monta o prompt a
+ *   partir do pacote (E3), roda a CASCATA inteira e valida a fidelidade.
  *
  * PAPEL: backend (cliente keyless da edge realizador · geração 2)
  * POR QUE EXISTE: rodar a realização (LLM) da geração 2 no edge em UMA viagem,
@@ -12,31 +12,26 @@
  * SAI: ResultadoRealizar (texto + parágrafos + veredito PASS + origem "llm") —
  *   ou throw.
  * CHAMA: core/compositor/pacote:PacoteComposicao, core/realizador/cascata
- *   (tipos), core/realizador/prompt_template:montarPromptRealizador,
- *   ia/provedor:transportePadrao.
+ *   (tipos), ia/provedor:transportePadrao.
  * É CHAMADO POR: backend.ts (criarBackendSupabase → realizador), backend.test.ts.
  * RODA POR: boot do app (bundle); cliente da Edge Function realizador.
  * CUIDADO: KEYLESS — manda APENAS o bearer do USUÁRIO + a anon key pública;
- *   NENHUMA chave de provedor vive aqui. O prompt é montado no cliente
- *   (montarPromptRealizador é determinístico e sem segredo), mas a VALIDAÇÃO de
- *   fidelidade roda no servidor. QUALQUER não-200 OU resposta fora do contrato
- *   (sem veredito PASS / origem≠llm) vira throw → o módulo de geração cai no
- *   fallback A+ v3 LOCAL (o fallback não depende do edge). NUNCA entregar texto
- *   sem PASS.
+ *   NENHUMA chave de provedor vive aqui. E3 (Plan03): o prompt NÃO viaja mais —
+ *   a edge o monta do pacote (espelho verificado de prompt_template.ts, que
+ *   segue canônico para fallback/testes); temperatura também é decisão do
+ *   servidor. QUALQUER não-200 OU resposta fora do contrato (sem veredito
+ *   PASS / origem≠llm) vira throw → o módulo de geração cai no fallback A+ v3
+ *   LOCAL (o fallback não depende do edge). NUNCA entregar texto sem PASS.
  *
  * — detalhe preservado —
  * Pipoca — ProxyRealizador (cliente) · fase13-13-03
  * --------------------------------------------------
- * Cliente KEYLESS da Edge Function `realizador` (irmã do `proxy-ia`): as
- * chaves dos provedores vivem SÓ no ambiente da função; daqui vai apenas o
- * bearer do usuário + {pacote, prompt}. O SERVIDOR decide provedor/modelo
- * pela `config_ia` do tenant, verifica cota ANTES e roda a CASCATA inteira
+ * Cliente KEYLESS da Edge Function `realizador`: as chaves dos provedores
+ * vivem SÓ no ambiente da função; daqui vai apenas o bearer do usuário +
+ * {pacote, tenantId?}. O SERVIDOR decide provedor/modelo pela `config_ia`
+ * do tenant, verifica cota ANTES, MONTA O PROMPT do pacote (E3 — uma fonte
+ * de verdade, sem prompt arbitrário do cliente) e roda a CASCATA inteira
  * (fase12-12-04) do lado de lá — o cliente faz UMA viagem por realização.
- *
- * O prompt é montado AQUI (montarPromptRealizador é determinístico, 100%
- * derivado do Pacote e sem segredo — mesmo precedente do proxy-ia, em que o
- * cliente manda o prompt); a VALIDAÇÃO de fidelidade roda no servidor
- * (espelho compacto do canônico, padrão guardrails-lite do proxy-ia).
  *
  * QUALQUER não-200 vira throw: o módulo de geração cai no fallback A+ v3
  * LOCAL (o fallback não depende do edge — 13-03) — a criança nunca vê erro.
@@ -44,7 +39,6 @@
 
 import type { PacoteComposicao } from "../core/compositor/pacote.js";
 import type { OpcoesRealizar, ResultadoRealizar } from "../core/realizador/cascata.js";
-import { montarPromptRealizador } from "../core/realizador/prompt_template.js";
 import { transportePadrao, type Transporte } from "../ia/provedor.js";
 
 export type RealizadorRemoto = (
@@ -64,11 +58,12 @@ export function criarProxyRealizador(op: OpcoesProxyRealizador): RealizadorRemot
   const transporte = op.transporte || transportePadrao();
   const base = op.url.replace(/\/+$/, "");
 
-  return async (pacote: PacoteComposicao, opcoes: OpcoesRealizar = {}): Promise<ResultadoRealizar> => {
+  return async (pacote: PacoteComposicao, _opcoes: OpcoesRealizar = {}): Promise<ResultadoRealizar> => {
     const token = await op.obterToken();
     if (!token) throw new Error("ProxyRealizador: sem sessão para realizar.");
     const tenant = op.tenantId ? op.tenantId() : null;
-    const prompt = montarPromptRealizador(pacote);
+    // E3: o corpo é SÓ {pacote, tenantId?} — o prompt e a temperatura são do
+    // servidor (a edge monta o prompt do pacote; espelho verificado do template).
     const resp = await transporte(base + "/functions/v1/realizador", {
       method: "POST",
       headers: {
@@ -78,8 +73,6 @@ export function criarProxyRealizador(op: OpcoesProxyRealizador): RealizadorRemot
       },
       body: JSON.stringify({
         pacote,
-        prompt,
-        ...(opcoes.temperatura !== undefined ? { temperatura: opcoes.temperatura } : {}),
         ...(tenant ? { tenantId: tenant } : {}),
       }),
     });

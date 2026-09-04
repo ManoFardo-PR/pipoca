@@ -1,0 +1,50 @@
+{
+  "esquema": "pipoca.cenarios-index.v1",
+  "cenarios": [
+    {
+      "id": "quintal_anoitecer",
+      "nome": "O Quintal",
+      "descricao": "A primeira estrela acende o quintal",
+      "grafo": "./docs/quintal.v3.json",
+      "relacoes": "./docs/fichas/relacoes.quintal.v1.json",
+      "svg": "quintal",
+      "disponivel": true
+    },
+    {
+      "id": "quarto",
+      "nome": "O Quarto",
+      "descricao": "Histórias antes de dormir",
+      "grafo": null,
+      "relacoes": null,
+      "svg": "quarto",
+      "disponivel": false
+    },
+    {
+      "id": "floresta",
+      "nome": "A Floresta",
+      "descricao": "Aventura entre árvores",
+      "grafo": null,
+      "relacoes": null,
+      "svg": "floresta",
+      "disponivel": false
+    },
+    {
+      "id": "espaco",
+      "nome": "O Espaço",
+      "descricao": "Entre estrelas e planetas",
+      "grafo": null,
+      "relacoes": null,
+      "svg": "espaco",
+      "disponivel": false
+    },
+    {
+      "id": "fundomar",
+      "nome": "Fundo do Mar",
+      "descricao": "Com peixes e corais",
+      "grafo": null,
+      "relacoes": null,
+      "svg": "fundomar",
+      "disponivel": false
+    }
+  ]
+}

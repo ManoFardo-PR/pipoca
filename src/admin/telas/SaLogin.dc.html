@@ -8,9 +8,9 @@
 <x-dc>
 <helmet>
   <style>
-    .pip-sa-campo { width:100%;padding:12px 14px;border-radius:12px;border:2px solid #d8cfbd;background:#fffdf8;font-family:'Nunito';font-size:15px;color:#2c241a;outline:none; }
+    .pip-sa-campo { width:100%;padding:12px 14px;border-radius:12px;border:2px solid #d8cfbd;background:#fffdf8;font-family:'Nunito';font-size:15px;color:#2c241a; }
     .pip-sa-campo:focus { border-color:#b09a72; }
-    .pip-sa-btn { cursor:pointer;transition:transform .12s ease; }
+    .pip-sa-btn { cursor:pointer;transition:transform calc(.12s * var(--pip-mov)) ease; }
     .pip-sa-btn:active { transform:scale(.98); }
   </style>
 </helmet>
@@ -24,21 +24,24 @@
     </div>
 
     <div style="background:#fffdf8;border:1px solid #e4dcc9;border-radius:16px;box-shadow:0 14px 40px -22px rgba(44,36,26,.4);padding:22px;">
+      <!-- C9: <form> de verdade (Enter submete de qualquer campo) + disabled real -->
+      <form onSubmit="{{ aoSubmeter }}">
 
-      <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#2c241a;">E-mail</label>
-      <input class="pip-sa-campo" style="margin-top:6px;" value="{{ email }}" onInput="{{ aoDigitarEmail }}" type="email" autocomplete="username" placeholder="operador@plataforma" aria-label="E-mail do operador" />
+      <label for="pip-sa-email" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#2c241a;">E-mail</label>
+      <input id="pip-sa-email" ref="{{ refEmail }}" class="pip-sa-campo" style="margin-top:6px;" value="{{ email }}" onInput="{{ aoDigitarEmail }}" type="email" autocomplete="username" placeholder="operador@plataforma" aria-label="E-mail do operador" />
 
-      <label style="display:block;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#2c241a;margin-top:14px;">Senha</label>
-      <input class="pip-sa-campo" style="margin-top:6px;" value="{{ senha }}" onInput="{{ aoDigitarSenha }}" onKeyDown="{{ aoTeclar }}" type="password" autocomplete="current-password" placeholder="Senha" aria-label="Senha do operador" />
+      <label for="pip-sa-senha" style="display:block;font-family:'Baloo 2';font-weight:700;font-size:13px;color:#2c241a;margin-top:14px;">Senha</label>
+      <input id="pip-sa-senha" class="pip-sa-campo" style="margin-top:6px;" value="{{ senha }}" onInput="{{ aoDigitarSenha }}" type="password" autocomplete="current-password" placeholder="Senha" aria-label="Senha do operador" />
 
       <sc-if value="{{ temErro }}" hint-placeholder-val="{{ false }}">
         <div role="status" aria-live="polite" style="margin-top:14px;font-family:'Nunito';font-size:13px;color:#8a4a3a;">{{ erro }}</div>
       </sc-if>
 
-      <button class="pip-sa-btn" onClick="{{ submeterLoginSuperAdmin }}" style="{{ entrarStyle }}">{{ entrarLabel }}</button>
+      <button type="submit" class="pip-sa-btn" disabled="{{ entrarTravado }}" style="{{ entrarStyle }}">{{ entrarLabel }}</button>
+      </form>
 
       <div style="margin-top:14px;font-family:'Nunito';font-size:12px;line-height:1.5;color:#8a7a62;">
-        Primeiro acesso define a credencial do operador neste aparelho (MVP local — autenticação real com servidor chega na fase 06).
+        O primeiro acesso define a credencial do operador. Ela fica só neste aparelho e não sai dele.
       </div>
     </div>
 
@@ -68,12 +71,14 @@ class Component extends DCLogic {
     return {
       email: s.email,
       senha: s.senha,
-      aoDigitarEmail: (e) => this.setState({ email: e.target.value }),
-      aoDigitarSenha: (e) => this.setState({ senha: e.target.value }),
-      aoTeclar: (e) => { if (e && e.key === 'Enter') this._submeter(); },
+      aoDigitarEmail: (e) => this.setState({ email: e.target.value, erro: '' }),
+      aoDigitarSenha: (e) => this.setState({ senha: e.target.value, erro: '' }),
       erro: s.erro || '',
       temErro: !!s.erro,
-      submeterLoginSuperAdmin: () => this._submeter(),
+      // C9: Enter submete pelo <form>; botão apagado é disabled real; foco no e-mail.
+      aoSubmeter: (e) => { if (e && e.preventDefault) e.preventDefault(); this._submeter(); },
+      refEmail: (el) => { if (el && !this._focou) { this._focou = true; try { el.focus(); } catch (_) {} } },
+      entrarTravado: !pode,
       entrarLabel: s.carregando ? 'Entrando…' : 'Entrar',
       entrarStyle: 'margin-top:18px;width:100%;min-height:46px;border:none;border-radius:12px;'
         + 'font-family:Baloo 2;font-weight:800;font-size:15px;color:#fff;cursor:' + (pode ? 'pointer' : 'not-allowed') + ';'

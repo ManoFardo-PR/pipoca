@@ -55,6 +55,14 @@ export interface BeatComposicao {
   descricao: string;
   /** `sensacao.corpo[nivel]` da ficha de identidade. */
   corpo: string;
+  /**
+   * E1 (Plan03 · ML-5, ADITIVO no v1): `sensacao.registro` da ficha — o
+   * SENTIMENTO do beat ("encanto silencioso"). Opcional: fichas sem o campo
+   * seguem válidas; validadores (cliente e edge) ignoram campos extras.
+   */
+  sentimento?: string;
+  /** E1 (ADITIVO no v1): `sensacao.dominante` da ficha — o SENTIDO que guia a cena ("visão"). */
+  sentido?: string;
   /** Pode ser vazia; teto de 2 relações POR PACOTE (D5). */
   relacoes: RelacaoResolvida[];
 }

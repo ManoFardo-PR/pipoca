@@ -1,4 +1,4 @@
-<!-- PainelCuidador.dc.html — Hub do cuidador (PC_HOME) · doc fase02-02-04
+﻿<!-- PainelCuidador.dc.html — Hub do cuidador (PC_HOME) · doc fase02-02-04
      ─────────────────────────────────────────────────────────────
      Atrás do PINGATE (modo cuidador). Menu para as superfícies adultas:
      Perfis (T12), Limites (T13), Regras & IA (T14), Privacidade (T15) e
@@ -8,7 +8,7 @@
 <x-dc>
 <helmet>
   <style>
-    .pip-pc-item { cursor:pointer;transition:transform .12s ease; }
+    .pip-pc-item { cursor:pointer;transition:transform calc(.12s * var(--pip-mov)) ease; }
     .pip-pc-item:active { transform:scale(.98); }
   </style>
 </helmet>
@@ -22,7 +22,7 @@
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:700;font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#9a8a72;">Para o cuidador</div>
         <div style="font-family:var(--pip-fonte-titulo,'Baloo 2');font-weight:800;font-size:26px;color:#3a2c20;line-height:1.1;margin-top:2px;">Painel da casa</div>
       </div>
-      <button class="pip-pc-item" onClick="{{ paraCrianca }}" style="border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;">↩ Para a criança</button>
+      <button class="pip-pc-item" onClick="{{ paraCrianca }}" style="min-height:44px;border:none;border-radius:999px;background:rgba(255,255,255,.6);padding:10px 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#5a6b53;cursor:pointer;"><span aria-hidden="true">↩ </span>Para a criança</button>
     </div>
     <p style="color:#7a6a54;font-family:'Nunito';font-size:15px;line-height:1.5;margin:0 0 14px;">{{ subtitulo }}</p>
 
@@ -30,10 +30,11 @@
     <sc-if value="{{ temSaldos }}" hint-placeholder-val="{{ false }}">
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px;">
         <sc-for list="{{ saldos }}" as="sd" hint-placeholder-count="2">
-          <div style="display:flex;align-items:center;gap:8px;background:var(--pip-creme,#fffaf0);border-radius:14px;padding:10px 14px;box-shadow:0 8px 20px -14px rgba(60,40,20,.4);">
-            <span style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#3a2c20;">{{ sd.nome }}</span>
-            <span style="font-family:'Nunito';font-weight:700;font-size:13px;color:#b8693c;">✨ {{ sd.vagalumes }}</span>
-            <span style="font-family:'Nunito';font-size:12px;color:#7a6a54;">· {{ sd.poupado }} guardados</span>
+          <!-- C11: um nome acessível limpo por cartão; os pedaços visuais ficam ocultos do leitor -->
+          <div role="group" aria-label="{{ sd.aria }}" style="display:flex;align-items:center;gap:8px;background:var(--pip-creme,#fffaf0);border-radius:14px;padding:10px 14px;box-shadow:0 8px 20px -14px rgba(60,40,20,.4);">
+            <span aria-hidden="true" style="font-family:'Baloo 2';font-weight:800;font-size:14px;color:#3a2c20;">{{ sd.nome }}</span>
+            <span aria-hidden="true" style="font-family:'Nunito';font-weight:700;font-size:13px;color:#b8693c;">✨ {{ sd.vagalumes }}</span>
+            <span aria-hidden="true" style="font-family:'Nunito';font-size:12px;color:#7a6a54;">· {{ sd.poupado }} guardados</span>
           </div>
         </sc-for>
       </div>
@@ -43,19 +44,20 @@
     <div style="display:flex;flex-direction:column;gap:12px;">
       <sc-for list="{{ itens }}" as="it" hint-placeholder-count="5">
         <button class="pip-pc-item" onClick="{{ it.go }}" style="display:flex;align-items:center;gap:16px;width:100%;text-align:left;background:var(--pip-creme,#fffaf0);border:none;border-radius:18px;box-shadow:0 12px 32px -18px rgba(60,40,20,.35);padding:18px 20px;cursor:pointer;">
-          <span style="font-size:26px;flex-shrink:0;">{{ it.emoji }}</span>
+          <!-- C11 (UI-A38): emoji e › decorativos ficam fora do leitor de tela -->
+          <span aria-hidden="true" style="font-size:26px;flex-shrink:0;">{{ it.emoji }}</span>
           <span style="display:flex;flex-direction:column;gap:2px;">
             <span style="font-family:'Baloo 2';font-weight:800;font-size:17px;color:#3a2c20;">{{ it.rot }}</span>
             <span style="font-family:'Nunito';font-size:13px;color:#7a6a54;">{{ it.desc }}</span>
           </span>
-          <span style="margin-left:auto;color:#c0ac8c;font-size:18px;">›</span>
+          <span aria-hidden="true" style="margin-left:auto;color:#c0ac8c;font-size:18px;">›</span>
         </button>
       </sc-for>
     </div>
 
     <!-- Ações da conta -->
     <div style="display:flex;gap:12px;margin-top:22px;">
-      <button class="pip-pc-item" onClick="{{ novoPerfil }}" style="flex:1;min-height:48px;border:none;border-radius:16px;font-family:'Baloo 2';font-weight:800;font-size:15px;color:#fff;cursor:pointer;background:linear-gradient(150deg,#e8965a,#d5713f);box-shadow:0 10px 24px -8px rgba(181,86,40,.55);">➕ Novo perfil</button>
+      <button class="pip-pc-item" onClick="{{ novoPerfil }}" style="flex:1;min-height:48px;border:none;border-radius:16px;font-family:'Baloo 2';font-weight:800;font-size:15px;color:#fff;cursor:pointer;background:linear-gradient(150deg,#e8965a,#d5713f);box-shadow:0 10px 24px -8px rgba(181,86,40,.55);"><span aria-hidden="true">➕ </span>Novo perfil</button>
       <button class="pip-pc-item" onClick="{{ sair }}" style="min-height:48px;border:2px solid #e3d4ba;border-radius:16px;background:transparent;padding:0 18px;font-family:'Nunito';font-weight:700;font-size:14px;color:#7a6a54;cursor:pointer;">Sair da conta</button>
     </div>
 
@@ -79,6 +81,10 @@ class Component extends DCLogic {
             .then((prefs) => ({ nome: p.nome, vagalumes: prefs.economia.vagalumes, poupado: prefs.economia.poupado }))
             .catch(() => ({ nome: p.nome, vagalumes: 0, poupado: 0 }))
         ));
+        // C11: nome acessível do cartão de saldo (o leitor não lê os pedaços visuais).
+        saldos.forEach((sd) => {
+          sd.aria = sd.nome + ': ' + sd.vagalumes + ' vaga-lumes no pote, ' + sd.poupado + ' guardados para o sonho';
+        });
         this.setState({ saldos });
       }
     } catch (_) { this.setState({ perfis: [] }); }
@@ -88,12 +94,13 @@ class Component extends DCLogic {
     const App = window.PipocaApp;
     const ir = (n) => () => { if (App) App.setState({ tela: n }); };
     const nomes = this.state.perfis.map((p) => p.nome).join(', ');
+    // C6: o hub diz quem está em uso (a criança ativa) já no cabeçalho.
+    const ativa = App && App.estado.perfil ? App.estado.perfil.nome : '';
     return {
       temSaldos: this.state.saldos.length > 0,
       saldos: this.state.saldos,
-      subtitulo: nomes
-        ? 'Quem lê nesta casa: ' + nomes + '.'
-        : 'Ajustes da leitura, com calma. A criança não vê esta parte.',
+      subtitulo: (ativa ? 'Agora é a vez de ' + ativa + '. ' : '')
+        + (nomes ? 'Quem lê nesta casa: ' + nomes + '.' : 'Ajustes da leitura, com calma. A criança não vê esta parte.'),
       itens: [
         { emoji: '👧', rot: 'Perfis',               desc: 'quem lê nesta casa',                    go: ir(12) },
         { emoji: '⏱️', rot: 'Limites',              desc: 'bloco de foco e tempo de tela',         go: ir(13) },
@@ -102,7 +109,9 @@ class Component extends DCLogic {
         { emoji: '🌱', rot: 'Evolução da leitura',  desc: 'minutos, palavras e histórias',         go: ir(8) },
         { emoji: '🔑', rot: 'Conta & segurança',    desc: 'PIN do portão, senha e e-mail',         go: ir(16) },
       ],
-      novoPerfil: ir(10),
+      // C6 (UI-A22): fluxo ÚNICO de "Novo perfil" — o inline de Perfis (mostra a
+      // lista); o Onboarding (T10) fica só para o 1º uso.
+      novoPerfil: () => { if (App) App.setState({ tela: 12, abrirFormPerfis: true }); },
       paraCrianca: () => { if (App && App.aoVoltarParaCrianca) App.aoVoltarParaCrianca(); },
       sair: () => { if (App && App.sairDaConta) App.sairDaConta(); },
     };

@@ -1,7 +1,7 @@
-/**
+﻿/**
  * [backend.ts] — Fachada única do backend trocável: monta `Backend {auth,
- *   repo, proxyIA, realizador?, sincronizar?}` e `obterBackend(config)` escolhe
- *   o adaptador (local / supabase / firebase).
+ *   repo, realizador?, sincronizar?}` e `obterBackend(config)` escolhe
+ *   o adaptador (local / supabase).
  *
  * PAPEL: backend (fachada/seam)
  * POR QUE EXISTE: app/CORE/telas falam SÓ com o seam Backend; trocar de BaaS =
@@ -11,8 +11,8 @@
  * SAI: instância Backend; espelharConfigIA devolve boolean (upsert
  *   fire-and-forget de config_ia por-tenant).
  * CHAMA: config.ts:configDoAmbiente, auth.ts, adaptadores/{auth_supabase,
- *   repo_supabase,repo_sincronizado,auth_firebase,repo_firebase},
- *   proxy_ia.ts:criarProxyIA, proxy_realizador.ts:criarProxyRealizador,
+ *   repo_supabase,repo_sincronizado},
+ *   proxy_realizador.ts:criarProxyRealizador,
  *   tenant.ts:escopoTenant, sync.ts:sincronizarInicial,
  *   core/persistencia:criarRepositorio, core/contaFamilia, servicos/conta_repo,
  *   admin/auth (operador local), ia/provedor:transportePadrao.
@@ -22,26 +22,25 @@
  *   nunca vê erro). No auth local a FAMÍLIA tem precedência sobre o operador em
  *   sair()/sessaoAtual() (mesmo navegador). espelharConfigIA só age com OPERADOR
  *   logado no supabase; a chave de provedor NÃO vive aqui (só a anon key
- *   pública). proxyIndisponivel rejeita limpo → orquestrador degrada p/ simulado
- *   → Motor A.
+ *   pública).
  *
  * — detalhe preservado —
  * Pipoca — Fachada do backend trocável (fase06-06-01)
  * ----------------------------------------------------
- * `Backend { auth, repo, proxyIA }` + `obterBackend(config)`.
+ * `Backend { auth, repo }` + `obterBackend(config)`.
  *
  * LEI DO BACKEND: app/CORE/telas falam SÓ com `Backend`/`ServicoAuth`/
- * `RepositorioPersistencia`/`ProxyIA`; nenhum SDK ou URL de provedor fora
+ * `RepositorioPersistencia`; nenhum SDK ou URL de provedor fora
  * de `src/backend/adaptadores/`. Trocar de BaaS = trocar adaptador —
  * exatamente como Motor A ↔ Motor B na fábrica.
  *
  * Provedores: "local" (default, offline-first — delega aos núcleos que o
  * app já usa), "supabase" (REST puro via Transporte; adaptadores nas
- * etapas seguintes) e "firebase" (stub honesto; paridade em PARIDADE.md).
+ * etapas seguintes). O ramo do BaaS alternativo foi aposentado no D5
+ * (Plan03) — registro em docs/plans/fase06_backend/PARIDADE.md.
  * FAIL-SOFT: qualquer dúvida cai no local — a criança nunca vê erro.
  */
 
-import type { Trecho } from "../core/grafo/tipos.js";
 import type { RepositorioPersistencia } from "../core/persistencia/index.js";
 import { criarRepositorio } from "../core/persistencia/index.js";
 import { entrarFamilia as entrarFamiliaStub } from "../core/contaFamilia.js";
@@ -52,27 +51,23 @@ import { sessaoSuperAdminValida } from "../admin/auth/sessaoSuperAdmin.js";
 import type { SessaoSuperAdmin } from "../admin/auth/tiposAdmin.js";
 import { ERRO_LOGIN_NEUTRO, type CredenciaisLogin, type ServicoAuth, type SessaoAuth } from "./auth.js";
 import { configDoAmbiente, type ConfigBackend } from "./config.js";
-import { criarAuthFirebase } from "./adaptadores/auth_firebase.js";
-import { RepositorioFirebase } from "./adaptadores/repo_firebase.js";
 import { criarAuthSupabase } from "./adaptadores/auth_supabase.js";
 import { RepositorioSupabase } from "./adaptadores/repo_supabase.js";
 import { criarRepositorioSincronizado } from "./adaptadores/repo_sincronizado.js";
-import { criarProxyIA } from "./proxy_ia.js";
 import { criarProxyRealizador, type RealizadorRemoto } from "./proxy_realizador.js";
 import { escopoTenant } from "./tenant.js";
 import { sincronizarInicial } from "./sync.js";
 import { transportePadrao, type Transporte } from "../ia/provedor.js";
 
-/** Contrato do doc 06-05 (ipsis litteris) — o cliente concreto chega na etapa do proxy. */
-export interface ProxyIA {
-  gerar(req: { prompt: string; schema: object; opts?: object }): Promise<Trecho>;
-}
-
-/** Fachada única (doc 06-01, ipsis litteris) + extensão opcional de sync. */
+/**
+ * Fachada única (doc 06-01) + extensão opcional de sync.
+ * D4/E3 (Plan03): o cliente da Geração 1 saiu e a edge dela foi aposentada;
+ * a geração 2 fala pelo
+ * `realizador` (keyless, cascata no edge).
+ */
 export interface Backend {
   auth: ServicoAuth;
   repo: RepositorioPersistencia;
-  proxyIA: ProxyIA;
   /** fase06 (opcional): sincronização inicial local↔remoto — a borda chama no login/boot, fire-and-forget. */
   sincronizar?: () => Promise<unknown>;
   /**
@@ -81,15 +76,6 @@ export interface Backend {
    * módulo de geração cai no fallback A+ v3 local.
    */
   realizador?: RealizadorRemoto;
-}
-
-/** Proxy indisponível: rejeita limpo — o orquestrador degrada p/ simulado → Motor A. */
-function proxyIndisponivel(motivo: string): ProxyIA {
-  return {
-    gerar(): Promise<Trecho> {
-      return Promise.reject(new Error(motivo));
-    },
-  };
 }
 
 // ─── Adaptador LOCAL (offline-first, regra 4 do 06-01) ───────────────────────
@@ -175,21 +161,13 @@ export function criarBackendLocal(): Backend {
   return {
     auth: criarAuthLocal(),
     repo: criarRepositorio(),
-    proxyIA: proxyIndisponivel("ProxyIA indisponível no backend local — degradando para o provedor simulado."),
   };
 }
 
-function criarBackendFirebase(): Backend {
-  return {
-    auth: criarAuthFirebase(),
-    repo: new RepositorioFirebase(),
-    proxyIA: proxyIndisponivel("ProxyIA Firebase não configurado neste build."),
-  };
-}
 
 // ─── Adaptador SUPABASE (REST puro — auth GoTrue + repo PostgREST) ───────────
 // Remoto com fallback local: o repo é o SINCRONIZADO (local = base; o remoto
-// espelha fire-and-forget). O ProxyIA concreto chega na etapa do proxy.
+// espelha fire-and-forget).
 
 function criarBackendSupabase(cfg: ConfigBackend): Backend {
   const auth = criarAuthSupabase({ url: cfg.supabaseUrl as string, anonKey: cfg.supabaseAnonKey as string });
@@ -201,25 +179,19 @@ function criarBackendSupabase(cfg: ConfigBackend): Backend {
   });
   const local = criarRepositorio();
   const repo = criarRepositorioSincronizado(local, remoto);
-  const proxyIA = criarProxyIA({
-    url: cfg.supabaseUrl as string,
-    anonKey: cfg.supabaseAnonKey as string,
-    obterToken: () => auth.obterToken(),
-    tenantId: () => escopoTenant(auth.sessaoAtual()),
-  });
   const realizador = criarProxyRealizador({
     url: cfg.supabaseUrl as string,
     anonKey: cfg.supabaseAnonKey as string,
     obterToken: () => auth.obterToken(),
     tenantId: () => escopoTenant(auth.sessaoAtual()),
   });
-  return { auth, repo, proxyIA, realizador, sincronizar: () => sincronizarInicial(local, remoto) };
+  return { auth, repo, realizador, sincronizar: () => sincronizarInicial(local, remoto) };
 }
 
 /**
  * Espelho remoto da ConfigIaTenant (SA_AI → tabela `config_ia`): upsert
  * fire-and-forget quando há OPERADOR logado no backend supabase; devolve
- * false (sem lançar) em qualquer outra situação. O ProxyIA lê essa tabela
+ * false (sem lançar) em qualquer outra situação. A edge realizador lê essa tabela
  * server-side — é a config/cota de verdade da geração (06-05).
  */
 export async function espelharConfigIA(
@@ -266,6 +238,7 @@ export function obterBackend(config?: ConfigBackend): Backend {
   if (cfg.provedor === "supabase" && cfg.supabaseUrl && cfg.supabaseAnonKey) {
     return criarBackendSupabase(cfg);
   }
-  if (cfg.provedor === "firebase") return criarBackendFirebase();
+  // D5: o ramo do BaaS alternativo foi aposentado (PARIDADE.md) — provedor
+  // desconhecido/antigo cai no local (fail-closed, regra 4 do 06-01).
   return criarBackendLocal();
 }

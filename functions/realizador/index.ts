@@ -26,9 +26,11 @@
  *   /functions/v1/realizador).
  * RODA POR: Supabase Edge Function (Deno), deploy na plataforma; acionada
  *   pelos clientes em src/backend/.
- * CUIDADO: AS CHAVES DOS PROVEDORES VIVEM SÓ AQUI (secrets do ambiente:
- *   ANTHROPIC_API_KEY/OPENAI_API_KEY/GEMINI_API_KEY/DEEPSEEK_API_KEY, lidas
- *   via Deno.env.get); o cliente é keyless; qualquer não-200 vira fallback no
+ * CUIDADO: AS CHAVES DOS PROVEDORES VIVEM SÓ NO SERVIDOR — tabela chaves_ia
+ *   (gravada pelo painel via admin-chaves-ia; PRECEDÊNCIA) e secrets do
+ *   ambiente (ANTHROPIC_API_KEY/OPENAI_API_KEY/GEMINI_API_KEY/
+ *   DEEPSEEK_API_KEY) como base — mesma regra banco→ambiente da
+ *   admin-chaves-ia (interligação pós-F); o cliente é keyless; qualquer não-200 vira fallback no
  *   cliente (fallback A+ v3 LOCAL, no dispositivo — NÃO vive aqui, a criança
  *   nunca vê erro). O validador e a tabela de comprimento aqui são ESPELHO
  *   dos canônicos (src/core/realizador/validador.ts e prompt_template.ts):
@@ -594,14 +596,38 @@ function parseTextoLimpo(textoJson: string): string | null {
   return null;
 }
 
+/**
+ * Chaves salvas pelo PAINEL do operador (tabela chaves_ia, deny-all — só a
+ * service role lê). Interligação pós-F: a geração usa a MESMA precedência da
+ * admin-chaves-ia (BANCO → ambiente) — chave salva no painel vale de verdade.
+ * Falha na leitura ⇒ mapa vazio (o ambiente segue valendo; fail-soft).
+ */
+async function lerChavesBanco(url: string, srk: string): Promise<Record<string, string>> {
+  try {
+    const r = await fetch(url + "/rest/v1/chaves_ia?select=provedor,chave", {
+      headers: { apikey: srk, Authorization: "Bearer " + srk },
+    });
+    if (!r.ok) return {};
+    const linhas = (await r.json()) as Array<{ provedor?: string; chave?: string }>;
+    const mapa: Record<string, string> = {};
+    for (const l of linhas) {
+      if (l && typeof l.provedor === "string" && typeof l.chave === "string" && l.chave) mapa[l.provedor] = l.chave;
+    }
+    return mapa;
+  } catch {
+    return {};
+  }
+}
+
 async function gerarCom(
   provedor: string,
   modelo: string,
   prompt: { system: string; user: string },
-  temperatura: number
+  temperatura: number,
+  chavesBanco: Record<string, string>
 ): Promise<Gerado> {
   const nomeSecret = SECRET_POR_PROVEDOR[provedor];
-  const chave = nomeSecret ? Deno.env.get(nomeSecret) : undefined;
+  const chave = chavesBanco[provedor] || (nomeSecret ? Deno.env.get(nomeSecret) : undefined);
   if (!chave) return { ok: false, semChave: true };
   const m = modelo;
 
@@ -757,6 +783,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
   // admin (SA_IA_GLOBAL) → sem modelo = provedor NÃO configurado (fail-closed; o
   // fallback só entra se o operador definiu o padrão global daquele provedor).
   const global = await lerConfigIaGlobal(SUPABASE_URL, SERVICE_KEY);
+  // Interligação (pós-F): chaves salvas pelo painel (chaves_ia) valem na geração,
+  // com precedência sobre o ambiente — a MESMA regra do testar/status da admin.
+  const chavesBanco = await lerChavesBanco(SUPABASE_URL, SERVICE_KEY);
   const modeloPara = (provedor: string): string | null =>
     (provedor === configEfetiva.provedor ? configEfetiva.modelo : null) || global.modeloPadrao[provedor] || null;
   const provedores = [configEfetiva.provedor, configEfetiva.fallback].filter(
@@ -770,7 +799,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     let jaRetentou = false;
     while (chamadas < TETO_GLOBAL_TENTATIVAS) {
       chamadas++;
-      const r = await gerarCom(provedor, modelo, prompt, temperatura);
+      const r = await gerarCom(provedor, modelo, prompt, temperatura, chavesBanco);
       if (!r.ok) {
         // Diagnóstico nos LOGS da função (sem conteúdo/PII): por que a tentativa caiu.
         console.warn("[realizador] tentativa falhou", JSON.stringify({

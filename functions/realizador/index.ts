@@ -619,7 +619,9 @@ async function gerarCom(
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: prompt.system + '\nResponda SOMENTE com um objeto JSON válido: { "texto_limpo": string }.' }] },
           contents: [{ role: "user", parts: [{ text: prompt.user }] }],
-          generationConfig: { responseMimeType: "application/json", temperature: temperatura, maxOutputTokens: 1200 },
+          // Teto alto: no 3.x o PENSAMENTO consome do maxOutputTokens — 1200
+          // truncava a resposta (só thought, sem texto — "fora do formato" C12).
+          generationConfig: { responseMimeType: "application/json", temperature: temperatura, maxOutputTokens: 8192 },
         }),
       });
       if (r.status === 429 || r.status >= 500) return { ok: false, transitorio: true, status: r.status, detalhe: await trechoErro(r) };
@@ -628,9 +630,19 @@ async function gerarCom(
       if (j.promptFeedback && j.promptFeedback.blockReason) return { ok: false, recusa: true, detalhe: String(j.promptFeedback.blockReason) };
       const cand = j.candidates && j.candidates[0];
       if (cand && cand.finishReason === "SAFETY") return { ok: false, recusa: true, detalhe: "finishReason=SAFETY" };
-      const parte = cand && cand.content && cand.content.parts && cand.content.parts[0];
-      const t = parte && typeof parte.text === "string" ? parseTextoLimpo(parte.text) : null;
-      return t ? { ok: true, texto: t } : { ok: false, detalhe: "resposta fora do formato texto_limpo" };
+      // Gemini 3.x com thinking: parts pode abrir com partes de "pensamento"
+      // (thought: true) antes da resposta — usar a ÚLTIMA parte de texto que
+      // não seja thought (parts[0] fixo quebrava o parse).
+      const partes: Array<{ thought?: boolean; text?: unknown }> =
+        cand && cand.content && Array.isArray(cand.content.parts) ? cand.content.parts : [];
+      let bruto: string | null = null;
+      for (const p of partes) {
+        if (p && !p.thought && typeof p.text === "string" && p.text.trim()) bruto = p.text;
+      }
+      const t = bruto ? parseTextoLimpo(bruto) : null;
+      return t
+        ? { ok: true, texto: t }
+        : { ok: false, detalhe: "resposta fora do formato texto_limpo (finishReason=" + String(cand && cand.finishReason) + ", partes=" + partes.length + ")" };
     }
 
     if (provedor === "claude") {

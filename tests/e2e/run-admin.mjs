@@ -104,9 +104,13 @@ try {
   console.log("\n=== SA_HOME · hub com 4 áreas ===");
   await page.waitForFunction(() => /Painel da plataforma/i.test(document.body.innerText), { timeout: 8000 });
   // B11: glossário de produto — "Contas e planos" (sem "tenant" no texto visível).
-  const cartoes = await page.evaluate(() =>
-    ["Contas e planos", "Biblioteca de conteúdo", "Configuração de IA", "Segurança e feature flags"]
-      .every((t) => new RegExp(t, "i").test(document.body.innerText)));
+  // Os cartões montam um tick DEPOIS do título (dc-runtime) — esperar por eles,
+  // não só pela tela (flake do P1, reproduzido no CI de 2026-09-07: 24/25).
+  const cartoes = await page.waitForFunction(
+    () => ["Contas e planos", "Biblioteca de conteúdo", "Configuração de IA", "Segurança e feature flags"]
+      .every((t) => new RegExp(t, "i").test(document.body.innerText)),
+    { timeout: 8000 }
+  ).then(() => true).catch(() => false);
   assert(cartoes, "os 4 cartões de área montam no hub");
 
   console.log("\n=== SA_TENANT · criar conta nasce no Freemium (60 dias de Família) ===");

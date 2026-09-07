@@ -621,7 +621,9 @@ async function gerarCom(
           contents: [{ role: "user", parts: [{ text: prompt.user }] }],
           // Teto alto: no 3.x o PENSAMENTO consome do maxOutputTokens — 1200
           // truncava a resposta (só thought, sem texto — "fora do formato" C12).
-          generationConfig: { responseMimeType: "application/json", temperature: temperatura, maxOutputTokens: 8192 },
+          // thinkingLevel "low" (sintaxe da geração 3; thinkingBudget era da 2.5
+          // e dava 400): sem ele o 3.6 pensa ~36s com o prompt do realizador.
+          generationConfig: { responseMimeType: "application/json", temperature: temperatura, maxOutputTokens: 8192, thinkingConfig: { thinkingLevel: "low" } },
         }),
       });
       if (r.status === 429 || r.status >= 500) return { ok: false, transitorio: true, status: r.status, detalhe: await trechoErro(r) };

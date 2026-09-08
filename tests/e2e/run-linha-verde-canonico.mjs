@@ -512,7 +512,7 @@ try {
   });
   assert(c7Inerte, "C7: gesto num lugar 'em breve' é inerte (switch segue desligado)");
   // Mesmo caminho de escrita da UI (gravarPrefsPerfil, por criança) → o switch reage.
-  await page.evaluate(() => window.PipocaApp.gravarPrefsPerfil(window.PipocaApp.estado.perfil.id, { cenariosLiberados: ["quintal_anoitecer", "quarto"] }));
+  await page.evaluate(() => window.PipocaApp.gravarPrefsPerfil(window.PipocaApp.estado.perfil.id, { cenariosLiberados: ["quintal_anoitecer", "quarto_dormir"] }));
   await page.waitForFunction(() => {
     const sw = document.querySelector('[aria-label^="Liberar O Quarto para "]');
     return !!sw && sw.getAttribute("aria-checked") === "true";

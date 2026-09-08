@@ -263,19 +263,31 @@ class Component extends DCLogic {
       : 'Desligada pela plataforma por enquanto. Quando voltar, o botão abre sozinho.';
 
     // Plan03 · C7 — lugares (cenários liberados) POR CRIANÇA. O save guarda ids
-    // canônicos: 'quintal_anoitecer' já é; os 4 "em breve" ficam com a própria
-    // chave como id provisório até E5 unificar chave↔id. Travados = honestos:
-    // ainda não têm história pronta, mas a promessa fica visível.
+    // canônicos. E4: a lista nasce do MANIFESTO (cenariosDisponiveis) — publicar
+    // um cenário (disponivel:true) destrava o switch aqui sem tocar nesta tela.
+    // Sem manifesto ainda (boot/estado antigo), a lista conhecida de sempre.
     const liberados = this._cenarios();
     const chipAtual = this.state.perfis.filter((p) => p.id === this.state.chipId)[0];
     const chipNome = (chipAtual && chipAtual.nome) || 'a criança';
+    const ICONE_POR_SVG = { quintal: '🌳', quarto: '🛏️', floresta: '🌲', espaco: '🚀', fundomar: '🐠' };
+    const manifesto = (App && App.cenariosDisponiveis && App.cenariosDisponiveis()) || null;
+    const demais = manifesto
+      ? manifesto.filter((c) => c && c.id !== 'quintal_anoitecer').map((c) => ({
+          id: c.id,
+          icone: c.icone || ICONE_POR_SVG[c.svg] || '✨',
+          nome: c.nome,
+          desc: c.disponivel === true ? c.descricao : 'ainda não tem história pronta',
+          pronto: c.disponivel === true,
+        }))
+      : [
+          { id: 'quarto_dormir',        icone: '🛏️', nome: 'O Quarto',     desc: 'ainda não tem história pronta', pronto: false },
+          { id: 'floresta_sussurrante', icone: '🌲', nome: 'A Floresta',   desc: 'ainda não tem história pronta', pronto: false },
+          { id: 'espaco_estrelado',     icone: '🚀', nome: 'O Espaço',     desc: 'ainda não tem história pronta', pronto: false },
+          { id: 'fundomar_calmo',       icone: '🐠', nome: 'Fundo do Mar', desc: 'ainda não tem história pronta', pronto: false },
+        ];
     const lugares = [
       { id: 'quintal_anoitecer', icone: '🌳', nome: 'O Quintal', desc: 'por onde toda história começa — fica sempre aberto', pronto: true, fixo: true },
-      { id: 'quarto',   icone: '🛏️', nome: 'O Quarto',     desc: 'ainda não tem história pronta', pronto: false },
-      { id: 'floresta', icone: '🌲', nome: 'A Floresta',   desc: 'ainda não tem história pronta', pronto: false },
-      { id: 'espaco',   icone: '🚀', nome: 'O Espaço',     desc: 'ainda não tem história pronta', pronto: false },
-      { id: 'fundomar', icone: '🐠', nome: 'Fundo do Mar', desc: 'ainda não tem história pronta', pronto: false },
-    ].map((lg) => {
+    ].concat(demais).map((lg) => {
       const ligado = !!lg.fixo || liberados.indexOf(lg.id) >= 0;
       const travado = !!lg.fixo || !lg.pronto;
       return {

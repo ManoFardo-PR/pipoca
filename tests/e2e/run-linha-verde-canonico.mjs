@@ -427,23 +427,35 @@ try {
   assert(t7Config.marcador, "T7 mantém os marcadores do pote (agrado/dividir)");
   assert(!t7Config.itemAntigo, "T7 lista o cardápio CONFIGURADO, não o hardcoded");
 
+  // Contagens DERIVADAS do manifesto — publicar um cenário não pode quebrar o e2e.
+  // Com liberação nula, NADA da grade é jogável (todos "Em breve", publicados ou não).
+  const gradeInfo = await page.evaluate(() => {
+    const m = (window.PipocaApp.cenariosDisponiveis() || []).filter((c) => c && c.id !== "quintal_anoitecer");
+    const semConteudo = m.find((c) => c.disponivel !== true) || null;
+    return { total: m.length, semConteudoId: semConteudo ? semConteudo.id : null };
+  });
   await page.evaluate(() => { window.PipocaApp.setState({ tela: 3, cenariosLiberados: null }); });
   await page.waitForFunction(
-    () => (document.body.innerText.match(/Em breve/g) || []).length === 4,
+    (n) => (document.body.innerText.match(/Em breve/g) || []).length === n,
+    gradeInfo.total,
     { timeout: 4000 }
   );
   const t3Padrao = await page.evaluate(() => (document.body.innerText.match(/Em breve/g) || []).length);
-  await page.evaluate(() => { window.PipocaApp.setState({ cenariosLiberados: ["quintal_anoitecer", "quarto_dormir"] }); });
-  await page.waitForTimeout(250);
-  const t3Liberado = await page.evaluate(() => ({
-    emBreve: (document.body.innerText.match(/Em breve/g) || []).length,
-    novo: /Novo!/.test(document.body.innerText),
-    quintal: /Favorito de hoje/i.test(document.body.innerText),
-  }));
-  assert(t3Padrao === 4, "T3 padrão: 4 cenários da grade em 'Em breve' (só o quintal liberado)");
-  // E4: jogável exige manifesto disponivel:true E liberação — liberar um lugar
-  // SEM conteúdo (quarto) segue "Em breve" honesto (o 'Novo!' do fixture prova o E).
-  assert(t3Liberado.emBreve === 4 && !t3Liberado.novo && t3Liberado.quintal, "E4: liberar lugar sem conteúdo no manifesto segue 'Em breve' (honesto); quintal em destaque");
+  assert(t3Padrao === gradeInfo.total, "T3 padrão: toda a grade em 'Em breve' (só o quintal liberado)");
+  if (gradeInfo.semConteudoId) {
+    await page.evaluate((id) => { window.PipocaApp.setState({ cenariosLiberados: ["quintal_anoitecer", id] }); }, gradeInfo.semConteudoId);
+    await page.waitForTimeout(250);
+    const t3Liberado = await page.evaluate(() => ({
+      emBreve: (document.body.innerText.match(/Em breve/g) || []).length,
+      novo: /Novo!/.test(document.body.innerText),
+      quintal: /Favorito de hoje/i.test(document.body.innerText),
+    }));
+    // E4: jogável exige manifesto disponivel:true E liberação — liberar um lugar
+    // SEM conteúdo segue "Em breve" honesto (o 'Novo!' do fixture prova o E).
+    assert(t3Liberado.emBreve === gradeInfo.total && !t3Liberado.novo && t3Liberado.quintal, "E4: liberar lugar sem conteúdo no manifesto segue 'Em breve' (honesto); quintal em destaque");
+  } else {
+    console.log("  (todos os cenários do manifesto publicados — sub-teste 'liberar sem conteúdo' pulado)");
+  }
   await page.evaluate(() => { window.PipocaApp.setState({ cenariosLiberados: null, cardapio: null }); });
 
   // ── UX por perfil (etapa 4) · prefs por chip: gravar no perfil NÃO-ativo vai
@@ -492,6 +504,19 @@ try {
   // ── C7 · "Lugares das histórias": quintal sempre aberto, "em breve" travados,
   // gesto travado inerte, e a liberação por criança reflete no switch.
   await page.waitForFunction(() => /Lugares das histórias/i.test(document.body.innerText), { timeout: 4000 });
+  // Contagens derivadas do manifesto: 1 fixo (quintal) + demais; travado = fixo OU sem conteúdo.
+  const c7Esperado = await page.evaluate(() => {
+    const m = (window.PipocaApp.cenariosDisponiveis() || []).filter((c) => c && c.id !== "quintal_anoitecer");
+    const semConteudo = m.filter((c) => c.disponivel !== true);
+    const liberavel = m[0] || null;
+    return {
+      total: 1 + m.length,
+      travados: 1 + semConteudo.length,
+      inerteNome: semConteudo.length ? semConteudo[0].nome : null,
+      liberarId: liberavel ? liberavel.id : null,
+      liberarNome: liberavel ? liberavel.nome : null,
+    };
+  });
   const c7Regras = await page.evaluate(() => {
     const sws = Array.from(document.querySelectorAll('[aria-label^="Liberar "], [aria-label="O Quintal fica sempre aberto"]'));
     const quintal = document.querySelector('[aria-label="O Quintal fica sempre aberto"]');
@@ -501,22 +526,26 @@ try {
       travados: sws.filter((s) => s.getAttribute("aria-disabled") === "true").length,
     };
   });
-  assert(c7Regras.total === 5 && c7Regras.quintalLigado, "C7: 'Lugares das histórias' lista 5 lugares; quintal sempre aberto (switch ligado e travado)");
-  assert(c7Regras.travados === 5, "C7: sem história pronta, os 'em breve' ficam travados (honesto)");
-  // force: o Playwright recusa aria-disabled — aqui o clique É o teste (gesto inerte).
-  await page.locator('[aria-label^="Liberar O Quarto para "]').click({ force: true });
-  await page.waitForTimeout(150);
-  const c7Inerte = await page.evaluate(() => {
-    const sw = document.querySelector('[aria-label^="Liberar O Quarto para "]');
-    return !!sw && sw.getAttribute("aria-checked") === "false";
-  });
-  assert(c7Inerte, "C7: gesto num lugar 'em breve' é inerte (switch segue desligado)");
+  assert(c7Regras.total === c7Esperado.total && c7Regras.quintalLigado, "C7: 'Lugares das histórias' lista os lugares do manifesto; quintal sempre aberto (switch ligado e travado)");
+  assert(c7Regras.travados === c7Esperado.travados, "C7: sem história pronta, os 'em breve' ficam travados (honesto)");
+  if (c7Esperado.inerteNome) {
+    // force: o Playwright recusa aria-disabled — aqui o clique É o teste (gesto inerte).
+    await page.locator(`[aria-label^="Liberar ${c7Esperado.inerteNome} para "]`).click({ force: true });
+    await page.waitForTimeout(150);
+    const c7Inerte = await page.evaluate((nome) => {
+      const sw = document.querySelector(`[aria-label^="Liberar ${nome} para "]`);
+      return !!sw && sw.getAttribute("aria-checked") === "false";
+    }, c7Esperado.inerteNome);
+    assert(c7Inerte, "C7: gesto num lugar 'em breve' é inerte (switch segue desligado)");
+  } else {
+    console.log("  (todos os lugares publicados — sub-teste do gesto inerte pulado)");
+  }
   // Mesmo caminho de escrita da UI (gravarPrefsPerfil, por criança) → o switch reage.
-  await page.evaluate(() => window.PipocaApp.gravarPrefsPerfil(window.PipocaApp.estado.perfil.id, { cenariosLiberados: ["quintal_anoitecer", "quarto_dormir"] }));
-  await page.waitForFunction(() => {
-    const sw = document.querySelector('[aria-label^="Liberar O Quarto para "]');
+  await page.evaluate((id) => window.PipocaApp.gravarPrefsPerfil(window.PipocaApp.estado.perfil.id, { cenariosLiberados: ["quintal_anoitecer", id] }), c7Esperado.liberarId);
+  await page.waitForFunction((nome) => {
+    const sw = document.querySelector(`[aria-label^="Liberar ${nome} para "]`);
     return !!sw && sw.getAttribute("aria-checked") === "true";
-  }, { timeout: 4000 });
+  }, c7Esperado.liberarNome, { timeout: 4000 });
   assert(true, "C7: liberar um lugar para a criança reflete no switch da Regras (save por criança)");
   await page.evaluate(() => window.PipocaApp.gravarPrefsPerfil(window.PipocaApp.estado.perfil.id, { cenariosLiberados: null }));
 

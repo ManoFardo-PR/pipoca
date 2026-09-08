@@ -11,7 +11,7 @@
       "disponivel": true
     },
     {
-      "id": "quarto",
+      "id": "quarto_dormir",
       "nome": "O Quarto",
       "descricao": "Histórias antes de dormir",
       "grafo": null,
@@ -20,7 +20,7 @@
       "disponivel": false
     },
     {
-      "id": "floresta",
+      "id": "floresta_sussurrante",
       "nome": "A Floresta",
       "descricao": "Aventura entre árvores",
       "grafo": null,
@@ -29,7 +29,7 @@
       "disponivel": false
     },
     {
-      "id": "espaco",
+      "id": "espaco_estrelado",
       "nome": "O Espaço",
       "descricao": "Entre estrelas e planetas",
       "grafo": null,
@@ -38,7 +38,7 @@
       "disponivel": false
     },
     {
-      "id": "fundomar",
+      "id": "fundomar_calmo",
       "nome": "Fundo do Mar",
       "descricao": "Com peixes e corais",
       "grafo": null,

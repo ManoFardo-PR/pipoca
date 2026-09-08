@@ -433,7 +433,7 @@ try {
     { timeout: 4000 }
   );
   const t3Padrao = await page.evaluate(() => (document.body.innerText.match(/Em breve/g) || []).length);
-  await page.evaluate(() => { window.PipocaApp.setState({ cenariosLiberados: ["quintal_anoitecer", "quarto"] }); });
+  await page.evaluate(() => { window.PipocaApp.setState({ cenariosLiberados: ["quintal_anoitecer", "quarto_dormir"] }); });
   await page.waitForTimeout(250);
   const t3Liberado = await page.evaluate(() => ({
     emBreve: (document.body.innerText.match(/Em breve/g) || []).length,

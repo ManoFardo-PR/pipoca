@@ -292,10 +292,10 @@ class Component extends DCLogic {
     const gridDados = manifesto
       ? manifesto.filter((c) => c && c.id !== 'quintal_anoitecer')
       : [
-          { id:'quarto',   svg:'quarto',   nome:'O Quarto',     descricao:'Histórias antes de dormir', disponivel:false },
-          { id:'floresta', svg:'floresta', nome:'A Floresta',   descricao:'Aventura entre árvores', disponivel:false },
-          { id:'espaco',   svg:'espaco',   nome:'O Espaço',     descricao:'Entre estrelas e planetas', disponivel:false },
-          { id:'fundomar', svg:'fundomar', nome:'Fundo do Mar', descricao:'Com peixes e corais', disponivel:false },
+          { id:'quarto_dormir',        svg:'quarto',   nome:'O Quarto',     descricao:'Histórias antes de dormir', disponivel:false },
+          { id:'floresta_sussurrante', svg:'floresta', nome:'A Floresta',   descricao:'Aventura entre árvores', disponivel:false },
+          { id:'espaco_estrelado',     svg:'espaco',   nome:'O Espaço',     descricao:'Entre estrelas e planetas', disponivel:false },
+          { id:'fundomar_calmo',       svg:'fundomar', nome:'Fundo do Mar', descricao:'Com peixes e corais', disponivel:false },
         ];
     this._gridSvgKeys = gridDados.map((d) => d.svg);
     const gridCenas = gridDados.map(d => {

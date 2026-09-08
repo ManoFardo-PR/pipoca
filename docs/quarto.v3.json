@@ -1,0 +1,435 @@
+{
+  "esquema": "pipoca.grafo-autoral.v3",
+  "niveis": {
+    "n1": "Primeiras palavras — sílabas e palavras soltas",
+    "n2": "Frases curtas — uma linha",
+    "n3": "Pequenos textos — frases ligadas",
+    "n4": "Parágrafos — histórias mais longas"
+  },
+  "regra_de_ouro": "Cada leitura no portão abre a próxima rodada. A moldura (abertura e desfecho) é sempre fixa. Cada objeto é uma micro-cena com a Joana dentro — orbita a mesma hora de dormir, nunca os outros objetos — e por isso lê bem em qualquer ordem. A complexidade mora dentro de cada beat, não na costura entre eles.",
+  "cenario": {
+    "id": "quarto_dormir",
+    "nome": "O Quarto na Hora de Dormir",
+    "personagem": "a Joana",
+    "paleta": "luz de abajur âmbar virando azul-sono",
+
+    "moldura": {
+      "abertura": {
+        "n1": [
+          "É hora de dormir. O quarto espera. A Joana vem.",
+          "O sono vem vindo. O quarto tem coisas boas. A Joana quer ver.",
+          "É noite no quarto. A cama chama. A Joana sobe."
+        ],
+        "n2": [
+          "A hora de dormir chegou, e o quarto guarda as coisas boas de sempre. A Joana sobe na cama pra ver uma por uma.",
+          "Lá fora é noite, e aqui dentro o quarto espera quentinho. A Joana entra devagar, com sono e com vontade.",
+          "O dia acabou, mas o quarto ainda tem coisas pra mostrar. A Joana deita e fica de olhos abertos, esperando."
+        ],
+        "n3": [
+          "A casa vai ficando quieta, e o quarto começa a contar as coisas dele, uma por uma, no capricho de quem cochicha. A Joana sobe na cama devagar, com o corpo mole de sono e os olhos ainda cheios de vontade.",
+          "A noite entrou no quarto de mansinho, apagando um cantinho de cada vez. A Joana deita e puxa o travesseiro pro jeito certo: antes de dormir, ela quer ver tudo mais uma vez."
+        ],
+        "n4": [
+          "Quando a casa inteira vai ficando quieta, o quarto começa o trabalho dele: contar as últimas coisas da noite, baixinho, uma de cada vez, pra Joana ir dormindo devagar. Ela sobe na cama, ajeita o travesseiro no jeito certo e fica esperando de olhos abertos — o corpo já mole de sono, a vontade ainda acesa, do tamanho exato de mais uma história.",
+          "A noite chega no quarto de mansinho, sem pressa, apagando as cores uma por uma — é assim que ela avisa que está na hora. A Joana sobe na cama e afunda no travesseiro, mas não fecha os olhos ainda: o quarto tem um jeito de guardar as melhores coisas pra esta hora, e ela não quer perder nenhuma."
+        ]
+      },
+      "conectivos": {
+        "n1": ["Aí,", "Daí,", "Então,"],
+        "n2": ["Então,", "Devagarinho,", "Logo depois,", "Foi quando"],
+        "n3": ["Foi então que", "Devagarinho,", "Pouco depois,", "E, de mansinho,"],
+        "n4": ["Foi então que", "Sem fazer barulho nenhum,", "Pouco depois,"]
+      },
+      "desfecho": {
+        "convergente": {
+          "n1": [
+            "A Joana boceja. O quarto apaga. Boa noite.",
+            "Os olhos fecham. O quarto guarda tudo. A Joana dorme.",
+            "O sono venceu. A Joana dorme. O quarto também."
+          ],
+          "n2": [
+            "O quarto termina de contar, e a Joana dorme antes do fim do boa-noite.",
+            "A Joana fecha os olhos devagar, e o quarto inteiro fecha junto com ela.",
+            "Tudo contado, tudo no lugar. A Joana dorme, e o quarto fica de guarda."
+          ],
+          "n3": [
+            "Quando o quarto termina de contar, a Joana já está no meio do caminho do sonho. Ele apaga as últimas coisas devagarinho e fica ali, de guarda, a noite inteira.",
+            "O quarto contou tudo o que tinha, do mais aceso ao mais quietinho, e a Joana dormiu no meio da última palavra — do jeito que ele sempre quis."
+          ],
+          "n4": [
+            "Quando o quarto termina de contar as coisas dele, a Joana já não ouve o final — o sono chegou primeiro, quentinho, no meio de uma palavra qualquer. O quarto não se importa. Ele apaga o resto devagar, ajeita o silêncio por cima dela, bem ajeitadinho, e fica de guarda até de manhã, tomando conta do sonho que ela começou.",
+            "A última coisa some devagar, e o quarto fica em silêncio — um silêncio macio, cheio das coisas que ele contou. A Joana afunda mais fundo no travesseiro e deixa os olhos fecharem. Dormir assim é fácil: é só cair pra dentro de uma noite que já foi contada inteirinha, coisa por coisa, só pra ela."
+          ]
+        },
+        "max_ecos": 1,
+        "aberto": [
+          {
+            "se_comecou_com": "livro",
+            "se_terminou_com": "urso",
+            "fragmento": {
+              "n1": "O urso ouviu a história toda. Dorme com ela.",
+              "n2": "O urso ouviu a história do livro inteirinha, e agora dorme junto com ela.",
+              "n3": "E o urso, que ouviu a história do livro desde o começo, dorme agora colado na Joana — de orelha em pé até no sonho.",
+              "n4": "E o urso, que ficou de orelha em pé desde a primeira página, dorme agora colado na Joana — levando a história inteira pro sonho, pros dois sonharem a mesma coisa."
+            }
+          },
+          {
+            "se_comecou_com": "luminaria",
+            "se_terminou_com": "cobertor",
+            "fragmento": {
+              "n1": "A luz apagou. O quentinho ficou nela. Dorme.",
+              "n2": "A luz do começo já apagou, mas o quentinho ficou guardado com ela, embaixo do cobertor.",
+              "n3": "E a roda de luz lá do começo já se apagou faz tempo — mas o quentinho que ela fez ficou, guardado embaixo do cobertor, durando a noite inteira.",
+              "n4": "E a roda de luz que abriu a noite já se apagou faz tempo — mas o quentinho não foi embora: ficou guardado embaixo do cobertor, bem colado na Joana, e vai durar a noite inteira, como um resto de sol que o quarto economizou só pra ela."
+            }
+          },
+          {
+            "se_terminou_com": "urso",
+            "fragmento": {
+              "n1": "O urso fica no abraço dela. Os dois dormem.",
+              "n2": "O urso dorme no abraço dela, e ela dorme no abraço do urso.",
+              "n3": "E o urso fica exatamente onde devia: dentro do abraço da Joana, os dois afundando juntos no mesmo sono.",
+              "n4": "E o urso termina a noite no único lugar onde ele dorme de verdade: dentro do abraço da Joana. Os dois afundam juntos no mesmo sono, respirando no mesmo ritmo, e ninguém sabe dizer quem cuida de quem."
+            }
+          },
+          {
+            "se_terminou_com": "cobertor",
+            "fragmento": {
+              "n1": "O cobertor cobre ela. Fecha a noite.",
+              "n2": "O cobertor sobe até o queixo dela e fecha a noite direitinho.",
+              "n3": "E o cobertor, puxado até o queixo, fecha a noite direitinho — dali pra frente, é só sonho.",
+              "n4": "E é o cobertor quem fecha a noite: sobe pesado e quente até o queixo da Joana, sela tudo direitinho, e o quarto inteiro entende o recado — dali pra frente, é só sonho."
+            }
+          },
+          {
+            "se_terminou_com": "luminaria",
+            "fragmento": {
+              "n1": "A luz pisca e apaga. Boa noite pra ela.",
+              "n2": "A luz pisca e se apaga por último, como quem diz boa noite pra ela.",
+              "n3": "E a última coisa da noite é a luz se apagando devagar — o jeito do quarto dizer boa noite pra Joana.",
+              "n4": "E a última coisa que acontece na noite é a luz se apagando, devagar, sem susto nenhum — o jeito antigo que o quarto tem de dizer boa noite. A Joana ainda sorri no escuro antes de dormir."
+            }
+          },
+          {
+            "se_comecou_com": "luminaria",
+            "fragmento": {
+              "n1": "A luz do começo ainda faz morno. Ela dorme na roda.",
+              "n2": "A roda de luz lá do começo ainda está morna quando o sono acha ela.",
+              "n3": "A roda de luz que abriu a noite continua ali, morna e paciente, e é dentro dela que o sono acha a Joana.",
+              "n4": "A roda de luz que abriu a noite continua ali, morna e paciente feito uma fogueirinha mansa — e é bem no meio dela que o sono encontra a Joana, como se a luz tivesse guardado o lugar."
+            }
+          },
+          {
+            "se_comecou_com": "livro",
+            "fragmento": {
+              "n1": "O livro do começo dorme aberto. Ela marcou a figura boa.",
+              "n2": "O livro lá do começo dorme aberto na figura que ela mais gosta.",
+              "n3": "O livro do começo ficou aberto na figura mais bonita, guardando o lugar da Joana — amanhã a história continua dali.",
+              "n4": "O livro que abriu a noite ficou aberto na figura mais bonita, guardando o lugar da Joana. A história para de esperar quando ela dorme — e amanhã continua exatamente dali, como se nenhum sonho tivesse passado no meio."
+            }
+          },
+          {
+            "se_comecou_com": "urso",
+            "fragmento": {
+              "n1": "O urso do começo não saiu do abraço dela. Nem vai.",
+              "n2": "O urso lá do começo não saiu do abraço dela a noite toda. Nem vai sair.",
+              "n3": "O urso do começo continua no abraço da Joana, no mesmo lugarzinho de sempre — foi ele que segurou a noite inteira.",
+              "n4": "O urso lá do começo não saiu do abraço da Joana nem por um instante — segurou a noite inteira, quietinho, do jeito que só ele sabe. E vai continuar segurando até de manhã, porque trabalho de urso é esse."
+            }
+          },
+          {
+            "se_comecou_com": "cobertor",
+            "fragmento": {
+              "n1": "O quentinho do começo ficou nela. Dura ainda.",
+              "n2": "O quentinho lá do começo durou a noite toda, colado nela.",
+              "n3": "O quentinho do cobertor, o primeiro da noite, continua colado na Joana — e vai durar até o sol chegar.",
+              "n4": "O quentinho do cobertor foi a primeira coisa boa da noite, e é também a que fica: colado na Joana, sem pressa nenhuma, ele atravessa a noite inteira e só entrega ela de manhã, quentinha e pronta, pro dia seguinte."
+            }
+          }
+        ]
+      }
+    },
+
+    "rodadas": [
+      { "n": 1, "revela": ["luminaria", "livro", "urso", "cobertor"], "escolhe": 3, "ordena": true, "trava_pontas": true },
+      { "n": 2, "revela": ["estrela"],  "escolhe": 1, "insere_em": "miolo" },
+      { "n": 3, "revela": ["gato"],     "escolhe": 1, "insere_em": "miolo" },
+      { "n": 4, "revela": ["caixinha"], "escolhe": 1, "insere_em": "miolo" }
+    ],
+
+    "objetos": {
+      "luminaria": {
+        "emoji": "💡", "nome": "luminária", "papel_no_fim": "neutro", "registro": "aconchego / ilha de luz",
+        "genero": "f", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Clique. A luz acende. Ela sorri.",
+            "Uma luz cor de mel. Acende pra ela.",
+            "A luz baixa acende. Os olhos dela descansam."
+          ],
+          "n2": [
+            "A luminária acende uma roda de luz cor de mel, e a Joana entra nela.",
+            "Um clique, e a luz baixa abre uma roda quente na cama dela.",
+            "A luz acende devagar e deixa o rosto da Joana todo morno."
+          ],
+          "n3": [
+            "A Joana acende a luminária com um toque, e uma roda de luz cor de mel abre em cima da cama — dentro dela, a noite fica do tamanho certo.",
+            "Com um clique pequeno, a luminária acorda e espalha uma luz morna e baixinha. A Joana chega o rosto mais perto, só pra sentir o morno na pele."
+          ],
+          "n4": [
+            "A Joana acende a luminária com um toque, e uma roda de luz cor de mel se abre em cima da cama, empurrando o escuro pros cantos com toda a educação do mundo. Dentro da roda, a noite fica do tamanho certo: pequena, morna e dela — uma ilha de luz onde dá pra ficar mais um pouquinho acordada.",
+            "Um clique pequeno, e a luminária acorda primeiro que tudo: a luz cor de mel sobe devagar, alcança o travesseiro, a parede, o rosto da Joana — e para ali, morna, como uma mão boa apoiada de leve. O quarto inteiro chega mais perto pra caber na roda de luz."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:livro", "antes_de:livro"], "entao": {
+            "n1": "A roda de luz espera. Cabe mais coisa nela.",
+            "n2": "A roda de luz fica pronta, esperando: ainda cabe uma coisa boa ali, e ela sabe.",
+            "n3": "A roda de luz fica pronta em cima da cama, do tamanho exato de um colo — como se soubesse que a noite ainda vai trazer uma coisa boa pra dentro dela.",
+            "n4": "A roda de luz se ajeita em cima da cama, do tamanho exato de um colo e de uma coisa boa aberta nele. A Joana ainda não sabe o que vem, mas a luz sabe: ficou ali parada, morna, guardando lugar."
+          } },
+          { "se": "pos:inicio", "entao": {
+            "n1": "A noite abre com a luz. Ela entra na roda.",
+            "n2": "A noite da Joana começa com um clique e uma roda de luz.",
+            "n3": "A noite do quarto começa assim: um clique, uma roda de luz cor de mel, e a Joana dentro dela.",
+            "n4": "A noite do quarto começa sempre pelo mesmo lugar: um clique pequeno, uma roda de luz cor de mel crescendo em cima da cama — e a Joana no meio, como quem chega primeiro na ilha e espera o resto da noite desembarcar."
+          } }
+        ]
+      },
+      "livro": {
+        "emoji": "📖", "nome": "livro", "papel_no_fim": "neutro", "registro": "viagem parada / mais uma página",
+        "genero": "m", "numero": "sg",
+        "conta": {
+          "n1": [
+            "O livro no colo dela. Pesado. Bom.",
+            "O livro abre. Uma figura. Os olhos entram.",
+            "Ela abre o livro. A figura é grande."
+          ],
+          "n2": [
+            "O livro abre pesado no colo dela, bem na figura boa.",
+            "A Joana passa o dedo na figura grande, devagar.",
+            "O livro é pesado do jeito bom, e ela abre na figura preferida."
+          ],
+          "n3": [
+            "O livro abre pesado no colo da Joana, na figura mais bonita, e o dedo dela passa devagar por cima, como quem entra na figura sem pressa.",
+            "A Joana ajeita o livro no colo e deixa ele abrir onde quiser. A figura que aparece é grande e quieta, e os olhos dela entram nela como quem visita."
+          ],
+          "n4": [
+            "O livro abre pesado no colo da Joana, do peso bom de coisa que vale, e para na figura mais bonita — a preferida, a de sempre. O dedo dela passa devagar por cima, seguindo os caminhos, e os olhos entram na figura como quem entra num lugar onde já é esperada: a história fica parada, esperando, enquanto ela olha o quanto quiser.",
+            "A Joana ajeita o livro no colo e ele abre sozinho na página de sempre, do jeito que livro muito amado faz. A figura é grande e cheia de cantinhos, e ela vai visitando um por um com o dedo, devagar, guardando o melhor pro final — ler antes de dormir é isso: viajar inteira sem sair da cama."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:urso", "antes_de:urso"], "entao": {
+            "n1": "Ela deixa um espaço no colo. A história espera.",
+            "n2": "A Joana deixa um espaço no colo, do lado do livro: a história pede mais um ouvinte.",
+            "n3": "A Joana ajeita o livro mais pro lado e deixa um espaço no colo — histórias boas pedem mais um ouvinte, e essa noite vai ter.",
+            "n4": "A Joana ajeita o livro mais pro lado e deixa um espaço no colo, sem pressa, do jeito de quem sabe: história boa pede mais um ouvinte, e o quarto sempre dá um jeito de mandar um. O espaço fica ali, quentinho, esperando."
+          } },
+          { "se": ["tem:luminaria", "depois_de:luminaria"], "entao": {
+            "n1": "A figura acende na luz. Os olhos dela também.",
+            "n2": "Na roda de luz, a figura do livro fica cor de mel, e os olhos dela acendem.",
+            "n3": "Dentro da roda de luz, as figuras do livro ficam cor de mel — e a Joana jura que uma delas se mexeu de leve.",
+            "n4": "Dentro da roda de luz, as figuras do livro ganham cor de mel e sombras macias, e ficam tão vivas que a Joana jura que uma delas se mexeu — só um pouquinho, só pra ela ver. Livro, de noite, na luz certa, fica assim: quase acordado."
+          } }
+        ]
+      },
+      "urso": {
+        "emoji": "🧸", "nome": "ursinho", "papel_no_fim": "nucleo", "registro": "companhia / coragem emprestada",
+        "genero": "m", "numero": "sg",
+        "conta": {
+          "n1": [
+            "O urso espera. Ela abraça. Macio.",
+            "Um urso de pelo gasto. O abraço dela cabe nele.",
+            "O urso no braço dela. Aperta. Bom."
+          ],
+          "n2": [
+            "O urso espera sentado, e a Joana abraça ele apertado.",
+            "O abraço dela acha o urso, macio e gasto do jeito certo.",
+            "A Joana aperta o urso no peito, e ele afunda no abraço."
+          ],
+          "n3": [
+            "O urso esperou sentado o dia inteiro, e agora chega a melhor hora dele: a Joana abraça apertado, o queixo apoiado na cabeça macia, e alguma coisa dentro do peito dela sossega.",
+            "A Joana pega o urso de pelo gasto — gasto de tanto abraço — e aperta contra o peito. Ele tem o cheiro de todas as noites, o cheiro de tudo estar no lugar."
+          ],
+          "n4": [
+            "O urso esperou sentado o dia inteiro, paciente do jeito que só urso de pelúcia sabe ser, porque o trabalho dele começa é agora. A Joana pega ele com as duas mãos e aperta contra o peito: o pelo é macio e gasto nos lugares certos, o queixo dela apoia direitinho na cabeça dele, e alguma coisa lá dentro sossega — como se o urso emprestasse pra ela uma coragem pequena e quente, do tamanho exato da noite.",
+            "De todos os moradores do quarto, o urso é o mais paciente: esperou o dia inteiro sentado no mesmo lugar, sem reclamar, guardando o abraço. Quando a Joana finalmente pega ele, os dois se encaixam do jeito de sempre — o pelo gasto no rosto dela, o queixo na cabeça dele, a respiração descendo devagar. Urso de pelúcia é isso: um pedaço da noite que a gente pode apertar."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:livro", "depois_de:livro"], "entao": {
+            "n1": "O urso ouviu tudo. De orelha em pé. Ela mostra a figura.",
+            "n2": "O urso ouviu a história inteira no colo dela, de orelha em pé.",
+            "n3": "O urso ocupou o espaço do colo e ouviu a história inteira, de orelha em pé, enquanto a Joana apontava as figuras pra ele.",
+            "n4": "O urso ocupou o espacinho do colo e ouviu a história inteira sem piscar — de orelha em pé, do jeito atento que só urso ouve. A Joana ia apontando as figuras pra ele, devagar, e no final os dois fecharam o livro juntos, como quem combina de continuar amanhã."
+          } },
+          { "se": "pos:inicio", "entao": {
+            "n1": "A noite começa no abraço. Ela aperta o urso.",
+            "n2": "A primeira coisa da noite é o abraço dela no urso.",
+            "n3": "A noite da Joana começa do jeito certo: com o urso apertado no peito, antes de qualquer outra coisa.",
+            "n4": "A noite da Joana começa sempre pelo mesmo ritual: achar o urso, apertar contra o peito e deixar o queixo apoiado na cabeça dele um instante — só depois disso a hora de dormir pode continuar. É o combinado dos dois, e nenhum nunca falhou."
+          } }
+        ]
+      },
+      "cobertor": {
+        "emoji": "🧶", "nome": "cobertor", "papel_no_fim": "chave", "registro": "abrigo / peso bom",
+        "genero": "m", "numero": "sg",
+        "conta": {
+          "n1": [
+            "O cobertor sobe. Peso bom. Ela afunda.",
+            "O cobertor cobre ela. Quente. Pesado.",
+            "Ela puxa o cobertor. Até o queixo."
+          ],
+          "n2": [
+            "A Joana puxa o cobertor até o queixo, e o peso bom desce nela.",
+            "O cobertor sobe pesado e quente, e os pés dela procuram o fundo.",
+            "O cobertor cobre a Joana inteira, do jeito que abraça."
+          ],
+          "n3": [
+            "A Joana puxa o cobertor até o queixo e deixa o peso bom descer devagar pelo corpo. Os pés procuram o cantinho mais fundo, e o frio da noite desiste dela.",
+            "O cobertor sobe pesado e quente, cobrindo a Joana inteira, e ela faz um ninho ali dentro — mexe, ajeita, encaixa, até o corpo caber certinho no formato do sono."
+          ],
+          "n4": [
+            "A Joana puxa o cobertor até o queixo e o peso bom desce devagar pelo corpo inteiro, como uma onda morna e lenta. Os pés procuram o cantinho mais fundo, os ombros afundam, e o frio da noite desiste dela de vez — do lado de dentro do cobertor, a noite é só quentinha, e é toda dela.",
+            "O cobertor sobe pesado e quente, do peso exato que abraça sem apertar, e a Joana começa o trabalho de sempre: mexe, ajeita, encaixa, vira de um lado, volta — até o corpo achar o formato certinho e o ninho ficar pronto. Dentro dele, o resto do mundo fica longe e sem pressa, esperando ela dormir."
+          ]
+        },
+        "tempera": [
+          { "se": "tem:urso", "entao": {
+            "n1": "Tem lugar pro urso no quentinho. Ela ajeita.",
+            "n2": "A Joana levanta uma pontinha do cobertor: o urso também entra no quentinho.",
+            "n3": "A Joana levanta uma pontinha do cobertor e ajeita o urso ali dentro, do lado dela — no quentinho cabe os dois.",
+            "n4": "A Joana levanta uma pontinha do cobertor e ajeita o urso ali dentro, bem do lado dela, com a cabeça pra fora pra ele respirar — porque no quentinho cabe os dois, sempre coube, e cobertor bom é o que sabe disso."
+          } },
+          { "se": ["tem:luminaria", "depois_de:luminaria"], "entao": {
+            "n1": "Na luz, o cobertor fica cor de mel. Ela alisa.",
+            "n2": "Na roda de luz, o cobertor fica cor de mel, e a mão dela alisa devagar.",
+            "n3": "Dentro da roda de luz, o cobertor fica cor de mel, e a Joana alisa ele devagar com a palma, só pra ver o morno mudar de cor.",
+            "n4": "Dentro da roda de luz, o cobertor inteiro fica cor de mel, como se tivesse sido tricotado de tardezinha. A Joana passa a palma da mão por cima, devagar, alisando o morno — e por um instante não sabe o que é luz e o que é cobertor, de tão misturados."
+          } },
+          { "se": "pos:fim", "entao": {
+            "n1": "O cobertor sela a noite. Ela fecha os olhos.",
+            "n2": "O cobertor sela a noite direitinho, e a Joana fecha os olhos.",
+            "n3": "O cobertor é sempre o último: sela a noite direitinho, até o queixo, e a Joana pode enfim fechar os olhos.",
+            "n4": "O cobertor guarda o melhor papel pra ele: ser o último. Sobe até o queixo da Joana, sela a noite direitinho — sem fresta pra frio nem pra susto — e avisa o quarto inteiro, sem dizer nada, que agora ela pode fechar os olhos."
+          } }
+        ]
+      },
+      "estrela": {
+        "emoji": "⭐", "nome": "estrela", "papel_no_fim": "neutro", "registro": "longe que faz companhia",
+        "genero": "f", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Na janela, uma luz. Longe. Ela acha.",
+            "Uma estrela espia. Ela espia de volta.",
+            "Um brilho na janela. Os olhos dela vão lá."
+          ],
+          "n2": [
+            "Pela janela, uma estrela espia o quarto, e a Joana espia de volta.",
+            "Uma estrela pequena e firme aparece na janela, bem na altura dos olhos dela.",
+            "Lá fora, longe, uma estrela acende — e acha a Joana aqui dentro."
+          ],
+          "n3": [
+            "Pela janela, uma estrela pequena e firme espia o quarto. A Joana fica paradinha, esperando ela piscar primeiro — é um jogo antigo dos dois lados do vidro.",
+            "No meio do céu escuro, uma estrela acha a janela do quarto e fica ali, espiando. A Joana acena baixinho com a mão, quase sem mexer, pra estrela não ir embora."
+          ],
+          "n4": [
+            "Pela janela, no meio do céu escuro, uma estrela pequena e firme acha o quarto da Joana — e fica. Ela é longe de um jeito que ninguém alcança, mas espia pra dentro como quem conhece: toda noite a mesma janela, toda noite a mesma menina. A Joana fica paradinha de propósito, esperando a estrela piscar primeiro. É um jogo antigo, e ninguém nunca perde.",
+            "Lá fora a noite é enorme, mas na janela do quarto cabe uma estrela inteira: pequena, firme, pendurada no escuro como um furinho de luz. A Joana chega o rosto mais perto do vidro frio e acena devagar, um aceno pequenininho — e podia jurar que a estrela tremeluziu de volta, só pra ela."
+          ]
+        },
+        "tempera": [
+          { "se": "tem:luminaria", "entao": {
+            "n1": "Duas luzes: uma aqui, outra lá. Ela no meio.",
+            "n2": "A noite tem duas luzes: a cor de mel aqui dentro, a de prata lá fora — e ela no meio.",
+            "n3": "A noite da Joana tem duas luzes: a roda cor de mel aqui dentro e a estrela lá fora, uma pra cada lado do vidro, e ela bem no meio das duas.",
+            "n4": "A noite fica com duas luzes acesas: a roda cor de mel aqui dentro, morna e pertinho, e a estrela lá fora, fria e distante feito prata. Uma não apaga a outra — parece até que se cumprimentam pelo vidro — e a Joana fica bem no meio da conversa, sem pressa de escolher a preferida."
+          } }
+        ]
+      },
+      "gato": {
+        "emoji": "🐈", "nome": "gato", "papel_no_fim": "neutro", "registro": "cautela / mistério",
+        "genero": "m", "numero": "sg",
+        "conta": {
+          "n1": [
+            "O gato entra. De mansinho. Ela viu.",
+            "Um gato na porta. Quieto. Os olhos dela seguem.",
+            "O gato veio dormir. Perto dela."
+          ],
+          "n2": [
+            "O gato entra no quarto sem barulho nenhum, e a Joana prende o riso.",
+            "De mansinho, o gato aparece na porta e olha bem pra ela.",
+            "O gato do quintal veio dormir dentro, e escolheu o quarto dela."
+          ],
+          "n3": [
+            "A porta se abre um dedinho, e o gato entra no quarto do jeito dele: sem pressa, sem barulho, o rabo levantado feito pergunta. A Joana fica bem paradinha, pra não estragar a chegada.",
+            "O gato aparece na beirada da cama, como se sempre tivesse estado ali. Olha a Joana demoradamente, pisca devagar — e ela pisca de volta, porque essa língua os dois falam."
+          ],
+          "n4": [
+            "A porta se abre um dedinho — ninguém ouviu — e o gato entra no quarto do jeito que só ele sabe: sem pressa, sem barulho, o rabo levantado feito uma pergunta educada. A Joana fica bem paradinha, mal respirando, pra não estragar a chegada. O gato dá uma volta de inspeção, confere cada canto com os olhos acesos, e por fim olha pra ela, demorado, como quem pergunta se pode.",
+            "Quando a Joana percebe, o gato já está na beirada da cama, sentado com a elegância de quem chegou primeiro — mas dessa vez é diferente: ele veio pra ficar. Olha a Joana com os olhos meio fechados de sono, pisca devagar, devagarinho — e ela pisca de volta, caprichando na lentidão, porque piscada lenta é o jeito de gato dizer que gosta, e ela quer dizer também."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:cobertor", "depois_de:cobertor"], "entao": {
+            "n1": "O gato pisa no cobertor. Amassa. Deita perto dela.",
+            "n2": "O gato sobe na cama e amassa o cobertor com as patas, pertinho dos pés dela.",
+            "n3": "O gato sobe na cama, amassa o cobertor com as patinhas — um, dois, um, dois — e se enrola no lugar que escolheu: pertinho dos pés da Joana.",
+            "n4": "O gato sobe na cama com toda a cerimônia e começa o ritual: amassa o cobertor com as patinhas, um, dois, um, dois, girando devagar até o lugar ficar do jeito exato que gato gosta. Então se enrola numa bolinha quente, encostado nos pés da Joana — e ela nem se mexe, pra não desfazer a honra."
+          } },
+          { "se": ["tem:estrela", "depois_de:estrela"], "entao": {
+            "n1": "O gato olha a estrela. Os dois brilham. Ela espia.",
+            "n2": "O gato acha a estrela na janela e fica olhando, e a Joana espia os dois.",
+            "n3": "O gato senta na janela e fica um tempão olhando a estrela, os olhos acesos na mesma altura do brilho — e a Joana espia a conversa, quietinha.",
+            "n4": "O gato pula pro parapeito e senta de frente pra janela, o rabo enrolado nos pés, olhando a estrela como quem reconhece alguém. Ficam assim um tempão — dois brilhos parados, um de cada lado do vidro — e a Joana espia a conversa sem dizer nada, porque tem encontros que são só de olhar."
+          } },
+          { "se": "tem:caixinha", "entao": {
+            "n1": "A música toca. A orelha do gato vira. Ela ri baixinho.",
+            "n2": "Quando a música toca, a orelha do gato vira sozinha, e a Joana ri baixinho.",
+            "n3": "A música começa e a orelha do gato vira sozinha na direção dela, depois a outra — o resto do gato finge que dorme, mas a Joana viu.",
+            "n4": "A música começa baixinho e a orelha do gato vira sozinha na direção dela, depois a outra, uma de cada vez — o resto do gato continua fingindo que dorme, de olho fechado, mas orelha de gato não sabe mentir. A Joana ri por dentro, sem fazer barulho, pra não acabar com o teatro."
+          } }
+        ]
+      },
+      "caixinha": {
+        "emoji": "🎵", "nome": "caixinha de música", "papel_no_fim": "neutro", "registro": "canção que acaba devagar",
+        "genero": "f", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Ela roda a corda. A caixa canta. Nota a nota.",
+            "A caixa canta baixinho. O ouvido dela segue.",
+            "Plim. Plim. A música desce nela."
+          ],
+          "n2": [
+            "A Joana roda a corda, e a caixinha canta nota por nota.",
+            "A caixinha de música acorda e canta baixinho pra ela.",
+            "Plim, plim: a canção sai devagar, e a respiração dela acompanha."
+          ],
+          "n3": [
+            "A Joana roda a corda da caixinha e a canção começa, nota por nota, cada uma caindo devagar no quarto como uma gotinha de som. A respiração dela vai descendo junto.",
+            "A caixinha canta a canção de sempre, um plim de cada vez, cada nota mais devagar que a outra — e a Joana ouve de olhos fechados, sem pressa de chegar no fim."
+          ],
+          "n4": [
+            "A Joana roda a corda da caixinha com dois dedos, devagar, e a canção começa: nota por nota, plim por plim, cada uma caindo no quarto como uma gotinha de som. A canção é a de sempre — a que ela conhece de cor e nunca enjoa — e a respiração dela vai descendo junto com a música, mais lenta a cada volta, como se as duas tivessem combinado de chegar juntas no sono.",
+            "A caixinha de música guarda uma canção que só sai de noite: a corda roda, roda, e as notas vão pingando no escuro, cada vez mais devagar, cada vez mais longe uma da outra. A Joana ouve de olhos fechados, o coração acompanhando o compasso — e quando a última nota fica um tempão sem cair, ela espera, espera... plim. Chegou. Agora a noite pode terminar."
+          ]
+        },
+        "tempera": [
+          { "se": "tem:urso", "entao": {
+            "n1": "A música embala o urso no braço dela.",
+            "n2": "A canção embala o urso no braço da Joana, e os dois descem juntos pro sono.",
+            "n3": "A canção embala o urso no braço da Joana, devagarinho, e ela sente ele ficar mais pesado — urso também dorme, quando a música é boa.",
+            "n4": "A canção embala o urso no braço da Joana, nota por nota, e ela jura que sente ele ficando mais pesado, mais mole, mais entregue — porque urso de pelúcia também dorme, quando a música é boa e o braço é o certo. Ela aperta um pouquinho mais, só pra ele saber que pode."
+          } },
+          { "se": ["tem:estrela", "depois_de:estrela"], "entao": {
+            "n1": "Uma nota sobe fininha. Até a janela. Ela vê.",
+            "n2": "Uma nota sobe fininha até a janela, e a Joana imagina a estrela ouvindo.",
+            "n3": "Uma nota sobe fininha, atravessa o vidro da janela e vai — e a Joana fica imaginando o caminho dela até a estrela.",
+            "n4": "Uma nota sobe fininha, fininha, encosta no vidro da janela e atravessa — e a Joana acompanha com o pensamento: a nota subindo o céu escuro inteirinho, devagar, até chegar lá em cima e dar boa-noite na estrela. Música pequena viaja longe, quando a noite ajuda."
+          } }
+        ]
+      }
+    }
+  }
+}

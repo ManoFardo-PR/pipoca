@@ -140,6 +140,126 @@
           "n4": "o pé descalço sentindo o frio da grama; abaixar bem perto e encostar o dedo numa gota, com cuidado pra não desmanchar o brilho"
         }
       }
+    },
+    "luminaria": {
+      "genero": "f",
+      "numero": "sg",
+      "descricao": {
+        "n1": "uma luz baixa, cor de mel",
+        "n2": "uma luz pequena e amarela, que faz uma roda de luz na cama",
+        "n3": "uma luz pequena e amarela que acende devagar, abrindo uma roda de luz quente em cima da cama",
+        "n4": "uma luz pequena e amarela, de acender com um toque — abre uma roda de luz quente no meio do escuro, um lugar onde a noite ainda deixa ver"
+      },
+      "sensacao": {
+        "dominante": "visão-perto (roda de luz quente)",
+        "registro": "aconchego / ilha de luz",
+        "corpo": {
+          "n1": "os olhos descansam na luz",
+          "n2": "os olhos descansam na luz; o rosto fica morno",
+          "n3": "os olhos descansando na roda de luz; o rosto ficando morno de leve",
+          "n4": "os olhos descansando na roda de luz quente; o rosto morno, as coisas do quarto ficando macias de se ver"
+        }
+      }
+    },
+    "livro": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "um livro de figuras grandes",
+        "n2": "um livro de capa dura, com figuras grandes e coloridas",
+        "n3": "um livro de capa dura que abre devagar, com figuras grandes onde cabe uma tarde inteira de olhar",
+        "n4": "um livro de capa dura, pesado do jeito bom, que abre devagar como uma porta — cada figura grande guarda um mundo parado, esperando visita antes do sono"
+      },
+      "sensacao": {
+        "dominante": "tato+visão (peso no colo, figuras)",
+        "registro": "viagem parada / mais uma página",
+        "corpo": {
+          "n1": "o peso bom no colo",
+          "n2": "o peso bom no colo; o dedo passa na figura",
+          "n3": "o peso bom do livro no colo; o dedo passando devagar por cima da figura",
+          "n4": "o peso bom do livro no colo; o dedo passando devagar por cima da figura, os olhos entrando nela como quem entra num lugar"
+        }
+      }
+    },
+    "urso": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "um urso macio, de pelo gasto",
+        "n2": "um urso de pelúcia macio, com o pelo gasto de tanto abraço",
+        "n3": "um urso de pelúcia macio, o pelo gasto de tanto abraço, que espera sentado o dia inteiro",
+        "n4": "um urso de pelúcia com o pelo gasto nos lugares certos — os de tanto abraço — que espera sentado o dia inteiro, paciente: trabalho de urso começa é de noite"
+      },
+      "sensacao": {
+        "dominante": "tato-macio (abraço)",
+        "registro": "companhia / coragem emprestada",
+        "corpo": {
+          "n1": "o abraço aperta o macio",
+          "n2": "o abraço no macio; o queixo apoiado em cima",
+          "n3": "o abraço apertando o macio; o queixo apoiado em cima, a respiração descendo devagar",
+          "n4": "o abraço apertando o macio até afundar; o queixo apoiado em cima, a respiração descendo devagar — o cheiro conhecido de todas as noites, o cheiro de tudo estar no lugar"
+        }
+      }
+    },
+    "cobertor": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "um cobertor grosso e quente",
+        "n2": "um cobertor grosso, pesado do jeito bom",
+        "n3": "um cobertor grosso e quente, pesado do jeito bom, que guarda o formato de quem dorme",
+        "n4": "um cobertor grosso e quente, pesado do jeito que abraça sem apertar — puxado até o queixo, vira uma casa pequena onde só entra quem a noite deixa"
+      },
+      "sensacao": {
+        "dominante": "tato-peso quente",
+        "registro": "abrigo / peso bom",
+        "corpo": {
+          "n1": "o peso quente no corpo",
+          "n2": "o peso quente no corpo; os pés procuram o fundo",
+          "n3": "o peso quente descendo pelo corpo; os pés procurando o cantinho mais fundo",
+          "n4": "o peso quente descendo pelo corpo inteiro; os pés procurando o cantinho mais fundo, o corpo fazendo ninho até caber certinho"
+        }
+      }
+    },
+    "estrela": {
+      "genero": "f",
+      "numero": "sg",
+      "descricao": {
+        "n1": "uma luz pequena, longe, na janela",
+        "n2": "uma luz pequena e firme, espiando pela janela",
+        "n3": "uma luz pequena e firme no céu escuro, dessas que espiam pela janela sem pedir licença",
+        "n4": "uma luz pequena e firme no fundo do céu, tão longe que parece um furinho na noite — dessas que espiam pela janela e ficam, sem pressa, fazendo companhia"
+      },
+      "sensacao": {
+        "dominante": "visão-longe (ponta de luz na janela)",
+        "registro": "longe que faz companhia",
+        "corpo": {
+          "n1": "os olhos veem a luz",
+          "n2": "os olhos acham a luz na janela; o corpo fica parado",
+          "n3": "os olhos achando a luz na janela; o corpo parado, esperando ela piscar",
+          "n4": "os olhos achando a luz pequena na janela; o corpo parado de propósito, esperando ela piscar primeiro — um jogo antigo entre os dois lados do vidro"
+        }
+      }
+    },
+    "caixinha": {
+      "genero": "f",
+      "numero": "sg",
+      "descricao": {
+        "n1": "uma caixa pequena que sabe cantar",
+        "n2": "uma caixinha de música, que canta quando a corda roda",
+        "n3": "uma caixinha de música de dar corda, que solta a canção nota por nota",
+        "n4": "uma caixinha de música de dar corda — a corda roda, roda, e a canção sai nota por nota, cada vez mais devagar, como quem também está pegando no sono"
+      },
+      "sensacao": {
+        "dominante": "audição (nota por nota)",
+        "registro": "canção que acaba devagar",
+        "corpo": {
+          "n1": "o ouvido segue a nota",
+          "n2": "o ouvido segue as notas; a respiração acompanha",
+          "n3": "o ouvido seguindo as notas cada vez mais devagar; a respiração acompanhando o ritmo",
+          "n4": "o ouvido seguindo as notas que vêm cada vez mais devagar; a respiração acompanhando, descendo junto, até quase parar de propósito pra ouvir a última"
+        }
+      }
     }
   }
 }

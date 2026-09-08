@@ -16,8 +16,8 @@
       "nome": "O Quarto",
       "descricao": "Histórias antes de dormir",
       "icone": "🛏️",
-      "grafo": null,
-      "relacoes": null,
+      "grafo": "./docs/quarto.v3.json",
+      "relacoes": "./docs/fichas/relacoes.quarto.v1.json",
       "svg": "quarto",
       "disponivel": false
     },

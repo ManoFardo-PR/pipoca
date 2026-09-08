@@ -1,0 +1,203 @@
+{
+  "esquema": "pipoca.fichas.v1",
+  "cenario": "quarto_dormir",
+  "objeto_x_objeto": [
+    {
+      "se": ["tem:livro", "antes_de:livro"],
+      "objeto": "luminaria",
+      "alvo": "livro",
+      "interacao": {
+        "n1": "a roda de luz pronta, guardando lugar",
+        "n2": "a roda de luz pronta, guardando lugar pra uma coisa boa",
+        "n3": "a roda de luz pronta em cima da cama, do tamanho de um colo, guardando lugar pra uma coisa boa",
+        "n4": "a roda de luz ajeitada em cima da cama, do tamanho exato de um colo e de uma coisa boa aberta nele — parada, morna, guardando lugar"
+      }
+    },
+    {
+      "se": ["tem:urso", "antes_de:urso"],
+      "objeto": "livro",
+      "alvo": "urso",
+      "interacao": {
+        "n1": "um espaço no colo, guardado",
+        "n2": "um espaço no colo, guardado pra mais um ouvinte",
+        "n3": "um espaço guardado no colo, do lado do livro — história boa pede mais um ouvinte",
+        "n4": "um espaço guardado no colo, do lado do livro, quentinho de espera — história boa pede mais um ouvinte, e o quarto sempre manda um"
+      }
+    },
+    {
+      "se": ["tem:luminaria", "depois_de:luminaria"],
+      "objeto": "livro",
+      "alvo": "luminaria",
+      "interacao": {
+        "n1": "as figuras cor de mel na luz",
+        "n2": "as figuras do livro cor de mel dentro da roda de luz",
+        "n3": "as figuras do livro ganhando cor de mel dentro da roda de luz, quase se mexendo",
+        "n4": "as figuras do livro ganhando cor de mel e sombras macias dentro da roda de luz — tão vivas que parecem se mexer de leve, quase acordadas"
+      }
+    },
+    {
+      "se": ["tem:livro", "depois_de:livro"],
+      "objeto": "urso",
+      "alvo": "livro",
+      "interacao": {
+        "n1": "o urso de orelha em pé, ouvindo",
+        "n2": "o urso de orelha em pé, ouvindo a história inteira",
+        "n3": "o urso no espaço do colo, de orelha em pé, ouvindo a história inteira sem piscar",
+        "n4": "o urso no espacinho do colo, de orelha em pé do começo ao fim, ouvindo a história inteira sem piscar — e fechando o livro junto, como quem combina de continuar amanhã"
+      }
+    },
+    {
+      "se": "tem:urso",
+      "objeto": "cobertor",
+      "alvo": "urso",
+      "interacao": {
+        "n1": "uma pontinha levantada; cabe o urso",
+        "n2": "uma pontinha levantada do cobertor: o urso entra no quentinho",
+        "n3": "uma pontinha do cobertor levantada e o urso ajeitado ali dentro — no quentinho cabe os dois",
+        "n4": "uma pontinha do cobertor levantada e o urso ajeitado ali dentro, com a cabeça pra fora pra respirar — no quentinho sempre coube os dois, e cobertor bom sabe disso"
+      }
+    },
+    {
+      "se": ["tem:luminaria", "depois_de:luminaria"],
+      "objeto": "cobertor",
+      "alvo": "luminaria",
+      "interacao": {
+        "n1": "o cobertor cor de mel na luz",
+        "n2": "o cobertor cor de mel dentro da roda de luz",
+        "n3": "o cobertor inteiro cor de mel dentro da roda de luz, morno de se ver",
+        "n4": "o cobertor inteiro cor de mel dentro da roda de luz, como se tivesse sido tricotado de tardezinha — luz e cobertor misturados no mesmo morno"
+      }
+    },
+    {
+      "se": "tem:luminaria",
+      "objeto": "estrela",
+      "alvo": "luminaria",
+      "interacao": {
+        "n1": "duas luzes, uma em cada lado",
+        "n2": "duas luzes: a cor de mel aqui dentro, a de prata lá fora",
+        "n3": "duas luzes acesas, uma de cada lado do vidro: a roda cor de mel aqui dentro, a estrela lá fora",
+        "n4": "duas luzes acesas que não se apagam: a roda cor de mel aqui dentro, morna e pertinho, e a estrela lá fora, fria e distante feito prata — se cumprimentando pelo vidro"
+      }
+    },
+    {
+      "se": ["tem:cobertor", "depois_de:cobertor"],
+      "objeto": "gato",
+      "alvo": "cobertor",
+      "interacao": {
+        "n1": "as patinhas amassando o cobertor",
+        "n2": "as patinhas amassando o cobertor, um, dois, um, dois",
+        "n3": "as patinhas amassando o cobertor — um, dois, um, dois — e a bolinha enrolada no lugar escolhido",
+        "n4": "as patinhas amassando o cobertor com toda a cerimônia — um, dois, um, dois, girando devagar — até a bolinha quente se enrolar no lugar exato que gato gosta"
+      }
+    },
+    {
+      "se": ["tem:estrela", "depois_de:estrela"],
+      "objeto": "gato",
+      "alvo": "estrela",
+      "interacao": {
+        "n1": "dois brilhos parados, se olhando",
+        "n2": "dois brilhos parados, um de cada lado do vidro",
+        "n3": "o gato sentado na janela e a estrela do outro lado: dois brilhos parados, se olhando um tempão",
+        "n4": "o gato sentado de frente pra janela, o rabo enrolado nos pés, e a estrela do outro lado do vidro: dois brilhos parados um tempão, num encontro que é só de olhar"
+      }
+    },
+    {
+      "se": "tem:caixinha",
+      "objeto": "gato",
+      "alvo": "caixinha",
+      "interacao": {
+        "n1": "a orelha do gato virada pra música",
+        "n2": "a orelha do gato virando pro lado da música, uma depois a outra",
+        "n3": "a orelha do gato virando pro lado da música, uma depois a outra, enquanto o resto finge que dorme",
+        "n4": "a orelha do gato virando pro lado da música, uma de cada vez, enquanto o resto do gato finge que dorme de olho fechado — orelha de gato não sabe mentir"
+      }
+    },
+    {
+      "se": "tem:urso",
+      "objeto": "caixinha",
+      "alvo": "urso",
+      "interacao": {
+        "n1": "a canção embalando o urso",
+        "n2": "a canção embalando o urso no braço, nota por nota",
+        "n3": "a canção embalando o urso no braço, nota por nota, até ele ficar mais pesado de sono",
+        "n4": "a canção embalando o urso no braço, nota por nota, até ele ficar mais pesado, mais mole, mais entregue — urso de pelúcia também dorme, quando a música é boa"
+      }
+    },
+    {
+      "se": ["tem:estrela", "depois_de:estrela"],
+      "objeto": "caixinha",
+      "alvo": "estrela",
+      "interacao": {
+        "n1": "uma nota fininha subindo até a janela",
+        "n2": "uma nota fininha subindo até a janela, indo dar boa-noite na estrela",
+        "n3": "uma nota fininha atravessando o vidro da janela e subindo o céu, no caminho da estrela",
+        "n4": "uma nota fininha, fininha, atravessando o vidro e subindo o céu escuro inteirinho, devagar, até dar boa-noite na estrela — música pequena viaja longe, quando a noite ajuda"
+      }
+    }
+  ],
+  "objeto_x_cenario": [
+    {
+      "objeto": "luminaria",
+      "manifestacao": {
+        "n1": "uma roda de luz na cama",
+        "n2": "uma roda de luz cor de mel em cima da cama",
+        "n3": "um clique pequeno e uma roda de luz cor de mel abrindo em cima da cama do quarto",
+        "n4": "um clique pequeno e uma roda de luz cor de mel crescendo em cima da cama, empurrando o escuro do quarto pros cantos com toda a educação"
+      }
+    },
+    {
+      "objeto": "livro",
+      "manifestacao": {
+        "n1": "um livro esperando na cama",
+        "n2": "um livro pesado esperando em cima da cama",
+        "n3": "um livro de capa dura esperando em cima da cama do quarto, pronto pra abrir na figura boa",
+        "n4": "um livro de capa dura esperando em cima da cama, do peso bom de coisa que vale — pronto pra abrir na página de sempre, como livro muito amado faz"
+      }
+    },
+    {
+      "objeto": "urso",
+      "manifestacao": {
+        "n1": "um urso sentado na cama",
+        "n2": "um urso de pelo gasto sentado na cama, esperando",
+        "n3": "um urso de pelúcia sentado na cama do quarto, esperando o abraço desde cedo",
+        "n4": "um urso de pelúcia sentado no mesmo lugar da cama desde de manhã, paciente, guardando o abraço — porque trabalho de urso começa é de noite"
+      }
+    },
+    {
+      "objeto": "cobertor",
+      "manifestacao": {
+        "n1": "o cobertor no pé da cama",
+        "n2": "o cobertor pesado e quente, no pé da cama",
+        "n3": "o cobertor pesado e quente esperando no pé da cama do quarto, do peso que abraça",
+        "n4": "o cobertor pesado e quente esperando no pé da cama, do peso exato que abraça sem apertar — a última peça da noite do quarto"
+      }
+    },
+    {
+      "objeto": "estrela",
+      "manifestacao": {
+        "n1": "uma estrela na janela",
+        "n2": "uma estrela espiando pela janela do quarto",
+        "n3": "uma estrela pequena e firme espiando o quarto pela janela, do meio do céu escuro",
+        "n4": "uma estrela pequena e firme pendurada no céu escuro, espiando pra dentro do quarto pela janela de sempre — longe de um jeito que faz companhia"
+      }
+    },
+    {
+      "objeto": "gato",
+      "manifestacao": {
+        "n1": "o gato entra no quarto",
+        "n2": "o gato entrando no quarto sem barulho nenhum",
+        "n3": "a porta do quarto se abrindo um dedinho e o gato entrando sem pressa, sem barulho",
+        "n4": "a porta do quarto se abrindo um dedinho sem ninguém ouvir, e o gato entrando do jeito que só ele sabe: sem pressa, sem barulho, o rabo levantado feito pergunta"
+      }
+    },
+    {
+      "objeto": "caixinha",
+      "manifestacao": {
+        "n1": "uma caixa que canta, perto da cama",
+        "n2": "uma caixinha de música esperando perto da cama",
+        "n3": "uma caixinha de música esperando na cabeceira do quarto, com a corda pronta pra rodar",
+        "n4": "uma caixinha de música esperando na cabeceira, com a corda pronta e uma canção guardada — dessas que só saem de noite, quando o quarto pede"
+      }
+    }
+  ]
+}

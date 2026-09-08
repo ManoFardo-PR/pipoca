@@ -11,6 +11,17 @@
         "n3": "a grama fria nos pés descalços; a vontade de descobrir os segredos um por um",
         "n4": "a grama fria nos pés descalços; o coração batendo forte de vontade de saber, como quem ganha um segredo contado só pra si"
       }
+    },
+    "quarto_dormir": {
+      "nome": "O Quarto na Hora de Dormir",
+      "descricao": "um quarto pequeno na hora de dormir — a cama arrumada, uma janela pra noite, a luz baixa e amarela, e o sono chegando de mansinho",
+      "voz_do_contador": "o quarto conta baixinho, quase cochichando: mostra uma coisa boa de cada vez e vai apagando as outras, até sobrar só o sono",
+      "sensacao_no_personagem": {
+        "n1": "o corpo mole de sono",
+        "n2": "o corpo mole de sono; a vontade de ver só mais uma coisa",
+        "n3": "o corpo ficando mole de sono; a vontade de ver só mais uma coisa antes de fechar os olhos",
+        "n4": "o corpo afundando mole no travesseiro, pesado de sono bom; a vontade de ver só mais uma coisa, e mais uma, antes de deixar os olhos fecharem"
+      }
     }
   }
 }

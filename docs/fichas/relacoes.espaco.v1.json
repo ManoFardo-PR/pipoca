@@ -1,0 +1,181 @@
+{
+  "esquema": "pipoca.fichas.v1",
+  "cenario": "espaco_estrelado",
+  "objeto_x_objeto": [
+    {
+      "se": ["tem:terra_azul", "antes_de:terra_azul"],
+      "objeto": "foguete",
+      "alvo": "terra_azul",
+      "interacao": {
+        "n1": "o foguete vira devagar, rumo de casa",
+        "n2": "o foguete virando devagar, como quem sabe o caminho de casa",
+        "n3": "o foguete virando devagar por conta própria, apontando o nariz pro rumo de casa",
+        "n4": "o foguete virando devagar por conta própria, o nariz apontando pro rumo de casa — casa voadora sabe a hora das coisas antes da gente"
+      }
+    },
+    {
+      "se": ["tem:poeira", "depois_de:poeira"],
+      "objeto": "planeta",
+      "alvo": "poeira",
+      "interacao": {
+        "n1": "o anel feito do mesmo brilho em pó",
+        "n2": "o anel do gigante brilhando igual à poeira, reconhecido na hora",
+        "n3": "o anel do gigante feito da mesma poeira de brilho — o pó mais bonito do céu virado enfeite",
+        "n4": "o anel do gigante brilhando igualzinho à poeira de brilho — o planeta juntou o pó mais bonito do céu e fez um anel pra usar todo dia"
+      }
+    },
+    {
+      "se": ["tem:estrela", "depois_de:estrela"],
+      "objeto": "cometa",
+      "alvo": "estrela",
+      "interacao": {
+        "n1": "o cometa acena com o rastro na passada",
+        "n2": "o cometa cruzando pertinho da estrela e acenando com o rastro",
+        "n3": "o cometa cruzando pertinho da estrela e balançando o rastro, como quem acena sem parar de correr",
+        "n4": "o cometa caprichando na passada: cruzando pertinho da estrela e balançando o rastro de leve, como quem tira o chapéu sem parar de correr — vizinho cumprimenta vizinho"
+      }
+    },
+    {
+      "se": ["tem:poeira", "antes_de:poeira"],
+      "objeto": "cometa",
+      "alvo": "poeira",
+      "interacao": {
+        "n1": "o rastro solta um pó de brilho que fica",
+        "n2": "o rastro do cometa se desfazendo num pó de brilho que fica boiando",
+        "n3": "o rastro do cometa se desfazendo devagar num pó de brilho, boiando no escuro pra depois",
+        "n4": "o rastro do cometa se desfazendo devagar num pó de brilho miudinho que fica boiando no escuro — presente de viajante, deixado pra quem vier atrás"
+      }
+    },
+    {
+      "se": ["tem:cometa", "antes_de:cometa"],
+      "objeto": "estrela",
+      "alvo": "cometa",
+      "interacao": {
+        "n1": "a estrela pisca forte, avisando",
+        "n2": "a estrela piscando mais forte, avisando que vem coisa bonita",
+        "n3": "a estrela piscando mais forte, duas, três vezes — o aviso de que vem coisa bonita aí",
+        "n4": "a estrela piscando mais forte, duas, três vezes seguidas, animada como sineta de teatro — quando a menor luz avisa, o céu inteiro costuma obedecer"
+      }
+    },
+    {
+      "se": ["tem:planeta", "depois_de:planeta"],
+      "objeto": "satelite",
+      "alvo": "planeta",
+      "interacao": {
+        "n1": "a volta de visita no gigante",
+        "n2": "o satélite dando uma volta caprichada no gigante, de visita",
+        "n3": "o satélite mudando o caminho só pra dar uma volta no gigante de anel — visita de vizinho",
+        "n4": "o satélite mudando o caminho de propósito pra dar uma volta completa no gigante de anel — visita de vizinho educado, de passar na porta pra dizer oi"
+      }
+    },
+    {
+      "se": "tem:estrela",
+      "objeto": "satelite",
+      "alvo": "estrela",
+      "interacao": {
+        "n1": "pisca-pisca trocado entre os dois",
+        "n2": "o satélite piscando pra estrela, e a estrela piscando de volta",
+        "n3": "o satélite piscando duas vezes pra estrela, e a estrela respondendo na hora — vizinhos antigos",
+        "n4": "o satélite piscando duas vezes pra estrela e a estrela respondendo na mesma hora, piscadinha certa de quem conhece o código — boa-noite trocado em língua de luz"
+      }
+    },
+    {
+      "se": ["tem:cometa", "depois_de:cometa"],
+      "objeto": "poeira",
+      "alvo": "cometa",
+      "interacao": {
+        "n1": "o pó de brilho é o rastro desmanchado",
+        "n2": "a poeira de brilho reconhecida: o rastro que o cometa deixou",
+        "n3": "a nuvem de brilho reconhecida na hora: o rastro do cometa, desmanchado em pó de luz",
+        "n4": "a nuvem de brilho reconhecida com um pulinho de alegria: o rastro do cometa desmanchado em pó de luz — a encomenda do viajante, esperando alguém passar no meio"
+      }
+    },
+    {
+      "se": ["tem:foguete", "depois_de:foguete"],
+      "objeto": "terra_azul",
+      "alvo": "foguete",
+      "interacao": {
+        "n1": "o nariz apontado direto pra bola azul",
+        "n2": "o foguete de nariz apontado direto pra bola azul: sabia o caminho",
+        "n3": "o foguete de nariz apontado pra bola azul desde a curva mansa — sabia o caminho de casa o tempo todo",
+        "n4": "o foguete de nariz apontado pra bola azul antes mesmo de ela aparecer — casa voadora sabe o caminho de casa de cor, como pombo, como coração"
+      }
+    },
+    {
+      "se": "tem:estrela",
+      "objeto": "terra_azul",
+      "alvo": "estrela",
+      "interacao": {
+        "n1": "as duas se veem toda noite",
+        "n2": "a bola azul e a estrela se vendo todas as noites, de longe",
+        "n3": "a bola azul e a estrela pequena se vendo todas as noites, uma da janela da outra",
+        "n4": "a bola azul e a estrela pequena se vendo todas as noites, uma da janela da outra — e agora com um aceno combinado no meio do caminho"
+      }
+    }
+  ],
+  "objeto_x_cenario": [
+    {
+      "objeto": "foguete",
+      "manifestacao": {
+        "n1": "uma casa voadora no escuro",
+        "n2": "o foguete voando macio pelo escuro do espaço",
+        "n3": "o foguete voando macio pelo escuro, roncando baixinho, com a janela redonda acesa",
+        "n4": "o foguete voando macio pelo escuro enorme do espaço, roncando baixinho como um gato de metal — uma casa pequena e quentinha onde tudo flutua"
+      }
+    },
+    {
+      "objeto": "planeta",
+      "manifestacao": {
+        "n1": "um gigante de anel na janela",
+        "n2": "um planeta gigante de anel entrando na janela redonda",
+        "n3": "um planeta gigante entrando devagar na janela redonda do foguete, com o anel rodando",
+        "n4": "um planeta gigante entrando devagar na janela redonda — tão grande que não cabe inteiro, o anel rodando em volta como um pião paciente"
+      }
+    },
+    {
+      "objeto": "cometa",
+      "manifestacao": {
+        "n1": "um risco de luz cruzando o céu",
+        "n2": "um cometa riscando o escuro de ponta a ponta",
+        "n3": "um cometa cruzando o escuro do espaço de ponta a ponta, deixando rastro de luz",
+        "n4": "um cometa cruzando o escuro de ponta a ponta na janela do foguete, correndo como quem tem hora marcada em outro céu — e deixando o rastro de presente"
+      }
+    },
+    {
+      "objeto": "estrela",
+      "manifestacao": {
+        "n1": "a luz pequena e firme, de perto",
+        "n2": "a estrela pequena e firme, agora vista de pertinho",
+        "n3": "a estrela pequena e firme no meio do escuro, agora a um vidro de distância",
+        "n4": "a estrela pequena e firme de sempre — a mesma do céu de casa — agora a um vidro de distância, no meio do escuro enorme do espaço"
+      }
+    },
+    {
+      "objeto": "satelite",
+      "manifestacao": {
+        "n1": "um ponto que pisca e passeia",
+        "n2": "um satélite passeando no escuro, piscando certinho",
+        "n3": "um satélite passeando pelo escuro do espaço, piscando certinho na ronda de todo dia",
+        "n4": "um satélite passeando pelo escuro na volta redonda de sempre, piscando certinho — o vizinho mais pontual do céu, fazendo a ronda"
+      }
+    },
+    {
+      "objeto": "poeira",
+      "manifestacao": {
+        "n1": "um pó de brilho boiando no escuro",
+        "n2": "uma nuvem de poeira brilhante boiando no caminho",
+        "n3": "uma nuvem de poeira de brilho boiando no escuro do espaço, aos milhares",
+        "n4": "uma nuvem de poeira de brilho boiando no escuro aos milhares, cada grãozinho aceso com a própria luzinha — o pó que enche a vassoura do céu"
+      }
+    },
+    {
+      "objeto": "terra_azul",
+      "manifestacao": {
+        "n1": "uma bola azul brilhando longe",
+        "n2": "a bola azul e branca brilhando no meio do escuro",
+        "n3": "a bola azul e branca entrando na janela redonda, brilhando no meio do escuro",
+        "n4": "a bola azul e branca entrando devagar na janela redonda, brilhando no escuro como uma joia acesa — a casa inteira cabendo num abraço de olhar"
+      }
+    }
+  ]
+}

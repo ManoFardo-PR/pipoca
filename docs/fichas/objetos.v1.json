@@ -540,6 +540,126 @@
           "n4": "as mãos abrindo a tampa pesada devagarinho, com força e cuidado juntos; os olhos crescendo, o coração apostando no que vem"
         }
       }
+    },
+    "foguete": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "uma casa pequena que voa",
+        "n2": "uma casa voadora, macia e quentinha por dentro",
+        "n3": "uma casa voadora de janela redonda, que voa macio e ronca baixinho, quentinha por dentro",
+        "n4": "uma casa voadora de janela redonda, que voa macio pelo escuro e ronca baixinho — quentinha por dentro, firme por fora, sabendo o caminho das coisas antes de todo mundo"
+      },
+      "sensacao": {
+        "dominante": "flutuar+abrigo (a cabine, a janela redonda)",
+        "registro": "casa voadora",
+        "corpo": {
+          "n1": "o corpo flutua leve",
+          "n2": "o corpo flutua leve; o cabelo sobe devagar",
+          "n3": "o corpo flutuando leve na cabine; o cabelo subindo devagar, dançando no ar",
+          "n4": "o corpo flutuando leve no meio da cabine, virando pluma por um tempo; o cabelo dançando no ar, a mão empurrando a parede de leve pra atravessar voando"
+        }
+      }
+    },
+    "planeta": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "um gigante com um anel",
+        "n2": "um planeta gigante, com um anel rodando em volta",
+        "n3": "um planeta gigante e listrado, com um anel largo rodando devagar em volta",
+        "n4": "um planeta gigante e listrado, com um anel largo de pedrinhas rodando devagar em volta — tão grande que não cabe inteiro em janela nenhuma"
+      },
+      "sensacao": {
+        "dominante": "visão-grande (o gigante que gira devagar)",
+        "registro": "gigante gentil",
+        "corpo": {
+          "n1": "os olhos crescem de ver",
+          "n2": "os olhos crescem de ver; as mãos colam no vidro",
+          "n3": "os olhos crescendo pra tentar caber tudo; as duas mãos coladas no vidro da janela",
+          "n4": "os olhos crescendo pra tentar caber o gigante inteiro; as duas mãos e o nariz colados no vidro, e um oh baixinho embaçando a janela"
+        }
+      }
+    },
+    "cometa": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "uma luz que corre e risca o céu",
+        "n2": "uma luz apressada, que risca o céu e deixa rastro",
+        "n3": "uma luz apressada que atravessa o céu de ponta a ponta, deixando um rastro comprido que fica",
+        "n4": "uma luz apressada que atravessa o céu de ponta a ponta, correndo como quem tem hora marcada — e deixando atrás um rastro comprido de luz, que brilha e demora"
+      },
+      "sensacao": {
+        "dominante": "movimento acompanhado (o risco de ponta a ponta)",
+        "registro": "viajante de rastro",
+        "corpo": {
+          "n1": "o dedo segue o risco",
+          "n2": "o dedo segue o risco no vidro; o fôlego prende",
+          "n3": "o dedo seguindo o risco inteirinho no vidro; o fôlego preso na travessia",
+          "n4": "o dedo seguindo o risco inteirinho no vidro, devagar, até onde a vista alcança; o fôlego preso e o coração acelerando junto com a travessia"
+        }
+      }
+    },
+    "satelite": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "um ponto que pisca e passeia",
+        "n2": "um ponto de luz que passeia piscando, sempre na mesma volta",
+        "n3": "um ponto de luz que passeia pelo escuro piscando certinho, sempre na mesma volta redonda",
+        "n4": "um ponto de luz que passeia pelo escuro piscando certinho, sempre na mesma volta redonda — pontual como relógio, educado como vizinho que cumprimenta todo dia"
+      },
+      "sensacao": {
+        "dominante": "companhia que pisca (ritmo certinho)",
+        "registro": "vizinho que pisca",
+        "corpo": {
+          "n1": "os olhos piscam junto",
+          "n2": "os olhos piscam junto; o dedo acompanha a volta",
+          "n3": "os olhos piscando junto, no mesmo compasso; o dedo acompanhando a volta no vidro",
+          "n4": "os olhos piscando junto, no mesmo compasso do pisca-pisca; o dedo acompanhando a volta redonda no vidro, conversando em código de luz"
+        }
+      }
+    },
+    "poeira": {
+      "genero": "f",
+      "numero": "sg",
+      "descricao": {
+        "n1": "uma luz em pó, solta no escuro",
+        "n2": "um pó de brilho que boia no escuro, aos milhares",
+        "n3": "um pó de brilho que boia no escuro aos milhares, cada grãozinho aceso com luz própria",
+        "n4": "um pó de brilho que boia no escuro aos milhares, cada grãozinho aceso com a própria luzinha, sem pressa de ir a lugar nenhum — o enfeite espalhado do céu"
+      },
+      "sensacao": {
+        "dominante": "brilho em volta (dentro do enfeite)",
+        "registro": "brilho suspenso",
+        "corpo": {
+          "n1": "a testa encosta no vidro",
+          "n2": "a testa encosta no vidro; os olhos enchem de luzes",
+          "n3": "a testa encostada no vidro, o mais perto possível; os olhos cheios de luzinhas",
+          "n4": "a testa encostada no vidro, o mais perto que dá do brilho; os olhos cheios de luzinhas e o corpo rodando devagar pra ver de todos os lados"
+        }
+      }
+    },
+    "terra_azul": {
+      "genero": "f",
+      "numero": "sg",
+      "descricao": {
+        "n1": "uma bola azul, longe",
+        "n2": "uma bola azul e branca, brilhando de longe",
+        "n3": "uma bola azul e branca que brilha no escuro — a casa inteira, vista de longe",
+        "n4": "uma bola azul de mar e branca de nuvem, brilhando no escuro como joia acesa — a casa inteira, com todo mundo dentro, cabendo num abraço de olhar"
+      },
+      "sensacao": {
+        "dominante": "visão-casa (a bolinha azul com tudo dentro)",
+        "registro": "casa vista de longe",
+        "corpo": {
+          "n1": "o peito esquenta de ver",
+          "n2": "o peito esquenta de ver; a mão acena devagar",
+          "n3": "o peito esquentando de uma vez; as mãos coladas no vidro, acenando devagar",
+          "n4": "o peito esquentando de uma vez, de saudade boa; as mãos e o nariz colados no vidro, e um aceno devagarinho pra casa inteira"
+        }
+      }
     }
   }
 }

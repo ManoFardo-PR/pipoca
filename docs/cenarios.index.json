@@ -36,8 +36,8 @@
       "nome": "O Espaço",
       "descricao": "Entre estrelas e planetas",
       "icone": "🚀",
-      "grafo": null,
-      "relacoes": null,
+      "grafo": "./docs/espaco.v3.json",
+      "relacoes": "./docs/fichas/relacoes.espaco.v1.json",
       "svg": "espaco",
       "disponivel": false
     },

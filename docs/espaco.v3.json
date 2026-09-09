@@ -1,0 +1,417 @@
+{
+  "esquema": "pipoca.grafo-autoral.v3",
+  "niveis": {
+    "n1": "Primeiras palavras — sílabas e palavras soltas",
+    "n2": "Frases curtas — uma linha",
+    "n3": "Pequenos textos — frases ligadas",
+    "n4": "Parágrafos — histórias mais longas"
+  },
+  "regra_de_ouro": "Cada leitura no portão abre a próxima rodada. A moldura (abertura e desfecho) é sempre fixa. Cada objeto é uma micro-cena com a Joana dentro — orbita a mesma viagem espacial, nunca os outros objetos — e por isso lê bem em qualquer ordem. A complexidade mora dentro de cada beat, não na costura entre eles.",
+  "cenario": {
+    "id": "espaco_estrelado",
+    "nome": "Lá no Espaço",
+    "personagem": "a Joana",
+    "paleta": "azul-marinho profundo com luzes acesas e um fio de dourado",
+
+    "moldura": {
+      "abertura": {
+        "n1": [
+          "O foguete sobe macio. A Joana vai na janela.",
+          "É noite de viajar. O céu espera. A Joana decola.",
+          "O espaço é grande. A Joana vai ver de perto."
+        ],
+        "n2": [
+          "O foguete sobe macio, sem pressa, e a Joana cola o nariz na janela redonda.",
+          "A noite abre pro foguete passar, e a Joana começa a flutuar de leve.",
+          "O espaço espera lá em cima, cheio de luzes, e a Joana sobe pra visitar."
+        ],
+        "n3": [
+          "O foguete sobe macio como um suspiro, e quando a Joana percebe, já está flutuando um dedinho acima da poltrona. Lá fora, na janela redonda, o espaço abre o quintal dele: grande, quieto, cheio de luzes esperando visita.",
+          "A viagem começa sem barulho nenhum: o foguete desliza pra cima, o azul vira azul-escuro, o escuro acende de estrelas. A Joana flutua até a janela redonda e fica ali, de olhos enormes — hoje o céu vai mostrar os moradores dele."
+        ],
+        "n4": [
+          "O foguete sobe macio como um suspiro comprido, e quando a Joana percebe, já está flutuando um dedinho acima da poltrona — o cabelo solto no ar, o corpo leve feito pluma. Ela segura na beiradinha da janela redonda e olha: lá fora, o espaço abriu o quintal dele, enorme e quieto, com as luzes acesas uma a uma, esperando visita. Hoje ela veio conhecer cada uma, sem pressa, do jeito que o silêncio pede.",
+          "Viajar pro espaço é assim: primeiro o empurrãozinho macio, depois o azul escurecendo na janela, e de repente — silêncio, do grande. A Joana solta o cinto e flutua devagarinho, rindo do cabelo que sobe, e vai remando no ar até a janela redonda. Do outro lado do vidro, o céu inteiro está aceso e paciente, do jeito de quem preparou a casa pra receber: hoje tem visita, e é ela."
+        ]
+      },
+      "conectivos": {
+        "n1": ["Aí,", "Daí,", "Então,"],
+        "n2": ["Então,", "De repente,", "Lá adiante,", "Foi quando"],
+        "n3": ["Foi então que", "De repente,", "Mais adiante,", "E, no silêncio,"],
+        "n4": ["Foi então que", "Flutuando mais um pouquinho,", "Pouco depois,"]
+      },
+      "desfecho": {
+        "convergente": {
+          "n1": [
+            "O foguete desce macio. A Joana leva o céu no peito.",
+            "Fim da viagem. Ela pousa. O céu fica aceso pra ela.",
+            "A Joana volta pra casa. O espaço acena de longe."
+          ],
+          "n2": [
+            "O foguete desce macio, e a Joana leva o céu inteirinho guardado no peito.",
+            "A viagem termina devagar, e ela pousa com os bolsos cheios de luzes.",
+            "A Joana volta pra casa de coração aceso, e o espaço fica esperando lá em cima."
+          ],
+          "n3": [
+            "Quando o céu termina de apresentar as luzes dele, o foguete desce macio, sem pressa, e a Joana pousa de coração aceso — o espaço inteiro veio junto, guardado no peito, pra acender o sonho de hoje.",
+            "A volta é mansa como a ida: o foguete desce flutuando, a janela vai enchendo de azul de novo, e a Joana guarda cada luz no peito, uma por uma — lá em cima, o espaço continua aceso, esperando a próxima visita."
+          ],
+          "n4": [
+            "Quando o céu termina de apresentar as luzes dele, o foguete faz a curva da volta devagar, sem pressa nenhuma — despedida de espaço é assim, comprida e sem barulho. A Joana cola o rosto na janela redonda pela última vez, vendo as luzes ficarem pequenininhas, e desce pra casa com o peito aceso feito céu: cada luz visitada virou uma luzinha dentro dela, guardada pra sempre, pronta pra acender o sonho de hoje e os de depois.",
+            "O foguete pousa macio como quem pisa na ponta dos pés, e a Joana desce com o passo meio flutuado ainda, desacostumada de chão. Ela olha pra cima: o espaço continua lá, inteiro, aceso, com todos os moradores nos seus lugares — e agora ela sabe o nome de cada luz. Viajar pro céu é isso: a gente volta, mas fica um pedacinho lá em cima, acenando, combinado de se ver de novo."
+          ]
+        },
+        "max_ecos": 1,
+        "aberto": [
+          {
+            "se_comecou_com": "foguete",
+            "se_terminou_com": "cometa",
+            "fragmento": {
+              "n1": "O foguete pega carona no rastro do fim. Uhu! Ela ri.",
+              "n2": "O foguete do começo pega carona no rastro do cometa do fim, e ela ri alto.",
+              "n3": "E o foguete, que abriu a viagem, pega carona no rastro brilhante do cometa pra voltar — a Joana ri alto no silêncio: até foguete gosta de escorregador.",
+              "n4": "E na hora da volta, o foguete que abriu a viagem faz a coisa mais bonita da noite: entra no rastro brilhante do cometa e desce escorregando por ele, como num escorregador de luz. A Joana ri alto dentro do silêncio do espaço — e podia jurar que o foguete riu junto, no ronco macio dos motores."
+            }
+          },
+          {
+            "se_comecou_com": "estrela",
+            "se_terminou_com": "planeta",
+            "fragmento": {
+              "n1": "Começou na luz pequena. Acabou no gigante. O céu cabe todo nela.",
+              "n2": "A viagem começou na estrela pequena e terminou no gigante de anel — e ela viu tudo.",
+              "n3": "E a Joana percebe, na volta: a viagem começou na menor luz do céu e terminou no maior gigante — do pequenininho ao enorme, o céu inteiro coube nos olhos dela.",
+              "n4": "E a Joana percebe, na hora de voltar: a viagem começou na estrela — a luz mais pequenininha do céu — e terminou no planeta gigante de anel. Do menor ao maior, tudo coube na mesma noite e nos mesmos olhos. O espaço é assim: não escolhe tamanho, escolhe quem olha com vontade."
+            }
+          },
+          {
+            "se_terminou_com": "cometa",
+            "fragmento": {
+              "n1": "O rastro fica riscado no céu. Só pra ela.",
+              "n2": "O rastro do cometa fica riscado no céu, brilhando um tempão pra ela.",
+              "n3": "E o rastro do cometa fica riscado no céu ainda um tempão, brilhando devagar — a assinatura da noite, deixada pra Joana ler.",
+              "n4": "E o rastro do cometa fica riscado no céu muito depois de ele passar, brilhando devagarinho, sem pressa de apagar. A Joana olha pela janela até o fim: é a assinatura da noite, escrita em luz — e ela tem certeza de que foi deixada ali de propósito, pra ela ler na volta."
+            }
+          },
+          {
+            "se_terminou_com": "estrela",
+            "fragmento": {
+              "n1": "A estrela pisca. Boa viagem pra ela.",
+              "n2": "A estrela pisca uma vez, como um boa-viagem só dela.",
+              "n3": "E, na hora da volta, a estrela pisca uma vez só — um boa-viagem pequenininho, aceso só pra Joana.",
+              "n4": "E, bem na hora da volta, quando a Joana olha pela janela uma última vez, a estrela pisca uma vez só — devagarinho, um boa-viagem secreto no meio do céu enorme, desses que só quem visitou de pertinho sabe receber."
+            }
+          },
+          {
+            "se_terminou_com": "foguete",
+            "fragmento": {
+              "n1": "O foguete faz a volta larga. Hora de ir. Ela acena.",
+              "n2": "O foguete faz a volta larga do fim, e ela acena pro céu inteiro.",
+              "n3": "E o foguete fecha a noite com a volta larga do fim, virando devagar — e a Joana acena pro céu inteiro pela janela redonda.",
+              "n4": "E é o foguete quem fecha a noite: faz a volta larga do fim, virando devagar como um cumprimento educado pro céu inteiro. A Joana acena pela janela redonda, pra todas as luzes de uma vez — casa voadora que é boa termina o passeio assim, com despedida caprichada."
+            }
+          },
+          {
+            "se_comecou_com": "foguete",
+            "fragmento": {
+              "n1": "A casa voadora do começo trouxe ela até aqui. Obrigada!",
+              "n2": "A casa voadora lá do começo aguentou a viagem toda com ela.",
+              "n3": "O foguete do começo segurou a viagem inteira, firme e macio — casa voadora, casa de confiança, e a Joana dá um tapinha na parede: obrigada.",
+              "n4": "O foguete que abriu a noite segurou a viagem inteira sem reclamar — subiu macio, flutuou certinho, aguentou cada curva. Antes de descer, a Joana dá um tapinha carinhoso na parede da cabine, como quem agradece a um cavalo bom: casa voadora também merece carinho, e essa aqui merece dobrado."
+            }
+          },
+          {
+            "se_comecou_com": "planeta",
+            "fragmento": {
+              "n1": "O gigante do começo ainda gira. Devagar. Ela acena.",
+              "n2": "O gigante do começo continua girando devagar, com o anel e tudo.",
+              "n3": "O planeta lá do começo continua girando devagar, o anel rodando junto — gigante não tem pressa, e a Joana acena pra ele na volta.",
+              "n4": "O planeta gigante do começo continua exatamente onde estava, girando devagar com o anel e tudo — gigante de verdade não tem pressa nenhuma. A Joana acena pra ele na volta, e gosta de pensar que uma volta inteira dele vai demorar tanto que, quando terminar, ela já vai estar de novo lá em cima pra ver."
+            }
+          },
+          {
+            "se_comecou_com": "cometa",
+            "fragmento": {
+              "n1": "O viajante do começo já vai longe. Ela deseja boa estrada.",
+              "n2": "O cometa do começo já viaja longe, riscando outros céus.",
+              "n3": "O cometa que abriu a noite já deve estar longe, riscando outro pedaço de céu — e a Joana deseja boa estrada, de viajante pra viajante.",
+              "n4": "O cometa que abriu a noite já vai longe a essa altura, riscando de luz algum outro pedaço de céu, pra alegria de alguma outra janela. A Joana deseja boa estrada em pensamento, de viajante pra viajante — porque hoje ela também viajou o céu, e agora os dois se entendem."
+            }
+          },
+          {
+            "se_comecou_com": "estrela",
+            "fragmento": {
+              "n1": "Tudo começou na luz pequena. Ela agradece piscando.",
+              "n2": "E pensar que a viagem toda começou numa luz pequenininha. Ela pisca obrigada.",
+              "n3": "E pensar que a noite inteira começou na estrela pequenininha — a Joana pisca um obrigada pra ela, devagar, do jeito que aprendeu.",
+              "n4": "E pensar que a viagem inteira começou na estrela — a luz mais pequenininha e mais firme do céu, a primeira que se deixou visitar. Na volta, a Joana pisca um obrigada bem devagar na direção dela, porque foi a pequenininha que abriu a porta do céu inteiro."
+            }
+          }
+        ]
+      }
+    },
+
+    "rodadas": [
+      { "n": 1, "revela": ["foguete", "planeta", "cometa", "estrela"], "escolhe": 3, "ordena": true, "trava_pontas": true },
+      { "n": 2, "revela": ["satelite"], "escolhe": 1, "insere_em": "miolo" },
+      { "n": 3, "revela": ["poeira"],   "escolhe": 1, "insere_em": "miolo" },
+      { "n": 4, "revela": ["terra_azul"],    "escolhe": 1, "insere_em": "miolo" }
+    ],
+
+    "objetos": {
+      "foguete": {
+        "emoji": "🚀", "nome": "foguete", "papel_no_fim": "neutro", "registro": "casa voadora",
+        "genero": "m", "numero": "sg",
+        "conta": {
+          "n1": [
+            "O foguete voa macio. Ela flutua dentro.",
+            "A casa voadora ronca baixinho. Ela ri.",
+            "Dentro do foguete, tudo flutua. Ela também."
+          ],
+          "n2": [
+            "O foguete voa macio, e a Joana flutua um dedinho acima da poltrona.",
+            "A casa voadora ronca baixinho, e ela encosta a mão na parede morna.",
+            "Dentro do foguete tudo flutua devagar, e o cabelo dela sobe junto."
+          ],
+          "n3": [
+            "O foguete voa macio, roncando baixinho como um gato de metal, e a Joana flutua solta na cabine — empurra a parede com um dedo e atravessa até a janela, rindo do cabelo que dança.",
+            "A casa voadora cuida de tudo: voa reto, ronca manso, deixa o ar quentinho. A Joana solta o corpo e flutua devagar, os braços abertos, aprendendo o jeito novo de estar."
+          ],
+          "n4": [
+            "O foguete voa macio pelo escuro, roncando baixinho como um gato de metal satisfeito, e por dentro é uma casa pequena e quentinha onde tudo flutua. A Joana empurra a parede com um dedo só e atravessa a cabine voando devagar, o cabelo dançando em volta do rosto — flutuar é isso: virar pluma por um tempo, e ela ri sozinha de tão leve.",
+            "Casa voadora é uma casa que cuida: voa reto sem sacudir, ronca manso pra ninguém se assustar, deixa o ar morninho e a janela limpa. A Joana flutua no meio da cabine de braços abertos, girando devagarinho sem querer, e decide que morar assim por uma noite é a melhor invenção do mundo — a cama é o ar, o teto é o chão, e a janela redonda é o quadro mais bonito da casa."
+          ]
+        },
+        "tempera": [
+          { "se": "pos:inicio", "entao": {
+            "n1": "A viagem começa na janela redonda. Ela cola o nariz.",
+            "n2": "Toda viagem começa igual: ela colada na janela redonda.",
+            "n3": "A viagem da Joana começa do jeito certo: o nariz colado na janela redonda, antes de qualquer luz aparecer.",
+            "n4": "A viagem da Joana começa sempre pelo mesmo ritual: flutuar até a janela redonda, colar o nariz no vidro frio e esperar — porque o espaço é educado, e só começa a mostrar as luzes quando a visita está bem sentada na primeira fila."
+          } },
+          { "se": ["tem:terra_azul", "antes_de:terra_azul"], "entao": {
+            "n1": "O foguete vira devagar. Ele sabe o caminho de casa.",
+            "n2": "O foguete vira devagar, como quem já sabe o caminho de casa.",
+            "n3": "O foguete começa a virar devagar, sem ninguém pedir — casa voadora sabe a hora, e a Joana sente a curva mansa na barriga.",
+            "n4": "O foguete começa a virar devagar, por conta própria, apontando o nariz pra um rumo novo — casa voadora sabe a hora das coisas antes da gente. A Joana sente a curva mansa na barriga e entende o recado: a parte mais bonita da viagem está vindo, e é pro lado de casa."
+          } }
+        ]
+      },
+      "planeta": {
+        "emoji": "🪐", "nome": "planeta", "papel_no_fim": "neutro", "registro": "gigante gentil",
+        "genero": "m", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Um gigante com anel. Os olhos dela crescem.",
+            "O planeta gira devagar. Ela olha, olha.",
+            "Que grande! O anel roda. Ela nem pisca."
+          ],
+          "n2": [
+            "Um planeta gigante aparece na janela, e os olhos da Joana crescem junto.",
+            "O gigante de anel gira devagar, e ela esquece de piscar.",
+            "O planeta é maior que tudo, e a Joana fica pequenininha de ver."
+          ],
+          "n3": [
+            "Um planeta gigante entra na janela redonda, com um anel rodando devagar em volta, e a Joana fica pequenininha de propósito — gigante assim a gente olha de queixo caído e olhos crescidos.",
+            "O gigante de anel gira devagar, sem pressa nenhuma, como quem dança uma música que só ele ouve. A Joana cola as duas mãos na janela e assiste, esquecida de piscar."
+          ],
+          "n4": [
+            "Um planeta gigante entra devagar na janela redonda — tão grande que não cabe inteiro, com um anel largo rodando em volta como um pião paciente. A Joana cola as duas mãos e o nariz no vidro, os olhos crescendo pra tentar caber tudo, e se sente pequenininha do jeito bom: pequenininha diante de gigante gentil, que é o melhor jeito de se sentir pequeno.",
+            "O gigante do céu dança devagar: gira o corpo listrado, roda o anel de pedrinhas brilhantes, tudo no mesmo compasso calmo de quem tem todo o tempo do universo. A Joana assiste da janela sem piscar, hipnotizada — e quando o anel apanha um fio de luz do sol e acende inteiro, ela solta um 'oh' baixinho que embaça o vidro."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:poeira", "depois_de:poeira"], "entao": {
+            "n1": "O anel é de poeira que brilha. Ela reconhece!",
+            "n2": "O anel do gigante brilha igualzinho à poeira, e ela reconhece na hora.",
+            "n3": "A Joana olha o anel do gigante e reconhece o brilho: é da mesma poeira de estrelas — o planeta fez um anel do que o céu tem de melhor.",
+            "n4": "A Joana olha bem pro anel do gigante e reconhece na hora: aquele brilho é o mesmo da poeira de estrelas — o planeta juntou o pó mais bonito do céu e fez dele um anel pra usar todo dia. Ela sorri: até gigante gosta de enfeite, e esse escolheu o melhor."
+          } }
+        ]
+      },
+      "cometa": {
+        "emoji": "☄️", "nome": "cometa", "papel_no_fim": "nucleo", "registro": "viajante de rastro",
+        "genero": "m", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Uma luz corre no céu. Risca. Ela aponta.",
+            "O cometa passa. O rastro fica. Os olhos dela vão atrás.",
+            "Zum! Um risco de luz. Ela viu primeiro."
+          ],
+          "n2": [
+            "Um cometa atravessa o céu riscando luz, e a Joana aponta, animada.",
+            "O cometa passa correndo, e o dedo dela segue o risco no vidro.",
+            "Uma luz de rastro comprido cruza a janela, e ela prende o fôlego."
+          ],
+          "n3": [
+            "Um cometa atravessa o céu de ponta a ponta, riscando um rastro de luz que fica. A Joana cola o dedo no vidro e segue o risco inteirinho, sem pressa — viajante bonito merece ser acompanhado até a curva.",
+            "O cometa aparece de surpresa, correndo como quem tem hora marcada em outro céu, e o rastro brilhante vai ficando atrás. A Joana acompanha de olhos arregalados: é a coisa mais rápida e mais bonita da noite, tudo junto."
+          ],
+          "n4": [
+            "Um cometa atravessa o céu de ponta a ponta, correndo como quem tem hora marcada em outro céu — e atrás dele fica o rastro, um risco comprido de luz que brilha e demora. A Joana cola o dedo no vidro da janela e acompanha o desenho inteirinho, devagar, até onde a vista alcança: viajante assim passa rápido, mas deixa lembrança escrita, e ela lê cada pedacinho.",
+            "De todos os moradores do céu, o cometa é o único com pressa — e mesmo assim é gentil: corre, mas deixa o rastro pra quem quiser olhar com calma. A Joana viu ele chegar antes de todo mundo, um pontinho crescendo, e agora assiste a travessia inteira com o coração acelerado junto — zum, de uma ponta à outra da janela, e o céu fica riscado de brilho como assinatura de artista."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:estrela", "depois_de:estrela"], "entao": {
+            "n1": "O cometa passa perto da estrela. Acena com o rastro. Ela ri.",
+            "n2": "O cometa passa pertinho da estrela e acena com o rastro, e ela ri.",
+            "n3": "O cometa capricha na passada: cruza pertinho da estrela e balança o rastro, como quem acena — e a Joana ri: até no céu vizinho cumprimenta vizinho.",
+            "n4": "O cometa capricha na passada: cruza bem pertinho da estrela pequena e balança o rastro de leve, como quem tira o chapéu sem parar de correr. A Joana ri na janela — até no céu vizinho cumprimenta vizinho, e ela ficou sabendo primeiro."
+          } },
+          { "se": ["tem:poeira", "antes_de:poeira"], "entao": {
+            "n1": "O rastro solta um pó de brilho. Fica no céu. Ela guarda.",
+            "n2": "O rastro do cometa solta um pó de brilho que fica boiando, e ela guarda o lugar.",
+            "n3": "Quando o cometa some na curva, o rastro se desfaz num pó de brilho que fica boiando no escuro — e a Joana guarda o lugar com os olhos: aquilo ainda vai dar história.",
+            "n4": "Quando o cometa some na curva do céu, o rastro não apaga de uma vez: se desfaz devagar num pó de brilho miudinho, que fica boiando no escuro como se o céu tivesse espirrado purpurina. A Joana guarda o lugar com os olhos, sem pressa — presente de viajante fica pra depois, e ela vai voltar ali."
+          } }
+        ]
+      },
+      "estrela": {
+        "emoji": "⭐", "nome": "estrela", "papel_no_fim": "neutro", "registro": "longe que faz companhia",
+        "genero": "f", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Uma luz pequena e firme. Ela chega perto.",
+            "A estrela de sempre! Agora pertinho dela.",
+            "A primeira luz do céu. Os olhos dela acendem."
+          ],
+          "n2": [
+            "Uma estrela pequena e firme brilha na janela, agora bem mais perto dela.",
+            "A estrela de sempre aparece — e daqui de cima, ela parece dizer oi.",
+            "Uma luz pequena e firme espera no escuro, e a Joana chega devagarinho."
+          ],
+          "n3": [
+            "Uma estrela pequena e firme brilha bem na janela — a mesma que a Joana via lá de baixo, agora de pertinho. Ela encosta o dedo no vidro, no lugar exato da luz: prazer, finalmente.",
+            "A estrela de sempre está ali, pequena e firme como sempre foi — só que agora é visita de perto. A Joana fica paradinha, esperando ela piscar primeiro, do jeito do jogo antigo."
+          ],
+          "n4": [
+            "Uma estrela pequena e firme brilha bem no meio da janela redonda — e a Joana reconhece na hora: é a mesma que ela via lá de baixo, pendurada no céu de casa, a que espiava pela janela do quarto. Agora é visita de perto. Ela encosta o dedo no vidro, bem no lugar da luz, e apresenta: prazer, sou a Joana — e podia jurar que a estrela piscou mais quente.",
+            "De todas as luzes do céu, a estrela pequena é a mais fiel: firme, paciente, sempre no lugar dela. A Joana chega o foguete devagarinho e fica paradinha na janela, esperando a estrela piscar primeiro — o jogo antigo dos dois lados do vidro, só que hoje o vidro é outro e a distância é quase nenhuma. Quando a piscada vem, pequenininha e certa, a Joana sorri enorme: amizade de longe também cresce."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:cometa", "antes_de:cometa"], "entao": {
+            "n1": "A estrela pisca forte. Avisa: vem coisa bonita aí.",
+            "n2": "A estrela pisca mais forte, avisando: vem coisa bonita por aí.",
+            "n3": "A estrela pisca mais forte de repente, duas, três vezes — e a Joana entende o aviso: fica de olho, que vem coisa bonita aí.",
+            "n4": "A estrela começa a piscar mais forte de repente, duas, três vezes seguidas, animada como sineta de teatro antes do espetáculo. A Joana entende o recado na hora e cola na janela, os olhos bem abertos: quando a menor luz do céu avisa que vem coisa bonita, o céu inteiro costuma obedecer."
+          } }
+        ]
+      },
+      "satelite": {
+        "emoji": "🛰️", "nome": "satélite", "papel_no_fim": "neutro", "registro": "vizinho que pisca",
+        "genero": "m", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Um ponto pisca e passeia. Ela segue com o dedo.",
+            "O satélite passa. Pisca, pisca. Ela pisca de volta.",
+            "Uma luzinha passeia no escuro. Os olhos dela vão junto."
+          ],
+          "n2": [
+            "Um satélite passeia no escuro, piscando certinho, e a Joana acompanha com o dedo.",
+            "O satélite passa devagar, pisca-pisca, e ela pisca de volta pra ele.",
+            "Uma luzinha viajante cruza a janela, e o olhar dela vai junto até a curva."
+          ],
+          "n3": [
+            "Um satélite passeia pelo escuro, piscando certinho como um vagalume de metal, e a Joana acompanha com o dedo no vidro — o vizinho mais pontual do céu, fazendo a ronda de todo dia.",
+            "O satélite cruza a janela devagar, pisca-pisca, pisca-pisca, sempre no mesmo ritmo. A Joana pisca de volta no mesmo compasso, e os dois seguem conversando assim até ele fazer a curva."
+          ],
+          "n4": [
+            "Um satélite passeia pelo escuro piscando certinho, no capricho, como um vagalume de metal que nunca se atrasa. A Joana acompanha com o dedo no vidro a viagem redonda dele — o vizinho mais pontual do céu, dando a volta de todo dia, conferindo se está tudo no lugar. Quando ele passa bem na frente da janela, ela acena: trabalhador assim merece cumprimento.",
+            "O satélite é o vizinho que nunca para em casa: vive passeando, sempre na mesma volta, piscando o mesmo pisca-pisca educado pra quem cruza o caminho. A Joana descobre a brincadeira sozinha — pisca no mesmo ritmo dele, um, dois, um, dois — e os dois atravessam a janela conversando em código de luz, até ele sumir na curva pra continuar a ronda."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:planeta", "depois_de:planeta"], "entao": {
+            "n1": "O satélite dá a volta no gigante. Visita! Ela acompanha.",
+            "n2": "O satélite dá uma volta caprichada no gigante, de visita, e ela acompanha.",
+            "n3": "O satélite muda o caminho só pra dar uma volta no gigante de anel — visita de vizinho — e a Joana acompanha a órbita inteira com o dedo.",
+            "n4": "O satélite muda o caminho de propósito só pra dar uma volta completa no gigante de anel — visita de vizinho educado, dessas de passar na porta pra dizer oi. A Joana acompanha a órbita inteira com o dedo no vidro, e no fim os dois seguem cada um pro seu lado, cumprimentados: no céu, vizinhança funciona."
+          } },
+          { "se": "tem:estrela", "entao": {
+            "n1": "O satélite pisca pra estrela. Ela pisca de volta. Ela viu!",
+            "n2": "O satélite pisca pra estrela, e a estrela pisca de volta — e a Joana viu.",
+            "n3": "O satélite pisca duas vezes pra estrela, e a estrela responde piscando também — vizinhos antigos — e a Joana assiste a conversa, encantada.",
+            "n4": "Na passada, o satélite pisca duas vezes na direção da estrela pequena — e a estrela responde na mesma hora, piscadinha certa de quem conhece o código. A Joana assiste de boca aberta: são vizinhos antigos, trocando boa-noite em língua de luz, e ela é a única testemunha da conversa."
+          } }
+        ]
+      },
+      "poeira": {
+        "emoji": "✨", "nome": "poeira de estrelas", "papel_no_fim": "neutro", "registro": "brilho suspenso",
+        "genero": "f", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Um pó de brilho boia no escuro. Ela atravessa devagar.",
+            "Luzinhas em pó. Mil. Os olhos dela enchem.",
+            "O céu tem purpurina. Ela passa no meio."
+          ],
+          "n2": [
+            "Uma nuvem de poeira brilhante boia no escuro, e o foguete da Joana atravessa devagar.",
+            "Mil luzinhas em pó enchem a janela, e os olhos dela enchem junto.",
+            "A poeira de estrelas brilha de todos os lados, e ela roda pra ver tudo."
+          ],
+          "n3": [
+            "O foguete entra devagar numa nuvem de poeira de estrelas, e a janela inteira vira festa: mil pontinhos de brilho boiando no escuro, de todos os lados. A Joana roda na cabine pra ver tudo, sem saber pra onde olhar primeiro.",
+            "A poeira de estrelas aparece de mansinho: primeiro um brilho, depois dez, depois mil. A Joana cola na janela e fica no meio da nuvem acesa, quietinha — atravessar isso é passear dentro de um enfeite."
+          ],
+          "n4": [
+            "O foguete entra devagarinho numa nuvem de poeira de estrelas, e de repente a janela inteira vira festa: mil pontinhos de brilho boiando no escuro, na frente, dos lados, embaixo, em cima. A Joana roda na cabine flutuando, sem saber pra onde olhar primeiro, os olhos cheios de luzinhas — é como passear dentro de um globo de purpurina que alguém sacudiu com carinho.",
+            "Dizem que é só pó — mas que pó: a poeira de estrelas boia no escuro aos milhares, cada grãozinho aceso com a própria luzinha, sem pressa de ir a lugar nenhum. O foguete atravessa devagar, com respeito, e a Joana encosta a testa no vidro pra ficar o mais perto possível do brilho — se o céu varre a casa, pensa ela rindo, é desse pó que a vassoura enche."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:cometa", "depois_de:cometa"], "entao": {
+            "n1": "É o pó do rastro! Ela achou o presente.",
+            "n2": "A poeira é o rastro que o cometa deixou, e ela achou o presente.",
+            "n3": "A Joana reconhece na hora: essa poeira é o rastro que o cometa deixou, desfeito em brilho — o presente do viajante, esperando ela passar.",
+            "n4": "A Joana reconhece na hora, com um pulinho de alegria: essa nuvem de brilho é o rastro do cometa, desmanchado em pó de luz — o presente que o viajante deixou pra trás, de propósito, esperando ela passar no meio. Ela atravessa devagarinho, de braços abertos, agradecendo a encomenda."
+          } }
+        ]
+      },
+      "terra_azul": {
+        "emoji": "🌍", "nome": "Terra", "papel_no_fim": "chave", "registro": "casa vista de longe",
+        "genero": "f", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Uma bola azul na janela. É a casa dela!",
+            "A Terra aparece. Azul e branca. Ela acena.",
+            "Lá está a casa. Redonda. O peito dela esquenta."
+          ],
+          "n2": [
+            "Uma bola azul e branca aparece na janela: é a casa dela, inteirinha.",
+            "A Terra brilha azul no escuro, e a Joana cola as mãos no vidro.",
+            "A casa da Joana é aquela bolinha linda, e ela acena pra todo mundo."
+          ],
+          "n3": [
+            "Uma bola azul e branca entra na janela redonda, brilhando no escuro, e a Joana demora um segundo pra entender: é a casa dela — a rua, o quintal, todo mundo — cabendo inteirinha num abraço de olhar.",
+            "A Terra aparece devagar, azul de mar e branca de nuvem, a coisa mais bonita da noite inteira. A Joana cola as mãos no vidro e acena, boba de carinho: alô, casa. Já estou indo."
+          ],
+          "n4": [
+            "Uma bola azul e branca entra devagar na janela redonda, brilhando no meio do escuro como uma joia acesa — e a Joana demora um segundo pra entender o que está vendo: é a casa dela. A rua, o quintal, a cidade, todo mundo que ela ama — tudo cabendo naquela bolinha linda, pequena o bastante pra um abraço de olhar. O peito dela esquenta de uma vez: de todas as luzes do céu, a mais bonita é a de casa.",
+            "No meio de tanto escuro e de tanta luz, aparece a única que é dela: a Terra, azul de mar, branca de nuvem, verde de mato, girando devagar como quem embala. A Joana cola as mãos e o nariz no vidro e fica olhando um tempão, boba de carinho — lá embaixo tem o quintal, a cama, o resto da vida esperando. Ela acena devagarinho: alô, casa. Guarda meu lugar, que eu já vou."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:foguete", "depois_de:foguete"], "entao": {
+            "n1": "O foguete aponta pra bola azul. Ele sabia! Ela sorri.",
+            "n2": "O foguete aponta o nariz direto pra bola azul: ele sabia o caminho.",
+            "n3": "A Joana entende a curva de agora há pouco: o foguete apontou o nariz direto pra bola azul — casa voadora sabia o caminho de casa o tempo todo.",
+            "n4": "A Joana entende de uma vez a curva mansa de agora há pouco: o foguete já tinha apontado o nariz pra bola azul antes de ela aparecer — casa voadora sabe o caminho de casa de cor, como pombo, como cachorro, como coração. Ela dá um tapinha agradecido na parede: bem pensado, amigo."
+          } },
+          { "se": "tem:estrela", "entao": {
+            "n1": "De casa dá pra ver a estrela. Ela promete procurar.",
+            "n2": "Lá de casa dá pra ver a estrela também, e ela promete procurar.",
+            "n3": "A Joana olha da bola azul pra estrela pequena e faz a conta: lá de casa dá pra ver a amiga também — amanhã ela procura, da janela do quarto.",
+            "n4": "A Joana olha da bola azul pra estrela pequena, da estrela pra bola azul, e sorri da descoberta: as duas se veem todas as noites, uma da janela da outra. Amanhã, lá de casa, ela vai procurar a amiga no céu — e agora sabe exatamente pra onde acenar."
+          } },
+          { "se": "pos:fim", "entao": {
+            "n1": "A Terra chega por último. Hora de voltar. Ela leva tudo.",
+            "n2": "A Terra aparece por último, e a Joana entende: hora de voltar pra casa.",
+            "n3": "O céu guardou a Terra pro fim, de propósito: depois de ver todas as luzes, a mais bonita — e a Joana volta pra casa levando o céu inteiro no peito.",
+            "n4": "O céu guardou a Terra pro finzinho, do jeito das despedidas bem feitas: primeiro as luzes de fora, depois a luz de casa. A Joana olha a bolinha azul crescer na janela e entende o presente — viajar o céu inteiro serve pra isso também: pra descobrir, na volta, que a luz mais bonita de todas estava acesa em casa o tempo todo, esperando por ela."
+          } }
+        ]
+      }
+    }
+  }
+}

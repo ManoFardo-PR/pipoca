@@ -44,6 +44,17 @@
         "n3": "a água morna na pele e o corpo leve, boiando devagar; a vontade de conhecer cada morador",
         "n4": "a água morna na pele e o corpo leve, boiando devagar no embalo; a vontade de conhecer cada morador do mar, um por um, sem espantar nenhum"
       }
+    },
+    "espaco_estrelado": {
+      "nome": "Lá no Espaço",
+      "descricao": "o espaço visto da janela redonda de um foguete — um escuro enorme e calmo, luzes acesas espalhadas, e tudo flutuando devagar",
+      "voz_do_contador": "o espaço conta no silêncio: acende uma luz de cada vez na janela, e espera os olhos chegarem",
+      "sensacao_no_personagem": {
+        "n1": "o corpo leve, flutuando",
+        "n2": "o corpo leve, flutuando; os olhos cheios de luzes",
+        "n3": "o corpo leve, flutuando devagar; os olhos cheios de luzes e a vontade de visitar cada uma",
+        "n4": "o corpo leve, flutuando devagar no meio da cabine; os olhos cheios de luzes, e a vontade de visitar cada uma, do jeito que o silêncio grande pede"
+      }
     }
   }
 }

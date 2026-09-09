@@ -189,8 +189,8 @@
             "n4": "A viagem da Joana começa sempre pelo mesmo ritual: flutuar até a janela redonda, colar o nariz no vidro frio e esperar — porque o espaço é educado, e só começa a mostrar as luzes quando a visita está bem sentada na primeira fila."
           } },
           { "se": ["tem:terra_azul", "antes_de:terra_azul"], "entao": {
-            "n1": "O foguete vira devagar. Ele sabe o caminho de casa.",
-            "n2": "O foguete vira devagar, como quem já sabe o caminho de casa.",
+            "n1": "O foguete vira devagar. Ela sente a curva. Casa!",
+            "n2": "O foguete vira devagar, e ela sente: é o caminho de casa.",
             "n3": "O foguete começa a virar devagar, sem ninguém pedir — casa voadora sabe a hora, e a Joana sente a curva mansa na barriga.",
             "n4": "O foguete começa a virar devagar, por conta própria, apontando o nariz pra um rumo novo — casa voadora sabe a hora das coisas antes da gente. A Joana sente a curva mansa na barriga e entende o recado: a parte mais bonita da viagem está vindo, e é pro lado de casa."
           } }
@@ -291,8 +291,8 @@
         },
         "tempera": [
           { "se": ["tem:cometa", "antes_de:cometa"], "entao": {
-            "n1": "A estrela pisca forte. Avisa: vem coisa bonita aí.",
-            "n2": "A estrela pisca mais forte, avisando: vem coisa bonita por aí.",
+            "n1": "A estrela pisca forte pra ela. Vem coisa bonita aí.",
+            "n2": "A estrela pisca mais forte, e ela entende o aviso: vem coisa bonita por aí.",
             "n3": "A estrela pisca mais forte de repente, duas, três vezes — e a Joana entende o aviso: fica de olho, que vem coisa bonita aí.",
             "n4": "A estrela começa a piscar mais forte de repente, duas, três vezes seguidas, animada como sineta de teatro antes do espetáculo. A Joana entende o recado na hora e cola na janela, os olhos bem abertos: quando a menor luz do céu avisa que vem coisa bonita, o céu inteiro costuma obedecer."
           } }
@@ -394,7 +394,7 @@
         "tempera": [
           { "se": ["tem:foguete", "depois_de:foguete"], "entao": {
             "n1": "O foguete aponta pra bola azul. Ele sabia! Ela sorri.",
-            "n2": "O foguete aponta o nariz direto pra bola azul: ele sabia o caminho.",
+            "n2": "O foguete aponta o nariz direto pra bola azul, e ela sorri: sabia o caminho.",
             "n3": "A Joana entende a curva de agora há pouco: o foguete apontou o nariz direto pra bola azul — casa voadora sabia o caminho de casa o tempo todo.",
             "n4": "A Joana entende de uma vez a curva mansa de agora há pouco: o foguete já tinha apontado o nariz pra bola azul antes de ela aparecer — casa voadora sabe o caminho de casa de cor, como pombo, como cachorro, como coração. Ela dá um tapinha agradecido na parede: bem pensado, amigo."
           } },

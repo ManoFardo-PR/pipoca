@@ -2966,7 +2966,13 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
     alga: ["alga*", "fitas"],
     polvo: ["polvo", "oito braços", "tentáculo*"],
     tartaruga: ["tartaruga", "casco"],
-    bau: ["baú", "tesouro", "tampa"]
+    bau: ["baú", "tesouro", "tampa"],
+    foguete: ["foguete", "casa voadora", "cabine"],
+    planeta: ["planeta", "gigante", "anel"],
+    cometa: ["cometa", "rastro", "risco de luz"],
+    satelite: ["satélite", "pisca-pisca", "ronda"],
+    poeira: ["poeira", "pó de brilho", "purpurina"],
+    terra_azul: ["terra", "bola azul", "planeta azul"]
   };
   var TERMOS_CORPO = [
     "ela",

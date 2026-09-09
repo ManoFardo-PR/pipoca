@@ -81,6 +81,12 @@ export const ANCORAS_POR_OBJETO: Record<string, string[]> = {
   polvo: ["polvo", "oito braços", "tentáculo*"],
   tartaruga: ["tartaruga", "casco"],
   bau: ["baú", "tesouro", "tampa"],
+  foguete: ["foguete", "casa voadora", "cabine"],
+  planeta: ["planeta", "gigante", "anel"],
+  cometa: ["cometa", "rastro", "risco de luz"],
+  satelite: ["satélite", "pisca-pisca", "ronda"],
+  poeira: ["poeira", "pó de brilho", "purpurina"],
+  terra_azul: ["terra", "bola azul", "planeta azul"],
 };
 
 // Marcas de corpo/protagonista (linhagem: termos-nucleo.ts:21-50 do experimento-beats).

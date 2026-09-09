@@ -39,7 +39,7 @@
       "grafo": "./docs/espaco.v3.json",
       "relacoes": "./docs/fichas/relacoes.espaco.v1.json",
       "svg": "espaco",
-      "disponivel": false
+      "disponivel": true
     },
     {
       "id": "fundomar_calmo",

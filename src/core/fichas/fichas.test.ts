@@ -358,7 +358,7 @@ console.log("\nBLOCO 11 — fichas REAIS (docs/fichas/*.v1.json): gate pós-vere
   assertEqual(r.erros.length, 0, "fichas reais: 0 erros");
   // Pós-veredito da Parada Dura 1 (2026-07-10): A1 canônicos allow-listed; A2 zerado.
   assertEqual(r.avisos.length, 0, "fichas reais: 0 avisos (A1 allow-listed; A2 zerado)");
-  assert(Object.keys((objetosReais as { objetos: Record<string, unknown> }).objetos).length === 20, "catálogo com os 7 do quintal + 6 do quarto + 7 da floresta");
+  assert(Object.keys((objetosReais as { objetos: Record<string, unknown> }).objetos).length === 27, "catálogo com os 7 do quintal + 6 do quarto + 7 da floresta + 7 do fundo do mar");
 }
 
 console.log(`\nTotal: ${passou + falhou} | ✓ ${passou} passou | ✗ ${falhou} falhou`);

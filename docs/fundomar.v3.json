@@ -1,0 +1,417 @@
+{
+  "esquema": "pipoca.grafo-autoral.v3",
+  "niveis": {
+    "n1": "Primeiras palavras — sílabas e palavras soltas",
+    "n2": "Frases curtas — uma linha",
+    "n3": "Pequenos textos — frases ligadas",
+    "n4": "Parágrafos — histórias mais longas"
+  },
+  "regra_de_ouro": "Cada leitura no portão abre a próxima rodada. A moldura (abertura e desfecho) é sempre fixa. Cada objeto é uma micro-cena com a Joana dentro — orbita o mesmo mergulho calmo, nunca os outros objetos — e por isso lê bem em qualquer ordem. A complexidade mora dentro de cada beat, não na costura entre eles.",
+  "cenario": {
+    "id": "fundomar_calmo",
+    "nome": "O Fundo do Mar",
+    "personagem": "a Joana",
+    "paleta": "azul-claro de água morna, com fios de sol e areia clarinha",
+
+    "moldura": {
+      "abertura": {
+        "n1": [
+          "O mar está calmo. A Joana entra devagar.",
+          "Água morna. O fundo espera. Ela mergulha.",
+          "O mar chama baixinho. Ela desce pra ver."
+        ],
+        "n2": [
+          "O mar está calmo e morno, e a Joana desce devagar pra visitar o fundo.",
+          "A água segura a Joana de leve, e ela vai descendo, leve também.",
+          "O fundo do mar guarda moradores queridos, e a Joana desce pra conhecer um por um."
+        ],
+        "n3": [
+          "O mar hoje está do jeito bom: calmo, morno, clarinho. A Joana entra devagar e deixa a água segurar ela de leve — lá embaixo, o fundo inteiro espera visita.",
+          "A luz do sol entra na água em fios compridos, acendendo o caminho até o fundo. A Joana respira fundo, mergulha devagarinho e desce — o mar balança ela como quem diz: bem-vinda."
+        ],
+        "n4": [
+          "O mar recebe a Joana do jeito que só mar calmo sabe: a água morna segurando de leve, a luz do sol descendo em fios até a areia, tudo balançando devagar como uma casa que respira. Ela desce sem pressa, o corpo leve feito pluma de água, e vai chegando no fundo com os olhos bem abertos — hoje ela quer conhecer os moradores, um por um, sem espantar nenhum.",
+          "Lá embaixo, o fundo do mar é um bairro calmo: areia clarinha, pedras arredondadas, a luz chegando em fios que balançam. A Joana desce devagar, pedindo licença com o corpo inteiro — braçada leve, perna quieta — porque visita boa chega assim, e o mar percebe: abre caminho morno pra ela passar."
+        ]
+      },
+      "conectivos": {
+        "n1": ["Aí,", "Daí,", "Então,"],
+        "n2": ["Então,", "De repente,", "Mais no fundo,", "Foi quando"],
+        "n3": ["Foi então que", "De repente,", "Mais no fundo,", "E, na correnteza,"],
+        "n4": ["Foi então que", "Descendo mais um pouquinho,", "Pouco depois,"]
+      },
+      "desfecho": {
+        "convergente": {
+          "n1": [
+            "A Joana sobe pra respirar. Leva o mar no peito.",
+            "O passeio acabou. O mar acena. Ela acena de volta.",
+            "Ela sobe devagar. O mar fica guardando tudo."
+          ],
+          "n2": [
+            "A Joana sobe devagar pra respirar, e leva o mar inteirinho no peito.",
+            "O mar termina a visita no embalo, e a Joana sobe leve, cheia de mar por dentro.",
+            "Tudo visto, tudo guardado. A Joana sobe, e o fundo acena devagar."
+          ],
+          "n3": [
+            "Quando o mar termina de apresentar os moradores, a Joana sobe devagar, no embalo da água, e leva o fundo inteirinho guardado no peito — morno, calmo, do jeito que ela quer sonhar.",
+            "A visita termina como começou: devagar. A Joana sobe pela luz em fios, olhando o fundo ficar pequenininho, e o mar balança um tchau comprido até ela chegar no ar."
+          ],
+          "n4": [
+            "Quando o mar termina de apresentar todos os moradores, a Joana sobe devagar, no embalo, pela escada de luz que o sol deixou pendurada na água. O fundo vai ficando pequenininho lá embaixo — o bairro calmo, os moradores acenando do jeito de cada um — e ela chega no ar com o peito cheio de mar morno: um pedaço que veio junto, que não escorre e não seca, guardado pra sonhar.",
+            "A Joana sobe devagar e o mar sobe junto até a beirada, acompanhando a visita até a porta. Na superfície, ela respira fundo o ar de fora — mas por dentro continua boiando: o balanço fica no corpo, o morno fica na pele, e os moradores ficam na lembrança, cada um no seu canto do fundo, esperando ela voltar amanhã."
+          ]
+        },
+        "max_ecos": 1,
+        "aberto": [
+          {
+            "se_comecou_com": "concha",
+            "se_terminou_com": "peixe",
+            "fragmento": {
+              "n1": "O mar da concha era ele: o peixe dá a volta do tchau nela.",
+              "n2": "O mar que a concha contou no começo era ele: o peixe nada uma volta de tchau em volta dela.",
+              "n3": "E a Joana entende, na hora de subir: o mar que a concha contou no começo era isto aqui — e o peixe fecha a visita nadando uma volta inteira de tchau em volta dela.",
+              "n4": "E a Joana entende, bem na hora de subir: aquele mar pequenininho que a concha contou no ouvido, lá no começo, era isto aqui o tempo todo. O peixe dourado fecha a visita do jeito dele — uma volta inteira de tchau em volta dela, brilhando — e os dois mares, o de dentro e o de fora, dizem tchau juntos."
+            }
+          },
+          {
+            "se_comecou_com": "peixe",
+            "se_terminou_com": "coral",
+            "fragmento": {
+              "n1": "O peixe do começo entra no jardim do fim. Casa dele. Ela acena.",
+              "n2": "O peixe do começo entra no jardim do fim e acena de uma janelinha: era a casa dele.",
+              "n3": "E o peixe lá do começo entra no jardim do fim e aparece numa janelinha, faceiro — era a casa dele o tempo todo, e a Joana acena: até amanhã, vizinho.",
+              "n4": "E o peixe que abriu o mergulho entra no jardim do fim como quem chega em casa — porque era: a casa dele o tempo todo, o jardim inteiro. Ele aparece numa janelinha do coral, faceiro, e fica olhando a Joana subir. Ela acena devagarinho: até amanhã, vizinho — agora ela sabe o endereço."
+            }
+          },
+          {
+            "se_terminou_com": "peixe",
+            "fragmento": {
+              "n1": "O peixe sobe junto. Coladinho nela.",
+              "n2": "O peixe acompanha a Joana até em cima, coladinho.",
+              "n3": "E o peixe acompanha a Joana na subida inteira, coladinho no lado — morador que gosta de visita leva até a porta.",
+              "n4": "E o peixe dourado acompanha a Joana na subida inteira, coladinho no lado dela, remando no mesmo devagar. Só volta quando ela chega no ar — uma viradinha, um brilho, e desce pra casa. Morador que gosta de visita é assim: leva até a porta e ainda fica olhando."
+            }
+          },
+          {
+            "se_terminou_com": "concha",
+            "fragmento": {
+              "n1": "A concha vai na mão dela. O mar de dentro vai junto.",
+              "n2": "A concha sobe na mão dela, levando o mar de dentro pra casa.",
+              "n3": "E a concha vai na mão da Joana, bem fechada: o mar pequenininho de dentro vai junto, pra ela ouvir de casa quando der saudade.",
+              "n4": "E a concha sobe fechada na mão da Joana, guardando o mar pequenininho de dentro — o presente que o fundo deixou levar. Em casa, quando der saudade, é só encostar no ouvido: o mar inteiro mora ali, contando baixinho, esperando ela dormir."
+            }
+          },
+          {
+            "se_terminou_com": "alga",
+            "fragmento": {
+              "n1": "As fitas dançam tchau. Todas pro lado dela.",
+              "n2": "As fitas verdes dançam um tchau comprido, todas pro lado dela.",
+              "n3": "E as algas dançam o tchau mais bonito do mar: todas as fitas pro lado da Joana, devagar, até ela sumir lá em cima.",
+              "n4": "E a última coisa que a Joana vê, olhando pra baixo, são as algas dançando tchau — todas as fitas viradas pro lado dela, indo e vindo devagar, como uma plateia verde acenando junto. Dança que despede também convida: amanhã tem mais."
+            }
+          },
+          {
+            "se_comecou_com": "peixe",
+            "fragmento": {
+              "n1": "O guia do começo foi ele. Pequeno e dourado. Ela agradece.",
+              "n2": "O peixe do começo apresentou o mar inteiro pra ela: guia pequeno, mar grande.",
+              "n3": "O peixe lá do começo foi o guia da visita inteira — pequeno, dourado, sabendo tudo. A Joana agradece com um aceno de dedo.",
+              "n4": "O peixe do começo acabou sendo o guia da visita inteira: pequeno, dourado, morador de carteirinha, sabendo cada canto e cada morador. Na despedida, a Joana agradece com um aceno de dedo dentro da água — e ele responde com uma viradinha de brilho, como quem diz: foi um prazer, volte sempre."
+            }
+          },
+          {
+            "se_comecou_com": "concha",
+            "fragmento": {
+              "n1": "A concha do começo foi junto. Fechadinha na mão dela.",
+              "n2": "A concha lá do começo fez o passeio todo fechadinha na mão dela.",
+              "n3": "A concha do começo fez o mergulho inteiro fechadinha na mão da Joana — e agora sabe o caminho de cor, de tanto ir junto.",
+              "n4": "A concha lá do começo fez o mergulho inteiro na mão fechada da Joana, quentinha de tanto ser segurada. Subiu junto, viu tudo de pertinho — e a Joana gosta de pensar que agora o mar de dentro dela tem as histórias de hoje também, guardadas na espiral, contadas de novo a cada ouvido."
+            }
+          },
+          {
+            "se_comecou_com": "coral",
+            "fragmento": {
+              "n1": "O jardim do começo segue florido. Esperando ela.",
+              "n2": "O jardim do começo continua florido lá embaixo, esperando ela voltar.",
+              "n3": "O jardim de coral que abriu a visita continua lá embaixo, florido e paradinho, guardando as cores pra próxima vinda da Joana.",
+              "n4": "O jardim de coral que abriu a visita continua lá embaixo, florido, paradinho, com os moradores entrando e saindo das janelinhas como sempre. Jardim do mar não murcha e não fecha: fica, colorido a noite inteira pra ninguém ver — e a Joana acha isso a coisa mais bonita do mundo."
+            }
+          },
+          {
+            "se_comecou_com": "alga",
+            "fragmento": {
+              "n1": "A dança do começo segue lá embaixo. Ela dança de longe.",
+              "n2": "A dança que abriu o mergulho continua lá embaixo, devagarinha.",
+              "n3": "A dança das algas, a primeira do mergulho, continua lá embaixo sem parar — e a Joana sobe balançando devagar, dançando de longe com elas.",
+              "n4": "A dança das algas que abriu o mergulho continua lá embaixo, devagarinha, sem plateia e sem parar — porque a dança do mar não precisa de ninguém olhando pra valer. A Joana sobe balançando de leve, sem perceber: o corpo aprendeu, e agora dança junto de qualquer distância."
+            }
+          }
+        ]
+      }
+    },
+
+    "rodadas": [
+      { "n": 1, "revela": ["peixe", "concha", "coral", "alga"], "escolhe": 3, "ordena": true, "trava_pontas": true },
+      { "n": 2, "revela": ["polvo"],     "escolhe": 1, "insere_em": "miolo" },
+      { "n": 3, "revela": ["tartaruga"], "escolhe": 1, "insere_em": "miolo" },
+      { "n": 4, "revela": ["bau"],       "escolhe": 1, "insere_em": "miolo" }
+    ],
+
+    "objetos": {
+      "peixe": {
+        "emoji": "🐠", "nome": "peixinho", "papel_no_fim": "nucleo", "registro": "companhia que escolhe",
+        "genero": "m", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Um peixe dourado. Nada perto dela.",
+            "O peixe chega. Fica do lado. Ela sorri.",
+            "Um brilho nada em volta. Os olhos dela vão."
+          ],
+          "n2": [
+            "Um peixe dourado chega pertinho e nada em volta da Joana.",
+            "O peixe escolhe ficar do lado dela, de um lado pro outro.",
+            "Um peixe pequeno aparece, sem medo, e o olhar dela vai atrás."
+          ],
+          "n3": [
+            "Um peixe pequeno e dourado chega sem medo nenhum e fica — nadando em volta da Joana, na frente, do lado, como quem mostra que ela é visita bem-vinda.",
+            "O peixe aparece do nada, dourado e rápido, e resolve que a Joana é da turma: nada pertinho, some atrás dela, volta pelo outro lado, brincando de aparecer."
+          ],
+          "n4": [
+            "Um peixe pequeno e dourado chega sem medo nenhum, olha a Joana de um lado, do outro, e resolve: hoje ele tem companhia. Fica nadando em volta dela, na frente, atrás, brilhando cada vez que cruza um fio de luz — e a Joana vai junto, devagar, com a mão parada na água pra mostrar que visita boa não agarra.",
+            "O primeiro morador vem conferir a visita: um peixe dourado, pequeno e faceiro, que nada uma volta completa em torno da Joana como quem mede se ela é do bem. Aprovada — ele encosta quase na mão dela, dispara, volta, e fica por perto o resto do mergulho, do jeito de quem escolheu."
+          ]
+        },
+        "tempera": [
+          { "se": "pos:inicio", "entao": {
+            "n1": "O mergulho começa com companhia. Ela sorri.",
+            "n2": "A primeira coisa do mar é uma companhia dourada pra ela.",
+            "n3": "O mergulho da Joana começa do melhor jeito: com um peixe dourado chegando pra acompanhar, antes de tudo.",
+            "n4": "O mergulho da Joana começa do melhor jeito que um mar pode oferecer: companhia. O peixe dourado chega antes de qualquer outra coisa, dá a volta de conferência e assume o posto — visita guiada, morador da casa, nadadeira na frente."
+          } },
+          { "se": ["tem:coral", "antes_de:coral"], "entao": {
+            "n1": "O peixe nada na frente. Ela vai atrás.",
+            "n2": "O peixe nada na frente, apressadinho, e a Joana vai atrás.",
+            "n3": "O peixe dispara na frente e volta, na frente e volta — quer levar a Joana pra algum lugar, e ela vai.",
+            "n4": "O peixe começa a nadar na frente com propósito: dispara, volta, dispara de novo, conferindo se a Joana está vindo. Ela vai — braçada devagar, riso guardado — porque quando um morador do mar convida pra conhecer a casa, a visita aceita."
+          } }
+        ]
+      },
+      "concha": {
+        "emoji": "🐚", "nome": "concha", "papel_no_fim": "neutro", "registro": "segredo de ouvir",
+        "genero": "f", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Uma concha na areia. A mão dela pega.",
+            "Lisa, rosada. Ela ouve de perto.",
+            "A concha guarda o mar. Ela escuta."
+          ],
+          "n2": [
+            "Uma concha rosada espera na areia, e a mão da Joana pega devagar.",
+            "A concha é lisa e enrolada, e ela encosta no ouvido.",
+            "Dentro da concha tem barulho de mar, e ela escuta quietinha."
+          ],
+          "n3": [
+            "Uma concha rosada espera na areia clarinha. A Joana pega com cuidado, sente o liso na palma e encosta no ouvido — lá dentro, o mar está contando ele mesmo.",
+            "A concha é enrolada em espiral, lisa de escorregar. A Joana segue o desenho com o dedo até a abertura, e então encosta no ouvido: tem um mar pequenininho morando ali."
+          ],
+          "n4": [
+            "Meio enterrada na areia clarinha, uma concha rosada espera — lisa, enrolada em espiral perfeita, desenhada com um capricho que só o mar tem. A Joana pega com as duas mãos, segue o desenho com o dedo devagarinho, e encosta no ouvido: lá dentro mora um barulho de mar inteiro, contando e contando, guardado só pra quem pede com jeito.",
+            "A Joana acha a concha pelo cor-de-rosa no meio do clarinho da areia. É lisa feito vidro de rio, enroladinha em espiral, e cabe certinho na palma da mão. Ela encosta no ouvido sem pressa — e arregala os olhos: o mar de dentro é igualzinho ao de fora, só que menor, e conta as coisas mais de pertinho."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:bau", "antes_de:bau"], "entao": {
+            "n1": "A concha na mão dela parece chave. De quê?",
+            "n2": "A concha fica na mão dela, firme, parecendo chave de alguma coisa.",
+            "n3": "A Joana fecha a mão na concha e sente: parece uma chave. Uma chave de quê, ela ainda não sabe — mas guarda bem guardada.",
+            "n4": "A concha se ajeita na mão da Joana de um jeito esquisito e bom: firme, encaixada, parecendo chave de alguma coisa que ainda vai aparecer. Ela não sabe do quê — mas o mar sabe, e ela fecha os dedos em volta, guardando a chave pra hora certa."
+          } }
+        ]
+      },
+      "coral": {
+        "emoji": "🪸", "nome": "coral", "papel_no_fim": "neutro", "registro": "jardim do mar",
+        "genero": "m", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Um jardim no fundo. Cores! Ela boia por cima.",
+            "O coral é colorido. Os olhos dela passeiam.",
+            "Cores paradas no fundo. Ela olha uma a uma."
+          ],
+          "n2": [
+            "Um jardim de coral abre no fundo, e a Joana boia por cima, olhando tudo.",
+            "O coral tem todas as cores, e os olhos dela não sabem qual escolher.",
+            "Um jardim parado espera no fundo, e ela visita com o olhar."
+          ],
+          "n3": [
+            "Um jardim de coral abre lá embaixo — galhos redondos, leques abertos, todas as cores paradas. A Joana boia por cima devagar, sem tocar, passeando de cor em cor com os olhos.",
+            "O coral é o jardim do mar: plantado, colorido, cheio de janelinhas. A Joana chega boiando devagar e fica por cima, quieta, vendo os moradores entrarem e saírem."
+          ],
+          "n4": [
+            "O fundo abre num jardim de coral: galhos redondos cor de laranja, leques roxos abanando devagar, montinhos amarelos, janelinhas por onde entram e saem moradores minúsculos. A Joana boia por cima com todo o cuidado, os braços parados, passeando de cor em cor só com os olhos — jardim do mar se visita assim, sem colher nada, e mesmo assim a gente sai cheio.",
+            "A Joana chega no jardim mais bonito que já viu: um coral de todas as cores, plantado no fundo como se o mar tivesse capricho de jardineiro. Ela fica boiando por cima um tempão, quieta, escolhendo a cor preferida e trocando de escolha a cada volta dos olhos — no fim decide que a preferida é todas."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:peixe", "depois_de:peixe"], "entao": {
+            "n1": "O peixe entra no jardim. É a casa dele! Ela entende.",
+            "n2": "O peixe some numa janelinha do coral: era ali a casa dele, e ela ri.",
+            "n3": "O peixe dispara e some numa janelinha do coral — depois aparece em outra, e em outra. A Joana entende, rindo: o jardim é o bairro dele.",
+            "n4": "O peixe dourado dispara na frente e some numa janelinha do coral. A Joana chega mais perto, procurando — e ele aparece em outra janelinha, depois em outra, brincando de esconde-esconde na própria casa. Ela ri de bolinhas: o jardim inteiro é o bairro dele, e ela foi apresentada."
+          } }
+        ]
+      },
+      "alga": {
+        "emoji": "🌱", "nome": "alga", "papel_no_fim": "neutro", "registro": "dança da correnteza",
+        "genero": "f", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Fitas verdes dançam. Ela balança junto.",
+            "A alga vai e vem. O corpo dela vai junto.",
+            "Dança na água. Ela entra na dança."
+          ],
+          "n2": [
+            "As fitas verdes dançam devagar, e o corpo da Joana balança junto.",
+            "A alga vai e vem com a água, e a Joana vai e vem também.",
+            "A dança das fitas não para, e os braços dela entram nela."
+          ],
+          "n3": [
+            "As fitas verdes dançam com a correnteza, todas pro mesmo lado, sem parar nunca. A Joana fica no meio e o corpo entra na dança sozinho — vai, vem, vai, no embalo da água.",
+            "A alga dança a dança mais antiga do mar, devagar, sem errar nunca. A Joana estica os braços e deixa a água ensinar: pro lado, pro outro, no mesmo tempo das fitas."
+          ],
+          "n4": [
+            "As fitas verdes das algas dançam com a correnteza — todas pro mesmo lado, depois todas pro outro, devagar, sem parar e sem errar nunca. A Joana entra no meio e em dois balanços já é uma delas: o corpo vai e vem sozinho, os braços sobem devagar, o cabelo dança junto. É a dança mais antiga do mar, e ela foi aceita na roda.",
+            "Ninguém ensaiou, ninguém rege, e mesmo assim as algas dançam juntas há mais tempo do que qualquer um lembra. A Joana para no meio das fitas verdes e desiste de ficar parada: a água embala, o corpo responde, e daqui a pouco ela e as algas são a mesma dança — vai, vem, vai — até esquecer quem começou."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:peixe", "depois_de:peixe"], "entao": {
+            "n1": "O peixe some nas fitas. Acha! Ela ri.",
+            "n2": "O peixe brinca de sumir nas fitas, e a Joana acha ele toda vez.",
+            "n3": "O peixe entra no meio das fitas e some — a Joana procura, procura... e ele sai do outro lado, faceiro. De novo!",
+            "n4": "O peixe descobre a brincadeira perfeita: entrar nas fitas e sumir. A Joana procura, procura — nada de peixe — e ele sai do outro lado, faceiro, esperando ela achar. De novo, e de novo: no meio da dança das algas, os dois inventam o melhor esconde-esconde do mar."
+          } },
+          { "se": "tem:tartaruga", "entao": {
+            "n1": "As fitas abrem caminho. A tartaruga passa. Ela vê.",
+            "n2": "As fitas se abrem como cortina, e a tartaruga passa no meio, e ela olha.",
+            "n3": "As fitas verdes se abrem como cortina de teatro, e a tartaruga atravessa no meio, devagar — a Joana assiste de boca aberta.",
+            "n4": "Quando a tartaruga vem vindo, as fitas verdes se abrem sozinhas, como cortina de teatro no começo do espetáculo. Ela atravessa pelo corredor, devagar, no capricho — e a Joana assiste de boca aberta: até a dança para pra deixar a calma passar."
+          } }
+        ]
+      },
+      "polvo": {
+        "emoji": "🐙", "nome": "polvo", "papel_no_fim": "neutro", "registro": "curiosidade de oito jeitos",
+        "genero": "m", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Um polvo espia. Curioso. Ela também.",
+            "Braços macios chegam. Um de cada vez. Ela espera.",
+            "O polvo muda de cor. Os olhos dela crescem."
+          ],
+          "n2": [
+            "Um polvo pequeno espia a Joana, e estica um braço curioso.",
+            "O polvo chega devagar, braço por braço, e ela fica bem quieta.",
+            "O polvo fica cor-de-rosa de curioso, e a Joana ri baixinho."
+          ],
+          "n3": [
+            "Um polvo pequeno espia de trás da pedra, curioso, e estica um braço macio na direção da Joana. Ela estica o dedo devagar — e o toque é de cócega leve.",
+            "O polvo chega do jeito dele: um braço, depois outro, mudando de cor a cada pensamento. A Joana fica paradinha, o dedo esticado, o riso preso — visita de polvo é cerimônia."
+          ],
+          "n4": [
+            "Um polvo pequeno espia de trás da pedra e resolve investigar a visita: vem vindo devagar, um braço macio de cada vez, mudando de cor conforme pensa — rosinha de curioso, avermelhado de animado. A Joana estica o dedo bem devagar e espera. O braço chega, encosta na ponta do dedo dela, enrola de leve — uma cócega delicada — e ela segura o riso pra não assustar a coragem dele.",
+            "O polvo é o morador mais curioso do fundo: não aguenta ver visita sem conferir. Chega braço por braço, espia com os olhos espertos, e quando a Joana estica o dedo ele responde na hora — encosta, enrola, aperta de levinho, como um aperto de mão inventado agora. Os dois ficam se conhecendo assim um tempão, toque por toque, e o polvo muda de cor três vezes de contentamento."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:concha", "depois_de:concha"], "entao": {
+            "n1": "O polvo quer ver a concha da mão dela. Mostra.",
+            "n2": "O polvo estica um braço pra concha na mão dela, colecionador.",
+            "n3": "O polvo vê a concha na mão da Joana e estica um braço, interessadíssimo — polvo é colecionador, e aquela é das boas.",
+            "n4": "O polvo enxerga a concha na mão da Joana e não resiste: estica um braço, depois outro, interessadíssimo — polvo é o colecionador oficial do fundo, e aquela espiral rosada claramente é peça rara. A Joana mostra de longe, ele admira de perto, e os dois fecham acordo silencioso: olhar pode, levar não."
+          } },
+          { "se": ["tem:bau", "antes_de:bau"], "entao": {
+            "n1": "O polvo aponta pra frente. Tem segredo lá. Ela vai.",
+            "n2": "O polvo aponta com três braços pra mesma direção, e ela entende: tem segredo lá.",
+            "n3": "O polvo fica sério de repente e aponta com três braços pra mesma direção. A Joana entende o recado: tem alguma coisa esperando lá na frente.",
+            "n4": "O polvo para de brincar de repente, muda pra uma cor caprichada e aponta com três braços pra mesma direção, solene como um guarda do fundo do mar. A Joana entende o recado na hora: tem alguma coisa importante esperando lá na frente — e morador que aponta assim não aponta à toa."
+          } }
+        ]
+      },
+      "tartaruga": {
+        "emoji": "🐢", "nome": "tartaruga", "papel_no_fim": "neutro", "registro": "calma antiga",
+        "genero": "f", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Uma tartaruga passa. Voa devagar. Ela boia junto.",
+            "Grande e calma. A Joana vai do lado.",
+            "A tartaruga plana. O corpo dela acalma."
+          ],
+          "n2": [
+            "Uma tartaruga grande passa voando na água, e a Joana boia do lado.",
+            "A tartaruga atravessa devagar, e a calma dela pega na Joana.",
+            "A tartaruga nem se apressa, e a respiração dela desce junto."
+          ],
+          "n3": [
+            "Uma tartaruga grande e antiga atravessa o mar como quem voa em câmera lenta. A Joana boia do lado, pegando carona na calma, e a respiração dela vai descendo até ficar do tamanho do mar.",
+            "A tartaruga passa devagar, do jeito de quem já viu tudo e continua achando bonito. A Joana acompanha de pertinho, quieta — perto de tartaruga, até o coração aprende a nadar devagar."
+          ],
+          "n4": [
+            "Uma tartaruga grande e antiga vem atravessando o mar como quem voa em câmera lenta — as nadadeiras subindo e descendo sem pressa nenhuma, o casco desenhado passando perto como um mapa antigo. A Joana boia do lado e pega carona na calma: a respiração desce, os ombros soltam, e por um tempo comprido as duas atravessam o mar juntas, cada uma no seu tamanho de silêncio.",
+            "A tartaruga é a moradora mais antiga do fundo, e nada como quem tem todo o tempo que existe. A Joana emparelha de mansinho e vai junto, olhando o casco desenhado, as nadadeiras remando devagar — e sem perceber vai ficando igual: lenta, leve, calma. Tartaruga ensina sem falar nada, só deixando acompanhar."
+          ]
+        },
+        "tempera": [
+          { "se": "tem:peixe", "entao": {
+            "n1": "O peixe pega carona na sombra dela. Ela ri.",
+            "n2": "O peixe pega carona na sombra da tartaruga, e a Joana ri das bolhas.",
+            "n3": "O peixe se ajeita na sombra da tartaruga e vai de carona, remando de mentirinha — a Joana ri por dentro: até morador pega carona.",
+            "n4": "O peixe descobre o melhor lugar do mar: a sombra da tartaruga. Se ajeita ali embaixo e vai de carona, remando de mentirinha pra disfarçar, e a Joana segura o riso pra não soltar bolhas — no fundo do mar também tem espertinho, e a tartaruga finge que não viu."
+          } }
+        ]
+      },
+      "bau": {
+        "emoji": "🧰", "nome": "baú", "papel_no_fim": "chave", "registro": "tesouro do fim",
+        "genero": "m", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Um baú no fundo. Fechado. Ela chega perto.",
+            "O baú espera. As mãos dela vão na tampa.",
+            "Que tesouro tem? Ela quer ver."
+          ],
+          "n2": [
+            "Um baú antigo espera na areia, e a Joana chega devagar.",
+            "A tampa é pesada, e as mãos dela abrem com cuidado.",
+            "O baú guarda um segredo, e os olhos dela crescem."
+          ],
+          "n3": [
+            "Um baú antigo espera meio afundado na areia, com um pouco de mar por cima. A Joana segura a tampa pesada com as duas mãos e abre devagar — e a luz de dentro sobe pelo rosto dela.",
+            "O baú está ali faz tanto tempo que virou parte do fundo. A Joana ajoelha na areia, abre a tampa com força e cuidado juntos, e espia: o mar guardou um brilho pra ela."
+          ],
+          "n4": [
+            "O baú antigo espera meio afundado na areia clarinha, de madeira escura e fecho desenhado, com cara de quem guarda segredo faz cem anos. A Joana ajoelha na frente, segura a tampa pesada com as duas mãos e abre devagarinho — e de dentro sobe um brilho que acende o rosto dela por baixo, como se o baú devolvesse toda a luz que juntou esperando.",
+            "Todo fundo do mar guarda um baú, mas poucos aparecem pra visita — este apareceu. A Joana chega devagar, limpa a areia de cima com a mão, e abre a tampa pesada com o capricho de quem abre presente: lá dentro, o mar juntou brilhos de todo tipo, moedinhas de luz, segredos que não se conta. Ela olha demorado e fecha de volta — tesouro de mar se visita, não se leva embora."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:polvo", "depois_de:polvo"], "entao": {
+            "n1": "O polvo ajuda na tampa. Oito braços! Ela agradece.",
+            "n2": "O polvo chega pra ajudar na tampa, com todos os braços, e ela agradece.",
+            "n3": "A tampa está dura — e o polvo chega pra ajudar, os oito braços puxando junto com as mãos da Joana. Juntos: conseguiram.",
+            "n4": "A tampa emperra, pesada de anos — e o polvo aparece do lado, arregaça os oito braços e puxa junto com as mãos da Joana. Um, dois, três... abriu! Os dois se olham, vitoriosos, e ela agradece com a cabeça: no fundo do mar, tesouro bom se abre em mutirão."
+          } },
+          { "se": ["tem:concha", "depois_de:concha"], "entao": {
+            "n1": "A concha encaixa no desenho da tampa. Era a chave dela!",
+            "n2": "A concha da mão dela encaixa certinho no desenho da tampa: era a chave!",
+            "n3": "A Joana olha a concha na mão, olha o desenho da tampa — e encaixa: certinho, era a chave o tempo todo. O baú abre suspirando areia.",
+            "n4": "O desenho do fecho parece familiar, e a Joana entende de uma vez: pega a concha que carregava, encaixa no desenho da tampa — serviu certinho, era a chave o tempo todo. O baú abre devagar, suspirando um pouquinho de areia, e ela sorri enorme: o mar tinha entregado a chave logo no caminho, esperando ela perceber."
+          } },
+          { "se": "pos:fim", "entao": {
+            "n1": "O mar guarda o baú pro fim. Ela abre por último.",
+            "n2": "O mar guardou o baú pro fim da visita, e ela abre por último, caprichando.",
+            "n3": "O mar guardou o baú pro finzinho, do jeito das boas visitas: a Joana abre por último, devagar, sabendo que é o presente de despedida.",
+            "n4": "O mar guardou o baú pro finzinho da visita, do jeito das boas anfitriãs: primeiro os moradores, depois o tesouro. A Joana abre por último, devagar, caprichando — e entende o recado do fundo: quem visita inteiro, termina com presente."
+          } }
+        ]
+      }
+    }
+  }
+}

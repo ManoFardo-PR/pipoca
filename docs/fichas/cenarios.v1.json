@@ -33,6 +33,17 @@
         "n3": "o fresco da sombra na pele; a vontade de ir mais fundo, pisando devagar pra não assustar os segredos",
         "n4": "o fresco da sombra na pele e o cheiro de terra e de verde; a vontade de ir mais fundo, pisando devagar, como quem entra num lugar que está contando um segredo agora mesmo"
       }
+    },
+    "fundomar_calmo": {
+      "nome": "O Fundo do Mar",
+      "descricao": "um mar raso e calmo, de água morna e clara — luz do sol entrando em fios, areia clarinha no fundo, e o mundo todo balançando devagar",
+      "voz_do_contador": "o mar conta devagar, no embalo da água: apresenta um morador de cada vez, e pede licença antes de mostrar o próximo",
+      "sensacao_no_personagem": {
+        "n1": "a água morna na pele",
+        "n2": "a água morna na pele; o corpo leve, boiando",
+        "n3": "a água morna na pele e o corpo leve, boiando devagar; a vontade de conhecer cada morador",
+        "n4": "a água morna na pele e o corpo leve, boiando devagar no embalo; a vontade de conhecer cada morador do mar, um por um, sem espantar nenhum"
+      }
     }
   }
 }

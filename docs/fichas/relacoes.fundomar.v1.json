@@ -1,0 +1,181 @@
+{
+  "esquema": "pipoca.fichas.v1",
+  "cenario": "fundomar_calmo",
+  "objeto_x_objeto": [
+    {
+      "se": ["tem:coral", "antes_de:coral"],
+      "objeto": "peixe",
+      "alvo": "coral",
+      "interacao": {
+        "n1": "o peixe nada na frente, convidando",
+        "n2": "o peixe nadando na frente, apressadinho, convidando pra conhecer",
+        "n3": "o peixe disparando na frente e voltando, na frente e voltando — convidando pra conhecer a casa",
+        "n4": "o peixe nadando na frente com propósito, disparando e voltando pra conferir a companhia — morador convidando a visita pra conhecer a casa"
+      }
+    },
+    {
+      "se": ["tem:bau", "antes_de:bau"],
+      "objeto": "concha",
+      "alvo": "bau",
+      "interacao": {
+        "n1": "a concha firme na mão, parecendo chave",
+        "n2": "a concha firme na mão, parecendo chave de alguma coisa",
+        "n3": "a concha encaixada na mão, firme, parecendo chave de alguma coisa que ainda vem",
+        "n4": "a concha encaixada na mão de um jeito esquisito e bom — firme, certeira, parecendo chave de alguma coisa que o mar ainda vai mostrar"
+      }
+    },
+    {
+      "se": ["tem:peixe", "depois_de:peixe"],
+      "objeto": "coral",
+      "alvo": "peixe",
+      "interacao": {
+        "n1": "o peixe sumindo nas janelinhas do jardim",
+        "n2": "o peixe sumindo numa janelinha do coral e aparecendo em outra",
+        "n3": "o peixe sumindo numa janelinha do coral e aparecendo em outra, faceiro — o jardim é o bairro",
+        "n4": "o peixe sumindo numa janelinha do coral e aparecendo em outra, e em outra, brincando de esconde-esconde na própria casa — o jardim inteiro é o bairro"
+      }
+    },
+    {
+      "se": ["tem:peixe", "depois_de:peixe"],
+      "objeto": "alga",
+      "alvo": "peixe",
+      "interacao": {
+        "n1": "o peixe brincando de sumir nas fitas",
+        "n2": "o peixe brincando de sumir e aparecer no meio das fitas",
+        "n3": "o peixe entrando nas fitas e sumindo, saindo do outro lado faceiro — o melhor esconde-esconde",
+        "n4": "o peixe entrando nas fitas verdes e sumindo, saindo do outro lado faceiro, de novo e de novo — o melhor esconde-esconde que o mar já inventou"
+      }
+    },
+    {
+      "se": "tem:tartaruga",
+      "objeto": "alga",
+      "alvo": "tartaruga",
+      "interacao": {
+        "n1": "as fitas abrindo caminho pra calma passar",
+        "n2": "as fitas se abrindo como cortina pra tartaruga passar",
+        "n3": "as fitas verdes se abrindo como cortina de teatro pra tartaruga atravessar no meio",
+        "n4": "as fitas verdes se abrindo por conta própria, como cortina de espetáculo — até a dança para pra deixar a calma atravessar pelo corredor"
+      }
+    },
+    {
+      "se": ["tem:concha", "depois_de:concha"],
+      "objeto": "polvo",
+      "alvo": "concha",
+      "interacao": {
+        "n1": "o polvo esticando um braço pra concha",
+        "n2": "o polvo esticando um braço curioso pra concha, colecionador",
+        "n3": "o polvo esticando braços interessadíssimos pra concha — colecionador diante de peça rara",
+        "n4": "o polvo esticando um braço, depois outro, interessadíssimo na espiral rosada — o colecionador oficial do fundo diante de peça rara; olhar pode, levar não"
+      }
+    },
+    {
+      "se": ["tem:bau", "antes_de:bau"],
+      "objeto": "polvo",
+      "alvo": "bau",
+      "interacao": {
+        "n1": "o polvo apontando pra frente com três braços",
+        "n2": "o polvo apontando com três braços pra mesma direção",
+        "n3": "o polvo apontando com três braços pra mesma direção, solene — tem coisa importante lá",
+        "n4": "o polvo mudando pra uma cor caprichada e apontando com três braços pra mesma direção, solene — morador que aponta assim não aponta à toa"
+      }
+    },
+    {
+      "se": "tem:peixe",
+      "objeto": "tartaruga",
+      "alvo": "peixe",
+      "interacao": {
+        "n1": "o peixe de carona na sombra grande",
+        "n2": "o peixe pegando carona na sombra da tartaruga",
+        "n3": "o peixe ajeitado na sombra da tartaruga, de carona, remando de mentirinha",
+        "n4": "o peixe ajeitado na sombra da tartaruga, de carona, remando de mentirinha pra disfarçar — e a tartaruga fingindo que não viu"
+      }
+    },
+    {
+      "se": ["tem:polvo", "depois_de:polvo"],
+      "objeto": "bau",
+      "alvo": "polvo",
+      "interacao": {
+        "n1": "oito braços ajudando na tampa",
+        "n2": "o polvo puxando a tampa junto, com todos os braços",
+        "n3": "a tampa dura cedendo com oito braços puxando junto — tesouro aberto em mutirão",
+        "n4": "a tampa pesada de anos cedendo com os oito braços do polvo puxando junto das mãos — no fundo do mar, tesouro bom se abre em mutirão"
+      }
+    },
+    {
+      "se": ["tem:concha", "depois_de:concha"],
+      "objeto": "bau",
+      "alvo": "concha",
+      "interacao": {
+        "n1": "a concha encaixando no desenho da tampa",
+        "n2": "a concha encaixando certinho no desenho da tampa: a chave",
+        "n3": "a concha encaixando certinho no desenho da tampa — era a chave o tempo todo",
+        "n4": "a concha encaixando certinho no desenho do fecho — era a chave o tempo todo, entregue pelo mar logo no caminho, esperando alguém perceber"
+      }
+    }
+  ],
+  "objeto_x_cenario": [
+    {
+      "objeto": "peixe",
+      "manifestacao": {
+        "n1": "um brilho dourado na água",
+        "n2": "um peixe dourado nadando na água clara",
+        "n3": "um peixe pequeno e dourado cruzando os fios de luz da água do mar",
+        "n4": "um peixe pequeno e dourado cruzando os fios de luz do mar calmo, brilhando a cada passada — o primeiro morador que vem conferir a visita"
+      }
+    },
+    {
+      "objeto": "concha",
+      "manifestacao": {
+        "n1": "uma concha rosada na areia",
+        "n2": "uma concha rosada esperando na areia clarinha",
+        "n3": "uma concha rosada meio enterrada na areia clarinha do fundo, desenhada em espiral",
+        "n4": "uma concha rosada meio enterrada na areia clarinha do fundo, enrolada em espiral perfeita — desenhada com o capricho que só o mar tem"
+      }
+    },
+    {
+      "objeto": "coral",
+      "manifestacao": {
+        "n1": "um jardim de cores no fundo",
+        "n2": "um jardim de coral colorido plantado no fundo",
+        "n3": "um jardim de coral de todas as cores, plantado no fundo do mar calmo",
+        "n4": "um jardim de coral plantado no fundo como se o mar tivesse capricho de jardineiro — galhos redondos, leques abertos, janelinhas de morador"
+      }
+    },
+    {
+      "objeto": "alga",
+      "manifestacao": {
+        "n1": "fitas verdes dançando na água",
+        "n2": "fitas verdes de alga dançando com a correnteza",
+        "n3": "fitas verdes de alga dançando com a correnteza do mar, todas pro mesmo lado",
+        "n4": "fitas verdes de alga dançando com a correnteza do mar calmo, todas pro mesmo lado e sem pressa — a dança mais antiga da casa"
+      }
+    },
+    {
+      "objeto": "polvo",
+      "manifestacao": {
+        "n1": "um polvo espiando de trás da pedra",
+        "n2": "um polvo curioso espiando de trás da pedra do fundo",
+        "n3": "um polvo pequeno espiando de trás de uma pedra do fundo, mudando de cor de curioso",
+        "n4": "um polvo pequeno espiando de trás de uma pedra arredondada do fundo, mudando de cor conforme pensa — o morador mais curioso da vizinhança"
+      }
+    },
+    {
+      "objeto": "tartaruga",
+      "manifestacao": {
+        "n1": "uma tartaruga voando na água",
+        "n2": "uma tartaruga grande atravessando o mar devagar",
+        "n3": "uma tartaruga grande e antiga atravessando o mar calmo como quem voa devagar",
+        "n4": "uma tartaruga grande e antiga atravessando o mar calmo em câmera lenta — a moradora mais antiga do fundo, com todo o tempo que existe"
+      }
+    },
+    {
+      "objeto": "bau",
+      "manifestacao": {
+        "n1": "um baú antigo na areia do fundo",
+        "n2": "um baú antigo meio afundado na areia do fundo",
+        "n3": "um baú antigo de madeira escura, meio afundado na areia clarinha do fundo",
+        "n4": "um baú antigo de madeira escura meio afundado na areia clarinha, com um pouco de mar por cima — esperando visita faz tanto tempo que virou parte do fundo"
+      }
+    }
+  ]
+}

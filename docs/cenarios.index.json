@@ -46,8 +46,8 @@
       "nome": "Fundo do Mar",
       "descricao": "Com peixes e corais",
       "icone": "🐠",
-      "grafo": null,
-      "relacoes": null,
+      "grafo": "./docs/fundomar.v3.json",
+      "relacoes": "./docs/fichas/relacoes.fundomar.v1.json",
       "svg": "fundomar",
       "disponivel": false
     }

@@ -400,6 +400,146 @@
           "n4": "o rosto entrando na luz morna de uma vez; os braços abrindo devagar, o peito enchendo de ar dourado, como quem chega num lugar que era segredo"
         }
       }
+    },
+    "peixe": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "um peixe pequeno e dourado",
+        "n2": "um peixe pequeno e dourado, que nada pertinho",
+        "n3": "um peixe pequeno e dourado que chega sem medo e fica nadando pertinho, de um lado pro outro",
+        "n4": "um peixe pequeno e dourado que chega sem medo nenhum e resolve ficar — nadando pertinho, de um lado pro outro, como quem decidiu que hoje tem companhia"
+      },
+      "sensacao": {
+        "dominante": "movimento acompanhado (nada do lado)",
+        "registro": "companhia que escolhe",
+        "corpo": {
+          "n1": "os olhos seguem o dourado",
+          "n2": "os olhos seguem o dourado; a mão para na água",
+          "n3": "os olhos seguindo o dourado de um lado pro outro; a mão parada na água, esperando a confiança chegar",
+          "n4": "os olhos seguindo o dourado; a mão parada na água de propósito, os dedos bem quietos, esperando ele chegar mais perto por conta própria"
+        }
+      }
+    },
+    "concha": {
+      "genero": "f",
+      "numero": "sg",
+      "descricao": {
+        "n1": "uma casa pequena do mar, lisa",
+        "n2": "uma concha lisa e rosada, enrolada como caracol",
+        "n3": "uma concha lisa e rosada, enrolada em espiral, que guarda um segredo pra quem encostar o ouvido",
+        "n4": "uma concha lisa e rosada, enrolada em espiral perfeita — por fora, desenhada com capricho; por dentro, guardando o barulho do mar inteiro pra quem souber pedir"
+      },
+      "sensacao": {
+        "dominante": "tato-liso + ouvido (o mar guardado dentro)",
+        "registro": "segredo de ouvir",
+        "corpo": {
+          "n1": "a mão sente o liso",
+          "n2": "a mão sente o liso; o ouvido chega perto",
+          "n3": "a mão sentindo o liso da espiral; o ouvido chegando pertinho da abertura",
+          "n4": "a mão sentindo o liso da espiral, o dedo seguindo o desenho; o ouvido chegando pertinho, esperando o mar de dentro começar a contar"
+        }
+      }
+    },
+    "coral": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "um jardim de cores no fundo",
+        "n2": "um jardim parado, de todas as cores, no fundo do mar",
+        "n3": "um jardim parado e colorido, cheio de galhos redondos e janelinhas por onde o mar respira",
+        "n4": "um jardim parado de todas as cores — galhos redondos, leques abertos, janelinhas por onde entram e saem os moradores — plantado no fundo como se o mar tivesse capricho"
+      },
+      "sensacao": {
+        "dominante": "visão-cores (jardim parado)",
+        "registro": "jardim do mar",
+        "corpo": {
+          "n1": "os olhos passeiam nas cores",
+          "n2": "os olhos passeiam nas cores; o corpo boia parado",
+          "n3": "os olhos passeando de cor em cor; o corpo boiando parado por cima, sem tocar",
+          "n4": "os olhos passeando de cor em cor, sem pressa de escolher a preferida; o corpo boiando parado por cima, com cuidado de não encostar — jardim do mar se visita só com o olhar"
+        }
+      }
+    },
+    "alga": {
+      "genero": "f",
+      "numero": "sg",
+      "descricao": {
+        "n1": "fitas verdes que dançam na água",
+        "n2": "fitas verdes compridas, dançando devagar na água",
+        "n3": "fitas verdes compridas que dançam com a correnteza, todas pro mesmo lado, sem parar nunca",
+        "n4": "fitas verdes compridas dançando com a correnteza, todas pro mesmo lado e sem pressa — a dança mais antiga do mar, que ninguém ensaiou e nunca erra"
+      },
+      "sensacao": {
+        "dominante": "movimento-dança (balanço da água)",
+        "registro": "dança da correnteza",
+        "corpo": {
+          "n1": "o corpo balança junto",
+          "n2": "o corpo balança junto; os braços vão devagar",
+          "n3": "o corpo balançando junto com a dança; os braços indo devagar pro mesmo lado",
+          "n4": "o corpo balançando junto, entrando na dança sem querer; os braços indo devagar pro mesmo lado das fitas, até não saber quem começou"
+        }
+      }
+    },
+    "polvo": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "um morador de muitos braços, curioso",
+        "n2": "um polvo pequeno e curioso, de braços macios",
+        "n3": "um polvo pequeno e curioso que muda de cor, esticando um braço de cada vez pra conhecer",
+        "n4": "um polvo pequeno e curioso, de braços macios que se esticam um de cada vez — ele conhece o mundo por toque, e muda de cor conforme o que descobre"
+      },
+      "sensacao": {
+        "dominante": "toque curioso (braço a braço)",
+        "registro": "curiosidade de oito jeitos",
+        "corpo": {
+          "n1": "o dedo estica devagar",
+          "n2": "o dedo estica devagar; o riso fica preso",
+          "n3": "o dedo esticando devagar na direção do braço curioso; o riso preso na boca",
+          "n4": "o dedo esticando devagar até o braço curioso encostar de leve; o riso preso na boca, o coração dando um pulinho de cócega"
+        }
+      }
+    },
+    "tartaruga": {
+      "genero": "f",
+      "numero": "sg",
+      "descricao": {
+        "n1": "uma tartaruga grande, que voa na água",
+        "n2": "uma tartaruga grande e antiga, que voa devagar na água",
+        "n3": "uma tartaruga grande e antiga, que atravessa o mar como quem voa devagar, sem pressa de chegar",
+        "n4": "uma tartaruga grande e antiga, do casco desenhado, que atravessa o mar como quem voa em câmera lenta — carregando uma calma de quem já viu tudo e continua achando bonito"
+      },
+      "sensacao": {
+        "dominante": "quietude/planar (calma antiga)",
+        "registro": "calma antiga",
+        "corpo": {
+          "n1": "o corpo boia do lado",
+          "n2": "o corpo boia do lado; a respiração desce",
+          "n3": "o corpo boiando do lado, pegando carona na calma; a respiração descendo devagar",
+          "n4": "o corpo boiando do lado, pegando carona na calma antiga; a respiração descendo devagar, até ficar do tamanho do mar"
+        }
+      }
+    },
+    "bau": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "um baú antigo no fundo",
+        "n2": "um baú antigo e fechado, esperando no fundo",
+        "n3": "um baú antigo, de madeira escura e fecho desenhado, esperando no fundo faz muito tempo",
+        "n4": "um baú antigo de madeira escura, com o fecho desenhado e um pouco de areia por cima — esperando no fundo faz tanto tempo que virou parte do mar, guardando o que só abre pra visita certa"
+      },
+      "sensacao": {
+        "dominante": "descoberta (tampa pesada)",
+        "registro": "tesouro do fim",
+        "corpo": {
+          "n1": "as mãos abrem a tampa",
+          "n2": "as mãos abrem a tampa devagar; os olhos crescem",
+          "n3": "as mãos abrindo a tampa devagar, com força e cuidado; os olhos crescendo de espera",
+          "n4": "as mãos abrindo a tampa pesada devagarinho, com força e cuidado juntos; os olhos crescendo, o coração apostando no que vem"
+        }
+      }
     }
   }
 }

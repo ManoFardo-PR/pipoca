@@ -2952,7 +2952,14 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
     urso: ["urso*", "pelúcia", "pelo gasto"],
     cobertor: ["cobertor", "coberta*", "ninho"],
     estrela: ["estrela*", "brilho na janela"],
-    caixinha: ["caixinha", "caixa de música", "plim", "corda"]
+    caixinha: ["caixinha", "caixa de música", "plim", "corda"],
+    trilha: ["trilha", "caminho", "terra batida"],
+    cogumelo: ["cogumelo", "luzinha verde", "abajurzinho"],
+    riacho: ["riacho", "água", "correnteza"],
+    passaro: ["pássaro", "canto", "assobio", "fiu"],
+    musgo: ["musgo", "veludo", "tapete verde"],
+    borboleta: ["borboleta", "asas"],
+    clareira: ["clareira", "sala secreta", "dourad*"]
   };
   var TERMOS_CORPO = [
     "ela",

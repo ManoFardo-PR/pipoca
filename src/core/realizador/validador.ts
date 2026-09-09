@@ -61,6 +61,12 @@ export const ANCORAS_POR_OBJETO: Record<string, string[]> = {
   vento: ["vento", "brisa", "fresco*", "sopr*"],
   folha: ["folha", "folhas"],
   orvalho: ["orvalho", "gota*", "gotinha", "grama molhada"],
+  luminaria: ["luminária", "abajur", "roda de luz", "cor de mel"],
+  livro: ["livro", "página*", "figura*", "capa"],
+  urso: ["urso*", "pelúcia", "pelo gasto"],
+  cobertor: ["cobertor", "coberta*", "ninho"],
+  estrela: ["estrela*", "brilho na janela"],
+  caixinha: ["caixinha", "caixa de música", "plim", "corda"],
 };
 
 // Marcas de corpo/protagonista (linhagem: termos-nucleo.ts:21-50 do experimento-beats).

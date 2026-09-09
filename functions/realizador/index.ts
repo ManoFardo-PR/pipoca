@@ -438,6 +438,12 @@ const ANCORAS_POR_OBJETO: Record<string, string[]> = {
   vento: ["vento", "brisa", "fresco*", "sopr*"],
   folha: ["folha", "folhas"],
   orvalho: ["orvalho", "gota*", "gotinha", "grama molhada"],
+  luminaria: ["luminária", "abajur", "roda de luz", "cor de mel"],
+  livro: ["livro", "página*", "figura*", "capa"],
+  urso: ["urso*", "pelúcia", "pelo gasto"],
+  cobertor: ["cobertor", "coberta*", "ninho"],
+  estrela: ["estrela*", "brilho na janela"],
+  caixinha: ["caixinha", "caixa de música", "plim", "corda"],
 };
 const TERMOS_CORPO = [
   "ela", "ele", "dela", "dele", "pé", "pés", "mão", "mãos", "palma", "dedo", "dedos",

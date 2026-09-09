@@ -19,7 +19,7 @@
       "grafo": "./docs/quarto.v3.json",
       "relacoes": "./docs/fichas/relacoes.quarto.v1.json",
       "svg": "quarto",
-      "disponivel": false
+      "disponivel": true
     },
     {
       "id": "floresta_sussurrante",

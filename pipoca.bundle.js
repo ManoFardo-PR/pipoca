@@ -2959,7 +2959,14 @@ O vento chega rolando por cima do muro, balançando a grama e cheirando a terra 
     passaro: ["pássaro", "canto", "assobio", "fiu"],
     musgo: ["musgo", "veludo", "tapete verde"],
     borboleta: ["borboleta", "asas"],
-    clareira: ["clareira", "sala secreta", "dourad*"]
+    clareira: ["clareira", "sala secreta", "dourad*"],
+    peixe: ["peixe*", "dourado*"],
+    concha: ["concha", "espiral"],
+    coral: ["coral", "jardim", "janelinha*"],
+    alga: ["alga*", "fitas"],
+    polvo: ["polvo", "oito braços", "tentáculo*"],
+    tartaruga: ["tartaruga", "casco"],
+    bau: ["baú", "tesouro", "tampa"]
   };
   var TERMOS_CORPO = [
     "ela",

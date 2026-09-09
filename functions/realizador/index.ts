@@ -451,6 +451,13 @@ const ANCORAS_POR_OBJETO: Record<string, string[]> = {
   musgo: ["musgo", "veludo", "tapete verde"],
   borboleta: ["borboleta", "asas"],
   clareira: ["clareira", "sala secreta", "dourad*"],
+  peixe: ["peixe*", "dourado*"],
+  concha: ["concha", "espiral"],
+  coral: ["coral", "jardim", "janelinha*"],
+  alga: ["alga*", "fitas"],
+  polvo: ["polvo", "oito braços", "tentáculo*"],
+  tartaruga: ["tartaruga", "casco"],
+  bau: ["baú", "tesouro", "tampa"],
 };
 const TERMOS_CORPO = [
   "ela", "ele", "dela", "dele", "pé", "pés", "mão", "mãos", "palma", "dedo", "dedos",

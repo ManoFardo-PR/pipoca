@@ -49,7 +49,7 @@
       "grafo": "./docs/fundomar.v3.json",
       "relacoes": "./docs/fichas/relacoes.fundomar.v1.json",
       "svg": "fundomar",
-      "disponivel": false
+      "disponivel": true
     }
   ]
 }

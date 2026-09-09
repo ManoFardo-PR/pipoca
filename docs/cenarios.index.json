@@ -26,8 +26,8 @@
       "nome": "A Floresta",
       "descricao": "Aventura entre árvores",
       "icone": "🌲",
-      "grafo": null,
-      "relacoes": null,
+      "grafo": "./docs/floresta.v3.json",
+      "relacoes": "./docs/fichas/relacoes.floresta.v1.json",
       "svg": "floresta",
       "disponivel": false
     },

@@ -1,0 +1,423 @@
+{
+  "esquema": "pipoca.grafo-autoral.v3",
+  "niveis": {
+    "n1": "Primeiras palavras — sílabas e palavras soltas",
+    "n2": "Frases curtas — uma linha",
+    "n3": "Pequenos textos — frases ligadas",
+    "n4": "Parágrafos — histórias mais longas"
+  },
+  "regra_de_ouro": "Cada leitura no portão abre a próxima rodada. A moldura (abertura e desfecho) é sempre fixa. Cada objeto é uma micro-cena com a Joana dentro — orbita a mesma tarde na floresta, nunca os outros objetos — e por isso lê bem em qualquer ordem. A complexidade mora dentro de cada beat, não na costura entre eles.",
+  "cenario": {
+    "id": "floresta_sussurrante",
+    "nome": "A Floresta Sussurrante",
+    "personagem": "a Joana",
+    "paleta": "verde-sombra com furos de sol, virando ouro de fim de tarde",
+
+    "moldura": {
+      "abertura": {
+        "n1": [
+          "A floresta chama baixinho. A Joana entra.",
+          "A sombra é fresca. Tem segredo aí. A Joana vem ver.",
+          "A floresta sussurra. Ela para. Ela entra."
+        ],
+        "n2": [
+          "A floresta sussurra segredos na sombra, e a Joana entra devagar pra ouvir.",
+          "A tarde entrou na floresta, e a Joana entrou atrás — pisando leve, ouvindo tudo.",
+          "O verde guarda segredos que só contam baixinho. A Joana chega perto, sem pressa."
+        ],
+        "n3": [
+          "A floresta fala baixinho, num sussurro de folhas e sombra, e a Joana entra pisando leve — quem quer ouvir segredo não pode chegar fazendo barulho.",
+          "A sombra da floresta é fresca e cheia de conversas pequenas. A Joana entra devagar, de ouvido aceso: hoje ela quer descobrir de onde vêm os sussurros."
+        ],
+        "n4": [
+          "A floresta não grita as coisas que sabe: sussurra, no meio da sombra fresca, e só pra quem entra devagar. A Joana pisa no chão de terra macia com o passo mais leve que tem, o ouvido aceso, o coração animado — hoje ela vai atrás dos sussurros, um por um, até a floresta contar tudo.",
+          "No fim da tarde, a floresta fica assim: verde-escura, fresquinha, cheia de segredos conversando baixinho entre as árvores. A Joana para um instante na entrada, sentindo o cheiro de terra e de verde, e então entra — pisando devagar, de propósito, porque lugar que sussurra merece visita que escuta."
+        ]
+      },
+      "conectivos": {
+        "n1": ["Aí,", "Daí,", "Então,"],
+        "n2": ["Então,", "De repente,", "Mais adiante,", "Foi quando"],
+        "n3": ["Foi então que", "De repente,", "Mais adiante,", "E, num sussurro,"],
+        "n4": ["Foi então que", "Mais pra dentro da floresta,", "Pouco depois,"]
+      },
+      "desfecho": {
+        "convergente": {
+          "n1": [
+            "A floresta contou tudo. A Joana leva no peito. Volta.",
+            "Os segredos cabem no peito dela. Ela volta contente.",
+            "Fim dos sussurros. A Joana acena. Até amanhã, floresta."
+          ],
+          "n2": [
+            "A floresta terminou de sussurrar, e a Joana guarda os segredos no peito, um por um.",
+            "O caminho leva a Joana de volta, e ela leva a floresta inteira no peito.",
+            "Os sussurros foram ficando quietos, e a Joana volta pra casa cheia de segredos bons."
+          ],
+          "n3": [
+            "Quando a floresta termina de sussurrar, a Joana guarda os segredos no peito, um por um, e o caminho leva ela de volta — mais leve do que veio, cheia de coisas que só ela sabe.",
+            "A floresta contou o que tinha pra contar, e agora sussurra só o vento nas copas. A Joana volta pelo caminho de terra, devagarinho, guardando cada segredo no peito pra não derramar nenhum."
+          ],
+          "n4": [
+            "Quando a floresta termina de contar, os sussurros vão baixando até virar só o farfalhar de sempre lá no alto. A Joana volta pelo caminho de terra macia, pisando leve do mesmo jeito que entrou — mas por dentro vai diferente: cheia de segredos verdes, um por um guardados no peito, desses que a gente leva pra casa e ninguém percebe, mas mudam o jeito de dormir.",
+            "A floresta acompanha a Joana até a saída, do jeito dela: uma sombra fresca de um lado, um sussurro de outro, o cheiro de terra indo junto até a beirada. Na saída, a Joana olha pra trás uma vez — o verde já está guardando os segredos de novo, quietinho — e ela sorri, porque agora uma parte daquilo é dela, e floresta não conta, mas também não esquece."
+          ]
+        },
+        "max_ecos": 1,
+        "aberto": [
+          {
+            "se_comecou_com": "cogumelo",
+            "se_terminou_com": "trilha",
+            "fragmento": {
+              "n1": "A luzinha do começo acende a volta dela.",
+              "n2": "A luzinha lá do começo fica acesa, clareando o caminho da volta dela.",
+              "n3": "E a luzinha do cogumelo, a primeira da tarde, fica acesa atrás da Joana — clareando o comecinho do caminho da volta.",
+              "n4": "E a luzinha do cogumelo, a que abriu os segredos, continua acesa quando a Joana vai embora — um pontinho verde-clarinho ficando pra trás, de guarda, clareando o comecinho do caminho da volta como quem diz: pode ir, daqui eu tomo conta."
+            }
+          },
+          {
+            "se_comecou_com": "passaro",
+            "se_terminou_com": "riacho",
+            "fragmento": {
+              "n1": "O canto do começo desceu. Veio beber perto dela.",
+              "n2": "O pássaro do começo desceu pra beber na água do fim, pertinho dela.",
+              "n3": "E o pássaro lá do começo desce enfim do galho e vem beber na água do fim — os dois segredos se encontram, bem na frente da Joana.",
+              "n4": "E o pássaro que abriu a tarde com uma pergunta desce enfim do galho escondido e vem beber na água do fim, a dois passos da Joana. O primeiro segredo e o último se encontram na beira — e ela fica paradinha, entendendo: na floresta, tudo se conhece."
+            }
+          },
+          {
+            "se_terminou_com": "cogumelo",
+            "fragmento": {
+              "n1": "A luzinha fica acesa. De guarda pra ela.",
+              "n2": "A última coisa é a luzinha, acesa na sombra, de guarda pra ela.",
+              "n3": "E a luzinha do cogumelo fica acesa na sombra quando a Joana sai — pequenininha, firme, de guarda até amanhã.",
+              "n4": "E a última coisa que a Joana vê é a luzinha do cogumelo, acesa na sombra que vai fechando — pequenininha e firme, sem medo nenhum do escuro, de guarda na floresta até ela voltar."
+            }
+          },
+          {
+            "se_terminou_com": "riacho",
+            "fragmento": {
+              "n1": "A água segue cantando pra ela. Tchau, tchau.",
+              "n2": "A água continua a conversa, cantando tchau enquanto ela vai.",
+              "n3": "E a água do riacho continua a conversa sem parar, cantando um tchau comprido que acompanha a Joana até a saída.",
+              "n4": "E a água do riacho não para de conversar nem pra se despedir: vai cantando um tchau comprido, de pedra em pedra, acompanhando a Joana de longe até onde o ouvido alcança — conversa de água é assim, não termina, fica combinada pra amanhã."
+            }
+          },
+          {
+            "se_terminou_com": "passaro",
+            "fragmento": {
+              "n1": "O último canto vai com ela. Até a saída.",
+              "n2": "O pássaro canta a última pergunta, e ela leva a resposta.",
+              "n3": "E o pássaro canta uma última vez lá do alto — e a Joana assobia a resposta, baixinho, já quase na saída.",
+              "n4": "E lá do alto, escondido em algum galho, o pássaro canta uma última pergunta pra tarde. A Joana para na saída, junta os lábios e assobia a resposta — baixinho, do jeito que aprendeu hoje — e podia jurar que a floresta inteira ficou contente."
+            }
+          },
+          {
+            "se_comecou_com": "trilha",
+            "fragmento": {
+              "n1": "O caminho do começo guarda os passos dela.",
+              "n2": "O caminho lá do começo guarda os passos dela pra amanhã.",
+              "n3": "O caminho do começo continua lá, guardando os passos da Joana marcadinhos na terra — amanhã eles continuam dali.",
+              "n4": "O caminho que abriu a tarde continua lá atrás, com os passos da Joana marcadinhos na terra macia. A floresta não apaga: guarda, do jeito que guarda tudo — e amanhã os passos dela vão estar esperando, prontos pra continuar de onde pararam."
+            }
+          },
+          {
+            "se_comecou_com": "cogumelo",
+            "fragmento": {
+              "n1": "Tudo começou com uma luzinha. Ela pisca pra trás.",
+              "n2": "E pensar que tudo começou com uma luzinha na sombra. Ela sorri.",
+              "n3": "E pensar que a tarde inteira começou com uma luzinha verde na sombra — a Joana olha pra trás e pisca, como quem agradece o primeiro segredo.",
+              "n4": "E pensar que a tarde inteira de segredos começou com uma luzinha verde, quase nada, acesa na sombra. Na saída, a Joana olha pra trás e pisca devagar na direção dela — obrigada, luzinha — porque foi ela que mostrou que a floresta estava a fim de contar."
+            }
+          },
+          {
+            "se_comecou_com": "riacho",
+            "fragmento": {
+              "n1": "A conversa da água foi a primeira. Ainda canta nela.",
+              "n2": "A conversa da água abriu a tarde e ainda canta no ouvido dela.",
+              "n3": "A conversa da água foi a primeira da tarde, e ainda vai cantando dentro do ouvido da Joana no caminho de volta.",
+              "n4": "A conversa da água foi a primeira coisa que a floresta deixou a Joana ouvir — e é a que vai junto: mesmo longe da beira, o cantinho da água continua tocando dentro do ouvido dela, baixinho, como uma música que resolveu morar."
+            }
+          },
+          {
+            "se_comecou_com": "passaro",
+            "fragmento": {
+              "n1": "A pergunta do começo achou resposta. Ela sabe qual.",
+              "n2": "A pergunta cantada do começo achou resposta, e a resposta é dela.",
+              "n3": "A pergunta que o pássaro cantou no começo achou resposta durante a tarde — e a resposta é da Joana agora, guardada com os outros segredos.",
+              "n4": "A pergunta que o pássaro cantou no começo da tarde achou resposta no caminho — a Joana não conta qual é, porque resposta de floresta é segredo também. Vai guardada no peito com os outros, e amanhã, se o pássaro perguntar de novo, ela responde no assobio."
+            }
+          }
+        ]
+      }
+    },
+
+    "rodadas": [
+      { "n": 1, "revela": ["trilha", "cogumelo", "riacho", "passaro"], "escolhe": 3, "ordena": true, "trava_pontas": true },
+      { "n": 2, "revela": ["musgo"],     "escolhe": 1, "insere_em": "miolo" },
+      { "n": 3, "revela": ["borboleta"], "escolhe": 1, "insere_em": "miolo" },
+      { "n": 4, "revela": ["clareira"],  "escolhe": 1, "insere_em": "miolo" }
+    ],
+
+    "objetos": {
+      "trilha": {
+        "emoji": "🥾", "nome": "trilha", "papel_no_fim": "neutro", "registro": "convite / caminho",
+        "genero": "f", "numero": "sg",
+        "conta": {
+          "n1": [
+            "O caminho chama. Os pés dela vão.",
+            "Terra macia. Os pés dela afundam de leve.",
+            "A trilha segue. Ela segue junto."
+          ],
+          "n2": [
+            "A trilha entra no verde, e os pés da Joana entram atrás.",
+            "O chão é macio de terra, e o passo dela fica leve.",
+            "A trilha vai mostrando o caminho, e a Joana vai confiando."
+          ],
+          "n3": [
+            "A trilha é estreita, de terra batida macia, e vai entrando na sombra sem pressa. Os pés da Joana seguem sozinhos, um na frente do outro, como se o caminho puxasse devagarinho.",
+            "O chão da trilha é macio e fresco, e a Joana anda devagar de propósito, sentindo cada passo afundar um tiquinho — a floresta gosta de visita que não corre."
+          ],
+          "n4": [
+            "A trilha é estreita e de terra batida, macia do jeito que só chão de floresta é, e vai entrando na sombra verde sem contar aonde chega. Os pés da Joana seguem quase sozinhos, um na frente do outro, e ela deixa — porque tem caminho que sabe mais que a gente, e esse aqui claramente já levou muita criança pra lugares bons.",
+            "A Joana anda pela trilha devagar de propósito, sentindo a terra macia ceder um tiquinho a cada passo. Dos dois lados, o verde fecha como cortina; em cima, as copas deixam cair furinhos de sol; e o caminho segue na frente, paciente, guardando o resto da floresta pra mostrar na hora certa."
+          ]
+        },
+        "tempera": [
+          { "se": "pos:inicio", "entao": {
+            "n1": "A floresta começa nos pés dela. Primeiro passo.",
+            "n2": "A tarde na floresta começa assim: os pés dela na terra macia.",
+            "n3": "A tarde da Joana começa pelos pés: o primeiro passo na terra macia, e a floresta inteira ficando quieta pra ver quem chegou.",
+            "n4": "A tarde da Joana na floresta começa pelos pés: o primeiro passo afunda de leve na terra macia, e o mundo inteiro muda de barulho — a rua fica pra trás, o sussurro começa, e a floresta inteira dá uma paradinha curiosa pra ver quem chegou pisando tão devagar."
+          } },
+          { "se": ["tem:riacho", "antes_de:riacho"], "entao": {
+            "n1": "Tem som de água na frente. Os pés dela apressam.",
+            "n2": "A trilha dobra na direção de um barulhinho de água, e a Joana apressa o passo.",
+            "n3": "A trilha faz uma curva e começa um barulhinho de água em algum lugar na frente — os pés da Joana apressam sozinhos, curiosos.",
+            "n4": "A trilha faz uma curva de repente e um barulhinho de água aparece na frente, ainda escondido no verde. Os pés da Joana apressam sozinhos, sem pedir licença — água na floresta é promessa, e o caminho claramente está levando ela direto pra uma."
+          } }
+        ]
+      },
+      "cogumelo": {
+        "emoji": "🍄", "nome": "cogumelo", "papel_no_fim": "nucleo", "registro": "segredo aceso",
+        "genero": "m", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Uma luzinha no escuro. Verde. Ela abaixa.",
+            "Um cogumelo aceso. Ela chega perto.",
+            "Brilha no pé da árvore. Os olhos dela acham."
+          ],
+          "n2": [
+            "No pé da árvore, um cogumelo brilha verde-clarinho, e a Joana abaixa pra ver.",
+            "Uma luzinha verde acende na sombra, e ela vai chegando de mansinho.",
+            "Um cogumelo aceso espera na sombra, e os olhos dela arregalam."
+          ],
+          "n3": [
+            "No lugar mais escuro do pé da árvore, um cogumelo acende uma luzinha verde-clarinha. A Joana abaixa devagar, as mãos nos joelhos, o rosto chegando pertinho do brilho.",
+            "Uma luzinha verde aparece na sombra, tão quieta que parece mentira. A Joana chega de mansinho e abaixa: é um cogumelo aceso, um segredo com luz própria."
+          ],
+          "n4": [
+            "No lugar onde a sombra é mais funda, no pé de uma árvore velha, um cogumelo pequeno está aceso: uma luz verde-clarinha, mansa, morando dentro do chapéu dele. A Joana abaixa devagarinho, as mãos apoiadas nos joelhos, e chega o rosto até quase encostar — um segredo desses precisa de escuro pra aparecer, e apareceu bem pra ela.",
+            "A Joana quase passa reto — mas o canto do olho pega um brilho verde na sombra. Ela volta dois passos, abaixa devagar e encontra: um cogumelo pequeno, aceso por dentro, firme no pé da árvore como um abajurzinho que a floresta esqueceu ligado. Ela fica um tempão só olhando, sem tocar, porque segredo aceso a gente respeita."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:musgo", "depois_de:musgo"], "entao": {
+            "n1": "A luzinha mora no tapete verde. Ela espia.",
+            "n2": "O cogumelo mora no meio do musgo macio, e ela espia bem de perto.",
+            "n3": "O cogumelo cresceu bem no meio do tapete de musgo, e a Joana entende: até segredo aceso gosta de casa macia.",
+            "n4": "O cogumelo escolheu morar bem no meio do tapete de musgo, a luzinha verde apoiada no veludo verde — e a Joana, de rosto pertinho, entende uma coisa da floresta: até segredo aceso gosta de casa macia."
+          } },
+          { "se": "pos:inicio", "entao": {
+            "n1": "A floresta abre com uma luzinha. Ela vai ver.",
+            "n2": "A primeira coisa da tarde é uma luzinha verde na sombra, e ela vai ver.",
+            "n3": "A tarde da Joana começa com uma luzinha verde acesa na sombra — um segredo esperando bem no primeiro cantinho do caminho.",
+            "n4": "A tarde da Joana na floresta começa com uma luzinha verde, quase nada, acesa na sombra do primeiro pé de árvore — como se a floresta tivesse deixado o primeiro segredo bem na entrada, de propósito, pra ver se ela era do tipo que percebe. Ela é."
+          } }
+        ]
+      },
+      "riacho": {
+        "emoji": "💦", "nome": "riacho", "papel_no_fim": "neutro", "registro": "conversa da água / frescor",
+        "genero": "m", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Água corre. Canta. O dedo dela entra.",
+            "Um riacho no meio do verde. Ela senta na beira.",
+            "A água fala baixinho. Ela ouve perto."
+          ],
+          "n2": [
+            "Um riacho corre entre as pedras, e a Joana molha o dedo na água fria.",
+            "A água canta de pedra em pedra, e o ouvido dela segue a conversa.",
+            "Um fio de água clara aparece no verde, e ela agacha na beira."
+          ],
+          "n3": [
+            "Um riacho pequeno corre entre as pedras, cantando uma conversa que não para. A Joana agacha na beira e deixa o dedo entrar na água fria, só pra participar.",
+            "A água aparece de repente no meio do verde, clara e apressada, conversando de pedra em pedra. A Joana senta na beira e prova o frio com a ponta do dedo."
+          ],
+          "n4": [
+            "Um riacho pequeno atravessa a floresta conversando — a água fala uma língua de barulhinhos, que muda de tom a cada pedra que passa. A Joana agacha na beira, mete os dedos na água fria até o fundo de pedrinhas e fica ali, quieta, ouvindo com a mão: parece que a água está contando o caminho inteiro por onde já passou.",
+            "A Joana encontra o riacho pelo som antes de encontrar pelos olhos: um cantinho de água atrás do verde, chamando. Na beira, ela agacha, afunda os dedos na correnteza fria e sente a conversa passar pela pele — a água nunca repete, nunca para, e mesmo assim dá vontade de ficar ouvindo até de noite."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:trilha", "depois_de:trilha"], "entao": {
+            "n1": "A água esperava no fim do caminho. Ela chegou.",
+            "n2": "O caminho entregou a Joana bem na beira da água.",
+            "n3": "O caminho sabia aonde ia: entrega a Joana bem na beira da água, como quem dá um presente.",
+            "n4": "O caminho sabia exatamente aonde estava levando: entrega a Joana bem na beira da água e para ali, satisfeito, como quem dá um presente e fica esperando a cara de surpresa. Ela não decepciona — os olhos abrem grandes, e o riacho ganha visita demorada."
+          } },
+          { "se": "tem:cogumelo", "entao": {
+            "n1": "A luzinha aparece na água também. Ela vê as duas.",
+            "n2": "A luzinha verde treme refletida na água, e a Joana vê o segredo em dobro.",
+            "n3": "A luzinha verde do cogumelo aparece tremendo dentro da água, e a Joana vê o segredo em dobro: um aceso na sombra, outro dançando no riacho.",
+            "n4": "A luzinha verde do cogumelo se debruça no riacho e aparece tremendo dentro da água — e a Joana fica entre as duas, a de verdade e a molhada, vendo o mesmo segredo aceso em dobro. A floresta, quando gosta de um brilho, faz espelho."
+          } }
+        ]
+      },
+      "passaro": {
+        "emoji": "🐦", "nome": "pássaro", "papel_no_fim": "neutro", "registro": "chamado / resposta",
+        "genero": "m", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Um canto no alto. Ela procura.",
+            "O pássaro canta. O queixo dela sobe.",
+            "Fiu, fiu. Ela ouve. De onde vem?"
+          ],
+          "n2": [
+            "Lá do alto, um pássaro canta uma pergunta, e a Joana procura de galho em galho.",
+            "Um canto claro atravessa a sombra e para bem no ouvido dela.",
+            "O pássaro canta escondido, e os olhos dela sobem procurando."
+          ],
+          "n3": [
+            "Um pássaro canta escondido lá no alto — uma pergunta clara, cantada duas vezes. A Joana ergue o queixo e procura de galho em galho, sem achar: pássaro de floresta é craque em esconde-esconde.",
+            "O canto vem lá de cima, limpinho, atravessando a sombra até o ouvido da Joana. Ela para no meio do passo e fica procurando o dono da voz, o queixo erguido, os olhos indo de copa em copa."
+          ],
+          "n4": [
+            "De algum galho escondido lá no alto, um pássaro canta uma pergunta — clara, curtinha, repetida duas vezes, do jeito de quem espera resposta. A Joana para no meio do passo, ergue o queixo e vasculha as copas de galho em galho, sem achar ninguém: pássaro de floresta é craque em esconde-esconde, e canta melhor ainda quando sabe que estão procurando.",
+            "O canto desce da copa mais alta e para bem no ouvido da Joana: uma pergunta cantada, limpa, no meio do silêncio verde. Ela tenta responder no assobio — junta os lábios, sopra fininho — e sai um fiu torto, meio engraçado. Lá em cima, o pássaro repete a pergunta devagar, paciente, como quem ensina."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:riacho", "depois_de:riacho"], "entao": {
+            "n1": "O pássaro desce. Bebe na água. Perto dela.",
+            "n2": "O pássaro desce enfim e bebe na água, a dois passos dela.",
+            "n3": "O pássaro desce enfim do esconderijo e vem beber na água, a dois passos da Joana — ela vira estátua, pra ele ficar.",
+            "n4": "O pássaro desce enfim do esconderijo, no capricho, e pousa na beira pra beber — a dois passos da Joana. Ela vira estátua na hora, prendendo até a respiração: visita assim é rara, e quem se mexe perde. O pássaro bebe dois golinhos, olha pra ela de ladinho e deixa ficar."
+          } },
+          { "se": "tem:borboleta", "entao": {
+            "n1": "A borboleta passa. O pássaro deixa. Ela sorri.",
+            "n2": "A borboleta passa voando perto, e o pássaro só olha, e a Joana sorri.",
+            "n3": "A borboleta atravessa o ar bem na frente do pássaro, e ele só acompanha com a cabecinha, educado — a Joana sorri: na floresta os pequenos se respeitam.",
+            "n4": "A borboleta atravessa o ar devagar bem na frente do pássaro, e ele não faz nada — só acompanha com a cabecinha, virando de um lado pro outro, educadíssimo. A Joana segura o riso com a mão na boca: até bicho de floresta sabe que tem coisas que a gente só olha."
+          } }
+        ]
+      },
+      "musgo": {
+        "emoji": "🌿", "nome": "musgo", "papel_no_fim": "neutro", "registro": "veludo da floresta",
+        "genero": "m", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Um tapete verde na pedra. A palma dela afunda.",
+            "Macio, macio. A mão dela fica.",
+            "Musgo fresquinho. Ela aperta de leve."
+          ],
+          "n2": [
+            "A pedra tem um tapete de musgo, e a palma da Joana afunda no macio.",
+            "O musgo é um veludo verde, e a mão dela não quer sair.",
+            "A Joana acha o musgo na pedra e aperta devagar, só pra sentir."
+          ],
+          "n3": [
+            "Uma pedra grande veste um tapete de musgo, verde e fresquinho. A Joana espalma a mão em cima e afunda devagar — é o macio mais macio da floresta inteira.",
+            "A Joana encosta a palma no musgo da pedra e deixa os dedos afundarem no veludo fresco. A mão fica ali um tempão, e ela entende por que a floresta encapa as coisas antigas assim."
+          ],
+          "n4": [
+            "Uma pedra grande e antiga veste um tapete de musgo inteiro, verde-escuro e fresquinho de sombra. A Joana espalma a mão em cima, devagar, e sente os dedos afundarem no veludo — o macio mais macio da floresta, guardado bem ali, forrando a pedra como se ela fosse o sofá da casa. A mão fica; a Joana deixa.",
+            "O musgo é o segredo mais quieto da tarde: não brilha, não canta, não voa — só espera, fresquinho, forrando a pedra. A Joana descobre com a palma da mão: afunda devagar, aperta de leve, sente o veludo úmido ceder e voltar. Tem coisa na floresta que é só pra tocar, e essa é a melhor delas."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:riacho", "depois_de:riacho"], "entao": {
+            "n1": "Na beira da água, o musgo é mais macio. A mão dela confere.",
+            "n2": "Na beira da água, o musgo cresce mais gordinho, e a mão dela confere.",
+            "n3": "Na beira do riacho, o musgo cresce mais verde e mais gordinho — a Joana confere com a palma: é o mais macio de todos, encharcadinho de fresco.",
+            "n4": "Na beira do riacho o musgo vive melhor: cresce mais verde, mais gordinho, bebendo o respingo da conversa da água. A Joana espalma a mão pra conferir e confirma na hora — é o mais macio de todos, encharcadinho de fresco, o veludo premiado da floresta."
+          } }
+        ]
+      },
+      "borboleta": {
+        "emoji": "🦋", "nome": "borboleta", "papel_no_fim": "neutro", "registro": "delicadeza que escolhe",
+        "genero": "f", "numero": "sg",
+        "conta": {
+          "n1": [
+            "Uma borboleta no ar. Ela para. Espera.",
+            "Asas claras passam. Os olhos dela vão atrás.",
+            "A borboleta roda no ar. O dedo dela sobe."
+          ],
+          "n2": [
+            "Uma borboleta de asas claras passa devagar, e o dedo da Joana sobe esperando.",
+            "A borboleta voa sem pressa entre as sombras, e os olhos dela vão junto.",
+            "Uma borboleta aparece rodando no ar, e a Joana congela, na esperança."
+          ],
+          "n3": [
+            "Uma borboleta de asas claras vem voando sem pressa nenhuma, subindo e descendo no ar da sombra. A Joana estica o dedo no ar e congela, quase sem respirar — pouso de borboleta é prêmio de quem não se mexe.",
+            "A borboleta roda no ar como quem escolhe com cuidado, e a Joana vira estátua de dedo esticado. Perto, mais perto... o coração dela torce em silêncio."
+          ],
+          "n4": [
+            "Uma borboleta de asas claras atravessa a sombra voando do jeito dela: sem pressa nenhuma, subindo e descendo, escolhendo o caminho no ar como quem passeia. A Joana estica o dedo e congela inteirinha, quase sem respirar, os olhos acompanhando cada volta — porque pouso de borboleta não se pede, se merece, e merecer é isso: ficar quietinha e esperar ser escolhida.",
+            "A borboleta aparece do nada, rodando devagar no ar verde, e a tarde inteira fica mais delicada de uma vez. A Joana sobe o dedo devagarinho e vira estátua — e a borboleta chega, rodeia, pensa... e pousa. Um peso de quase nada, seis patinhas de cócega, as asas abrindo e fechando devagar. A Joana nem pisca: tem prêmio que dura pouco, e é por isso que vale tanto."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:cogumelo", "depois_de:cogumelo"], "entao": {
+            "n1": "A borboleta rodeia a luzinha. Ela espia os dois.",
+            "n2": "A borboleta rodeia a luzinha verde, curiosa, e a Joana espia os dois.",
+            "n3": "A borboleta encontra a luzinha do cogumelo e fica rodeando, encantada — e a Joana espia os dois segredos se conhecendo.",
+            "n4": "A borboleta encontra a luzinha verde do cogumelo e fica rodeando em volta, uma volta, outra, como quem não acredita que existe flor acesa. A Joana espia os dois de pertinho, quietinha — segredo apresentando segredo, e ela de plateia."
+          } },
+          { "se": ["tem:clareira", "antes_de:clareira"], "entao": {
+            "n1": "A borboleta vai na frente. Ela vai atrás.",
+            "n2": "A borboleta voa na frente, como quem conhece o caminho, e ela vai atrás.",
+            "n3": "A borboleta para de rodar e sai voando numa direção só, decidida — e a Joana vai atrás, confiando: bicho delicado conhece os lugares bons.",
+            "n4": "A borboleta para de passear e sai voando numa direção só, firme, olhando pra trás de vez em quando como quem confere a companhia. A Joana vai atrás sem perguntar — pé ante pé, desviando de galho, confiando inteira — porque quando um bicho delicado te chama pra algum lugar, o lugar vale a pena."
+          } }
+        ]
+      },
+      "clareira": {
+        "emoji": "🌞", "nome": "clareira", "papel_no_fim": "chave", "registro": "sala secreta / respiro",
+        "genero": "f", "numero": "sg",
+        "conta": {
+          "n1": [
+            "O verde abre. Luz! Ela entra.",
+            "Uma sala de sol na mata. Ela chega.",
+            "Luz no meio da sombra. O rosto dela esquenta."
+          ],
+          "n2": [
+            "O verde abre de repente numa sala de sol, e a Joana entra devagar.",
+            "A clareira aparece no meio da mata, e a luz esquenta o rosto dela.",
+            "Um lugar aberto e dourado espera no fim, e ela entra de olhos grandes."
+          ],
+          "n3": [
+            "O verde fecha, fecha — e abre de uma vez: uma clareira redonda, cheia de sol, no meio da mata escura. A Joana entra devagar, o rosto entrando na luz morna primeiro.",
+            "A clareira aparece como um segredo grande: uma sala redonda de luz dourada no meio da sombra. A Joana para na beirada um instante, e então entra, os braços abrindo devagar."
+          ],
+          "n4": [
+            "O verde vai fechando, fechando — e de uma vez abre: uma clareira redonda, inundada de sol de fim de tarde, escondida no meio da mata como uma sala secreta. A Joana para na beirada, entre a sombra e o dourado, e então entra devagar: o rosto primeiro, depois os braços abrindo, o peito enchendo de ar quente e dourado. A floresta inteira sussurra em volta, mas aqui dentro é só luz.",
+            "A clareira é o segredo que a floresta guarda pra quem vai até o fim: um lugar redondo e aberto onde o sol entra inteiro, acendendo o verde até virar ouro. A Joana entra devagar e roda uma volta no meio, de braços abertos, o rosto quente de luz — em volta, a mata escura assiste como uma plateia; aqui dentro, por um instante, o palco é todo dela."
+          ]
+        },
+        "tempera": [
+          { "se": ["tem:borboleta", "depois_de:borboleta"], "entao": {
+            "n1": "Foi a borboleta que trouxe ela aqui. Obrigada!",
+            "n2": "A borboleta vinha era pra cá: trouxe a Joana direto até a luz.",
+            "n3": "A borboleta atravessa a clareira na frente da Joana, fecha uma volta no ar dourado e pousa — missão cumprida: era pra cá que ela estava trazendo.",
+            "n4": "A borboleta atravessa a clareira voando na frente, dá uma volta larga no ar dourado e pousa numa flor da beirada, satisfeita — missão cumprida. A Joana entende e agradece baixinho: era pra cá que ela estava sendo trazida o tempo todo, e guia delicada não erra caminho."
+          } },
+          { "se": "pos:fim", "entao": {
+            "n1": "A floresta abre a sala do fim. Só pra ela.",
+            "n2": "A floresta guardou a clareira pro fim, e abre agora só pra ela.",
+            "n3": "A floresta guardou o melhor segredo pro fim: abre a clareira dourada pra Joana como quem abre a sala especial da casa.",
+            "n4": "A floresta guardou o melhor pro fim, do jeito das boas contadoras: no último trecho, o verde se abre inteiro e a clareira aparece, dourada, pronta, esperando só a Joana. Ela entra sabendo o que aquilo é — o presente de despedida, a sala secreta que a floresta só mostra pra visita que escutou até o final."
+          } }
+        ]
+      }
+    }
+  }
+}

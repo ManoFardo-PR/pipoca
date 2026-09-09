@@ -260,6 +260,146 @@
           "n4": "o ouvido seguindo as notas que vêm cada vez mais devagar; a respiração acompanhando, descendo junto, até quase parar de propósito pra ouvir a última"
         }
       }
+    },
+    "trilha": {
+      "genero": "f",
+      "numero": "sg",
+      "descricao": {
+        "n1": "uma passagem de terra no meio do verde",
+        "n2": "uma trilha estreita de terra batida, entrando no verde",
+        "n3": "uma trilha estreita de terra batida, que entra na sombra e vai mostrando o caminho aos poucos",
+        "n4": "uma trilha estreita de terra batida, macia de pisar, que entra na sombra verde e só mostra o caminho aos poucos — como quem diz: vem, mas vem devagar"
+      },
+      "sensacao": {
+        "dominante": "pés no chão (terra macia)",
+        "registro": "convite / caminho",
+        "corpo": {
+          "n1": "os pés seguem pela terra",
+          "n2": "os pés seguem o caminho; o passo fica leve",
+          "n3": "os pés seguindo o caminho de terra macia; o passo ficando leve, um de cada vez",
+          "n4": "os pés seguindo o caminho de terra macia, um passo de cada vez; o corpo indo atrás dos pés, leve, como se o caminho puxasse de mansinho"
+        }
+      }
+    },
+    "cogumelo": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "um cogumelo pequeno, com luz dentro",
+        "n2": "um cogumelo pequeno que brilha na sombra, verde-clarinho",
+        "n3": "um cogumelo pequeno que acende na sombra com uma luz verde-clarinha, dessas de quase não acreditar",
+        "n4": "um cogumelo pequeno aceso na sombra, com uma luz verde-clarinha morando dentro do chapéu — um segredo tão quieto que precisa de escuro pra aparecer"
+      },
+      "sensacao": {
+        "dominante": "visão-brilho (luz baixinha na sombra)",
+        "registro": "segredo aceso",
+        "corpo": {
+          "n1": "os olhos vão até a luz",
+          "n2": "os olhos vão até o brilho; o corpo abaixa devagar",
+          "n3": "os olhos indo até o brilho; o corpo abaixando devagar, as mãos nos joelhos",
+          "n4": "os olhos indo direto ao brilho; o corpo abaixando devagar, as mãos apoiadas nos joelhos, o rosto chegando pertinho da luz pequenina"
+        }
+      }
+    },
+    "riacho": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "água que corre e canta",
+        "n2": "um fio de água que corre e canta entre as pedras",
+        "n3": "um fio de água clara que corre entre as pedras, cantando uma conversa que não para",
+        "n4": "um fio de água clara correndo entre as pedras, sem pressa e sem parar — uma conversa comprida que a água conta pra quem sentar na beira"
+      },
+      "sensacao": {
+        "dominante": "audição+frio (água nos dedos)",
+        "registro": "conversa da água / frescor",
+        "corpo": {
+          "n1": "o dedo entra na água fria",
+          "n2": "o dedo entra na água fria; o ouvido segue o barulhinho",
+          "n3": "o dedo entrando na água fria; o ouvido seguindo a conversa da água",
+          "n4": "os dedos entrando na água fria até o fundo de pedrinhas; o ouvido seguindo a conversa da água, que muda de tom quando passa por cada pedra"
+        }
+      }
+    },
+    "passaro": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "um pássaro que canta perto",
+        "n2": "um pássaro pequeno que canta escondido no alto",
+        "n3": "um pássaro pequeno, escondido no alto, que canta uma pergunta e espera resposta",
+        "n4": "um pássaro pequeno escondido em algum galho alto, que canta uma pergunta clara no meio do silêncio — e depois espera, como quem sabe que alguém vai responder"
+      },
+      "sensacao": {
+        "dominante": "audição (canto e resposta)",
+        "registro": "chamado / resposta",
+        "corpo": {
+          "n1": "o ouvido segue o canto",
+          "n2": "o ouvido segue o canto; o queixo sobe procurando",
+          "n3": "o ouvido seguindo o canto; o queixo subindo, os olhos procurando de galho em galho",
+          "n4": "o ouvido seguindo o canto primeiro; o queixo subindo devagar, os olhos procurando de galho em galho — e a boca ensaiando um assobio de resposta"
+        }
+      }
+    },
+    "musgo": {
+      "genero": "m",
+      "numero": "sg",
+      "descricao": {
+        "n1": "um tapete verde, macio de tocar",
+        "n2": "um tapete verde e macio, forrando a pedra",
+        "n3": "um tapete verde e macio forrando a pedra, fresquinho como veludo da sombra",
+        "n4": "um tapete verde e macio forrando a pedra inteira, fresco e fofinho de apertar — o veludo que a floresta usa pra encapar as coisas antigas"
+      },
+      "sensacao": {
+        "dominante": "tato (veludo fresco)",
+        "registro": "veludo da floresta",
+        "corpo": {
+          "n1": "a palma afunda no macio",
+          "n2": "a palma afunda no macio; os dedos ficam",
+          "n3": "a palma afundando no macio fresquinho; os dedos ficando mais um pouco",
+          "n4": "a palma afundando devagar no macio fresquinho; os dedos abrindo e ficando ali mais um pouco, sem nenhuma vontade de sair"
+        }
+      }
+    },
+    "borboleta": {
+      "genero": "f",
+      "numero": "sg",
+      "descricao": {
+        "n1": "uma borboleta de asas claras",
+        "n2": "uma borboleta de asas claras, que voa sem pressa",
+        "n3": "uma borboleta de asas claras que voa sem pressa nenhuma, escolhendo onde pousar",
+        "n4": "uma borboleta de asas claras que voa sem pressa nenhuma, subindo e descendo no ar da sombra — escolhendo com todo o cuidado do mundo o lugar exato de pousar"
+      },
+      "sensacao": {
+        "dominante": "movimento acompanhado (voo sem pressa)",
+        "registro": "delicadeza que escolhe",
+        "corpo": {
+          "n1": "o dedo espera no ar",
+          "n2": "o dedo espera no ar; o corpo bem parado",
+          "n3": "o dedo esperando no ar, bem parado; a respiração segurada de leve",
+          "n4": "o dedo esperando no ar, a mão inteira bem parada; a respiração segurada de leve, porque pouso de borboleta é prêmio de quem não se mexe"
+        }
+      }
+    },
+    "clareira": {
+      "genero": "f",
+      "numero": "sg",
+      "descricao": {
+        "n1": "um lugar aberto, todo de luz",
+        "n2": "um lugar redondo e aberto, onde o sol entra inteiro",
+        "n3": "um lugar redondo e aberto no meio da mata fechada, onde o sol entra inteiro e o verde vira ouro",
+        "n4": "um lugar redondo e aberto guardado no meio da mata fechada — ali o sol entra inteiro, o verde vira ouro, e a floresta mostra que também sabe fazer sala de estar"
+      },
+      "sensacao": {
+        "dominante": "visão-grande (luz aberta)",
+        "registro": "sala secreta / respiro",
+        "corpo": {
+          "n1": "o rosto entra na luz",
+          "n2": "o rosto entra na luz; os braços abrem",
+          "n3": "o rosto entrando na luz morna; os braços abrindo devagar",
+          "n4": "o rosto entrando na luz morna de uma vez; os braços abrindo devagar, o peito enchendo de ar dourado, como quem chega num lugar que era segredo"
+        }
+      }
     }
   }
 }

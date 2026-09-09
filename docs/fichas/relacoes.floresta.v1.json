@@ -1,0 +1,181 @@
+{
+  "esquema": "pipoca.fichas.v1",
+  "cenario": "floresta_sussurrante",
+  "objeto_x_objeto": [
+    {
+      "se": ["tem:riacho", "antes_de:riacho"],
+      "objeto": "trilha",
+      "alvo": "riacho",
+      "interacao": {
+        "n1": "o caminho dobra pro lado da água",
+        "n2": "o caminho dobrando na direção de um som de água",
+        "n3": "o caminho fazendo uma curva na direção de um som de água, ainda escondido no verde",
+        "n4": "o caminho fazendo uma curva de propósito na direção de um som de água, ainda escondido no verde — água na floresta é promessa, e caminho bom leva direto"
+      }
+    },
+    {
+      "se": ["tem:musgo", "depois_de:musgo"],
+      "objeto": "cogumelo",
+      "alvo": "musgo",
+      "interacao": {
+        "n1": "a luzinha morando no tapete macio",
+        "n2": "o cogumelo morando no meio do tapete de musgo",
+        "n3": "o cogumelo crescido bem no meio do tapete de musgo, a luz apoiada no veludo",
+        "n4": "o cogumelo morando bem no meio do tapete de musgo, a luzinha verde apoiada no veludo verde — até segredo aceso gosta de casa macia"
+      }
+    },
+    {
+      "se": ["tem:trilha", "depois_de:trilha"],
+      "objeto": "riacho",
+      "alvo": "trilha",
+      "interacao": {
+        "n1": "o caminho entrega na beira da água",
+        "n2": "o caminho entregando a visita bem na beira da água",
+        "n3": "o caminho entregando a visita bem na beira da água, como quem dá um presente",
+        "n4": "o caminho entregando a visita bem na beira da água e parando ali, satisfeito — como quem dá um presente e espera a cara de surpresa"
+      }
+    },
+    {
+      "se": "tem:cogumelo",
+      "objeto": "riacho",
+      "alvo": "cogumelo",
+      "interacao": {
+        "n1": "a luzinha tremendo na água",
+        "n2": "a luzinha verde tremendo refletida na água",
+        "n3": "a luzinha verde do cogumelo tremendo dentro da água, o segredo em dobro",
+        "n4": "a luzinha verde do cogumelo debruçada no riacho, tremendo dentro da água — o mesmo segredo aceso em dobro, um na sombra e um dançando"
+      }
+    },
+    {
+      "se": ["tem:riacho", "depois_de:riacho"],
+      "objeto": "passaro",
+      "alvo": "riacho",
+      "interacao": {
+        "n1": "o pássaro desce pra beber na beira",
+        "n2": "o pássaro descendo enfim pra beber na água, a dois passos",
+        "n3": "o pássaro descendo do esconderijo pra beber na água, a dois passos de quem vira estátua",
+        "n4": "o pássaro descendo enfim do esconderijo, no capricho, pra beber na beira a dois passos — dois golinhos, uma olhada de ladinho, e a visita rara deixada ficar"
+      }
+    },
+    {
+      "se": "tem:borboleta",
+      "objeto": "passaro",
+      "alvo": "borboleta",
+      "interacao": {
+        "n1": "o pássaro só olha a borboleta passar",
+        "n2": "o pássaro acompanhando a borboleta só com a cabecinha",
+        "n3": "o pássaro acompanhando a borboleta só com a cabecinha, educado, sem sair do galho",
+        "n4": "o pássaro acompanhando a borboleta só com a cabecinha, virando de um lado pro outro, educadíssimo — na floresta os pequenos se respeitam"
+      }
+    },
+    {
+      "se": ["tem:riacho", "depois_de:riacho"],
+      "objeto": "musgo",
+      "alvo": "riacho",
+      "interacao": {
+        "n1": "o musgo da beira, o mais macio",
+        "n2": "o musgo da beira crescendo mais verde e gordinho",
+        "n3": "o musgo da beira do riacho crescendo mais verde e gordinho, encharcadinho de fresco",
+        "n4": "o musgo da beira do riacho vivendo melhor: mais verde, mais gordinho, bebendo o respingo da conversa da água — o veludo premiado da floresta"
+      }
+    },
+    {
+      "se": ["tem:cogumelo", "depois_de:cogumelo"],
+      "objeto": "borboleta",
+      "alvo": "cogumelo",
+      "interacao": {
+        "n1": "a borboleta rodeando a luzinha",
+        "n2": "a borboleta rodeando a luzinha verde, curiosa",
+        "n3": "a borboleta rodeando a luzinha do cogumelo, encantada, uma volta e outra",
+        "n4": "a borboleta rodeando a luzinha verde em voltas devagarinhas, como quem não acredita que existe flor acesa — segredo apresentando segredo"
+      }
+    },
+    {
+      "se": ["tem:clareira", "antes_de:clareira"],
+      "objeto": "borboleta",
+      "alvo": "clareira",
+      "interacao": {
+        "n1": "a borboleta vai na frente, guiando",
+        "n2": "a borboleta voando na frente, como quem conhece o caminho",
+        "n3": "a borboleta voando numa direção só, decidida, guiando até um lugar bom",
+        "n4": "a borboleta voando na frente numa direção só, firme, olhando pra trás de vez em quando pra conferir a companhia — guia delicada não erra caminho"
+      }
+    },
+    {
+      "se": ["tem:borboleta", "depois_de:borboleta"],
+      "objeto": "clareira",
+      "alvo": "borboleta",
+      "interacao": {
+        "n1": "a borboleta cruza a luz e pousa",
+        "n2": "a borboleta cruzando o ar dourado e pousando, missão cumprida",
+        "n3": "a borboleta atravessando a clareira, fechando uma volta no ar dourado e pousando — missão cumprida",
+        "n4": "a borboleta atravessando a clareira na frente, dando uma volta larga no ar dourado e pousando numa flor da beirada, satisfeita — era pra cá que estava trazendo"
+      }
+    }
+  ],
+  "objeto_x_cenario": [
+    {
+      "objeto": "trilha",
+      "manifestacao": {
+        "n1": "um caminho de terra no verde",
+        "n2": "uma trilha estreita de terra entrando no verde",
+        "n3": "uma trilha estreita de terra batida entrando na sombra da floresta, sem contar aonde chega",
+        "n4": "uma trilha estreita de terra batida entrando na sombra verde da floresta, macia de pisar, paciente — guardando o resto pra mostrar na hora certa"
+      }
+    },
+    {
+      "objeto": "cogumelo",
+      "manifestacao": {
+        "n1": "uma luzinha verde na sombra",
+        "n2": "um cogumelo aceso na sombra do pé de árvore",
+        "n3": "no pé de uma árvore velha da floresta, um cogumelo aceso de luz verde-clarinha",
+        "n4": "no lugar onde a sombra da floresta é mais funda, no pé de uma árvore velha, um cogumelo aceso — um abajurzinho que a mata esqueceu ligado"
+      }
+    },
+    {
+      "objeto": "riacho",
+      "manifestacao": {
+        "n1": "água correndo no meio do verde",
+        "n2": "um riacho conversando entre as pedras da floresta",
+        "n3": "um riacho pequeno atravessando a floresta, conversando de pedra em pedra",
+        "n4": "um riacho pequeno atravessando a floresta numa conversa que não para — uma língua de barulhinhos que muda de tom a cada pedra"
+      }
+    },
+    {
+      "objeto": "passaro",
+      "manifestacao": {
+        "n1": "um canto vindo do alto",
+        "n2": "um canto de pássaro descendo da copa",
+        "n3": "um canto claro descendo da copa mais alta da floresta, de algum galho escondido",
+        "n4": "de algum galho escondido na copa mais alta da floresta, um canto claro descendo no meio do silêncio verde — uma pergunta cantada, esperando resposta"
+      }
+    },
+    {
+      "objeto": "musgo",
+      "manifestacao": {
+        "n1": "um tapete verde na pedra",
+        "n2": "um tapete de musgo forrando a pedra da floresta",
+        "n3": "uma pedra antiga da floresta vestida de musgo, verde-escuro e fresquinho de sombra",
+        "n4": "uma pedra grande e antiga da floresta vestida de musgo inteiro — o veludo fresquinho que a mata usa pra encapar as coisas que guarda faz tempo"
+      }
+    },
+    {
+      "objeto": "borboleta",
+      "manifestacao": {
+        "n1": "asas claras no ar da sombra",
+        "n2": "uma borboleta passeando no ar da sombra",
+        "n3": "uma borboleta de asas claras passeando no ar verde, subindo e descendo sem pressa",
+        "n4": "uma borboleta de asas claras atravessando o ar da sombra sem pressa nenhuma, subindo e descendo — a coisa mais delicada que a floresta deixa voar"
+      }
+    },
+    {
+      "objeto": "clareira",
+      "manifestacao": {
+        "n1": "uma sala de sol na mata",
+        "n2": "uma clareira dourada escondida na mata",
+        "n3": "uma clareira redonda escondida no meio da mata fechada, cheia de sol de fim de tarde",
+        "n4": "uma clareira redonda guardada no meio da mata fechada, inundada de sol de fim de tarde — a sala secreta que a floresta só mostra pra quem vai até o fim"
+      }
+    }
+  ]
+}
